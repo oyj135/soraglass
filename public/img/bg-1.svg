@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a1c4fd"/><stop offset=".55" stop-color="#fbc2eb"/><stop offset="1" stop-color="#fde2f3"/></linearGradient>
+    <radialGradient id="sun"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#sky)"/>
+  <circle cx="1190" cy="260" r="250" fill="url(#sun)"/>
+  <circle cx="1190" cy="260" r="72" fill="#fff" opacity=".7"/>
+  <path d="M0 760 Q260 620 520 740 T1040 700 T1600 760 V1000 H0Z" fill="#8ea9e8" opacity=".45"/>
+  <path d="M0 850 Q300 720 640 830 T1280 810 T1600 860 V1000 H0Z" fill="#6f86cf" opacity=".45"/>
+  <g fill="#fff" opacity=".55"><circle cx="180" cy="180" r="4"/><circle cx="420" cy="320" r="3"/><circle cx="760" cy="140" r="5"/><circle cx="980" cy="400" r="3"/><circle cx="1420" cy="160" r="4"/><circle cx="300" cy="520" r="3"/></g>
+</svg>

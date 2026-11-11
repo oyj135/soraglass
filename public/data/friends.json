@@ -1,0 +1,18 @@
+[
+  {
+    "id": "typecho",
+    "name": "Typecho",
+    "description": "轻量级开源博客程序",
+    "url": "https://typecho.org",
+    "avatar": "",
+    "themeColor": "rgba(99,102,241,.5)"
+  },
+  {
+    "id": "docs",
+    "name": "Typecho Docs",
+    "description": "官方文档与主题开发参考",
+    "url": "https://docs.typecho.org",
+    "avatar": "",
+    "themeColor": "rgba(16,185,129,.5)"
+  }
+]

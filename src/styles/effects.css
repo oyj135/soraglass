@@ -1,0 +1,173 @@
+/**
+ * 背景层与动效 —— 对应源站 layout.tsx 的固定背景栈 + BackgroundSlider/BackgroundEffects。
+ * 壁纸：多帧交叉淡入 2000ms；遮罩无额外模糊；渐变 mix-blend-color。
+ */
+
+.sg-body { opacity: 0; transition: opacity .45s ease; }
+html.sg-ready .sg-body { opacity: 1; }
+
+/* 开屏 */
+.sg-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  display: grid;
+  place-items: center;
+  background: var(--sg-page);
+  transition: opacity .6s ease, visibility .6s;
+}
+
+html.sg-ready .sg-splash { opacity: 0; visibility: hidden; }
+.sg-splash-mark { font-size: 1.5rem; font-weight: 900; letter-spacing: .3em; color: var(--sg-indigo); animation: sg-breathe 1.4s ease-in-out infinite; }
+
+/* 背景栈 */
+.sg-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sg-bg-images {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.sg-bg-frame {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 2s ease-in-out;
+  will-change: opacity;
+}
+
+.sg-bg-frame.is-active { opacity: 1; }
+
+.sg-bg-frame img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sg-bg-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: var(--sg-veil);
+  transition: background-color 1s;
+}
+
+.sg-gradient {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  opacity: var(--sg-gradient-opacity);
+  mix-blend-mode: color;
+  background-image: linear-gradient(-45deg, #a18cd1, #fbc2eb, #a1c4fd, #c2e9fb);
+  background-size: 400% 400%;
+  animation: sg-gradient-move 15s ease infinite;
+  transform: translateZ(0);
+  transition: opacity 1s;
+}
+
+.sg-glow {
+  position: absolute;
+  z-index: 4;
+  width: 40%;
+  height: 40%;
+  border-radius: 50%;
+  filter: blur(100px);
+  transition: background-color 1s;
+}
+
+.sg-glow-a { top: -10%; left: -10%; background: var(--sg-glow-a); }
+.sg-glow-b { right: -10%; bottom: -10%; background: var(--sg-glow-b); }
+
+@media (min-width: 768px) {
+  .sg-glow { mix-blend-mode: overlay; }
+}
+
+/* 粒子 / 弹幕 */
+.sg-effects {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.sg-danmaku {
+  position: fixed;
+  top: 7rem;
+  left: 0;
+  right: 0;
+  height: 30vh;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sg-danmaku span {
+  position: absolute;
+  white-space: nowrap;
+  font-size: .85rem;
+  color: var(--sg-text);
+  opacity: .28;
+  animation: sg-danmaku-move linear forwards;
+}
+
+@media (max-width: 767px) {
+  .sg-effects, .sg-danmaku { display: none; }
+}
+
+/* 灯箱 */
+.sg-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 9997;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background: rgba(2, 6, 23, .88);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  cursor: zoom-out;
+}
+
+.sg-lightbox img { max-width: 92vw; max-height: 86vh; border-radius: 1rem; }
+
+@keyframes sg-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .35; }
+}
+
+@keyframes sg-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes sg-breathe {
+  0%, 100% { opacity: .45; }
+  50% { opacity: 1; }
+}
+
+@keyframes sg-gradient-move {
+  0% { background-position: 0 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+@keyframes sg-danmaku-move {
+  from { transform: translateX(100vw); }
+  to { transform: translateX(-100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sg-effects, .sg-danmaku, .sg-splash-mark { display: none; }
+  .sg-gradient { animation: none; }
+}

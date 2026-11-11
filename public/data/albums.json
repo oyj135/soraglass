@@ -1,0 +1,13 @@
+[
+  {
+    "id": "demo",
+    "title": "示例相册",
+    "description": "请在「设置外观 → 相册 JSON」中替换，或改用 Typecho 附件外链",
+    "date": "2026.11",
+    "cover": "",
+    "photos": [
+      { "url": "", "caption": "示例照片一" },
+      { "url": "", "caption": "示例照片二" }
+    ]
+  }
+]

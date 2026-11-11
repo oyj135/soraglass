@@ -1,0 +1,19 @@
+@import "tailwindcss";
+@import "./font.css";
+@import "./tokens.css";
+@import "./layout.css";
+@import "./components.css";
+@import "./effects.css";
+
+/* Tailwind 4 必须显式扫描 PHP 模板，否则模板里的工具类不会生成 */
+@source "../../**/*.php";
+@source "../**/*.ts";
+
+@theme {
+  --font-serif: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --color-sg-indigo: #6366f1;
+}
+
+/* 暗色变体：与源站 @custom-variant dark 完全一致 */
+@custom-variant dark (&:where(.dark, .dark *));

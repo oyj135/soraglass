@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.vite/
+*.log
+.DS_Store
+Thumbs.db
+scripts/
+
+# 目录职责（详见 ../docs/STRUCTURE.md）：
+#   soraglass/        只放主题源码工程，不落地保留文档与构建产物
+#   ../docs/          全部沉淀文档与宝塔配置说明
+#   ../soraglass.zip  可直传宝塔的运行包（由 npm run release 生成，内含 dist/）
+# 线上（阿里云 ECS + 宝塔）不运行 Node，部署请上传 zip，不要上传源码目录。

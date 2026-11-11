@@ -1,0 +1,29 @@
+[
+  {
+    "badge": "DAILY SIGNAL",
+    "date": "2026.01.12",
+    "label": "每日拾光",
+    "title": "把毛玻璃调成呼吸的频率",
+    "desc": "背景渐变每 15 秒循环一次，卡片模糊固定在 12px——再多就糊，再少就透。",
+    "cover": "dist/img/bg-1.svg",
+    "meta": ["设计札记", "6 min read"]
+  },
+  {
+    "badge": "DAILY SIGNAL",
+    "date": "2026.01.11",
+    "label": "技术备忘",
+    "title": "Typecho 主题里那些会踩的坑",
+    "desc": "自定义模板必须写 @package custom；themeUrl 属性在模板 include 里可能是空串。",
+    "cover": "dist/img/bg-2.svg",
+    "meta": ["Typecho", "8 min read"]
+  },
+  {
+    "badge": "DAILY SIGNAL",
+    "date": "2026.01.10",
+    "label": "空璃手记",
+    "title": "夜里把深空调成 #020617",
+    "desc": "夜间模式不是简单反色：卡片透明度、边框、光晕都要重新配一遍才不脏。",
+    "cover": "dist/img/bg-1.svg",
+    "meta": ["配色", "4 min read"]
+  }
+]

@@ -1,0 +1,77 @@
+/**
+ * 骨架与栅格 —— 对应源站 layout.tsx / page.tsx 的容器与网格。
+ * 容器：w-[95%] md:w-[90%] max-w-6xl mx-auto mt-24 md:mt-28
+ */
+
+.sg-main {
+  position: relative;
+  z-index: 1;
+  width: 95%;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding: 6rem 0 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.sg-main--wide { max-width: 80rem; }
+.sg-main--narrow { max-width: 56rem; }
+
+@media (min-width: 768px) {
+  .sg-main { width: 90%; padding-top: 7rem; }
+  .sg-main--pad { padding-inline: .5rem; }
+}
+
+@media (min-width: 1024px) {
+  .sg-main--pad { padding-inline: 1.5rem; }
+}
+
+.sg-stack { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.sg-grid { display: grid; gap: 1.5rem; grid-template-columns: minmax(0, 1fr); }
+
+/* 首页 7:5 与 4:8；断点 1024px 与源站 lg 一致 */
+@media (min-width: 1024px) {
+  .sg-grid-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .sg-col-7 { grid-column: span 7; }
+  .sg-col-5 { grid-column: span 5; }
+  .sg-col-4 { grid-column: span 4; }
+  .sg-col-8 { grid-column: span 8; }
+}
+
+/* 右列内部：宽幅海报 + 三小格（说说 2 / 昼夜 1） */
+.sg-subgrid { display: grid; gap: 1.5rem; grid-template-columns: minmax(0, 1fr); }
+
+@media (min-width: 640px) {
+  .sg-subgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .sg-subgrid-2 { grid-column: span 2; }
+  .sg-subgrid-1 { grid-column: span 1; }
+}
+
+/* 文章页：正文 + 320px 侧栏 */
+.sg-article-layout { display: flex; flex-direction: column; gap: 1.5rem; }
+
+@media (min-width: 1024px) {
+  .sg-article-layout { flex-direction: row; gap: 2rem; align-items: flex-start; }
+}
+
+.sg-aside {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  flex-shrink: 0;
+}
+
+@media (min-width: 1024px) {
+  .sg-aside { width: 320px; }
+}
+
+/* 两列卡片网格（友链 / 项目 / 说说 / 杂谈） */
+.sg-card-grid { display: grid; gap: 1.5rem; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 768px) { .sg-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.sg-photo-grid { display: grid; gap: .875rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 640px) { .sg-photo-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .sg-photo-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
