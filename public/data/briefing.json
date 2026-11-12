@@ -11,7 +11,7 @@
       "kicker": "每日拾光",
       "title": "AI 日报 / 文献雷达",
       "desc": "压实钠蒙脱石里的水，主要从哪些孔隙扩散？",
-      "cover": "https://picsum.photos/id/1024/1200/700",
+      "cover": "dist/img/photos/sakura-1.jpg",
       "notice": "本期收录 3 条 AI 动态与 3 篇研究论文。示例数据，替换成你自己的阅读清单即可直接使用。",
       "items": [
         {
@@ -107,7 +107,7 @@
       "kicker": "每日拾光",
       "title": "前端手记 / 视觉随手记",
       "desc": "毛玻璃不是加个 blur 就完事，先把层级和对比度想清楚。",
-      "cover": "https://picsum.photos/id/1015/1200/700",
+      "cover": "dist/img/photos/sakura-2.jpg",
       "notice": "本期为示例数据：3 条前端笔记 + 2 条排印观察。",
       "items": [
         {
@@ -189,7 +189,7 @@
       "kicker": "每日拾光",
       "title": "Typecho 维护 / 运维备忘",
       "desc": "主题目录只有 www 可写时，缓存该放哪里？",
-      "cover": "https://picsum.photos/id/1043/1200/700",
+      "cover": "dist/img/photos/briefing-3.jpg",
       "notice": "本期为示例数据：3 条 Typecho 运维备忘。",
       "items": [
         {

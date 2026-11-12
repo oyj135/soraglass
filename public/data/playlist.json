@@ -1,23 +1,26 @@
 [
   {
-    "title": "SoundHelix Song 1",
-    "artist": "SoundHelix · 公开示例音源",
-    "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-    "cover": "dist/img/cover-default.svg",
-    "lyric": "公开示例音频：用于验证播放器链路，正式上线请换成自己的音源"
+    "title": "Fluffing a Duck",
+    "artist": "Kevin MacLeod · CC BY 4.0",
+    "album": "incompetech",
+    "url": "dist/audio/fluffing-a-duck.mp3",
+    "cover": "dist/img/photos/sakura-2.jpg",
+    "lyric": "纯音乐，没有歌词。闭上眼听完这一首。"
   },
   {
-    "title": "SoundHelix Song 2",
-    "artist": "SoundHelix · 公开示例音源",
-    "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-    "cover": "dist/img/cover-default.svg",
-    "lyric": "曲目信息与封面都来自后台「歌单 JSON」"
+    "title": "Adding the Sun",
+    "artist": "Kevin MacLeod · CC BY 4.0",
+    "album": "incompetech",
+    "url": "dist/audio/adding-the-sun.mp3",
+    "cover": "dist/img/photos/terra-1.jpg",
+    "lyric": "纯音乐，没有歌词。适合在写代码的时候循环。"
   },
   {
-    "title": "SoundHelix Song 3",
-    "artist": "SoundHelix · 公开示例音源",
-    "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
-    "cover": "dist/img/cover-default.svg",
-    "lyric": ""
+    "title": "Happy Alley",
+    "artist": "Kevin MacLeod · CC BY 4.0",
+    "album": "incompetech",
+    "url": "dist/audio/happy-alley.mp3",
+    "cover": "dist/img/photos/briefing-3.jpg",
+    "lyric": "纯音乐，没有歌词。傍晚六点的走廊。"
   }
 ]

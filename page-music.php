@@ -114,7 +114,8 @@ $sgHead = [
 
       <p class="sg-music-note">
         歌单优先级：后台「歌单 JSON」→ 后台「网易云歌曲 ID」→ <code>dist/data/playlist.json</code>。
-        外链若 403 请换直链音频。
+        默认三首是随主题自带的 CC-BY 纯音乐（Kevin MacLeod），想换自己的曲子就把音频丢进
+        <code>public/audio/</code>，地址写 <code>dist/audio/文件名.mp3</code>。
       </p>
     </section>
   </div>

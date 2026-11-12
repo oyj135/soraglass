@@ -263,11 +263,11 @@ function sg_post_heatmap(): array
 }
 
 /**
- * 最近动态：文章 / 杂谈 / 说说混排，供关于页「研究动态」的时间线使用。
+ * 最近动态：文章与碎语混排，供关于页「研究动态」的时间线使用。
  *
  * 一次查库搞定，不逐条问分类：先取最近 N 篇已发布 post，再用一次
  * relationships + metas 连表拿到各自的分类缩略名，最后按缩略名归类动作：
- * chatter → 更新了杂谈，moments → 发布了说说，其余 → 更新了文章。
+ * notes → 记了一条碎语，其余 → 更新了文章。
  */
 function sg_activity_feed(int $limit = 12): array
 {
@@ -332,12 +332,9 @@ function sg_activity_feed(int $limit = 12): array
             continue;
         }
         $slug = $slugs[$cid] ?? '';
-        if ($slug === 'chatter') {
-            $action = '更新了';
-            $kind = '杂谈';
-        } elseif ($slug === 'moments') {
-            $action = '发布了';
-            $kind = '说说';
+        if ($slug === 'notes') {
+            $action = '记录了';
+            $kind = '碎语';
         } else {
             $action = '更新了';
             $kind = '文章';
@@ -419,11 +416,14 @@ function sg_home_poster($archive = null): array
         if ($cover === '' && isset($photos[0]['url'])) {
             $cover = (string) $photos[0]['url'];
         }
+        /* 首页宽幅卡是 4.2:1 的长条，竖构图封面会被裁成一条中段；
+           相册 JSON 可以额外给一张 coverWide（横构图），只在这里使用。 */
+        $wide = trim((string) ($album['coverWide'] ?? ''));
         return [
             'title'  => (string) ($album['title'] ?? $fallback['title']),
             'desc'   => (string) ($album['description'] ?? $fallback['desc']),
             'link'   => sg_page_url('photowall'),
-            'cover'  => sg_media($cover, $fallback['cover']),
+            'cover'  => sg_media($wide !== '' ? $wide : $cover, $fallback['cover']),
             'kicker' => 'PHOTO WALL',
         ];
     }
@@ -440,7 +440,7 @@ function sg_playlist(): array
     $list = sg_json('sgPlaylist', 'playlist', []);
     $list = array_values(array_filter($list, static fn($item) => is_array($item)));
     if ($list) {
-        return $list;
+        return sg_playlist_media($list);
     }
 
     $ids = sg_opt('sgPlaylistIds', '');
@@ -452,6 +452,103 @@ function sg_playlist(): array
     }
 
     return [];
+}
+
+/**
+ * 首页「碎语」轮播的一张。
+ *
+ * 数据来自 notes.json，没有封面时退到主题自带渐变图，避免出现一条空白卡片。
+ */
+function sg_note_slide(array $note): string
+{
+    $active = !empty($note['active']);
+    $title = (string) ($note['title'] ?? '');
+    $text = (string) ($note['text'] ?? '');
+    $tag = (string) ($note['tag'] ?? '碎语');
+    $date = (string) ($note['date'] ?? '');
+    $cover = (string) ($note['cover'] ?? '');
+    if ($cover === '') {
+        $cover = sg_theme_url('dist/img/cover-default.svg');
+    }
+    $href = (string) ($note['url'] ?? '');
+    if ($href === '') {
+        $href = sg_page_url('notes');
+    }
+    // 卡片里只放一句：正文太长会把轮播撑开
+    if ($text !== '') {
+        $text = mb_substr($text, 0, 64, 'UTF-8') . (mb_strlen($text, 'UTF-8') > 64 ? '...' : '');
+    }
+    if ($title === '') {
+        $title = $tag;
+    }
+
+    return '<article class="sg-chatter-slide' . ($active ? ' is-active' : '') . '" data-sg-slide>'
+        . '<img src="' . sg_e($cover) . '" alt=""' . ($active ? '' : ' loading="lazy"') . '>'
+        . '<span class="sg-veil"></span>'
+        . '<a class="sg-chatter-body" href="' . sg_e($href) . '">'
+        . '<span class="sg-chatter-meta">'
+        . '<span class="sg-chip--tag">' . sg_e($tag) . '</span>'
+        . ($date !== '' ? '<time>' . sg_e($date) . '</time>' : '')
+        . '</span>'
+        . '<h3>' . sg_e($title) . '</h3>'
+        . ($text !== '' ? '<p>' . sg_e($text) . '</p>' : '')
+        . '</a>'
+        . '</article>';
+}
+
+/**
+ * 碎语：后台 JSON → dist/data/notes.json。
+ *
+ * 合并「杂谈 / 说说」之后刻意不再按文章分类聚合 —— 短记不是文章，
+ * 否则动不动就把正文塞进一个分类里，归档页也跟着乱。
+ * 字段：date（已排好序的展示字符串）、tag、title、text、cover、url。
+ */
+function sg_notes(): array
+{
+    $list = sg_json('sgNotes', 'notes', []);
+    $out = [];
+    foreach ($list as $item) {
+        if (!is_array($item)) {
+            continue;
+        }
+        $text = trim((string) ($item['text'] ?? ''));
+        $title = trim((string) ($item['title'] ?? ''));
+        if ($text === '' && $title === '') {
+            continue;
+        }
+        $out[] = [
+            'date'  => trim((string) ($item['date'] ?? '')),
+            'tag'   => trim((string) ($item['tag'] ?? '碎语')),
+            'title' => $title,
+            'text'  => $text,
+            'cover' => sg_media(trim((string) ($item['cover'] ?? ''))),
+            'url'   => trim((string) ($item['url'] ?? '')),
+        ];
+    }
+    return $out;
+}
+
+/**
+ * 歌单里的 url / cover 归一化。
+ *
+ * 自带音源放在 `public/audio/`，打包后在 `dist/audio/`，JSON 里只写相对路径；
+ * 不补主题前缀的话浏览器会去站点根找 `/dist/audio/...`，必然 404。
+ * 外链（网易云封面、用户自己的图床）原样返回，见 sg_media() 的解析规则。
+ */
+function sg_playlist_media(array $list): array
+{
+    foreach ($list as $i => $track) {
+        if (!is_array($track)) {
+            continue;
+        }
+        foreach (['url', 'cover'] as $key) {
+            $value = trim((string) ($track[$key] ?? ''));
+            if ($value !== '') {
+                $list[$i][$key] = sg_media($value);
+            }
+        }
+    }
+    return $list;
 }
 
 /**

@@ -31,6 +31,7 @@ function sg_admin_json_tools(): string
         'sgProjects',
         'sgAlbums',
         'sgPlaylist',
+        'sgNotes',
         'sgPoster',
         'sgBriefing',
     ], JSON_UNESCAPED_SLASHES);
@@ -288,19 +289,20 @@ function themeConfig($form): void
     $form->addInput(new Textarea('sgSocial', null, '', _t('社交链接 JSON'), _t('格式：[{"name":"GitHub","url":"...","icon":"github"}]') . sg_admin_json_tools()));
     $form->addInput(new Textarea('sgFriends', null, '', _t('友链 JSON'), _t('留空使用 dist/data/friends.json')));
     $form->addInput(new Textarea('sgProjects', null, '', _t('项目 JSON'), _t('留空使用 dist/data/projects.json')));
-    $form->addInput(new Textarea('sgAlbums', null, '', _t('相册 JSON'), _t('留空使用 dist/data/albums.json')));
+    $form->addInput(new Textarea('sgAlbums', null, '', _t('相册 JSON'), _t('留空使用 dist/data/albums.json；<code>coverWide</code> 可选，给首页 4:1 宽幅卡用横构图')));
 
     $posterModes = ['album' => _t('光影画廊（最新相册）'), 'post' => _t('最新文章'), 'custom' => _t('自定义')];
     $form->addInput(new Select('sgPosterMode', $posterModes, 'album', _t('首页宽幅卡（右侧大海报）'), _t('决定首页右侧那张宽幅海报取什么内容；默认放「光影画廊」最新相册。它的背景图就是相册 cover / 文章 cover / 下一项 JSON 里的 cover。')));
     $form->addInput(new Textarea('sgPoster', null, '', _t('宽幅卡 JSON'), _t('<b>显示位置</b>：仅上面选「自定义」时生效，替换首页右上那张海报。<br>格式：<code>{"title":"…","desc":"…","cover":"…","url":"…","kicker":"PHOTO WALL"}</code><br>其中 <code>cover</code> 就是这张卡的背景图，支持 https 外链与 <code>usr/uploads/…</code> 相对路径。')));
 
-    $form->addInput(new Textarea('sgPlaylist', null, '', _t('歌单 JSON'), _t('留空使用 dist/data/playlist.json；字段：title/artist/cover/url/lrc')));
+    $form->addInput(new Textarea('sgPlaylist', null, '', _t('歌单 JSON'), _t('留空使用 dist/data/playlist.json；字段：title/artist/cover/url/lrc。自带音源放在 <code>public/audio/</code>，地址写 <code>dist/audio/xxx.mp3</code> 即可')));
+    $form->addInput(new Textarea('sgNotes', null, '', _t('碎语 JSON'), _t('「碎语」页与首页碎语轮播的数据源，留空使用 dist/data/notes.json。<br>格式：<code>[{"date":"2026.11.13","tag":"日常","title":"…","text":"…","cover":"…"}]</code>')));
     $form->addInput(new Textarea('sgPlaylistIds', null, '', _t('网易云歌曲 ID'), _t('逗号或换行分隔。歌单 JSON 留空时才启用：服务端拉歌曲名/封面/歌词，播放地址是 outer/url 外链（有 403 风险）')));
     $form->addInput(new Textarea('sgBriefing', null, '', _t('每日选刊 JSON'), _t('格式：{"channels":[{"id","name"}],"issues":[{"date","title","desc","cover","items":[...]}]}；也兼容旧的数组格式，留空使用 dist/data/briefing.json')));
     $form->addInput(new Text('sgIcp', null, '', _t('备案号'), _t('显示位置：页脚第一行「系统已稳定运行」的右侧。填阿里云备案下来的完整号（例：湘ICP备2023030699号）；留空则整段不输出，不留空位')));
 
     $form->addInput(new Text('sgStatPosts', null, '', _t('统计·文章数'), _t('留空自动统计已发布文章')));
-    $form->addInput(new Text('sgStatNotes', null, '', _t('统计·杂谈数'), _t('留空统计分类缩略名为 chatter 的文章，可按需手填')));
+    $form->addInput(new Text('sgStatNotes', null, '', _t('统计·碎语数'), _t('留空自动统计碎语条数（也就是 notes.json 的条目数），可按需手填')));
     $form->addInput(new Text('sgStatPhotos', null, '', _t('统计·照片数'), _t('留空自动统计附件数量')));
     $form->addInput(new Text('sgUptimeSince', null, '', _t('建站日期'), _t('显示位置：页脚第一行「系统已稳定运行：N 天 N 小时」。格式 2024-01-01（也可写 2024/01/01）。不满一年显示天数，满一年显示「1 年 12 天 12 小时」；留空则自动取最早一篇已发布文章的时间')));
 
@@ -344,8 +346,11 @@ function sg_recent_posts($archive, int $limit = 5)
 }
 
 /**
- * 取某个分类下的文章（用于首页杂谈轮播、说说/杂谈列表页）。
+ * 取某个分类下的文章（分类页、按分类聚合的独立页都能用）。
  * 先校验分类是否存在，避免 Widget_Archive 在 execute 阶段抛异常；失败返回 null。
+ *
+ * 注：碎语已经改成读 notes.json，不再按分类聚合，所以这里目前没有调用方，
+ * 保留是因为新加「按分类聚合一页文章」的独立页时还要用它。
  */
 function sg_category_posts($archive, string $slug, int $limit = 4)
 {

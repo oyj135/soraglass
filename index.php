@@ -18,12 +18,9 @@ $sgHome = rtrim((string) $this->options->siteUrl, '/') . '/';
 $sgPoster = sg_home_poster($this);
 $sgCoverFallback = $sgPoster['cover'] !== '' ? $sgPoster['cover'] : sg_theme_url('dist/img/cover-default.svg');
 
-// 杂谈轮播：优先取分类 chatter，取不到回退最近文章
-$sgChatter = sg_category_posts($this, 'chatter', 4);
-if ($sgChatter === null) {
-    $this->widget('Widget_Contents_Post_Recent', 'pageSize=4')->to($sgChatter);
-}
-$sgChatterLink = sg_page_url('chatter');
+// 碎语轮播：读 JSON 短记（合并了原来的「杂谈 / 说说」两页），取最新 4 条
+$sgNotes = array_slice(sg_notes(), 0, 4);
+$sgNotesLink = sg_page_url('notes');
 ?>
 <main class="sg-main" data-sg-page="index">
   <form class="sg-search" role="search" method="get" action="<?php echo sg_e($sgHome); ?>">
@@ -74,23 +71,21 @@ $sgChatterLink = sg_page_url('chatter');
         <div class="sg-subgrid">
           <div class="sg-glass sg-chatter sg-subgrid-2" data-sg-carousel data-sg-hover>
             <?php $GLOBALS['SG_SLIDE_SEEN'] = false; ?>
-            <?php $sgChatterHas = false; ?>
-            <?php if ($sgChatter) : ?>
-              <?php while ($sgChatter->next()) : ?>
-                <?php $sgChatterHas = true; ?>
-                <?php $this->need('partials/slide-chatter.php'); ?>
-              <?php endwhile; ?>
-            <?php endif; ?>
-            <?php if (!$sgChatterHas) : ?>
+            <?php if ($sgNotes) : ?>
+              <?php foreach ($sgNotes as $sgNoteIndex => $sgNote) : ?>
+                <?php $sgNote['active'] = $sgNoteIndex === 0; ?>
+                <?php echo sg_note_slide($sgNote); ?>
+              <?php endforeach; ?>
+            <?php else : ?>
               <article class="sg-chatter-slide is-active" data-sg-slide>
                 <div class="sg-chatter-body sg-chatter-body--empty">
                   <span class="sg-chatter-meta">
-                    <span class="sg-chip--tag"><?php echo sg_icon('tag'); ?>杂谈</span>
+                    <span class="sg-chip--tag"><?php echo sg_icon('tag'); ?>碎语</span>
                     <time>空空如也</time>
                   </span>
-                  <h3>还没有杂谈</h3>
-                  <p>写一篇随手记，或者把文章归到「杂谈」分类，这里就会活起来。</p>
-                  <a class="sg-chatter-link" href="<?php echo sg_e($sgChatterLink); ?>">
+                  <h3>还没有碎语</h3>
+                  <p>后台「碎语 JSON」里写两条随手记，这里就会活起来。</p>
+                  <a class="sg-chatter-link" href="<?php echo sg_e($sgNotesLink); ?>">
                     去看看<?php echo sg_icon('arrow-up-right'); ?>
                   </a>
                 </div>

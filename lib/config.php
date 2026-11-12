@@ -57,17 +57,19 @@ function sg_opt(string $key, string $default = ''): string
 /**
  * 占位图地址。
  *
- * 约定：一律从 https://picsum.photos 入口引用 —— 它会 302 到
- * fastly.picsum.photos 的带签名地址；手写 fastly 域名（缺 ?hmac=）一定 404。
+ * 2026-11-13 第十六轮：**改成主题内置图**，不再引用 https://picsum.photos。
+ * 第七轮曾按用户要求换回 picsum 外链，但实测国内网络访问 picsum.photos
+ * 直接超时（IPv4 连不上、IPv6 直接失败），于是所有封面都回退成本地渐变图，
+ * 首页「樱色纪行」海报与「AI 日报」横幅的背景图整体失效。
  *
- * 2026-11-12 第七轮：按用户要求恢复为 picsum.photos（第六轮曾临时改成主题内置
- * dist/img/ph-1..6.svg）。万一访问不到该站，前端 initImageFallback() 会把失败的
- * <img> 换成内置占位图（window.SG.placeholder 是本地文件，见 lib/assets.php），
- * 不会留黑块。
+ * 现在返回 `dist/img/ph-1..6.svg`（$id 取模选图），由 sg_theme_url() 拼成
+ * 绝对地址，任何网络环境下都能显示，也避免了一次跨域请求。$width/$height
+ * 只为兼容旧调用点保留，不再参与拼地址。
  */
 function sg_placeholder(int $id = 1015, int $width = 1200, int $height = 600): string
 {
-    return 'https://picsum.photos/id/' . $id . '/' . $width . '/' . $height;
+    $index = (($id % 6) + 6) % 6 + 1;
+    return sg_theme_url('dist/img/ph-' . $index . '.svg');
 }
 
 /** 按行读取多行配置（壁纸、弹幕等），自动过滤空行 */
@@ -163,8 +165,9 @@ function sg_e($value): string
 }
 
 /**
- * 首页个人卡的三项统计：文章 / 杂谈 / 照片。
- * 后台留空则自动查库；查库失败回落 0，绝不让页面 500。
+ * 首页个人卡的三项统计：文章 / 碎语 / 照片。
+ * 文章、照片查库；碎语数直接数 notes.json 的条数（它已经不挂在分类上了）。
+ * 后台留空则自动统计；查库失败回落 0，绝不让页面 500。
  */
 function sg_stats(): array
 {
@@ -190,28 +193,9 @@ function sg_stats(): array
         }
     };
 
-    // 杂谈按分类统计（分类缩略名可在后台改，未命中时回落 0）
-    $countCategory = static function (string $slug) : int {
-        try {
-            $db = \Typecho\Db::get();
-            $row = $db->fetchObject(
-                $db->select(['COUNT(*)' => 'num'])->from('table.contents')
-                    ->join('table.relationships', 'table.contents.cid = table.relationships.cid')
-                    ->join('table.metas', 'table.metas.mid = table.relationships.mid')
-                    ->where('table.metas.type = ?', 'category')
-                    ->where('table.metas.slug = ?', $slug)
-                    ->where('table.contents.type = ?', 'post')
-                    ->where('table.contents.status = ?', 'publish')
-            );
-            return (int) ($row->num ?? 0);
-        } catch (\Throwable $e) {
-            return 0;
-        }
-    };
-
     return [
         'posts'  => $fallback['posts'] !== '' ? $fallback['posts'] : (string) $count('post'),
-        'notes'  => $fallback['notes'] !== '' ? $fallback['notes'] : (string) $countCategory('chatter'),
+        'notes'  => $fallback['notes'] !== '' ? $fallback['notes'] : (string) count(sg_notes()),
         'photos' => $fallback['photos'] !== '' ? $fallback['photos'] : (string) $count('attachment'),
     ];
 }

@@ -24,7 +24,7 @@ $sgHome = rtrim((string) $this->options->siteUrl, '/') . '/';
   <div class="sg-stats">
     <div class="sg-stat"><span class="sg-stat-num"><?php echo sg_e($sgCounts['posts']); ?></span><span class="sg-stat-label">文章</span></div>
     <span class="sg-stat-divider"></span>
-    <div class="sg-stat"><span class="sg-stat-num is-purple"><?php echo sg_e($sgCounts['notes']); ?></span><span class="sg-stat-label">杂谈</span></div>
+    <div class="sg-stat"><span class="sg-stat-num is-purple"><?php echo sg_e($sgCounts['notes']); ?></span><span class="sg-stat-label">碎语</span></div>
     <span class="sg-stat-divider"></span>
     <div class="sg-stat"><span class="sg-stat-num is-pink"><?php echo sg_e($sgCounts['photos']); ?></span><span class="sg-stat-label">照片</span></div>
   </div>

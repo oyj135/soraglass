@@ -126,9 +126,11 @@ export function initPlayer(): void {
   audio.volume = volume;
   audio.preload = 'metadata';
 
-  // 音乐页歌词容器：整首歌词滚动 + 当前行高亮
-  const lyricBox = q(music, '[data-sg-lyrics]');
-  const lyricEmpty = q(music, '[data-sg-lyrics-empty]');
+  /* 歌词面板在右侧那块卡片里，是 [data-sg-music] 的**兄弟节点**，不在它的子树里。
+     以前这里写成 q(music, '[data-sg-lyrics]')，永远拿到 null，右侧歌词区就一直停在
+     「正在等待旋律…」——功能其实一次都没跑起来过。全文档查一次即可（只有一份）。 */
+  const lyricBox = document.querySelector<HTMLElement>('[data-sg-lyrics]');
+  const lyricEmpty = document.querySelector<HTMLElement>('[data-sg-lyrics-empty]');
   let lines: Array<{ time: number; text: string; el: HTMLElement }> = [];
   let activeLine = -1;
 
@@ -175,9 +177,14 @@ export function initPlayer(): void {
     typeTimers.push(timer);
   };
 
-  const buildLyrics = (raw: string): void => {
+  const buildLyrics = (raw: string, fallbackText = ''): void => {
     if (!lyricBox) return;
     const parsed = parseLrc(raw);
+    /* 纯音乐没有 LRC：把 track.lyric 当成一句话铺进去，
+       否则右侧歌词区永远停在「正在等待旋律…」，看着像加载失败。 */
+    if (!parsed.length && fallbackText) {
+      parsed.push({ time: -1, text: fallbackText });
+    }
     lines = [];
     activeLine = -1;
     lyricBox.querySelectorAll('.sg-lyric-line').forEach((el) => el.remove());
@@ -263,7 +270,7 @@ export function initPlayer(): void {
     });
 
     // 有 LRC 用逐行歌词，没有就退化成一句静态说明（不要空着）
-    buildLyrics(String(track.lrc ?? ''));
+    buildLyrics(String(track.lrc ?? ''), String(track.lyric ?? ''));
     paintLyric(lines.length ? lines[0].text : (track.lyric ? String(track.lyric) : '——'));
     markTrack();
   };
@@ -277,8 +284,49 @@ export function initPlayer(): void {
     if (on) syncLyricLine();
   };
 
-  const play = (): void => {
-    void audio.play().catch(() => toast('浏览器拦截了自动播放，请再点一次播放'));
+  /* 「被浏览器拦截」这件事以前一律报成一句 toast，真实原因分三种，处理方式完全不同：
+       1. NotAllowedError  → 真的是自动播放策略，等一次点击就好（不要反复报错）；
+       2. NotSupportedError / 网络错误 → 音频本身打不开（外链 404、CORS、格式不对），
+          这种必须跳到下一首，否则用户会以为「点了没反应」；
+       3. AbortError       → 切歌时上一次 play() 被主动取消，属于正常现象，不能报错。 */
+  let errorStreak = 0;
+  let armed = false;
+
+  const armResume = (): void => {
+    if (armed) return;
+    armed = true;
+    roots.forEach((root) => { root.classList.add('is-blocked'); });
+    const resume = (): void => {
+      document.removeEventListener('pointerdown', resume, true);
+      armed = false;
+      roots.forEach((root) => { root.classList.remove('is-blocked'); });
+      play();
+    };
+    // capture 阶段挂载：卡片整块可点跳转，冒泡阶段可能到不了 document
+    document.addEventListener('pointerdown', resume, true);
+  };
+
+  const play = (quiet = false): void => {
+    const attempt = audio.play();
+    if (!attempt || typeof attempt.then !== 'function') return;
+    void attempt.catch((error: unknown) => {
+      const name = error instanceof Error ? error.name : '';
+      if (name === 'AbortError') return;
+      if (name === 'NotAllowedError') {
+        armResume();
+        if (!quiet) toast('浏览器要求先点一下页面才能出声，点任意位置继续');
+        return;
+      }
+      errorStreak += 1;
+      if (errorStreak <= tracks.length) {
+        if (!quiet) toast('这首的音频打不开，已跳到下一首');
+        apply(index + 1);
+        play(true);
+        return;
+      }
+      errorStreak = 0;
+      toast('歌单里的音频都打不开，检查后台「歌单 JSON」里的地址');
+    });
   };
 
   const toggle = (): void => {
@@ -347,16 +395,12 @@ export function initPlayer(): void {
     }, { once: true });
   }
 
-  // 上一页在播的，回来自动续播；被浏览器拦下就等第一次点击
+  // 上一页在播的，回来自动续播；被浏览器拦下就等第一次点击（安静处理，不弹 toast）
   if (saved.playing) {
-    const resume = (): void => {
-      document.removeEventListener('pointerdown', resume);
-      play();
-    };
-    void audio.play().catch(() => document.addEventListener('pointerdown', resume, { once: true }));
+    play(true);
   }
 
-  audio.addEventListener('play', () => { setPlaying(true); persist(); });
+  audio.addEventListener('play', () => { errorStreak = 0; armed = false; setPlaying(true); persist(); });
   audio.addEventListener('pause', () => { setPlaying(false); persist(); });
   audio.addEventListener('timeupdate', () => { syncTime(); syncLyricLine(); });
   audio.addEventListener('loadedmetadata', syncTime);
@@ -369,8 +413,9 @@ export function initPlayer(): void {
     }
     step(1);
   });
+  // 具体错误文案统一由 play() 的 catch 给出，这里只做标记，避免两条 toast 叠在一起
   audio.addEventListener('error', () => {
-    if (audio.getAttribute('src')) toast('音频加载失败：外链可能被 403 拦截，换成直链音频再试');
+    roots.forEach((root) => { root.classList.toggle('is-error', Boolean(audio.error)); });
   });
 
   roots.forEach((root) => {
