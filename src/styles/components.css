@@ -1491,10 +1491,6 @@ html.dark .sg-i-moon { display: inline-flex; }
 .sg-reader-link svg { width: .9rem; height: .9rem; }
 
 
-/* ---------- 页脚（仪表盘内容已迁入，样式前缀统一为 sg-footer-*） ---------- */
-/* 说明：.sg-dashboard / .sg-dash-* 已于第六轮整体下线，
-   原仪表盘里的时钟、运行时长、备案号现在是页脚自己的三行，见文件末尾 .sg-footer-*。 */
-
 /* ---------- 文章页 ---------- */
 .sg-article { flex: 1; min-width: 0; overflow: hidden; padding: 0; }
 .sg-article.sg-glass { background: var(--sg-card-strong); box-shadow: var(--sg-shadow-strong); }
@@ -1877,63 +1873,86 @@ html.dark .sg-tags span { color: #a5b4fc; }
 .sg-btn--ghost:hover { background: var(--sg-card-strong); color: var(--sg-indigo); }
 
 /* ---------- 页脚 / 分页 / 浮层 ---------- */
+/* 2026-11-12 第七轮：页脚视觉对齐参考样例 —— 没有玻璃卡、没有时钟、没有分隔线，
+   只剩居中两行衬线文案直接压在壁纸上（第一行版权、第二行 Powered by）。
+   时钟节点与 modules/dashboard.ts 一起下线，页面上不再有任何 1s 定时器。 */
 .sg-footer-wrap { position: relative; z-index: 1; width: 95%; max-width: 72rem; margin-inline: auto; }
 @media (min-width: 768px) { .sg-footer-wrap { width: 90%; } }
 
-/* 页脚本体就是那张玻璃卡：圆角、阴影、裁切都由它负责，内部各行自己排版。
-   （第六轮起不再有独立的仪表盘子卡，也不再需要 .sg-footer-panel 套一层） */
-.sg-footer { overflow: hidden; padding: 0; text-align: center; }
-
-/* ① 时钟 —— 仪表盘原样式迁移，仍是黑底等宽的整行区块 */
-.sg-footer-clock {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem 1.5rem;
-  background: #0f172a;
-  color: #fff;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 1.5rem;
-  font-weight: 900;
-  letter-spacing: .15em;
-  position: relative;
+/* 文字直接压在壁纸上，壁纸明暗完全由用户决定：
+   暗色（含深色模式）用参考样例的冷白 + 深色阴影；亮色模式反过来用深字 + 浅色阴影，
+   否则白字糊在浅色壁纸上（归档页默认壁纸就是浅紫，实测几乎读不出来）。
+   阴影只做对比度补偿，不是光效。 */
+.sg-footer {
+  padding: .9rem 1.5rem 1.1rem;
+  text-align: center;
+  font-family: var(--font-serif);
+  color: rgba(15, 23, 42, .80);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, .55);
 }
 
-html.dark .sg-footer-clock { background: #000; }
-@media (min-width: 768px) { .sg-footer-clock { font-size: 1.75rem; } }
+.sg-footer p { margin: 0; }
 
-.sg-footer-clock::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, .10), transparent);
-  pointer-events: none;
-}
-
-/* ② 运行时长 + 备案号 */
-.sg-footer-info {
+/* ① 状态行：绿点 + 「系统已稳定运行：」+ 靛蓝时长 +（可选）备案号，整行居中 */
+.sg-footer-status {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: .4rem 1.25rem;
-  padding: 1rem 1.5rem .95rem;
-  font-size: .8125rem;
+  gap: .35rem 2rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: var(--sg-text);
+  line-height: 1.5;
+  color: rgba(15, 23, 42, .90);
 }
 
-.sg-footer-status { display: inline-flex; align-items: center; gap: .5rem; }
-.sg-footer-status b { color: var(--sg-indigo); font-weight: 900; }
-.sg-footer-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--sg-green); animation: sg-pulse 2s cubic-bezier(.4, 0, .6, 1) infinite; }
-.sg-footer-icp { font-size: .75rem; font-weight: 700; color: var(--sg-muted); }
+.sg-footer-run { display: inline-flex; align-items: center; gap: .45rem; }
+.sg-footer-dot {
+  width: .8125rem;
+  height: .8125rem;
+  border-radius: 50%;
+  background: #16a34a;
+  flex: none;
+}
+/* 时长是这一行唯一的彩色项：亮底退一档用 indigo-600，暗底进一档用 indigo-400 */
+.sg-footer-uptime { font-weight: 900; color: var(--sg-indigo-deep); letter-spacing: .01em; }
+.sg-footer-icp { font-weight: 400; color: rgba(51, 65, 85, .78); }
 
-/* 迁移内容与版权之间的分隔线：两块内容分属不同语义，不做无边界合并 */
-.sg-footer-rule { border: 0; border-top: 1px solid var(--sg-line); margin: 0 1.5rem; }
+/* ② 状态行与版权之间的通栏细分隔线（参考图里就是一条 1px 细线） */
+.sg-footer-rule {
+  border: 0;
+  border-top: 1px solid rgba(15, 23, 42, .14);
+  margin: 1.35rem 0 0;
+  text-shadow: none;
+}
 
-/* ③ 版权 */
-.sg-footer-legal { padding: 1rem 1.5rem 1.15rem; font-size: .8rem; color: var(--sg-muted); }
-.sg-footer-legal p + p { margin-top: .3rem; }
+/* ③ 版权两行：同字号（参考样例实测均为 20px），只用字重区分主次 */
+.sg-footer-copy { margin-top: 1.5rem; font-size: 1.25rem; font-weight: 500; line-height: 1.5; letter-spacing: .01em; }
+.sg-footer-powered { margin-top: .375rem; font-size: 1.25rem; font-weight: 400; line-height: 1.5; }
+
+/* 深色模式 = 用户截图里的那版：冷白字 + 靛蓝时长 + 亮分隔线 */
+html.dark .sg-footer {
+  color: rgba(255, 255, 255, .76);
+  text-shadow: 0 1px 3px rgba(15, 23, 42, .45), 0 0 14px rgba(15, 23, 42, .22);
+}
+html.dark .sg-footer-status { color: rgba(233, 239, 247, .92); }
+html.dark .sg-footer-dot { background: var(--sg-green); }
+html.dark .sg-footer-uptime { color: var(--sg-indigo-soft); }
+html.dark .sg-footer-icp { color: rgba(233, 239, 247, .70); }
+html.dark .sg-footer-rule { border-top-color: rgba(226, 232, 240, .18); }
+
+/* 窄屏：20px 的参考尺寸在 390px 宽度会把状态行顶出视口（实测「211 天 20 小时」直接裁掉），
+   整组缩到 16px，间距同步收窄；版权两行也跟着降一档 */
+@media (max-width: 767px) {
+  .sg-footer { padding: .85rem 1rem 1rem; }
+  .sg-footer-status { font-size: 1rem; gap: .3rem 1rem; }
+  .sg-footer-dot { width: .625rem; height: .625rem; }
+  .sg-footer-copy, .sg-footer-powered { font-size: 1rem; }
+  /* 390px 下「Powered by … 空璃」只剩一个「璃」掉到第三行，第二行降半档刚好一行放下 */
+  .sg-footer-powered { font-size: .9375rem; }
+  .sg-footer-copy { margin-top: 1.15rem; }
+  .sg-footer-rule { margin-top: 1rem; }
+}
 
 
 .sg-pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .5rem; font-size: .85rem; }

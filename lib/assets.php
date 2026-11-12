@@ -68,8 +68,10 @@ function sg_runtime_config(): string
         // 歌单三层回退（后台 JSON → 网易云 ID → dist/data）：和 page-music.php 共用同一个函数，
         // 否则首页卡与音乐页会拿到两份不一样的数据
         'playlist' => sg_playlist(),
-        // 内置占位图：前端 <img> 外链失败时换成它（见 core.ts initImageFallback）
-        'placeholder' => sg_placeholder(1015),
+        // 前端 <img> 外链失败时的兜底图（见 core.ts initImageFallback）。
+        // 必须指向主题内置文件：不能再调 sg_placeholder() —— 那是 picsum 外链，
+        // 外链挂掉时兜底图自己也加载不出来，等于没有兜底。
+        'placeholder' => sg_theme_url('dist/img/ph-1.svg'),
         'nav' => [],
     ];
     return '<script>window.SG=' . json_encode($config, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) . ';</script>';

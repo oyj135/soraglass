@@ -297,12 +297,12 @@ function themeConfig($form): void
     $form->addInput(new Textarea('sgPlaylist', null, '', _t('歌单 JSON'), _t('留空使用 dist/data/playlist.json；字段：title/artist/cover/url/lrc')));
     $form->addInput(new Textarea('sgPlaylistIds', null, '', _t('网易云歌曲 ID'), _t('逗号或换行分隔。歌单 JSON 留空时才启用：服务端拉歌曲名/封面/歌词，播放地址是 outer/url 外链（有 403 风险）')));
     $form->addInput(new Textarea('sgBriefing', null, '', _t('每日选刊 JSON'), _t('格式：{"channels":[{"id","name"}],"issues":[{"date","title","desc","cover","items":[...]}]}；也兼容旧的数组格式，留空使用 dist/data/briefing.json')));
-    $form->addInput(new Text('sgIcp', null, '', _t('备案号'), _t('阿里云国内域名需备案，填入后显示在页脚（运行时长下方一行）')));
+    $form->addInput(new Text('sgIcp', null, '', _t('备案号'), _t('显示位置：页脚第一行「系统已稳定运行」的右侧。填阿里云备案下来的完整号（例：湘ICP备2023030699号）；留空则整段不输出，不留空位')));
 
     $form->addInput(new Text('sgStatPosts', null, '', _t('统计·文章数'), _t('留空自动统计已发布文章')));
     $form->addInput(new Text('sgStatNotes', null, '', _t('统计·杂谈数'), _t('留空统计分类缩略名为 chatter 的文章，可按需手填')));
     $form->addInput(new Text('sgStatPhotos', null, '', _t('统计·照片数'), _t('留空自动统计附件数量')));
-    $form->addInput(new Text('sgUptimeSince', null, '', _t('建站日期'), _t('格式 2024-01-01，用于页脚「已稳定运行」；留空取最早文章时间')));
+    $form->addInput(new Text('sgUptimeSince', null, '', _t('建站日期'), _t('显示位置：页脚第一行「系统已稳定运行：N 天 N 小时」。格式 2024-01-01（也可写 2024/01/01）。不满一年显示天数，满一年显示「1 年 12 天 12 小时」；留空则自动取最早一篇已发布文章的时间')));
 
     $seasonOptions = ['none' => _t('关闭'), 'sakura' => _t('樱花'), 'snow' => _t('飘雪'), 'fireflies' => _t('萤火虫')];
     $form->addInput(new Select('sgSeason', $seasonOptions, 'none', _t('季节粒子'), _t('移动端与 reduced-motion 下自动关闭')));

@@ -30,6 +30,7 @@
 
   --sg-indigo: #6366f1;   /* indigo-500 */
   --sg-indigo-deep: #4f46e5;
+  --sg-indigo-soft: #818cf8;  /* indigo-400：仅供「压在壁纸上」的元素（页脚运行时长），深底上比 indigo-500 亮一档 */
   --sg-purple: #9333ea;   /* purple-600 */
   --sg-pink: #db2777;     /* pink-600 */
   --sg-green: #22c55e;    /* green-500 */
