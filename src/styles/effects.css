@@ -3,21 +3,31 @@
  * 壁纸：多帧交叉淡入 2000ms；遮罩无额外模糊；渐变 mix-blend-color。
  */
 
-.sg-body { opacity: 0; transition: opacity .45s ease; }
-html.sg-ready .sg-body { opacity: 1; }
+/* 首屏显形：**不再隐藏 body**。
+   开屏遮罩本身就盖在内容上，body 一旦整体透明，遮罩（body 的子元素）也会一起消失，
+   只剩下 html 的纯色底 —— 那才是用户看到的「黑屏」。
+   现在内容在遮罩下面先渲染好，揭开即完整，JS 迟到或失败也不影响可读性。 */
 
-/* 开屏 */
+/* 开屏：默认不渲染，仅会话首访挂载 */
 .sg-splash {
   position: fixed;
   inset: 0;
   z-index: 9998;
-  display: grid;
+  display: none;
   place-items: center;
   background: var(--sg-page);
-  transition: opacity .6s ease, visibility .6s;
+  transition: opacity .45s ease, visibility .45s;
 }
 
+html.sg-splash-pending .sg-splash { display: grid; }
 html.sg-ready .sg-splash { opacity: 0; visibility: hidden; }
+
+/* 兜底：万一 JS 没跑起来（资源 404 / 被拦截），1.2s 后遮罩自己淡出，
+   不能让访客永远停在一块纯色上。 */
+@keyframes sg-splash-auto {
+  to { opacity: 0; visibility: hidden; }
+}
+html.sg-splash-pending .sg-splash { animation: sg-splash-auto .45s ease 1.2s forwards; }
 .sg-splash-mark { font-size: 1.5rem; font-weight: 900; letter-spacing: .3em; color: var(--sg-indigo); animation: sg-breathe 1.4s ease-in-out infinite; }
 
 /* 背景栈 */
@@ -125,6 +135,17 @@ html.sg-ready .sg-splash { opacity: 0; visibility: hidden; }
   .sg-effects, .sg-danmaku { display: none; }
 }
 
+/* 点击涟漪：独立 canvas，必须压在卡片之上（.sg-main 是 z-index:1），
+   所以不能用 .sg-effects 的 0 层。层级低于开屏(9998)/灯箱(9997)/Toast(9999)。 */
+.sg-ripple {
+  position: fixed;
+  inset: 0;
+  z-index: 9990;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
 /* 灯箱 */
 .sg-lightbox {
   position: fixed;
@@ -141,6 +162,68 @@ html.sg-ready .sg-splash { opacity: 0; visibility: hidden; }
 
 .sg-lightbox img { max-width: 92vw; max-height: 86vh; border-radius: 1rem; }
 
+/* 灯箱翻页：只在一组照片 ≥2 张时出现，单张时按钮带 hidden 属性不占位 */
+.sg-lightbox-nav {
+  position: absolute;
+  top: 50%;
+  width: 3rem;
+  height: 3rem;
+  transform: translateY(-50%);
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .10);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color var(--sg-dur-fast) linear, transform var(--sg-dur-fast) var(--sg-ease);
+}
+
+.sg-lightbox-nav:hover { background: rgba(255, 255, 255, .22); }
+.sg-lightbox-nav.is-prev { left: 1.5rem; }
+.sg-lightbox-nav.is-next { right: 1.5rem; }
+.sg-lightbox-nav.is-prev:hover { transform: translateY(-50%) translateX(-2px); }
+.sg-lightbox-nav.is-next:hover { transform: translateY(-50%) translateX(2px); }
+
+.sg-lightbox-close {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .10);
+  color: #fff;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color var(--sg-dur-fast) linear;
+}
+
+.sg-lightbox-close:hover { background: rgba(255, 255, 255, .22); }
+
+.sg-lightbox-count {
+  position: absolute;
+  bottom: 1.5rem;
+  padding: .35rem .9rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .12);
+  color: #fff;
+  font-size: .78rem;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: .08em;
+}
+
+@media (max-width: 767px) {
+  .sg-lightbox-nav { width: 2.4rem; height: 2.4rem; font-size: 1.3rem; }
+  .sg-lightbox-nav.is-prev { left: .5rem; }
+  .sg-lightbox-nav.is-next { right: .5rem; }
+}
+
 @keyframes sg-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: .35; }
@@ -156,6 +239,17 @@ html.sg-ready .sg-splash { opacity: 0; visibility: hidden; }
   50% { opacity: 1; }
 }
 
+/* ---------- 内容入场（对应源站 components/PageTransition.tsx） ----------
+   源站靠 framer-motion 在客户端挂载时播 y:20→0 / 0.8s。
+   Typecho 是整页导航，改用纯 CSS：HTML 一到就播，不等 JS，也不隐藏整页。 */
+@keyframes sg-page-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* 源站 PageTransition.tsx：y:20 → 0 / 0.8s easeOut */
+.sg-main { animation: sg-page-in .8s cubic-bezier(0, 0, .2, 1) both; }
+
 @keyframes sg-gradient-move {
   0% { background-position: 0 50%; }
   50% { background-position: 100% 50%; }
@@ -168,6 +262,24 @@ html.sg-ready .sg-splash { opacity: 0; visibility: hidden; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sg-effects, .sg-danmaku, .sg-splash-mark { display: none; }
+  .sg-effects, .sg-danmaku { display: none; }
   .sg-gradient { animation: none; }
+  .sg-main { animation: none; }
+  /* 开屏文字保留：只停呼吸动画，否则遮罩会退化成一块纯色，观感等同黑屏 */
+  .sg-splash-mark { animation: none; opacity: 1; }
+}
+
+/* 打印：body 现在是透明的，需要显式铺白底，并把纯装饰层全部撤掉 */
+@media print {
+  html, body { background: #fff !important; }
+  .sg-bg, .sg-glow, .sg-gradient, .sg-effects, .sg-danmaku, .sg-ripple,
+  .sg-splash, .sg-nav, .sg-disc, .sg-sheet, .sg-toolbox, .sg-to-top,
+  .sg-floating-player, .sg-pet, .sg-toast { display: none !important; }
+  .sg-main { animation: none !important; padding-top: 1rem; }
+  .sg-glass, .sg-glass-strong {
+    background: #fff !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+  }
 }

@@ -16,7 +16,7 @@ $sgFloating = sg_opt('sgFloatingPlayer', 'on') === 'on';
 
 <?php if ($sgFloating) : ?>
 <button class="sg-floating-player" type="button" data-sg-floating aria-label="播放/暂停">
-  <img data-sg-float-cover src="<?php echo sg_e(sg_theme_url('dist/img/cover-default.svg')); ?>" alt="">
+  <img data-sg-float-cover src="<?php echo sg_e(sg_theme_url('dist/img/cover-default.svg')); ?>" alt="" data-sg-fallback="<?php echo sg_e(sg_theme_url('dist/img/cover-default.svg')); ?>">
   <span data-sg-float-title>空璃音乐盒</span>
 </button>
 <?php endif; ?>
@@ -27,7 +27,7 @@ $sgFloating = sg_opt('sgFloatingPlayer', 'on') === 'on';
 </div>
 <?php endif; ?>
 
-<audio data-sg-audio preload="none"></audio>
+<audio data-sg-audio preload="metadata"></audio>
 <div class="sg-toast" data-sg-toast role="status" aria-live="polite"></div>
 <?php $this->footer(); ?>
 </body>

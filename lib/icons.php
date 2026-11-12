@@ -9,6 +9,7 @@ function sg_icon(string $name, string $class = ''): string
     $paths = [
         'search'      => '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
         'arrow-left'  => '<path d="M19 12H5"/><path d="m12 19-7-7 7-7"/>',
+        'arrow-up-right' => '<path d="M7 17 17 7"/><path d="M9 7h8v8"/>',
         'arrow-up'    => '<path d="M12 19V5"/><path d="m5 12 7-7 7 7"/>',
         'chevron-left'  => '<path d="m15 18-6-6 6-6"/>',
         'chevron-right' => '<path d="m9 18 6-6-6-6"/>',
@@ -34,6 +35,19 @@ function sg_icon(string $name, string $class = ''): string
         'twitter'     => '<path d="M4 4l7.5 9.5L4.5 20h2.3l5.8-6.3L17.5 20H20l-7.8-10L19.4 4h-2.3l-5.3 5.8L7.3 4z"/>',
         'close'       => '<path d="M6 6l12 12M18 6 6 18"/>',
         'plus'        => '<path d="M12 5v14M5 12h14"/>',
+        /* 音乐页与选刊用到的补充图标（同一套 24×24 线性风格） */
+        'repeat'      => '<path d="m17 2 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>',
+        'repeat-one'  => '<path d="m17 2 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/><path d="M11 10h1v5"/>',
+        'shuffle'     => '<path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/>',
+        'volume'      => '<path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/>',
+        'volume-x'    => '<path d="M11 5 6 9H2v6h4l5 4z"/><path d="m16 9 5 6M21 9l-5 6"/>',
+        'activity'    => '<path d="M3 12h4l3 8 4-16 3 8h4"/>',
+        'bookmark'    => '<path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/>',
+        'history'     => '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 8v4l3 2"/>',
+        'check'       => '<path d="m4 12 5 5L20 6"/>',
+        'disc'        => '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/>',
+        'sliders-h'   => '<path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="8" cy="18" r="2"/>',
+        'minus'       => '<path d="M5 12h14"/>',
     ];
     if (!isset($paths[$name])) {
         return '';

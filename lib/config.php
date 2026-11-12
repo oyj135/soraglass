@@ -54,6 +54,18 @@ function sg_opt(string $key, string $default = ''): string
     return (is_string($value) && $value !== '') ? $value : $default;
 }
 
+/**
+ * 占位图地址。
+ *
+ * 约定：一律从 https://picsum.photos 入口引用，它会 302 到
+ * fastly.picsum.photos 的带签名地址。直接手写 fastly.picsum.photos/id/.. 
+ * 因为缺 ?hmac= 会返回 404 —— 这是线上挂图最常见的原因。
+ */
+function sg_placeholder(int $id = 1015, int $width = 1200, int $height = 600): string
+{
+    return 'https://picsum.photos/id/' . $id . '/' . $width . '/' . $height;
+}
+
 /** 按行读取多行配置（壁纸、弹幕等），自动过滤空行 */
 function sg_lines(string $key, array $default = []): array
 {
@@ -252,6 +264,38 @@ function sg_current_slug($archive): string
         return '';
     }
     return '';
+}
+
+/**
+ * 按缩略名取独立页永久链接；页面不存在时回退到站点首页。
+ * 用来避免模板里硬编码 xxx.html 造成的死链（站点未必建了同名页面）。
+ */
+function sg_page_url(string $slug): string
+{
+    static $cache = null;
+
+    if ($cache === null) {
+        $cache = [];
+        try {
+            if (class_exists('\\Widget\\Contents\\Page\\Rows')) {
+                $pages = \Widget\Contents\Page\Rows::alloc();
+                while ($pages->next()) {
+                    $cache[(string) $pages->slug] = (string) $pages->permalink;
+                }
+            }
+        } catch (\Throwable $e) {
+            $cache = [];
+        }
+    }
+
+    if (isset($cache[$slug])) {
+        return $cache[$slug];
+    }
+
+    $options = sg_options();
+    $home = is_object($options) ? (string) $options->siteUrl : '';
+
+    return rtrim($home, '/') . '/';
 }
 
 /** 独立页副标题：优先自定义字段 subtitle */

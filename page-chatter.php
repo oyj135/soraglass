@@ -24,7 +24,7 @@ $sgHead = [
 ];
 ?>
 <main class="sg-main sg-main--pad" data-sg-page="chatter">
-  <?php $this->need('partials/page-head.php'); ?>
+  <?php sg_page_head($sgHead); ?>
 
   <?php if (trim((string) $this->content) !== '') : ?>
   <div class="sg-prose" style="margin-bottom:2rem"><?php $this->content(); ?></div>

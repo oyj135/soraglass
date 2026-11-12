@@ -1,6 +1,7 @@
 <?php
-/** 首页「杂谈」轮播的单张（$sgSlideActive 控制首帧） */
-$sgSlideActive = !empty($sgSlideActive);
+/** 首页「杂谈」轮播的单张（$sgSlideActive 控制首帧，由 $GLOBALS['SG_SLIDE_SEEN'] 推出） */
+$sgSlideActive = empty($GLOBALS['SG_SLIDE_SEEN']);
+$GLOBALS['SG_SLIDE_SEEN'] = true;
 ?>
 <article class="sg-chatter-slide<?php echo $sgSlideActive ? ' is-active' : ''; ?>" data-sg-slide>
   <img src="<?php echo sg_e(sg_cover($this)); ?>" alt="" <?php echo $sgSlideActive ? '' : 'loading="lazy"'; ?>>

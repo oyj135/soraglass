@@ -60,7 +60,6 @@ $sgCurrentPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PAT
   <div class="sg-card-grid">
     <?php while ($this->next()) : ?><?php $this->need('partials/card-post.php'); ?><?php endwhile; ?>
   </div>
-  <div class="sg-pager"><?php $this->pageNav('&laquo; 上一页', '下一页 &raquo;'); ?></div>
   <?php else : ?>
   <div class="sg-glass sg-notfound">
     <span class="sg-notfound-code">0</span>
@@ -68,7 +67,7 @@ $sgCurrentPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PAT
     <p>换个关键词，或者从标签里挑一个方向再试试。</p>
     <div class="sg-notfound-actions">
       <a class="sg-btn" href="<?php echo sg_e($sgHome); ?>"><?php echo sg_icon('arrow-left'); ?>回到首页</a>
-      <a class="sg-btn sg-btn--ghost" href="<?php echo sg_e($sgHome); ?>timeline.html"><?php echo sg_icon('folder'); ?>浏览全部归档</a>
+      <a class="sg-btn sg-btn--ghost" href="<?php echo sg_e(sg_page_url('archives')); ?>"><?php echo sg_icon('folder'); ?>浏览全部归档</a>
     </div>
   </div>
   <?php endif; ?>

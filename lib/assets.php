@@ -67,7 +67,9 @@ function sg_runtime_config(): string
         'season' => sg_opt('sgSeason', 'none'),
         'floatingPlayer' => sg_opt('sgFloatingPlayer', 'on') === 'on',
         'pet' => sg_opt('sgPet', 'none'),
-        'playlist' => array_values(array_filter(sg_json('sgPlaylist', 'playlist', []), 'is_array')),
+        // 歌单三层回退（后台 JSON → 网易云 ID → dist/data）：和 page-music.php 共用同一个函数，
+        // 否则首页卡与音乐页会拿到两份不一样的数据
+        'playlist' => sg_playlist(),
         'nav' => [],
     ];
     return '<script>window.SG=' . json_encode($config, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) . ';</script>';

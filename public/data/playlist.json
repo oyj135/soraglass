@@ -1,16 +1,23 @@
 [
   {
-    "title": "示例曲目 · 请在后台替换",
-    "artist": "Soraglass",
-    "url": "",
-    "cover": "",
-    "lyric": "在「外观 → 设置外观 → 歌单 JSON」填入可直链音频地址"
+    "title": "SoundHelix Song 1",
+    "artist": "SoundHelix · 公开示例音源",
+    "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+    "cover": "https://picsum.photos/id/1015/400/400",
+    "lyric": "公开示例音频：用于验证播放器链路，正式上线请换成自己的音源"
   },
   {
-    "title": "第二首示例",
-    "artist": "Soraglass",
-    "url": "",
-    "cover": "",
+    "title": "SoundHelix Song 2",
+    "artist": "SoundHelix · 公开示例音源",
+    "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+    "cover": "https://picsum.photos/id/1016/400/400",
+    "lyric": "曲目信息与封面都来自后台「歌单 JSON」"
+  },
+  {
+    "title": "SoundHelix Song 3",
+    "artist": "SoundHelix · 公开示例音源",
+    "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+    "cover": "https://picsum.photos/id/1018/400/400",
     "lyric": ""
   }
 ]

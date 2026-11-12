@@ -1,29 +1,240 @@
-[
-  {
-    "badge": "DAILY SIGNAL",
-    "date": "2026.01.12",
-    "label": "每日拾光",
-    "title": "把毛玻璃调成呼吸的频率",
-    "desc": "背景渐变每 15 秒循环一次，卡片模糊固定在 12px——再多就糊，再少就透。",
-    "cover": "dist/img/bg-1.svg",
-    "meta": ["设计札记", "6 min read"]
-  },
-  {
-    "badge": "DAILY SIGNAL",
-    "date": "2026.01.11",
-    "label": "技术备忘",
-    "title": "Typecho 主题里那些会踩的坑",
-    "desc": "自定义模板必须写 @package custom；themeUrl 属性在模板 include 里可能是空串。",
-    "cover": "dist/img/bg-2.svg",
-    "meta": ["Typecho", "8 min read"]
-  },
-  {
-    "badge": "DAILY SIGNAL",
-    "date": "2026.01.10",
-    "label": "空璃手记",
-    "title": "夜里把深空调成 #020617",
-    "desc": "夜间模式不是简单反色：卡片透明度、边框、光晕都要重新配一遍才不脏。",
-    "cover": "dist/img/bg-1.svg",
-    "meta": ["配色", "4 min read"]
-  }
-]
+{
+  "channels": [
+    { "id": "ai", "name": "AI 动态" },
+    { "id": "paper", "name": "研究论文" }
+  ],
+  "issues": [
+    {
+      "date": "2026.11.09",
+      "weekday": "星期日",
+      "label": "每日选刊",
+      "kicker": "每日拾光",
+      "title": "AI 日报 / 文献雷达",
+      "desc": "压实钠蒙脱石里的水，主要从哪些孔隙扩散？",
+      "cover": "https://picsum.photos/id/1024/1200/700",
+      "notice": "本期收录 3 条 AI 动态与 3 篇研究论文。示例数据，替换成你自己的阅读清单即可直接使用。",
+      "items": [
+        {
+          "id": "ai-1",
+          "channel": "ai",
+          "title": "PSI 公布 AI 辅助的量子复杂性证明，并提供 Lean 形式化",
+          "summary": "Physical Superintelligence 公布了 Aaronson–Ambainis 猜想的证明预印本，附完整 Lean 形式化脚本。",
+          "source": "Physical Superintelligence 官方仓库",
+          "sourceDate": "2026.11.06",
+          "url": "https://arxiv.org/",
+          "highlights": [
+            "核心引理把「量子查询复杂度下界」转成了可机器校验的不等式链。",
+            "形式化版本逐条对齐论文编号，便于逐步复核。"
+          ],
+          "note": "读这类工作，先看形式化声明与论文定理的对应表，再决定要不要啃证明正文。"
+        },
+        {
+          "id": "ai-2",
+          "channel": "ai",
+          "title": "LeRobot 0.7 支持边运行边改任务，也能按需读取训练数据",
+          "summary": "Hugging Face 的 LeRobot 团队发布 0.7.0，增加交互式机器人运行、训练数据流式读取。",
+          "source": "LeRobot 团队发布 / 官方仓库",
+          "sourceDate": "2026.11.05",
+          "url": "https://huggingface.co/",
+          "highlights": [
+            "运行中改任务不再需要重启策略进程。",
+            "数据流式读取降低了小显存机器的入门门槛。"
+          ],
+          "note": "如果你的实验卡在数据加载上，这条值得先试。"
+        },
+        {
+          "id": "ai-3",
+          "channel": "ai",
+          "title": "METR 审视 Anthropic 研发提速，拆分能力趋势与归因",
+          "summary": "外部评估机构 METR 发布了对 Anthropic 研发加速的独立报告，使用获准访问的内部数据。",
+          "source": "METR 原始独立评估",
+          "sourceDate": "2026.11.05",
+          "url": "https://metr.org/",
+          "highlights": [
+            "把「模型变强」与「流程变顺」拆成两条曲线分别估计。",
+            "明确指出样本期内的外部效度限制。"
+          ],
+          "note": "方法比结论更有价值：如何在不干预团队的前提下做归因。"
+        },
+        {
+          "id": "paper-1",
+          "channel": "paper",
+          "title": "压实钠蒙脱石里的水，主要从哪些孔隙扩散？",
+          "summary": "这篇预印本结合原子尺度模拟和介观粗粒化模型，比较水化钠蒙脱石层间孔与微裂隙自由水的扩散路径。",
+          "source": "arXiv · 预印本 v2",
+          "sourceDate": "2026.02.17",
+          "url": "https://arxiv.org/",
+          "highlights": [
+            "层间孔的扩散系数比自由水低两个数量级。",
+            "微裂隙连通性才是宏观渗透率的主控变量。"
+          ],
+          "note": "和土壤学里的「双孔隙模型」可以对照着读。"
+        },
+        {
+          "id": "paper-2",
+          "channel": "paper",
+          "title": "水膜会怎样改变盐在黏土表面的吸附？",
+          "summary": "研究用分子动力学比较盐在黏土矿物表面的分布，并进一步改变高岭石表面的水膜条件。",
+          "source": "Materials · 已发表论文",
+          "sourceDate": "2022.07.23",
+          "url": "https://www.mdpi.com/",
+          "highlights": [
+            "水膜厚度到 3 层以后，吸附构型趋于稳定。",
+            "离子半径对内外 Helmholtz 层的占据比例影响明显。"
+          ],
+          "note": "适合当综述读，图表比正文信息密度高。"
+        },
+        {
+          "id": "paper-3",
+          "channel": "paper",
+          "title": "盐怎样改变聚合物在高岭石边缘的吸附？",
+          "summary": "研究用经典分子动力学比较六种聚合物在不同盐度下与高岭石（010）边缘面的作用。",
+          "source": "Polymers · 已发表论文",
+          "sourceDate": "2022.09.15",
+          "url": "https://www.mdpi.com/",
+          "highlights": [
+            "高价阳离子通过桥接作用显著增强吸附。",
+            "边缘面的 Al–OH 位点是主要结合位点。"
+          ],
+          "note": "和上面那篇配着看，能拼出「水膜—离子—聚合物」的完整链条。"
+        }
+      ]
+    },
+    {
+      "date": "2026.11.08",
+      "weekday": "星期六",
+      "label": "每日选刊",
+      "kicker": "每日拾光",
+      "title": "前端手记 / 视觉随手记",
+      "desc": "毛玻璃不是加个 blur 就完事，先把层级和对比度想清楚。",
+      "cover": "https://picsum.photos/id/1015/1200/700",
+      "notice": "本期为示例数据：3 条前端笔记 + 2 条排印观察。",
+      "items": [
+        {
+          "id": "fe-1",
+          "channel": "ai",
+          "title": "backdrop-filter 的层叠陷阱：父层带模糊会自建 z-index",
+          "summary": "给卡片加 backdrop-filter 后，绝对定位的图标会被压在底下，必须显式抬高 z-index。",
+          "source": "空璃手记",
+          "sourceDate": "2026.11.04",
+          "url": "",
+          "highlights": [
+            "backdrop-filter 会创建包含块与层叠上下文。",
+            "同一元素上的伪元素不受影响，可以直接画边。"
+          ],
+          "note": "全站搜索框图标的 z-index 就是这个原因加上去的。"
+        },
+        {
+          "id": "fe-2",
+          "channel": "ai",
+          "title": "[hidden] 打不过作者样式：display:grid 会把它盖掉",
+          "summary": "用 hidden 属性切换列表与详情时，只要容器写了 display:grid，元素依然会显示。",
+          "source": "空璃手记",
+          "sourceDate": "2026.11.03",
+          "url": "",
+          "highlights": [
+            "[hidden] 是 UA 样式，优先级低于任何作者规则。",
+            "补一条 .x[hidden]{display:none} 就能解决。"
+          ],
+          "note": "画廊列表/详情的切换就踩过这个坑。"
+        },
+        {
+          "id": "fe-3",
+          "channel": "ai",
+          "title": "卡片 hover 缩放做 1.5% 等于没做",
+          "summary": "在 600px 宽的卡片上，1.5% 只放大 9px，配 320ms 缓动几乎看不出来。",
+          "source": "空璃手记",
+          "sourceDate": "2026.11.02",
+          "url": "",
+          "highlights": [
+            "位移比缩放更容易被感知，6px 起步。",
+            "图片再放大 6%，形成内外两层速度差。"
+          ],
+          "note": "这一版把 --sg-lift 提到 1.02 并加了 6px 上浮。"
+        },
+        {
+          "id": "type-1",
+          "channel": "paper",
+          "title": "中文标题里的书名号，用直角引号还是书名号？",
+          "summary": "技术文章引用文章名时用书名号更符合中文排印习惯，引用软件名则不加。",
+          "source": "排印观察",
+          "sourceDate": "2026.10.30",
+          "url": "",
+          "highlights": [
+            "书名号只给作品名，不给产品名。",
+            "标题里的标点尽量少，读完再决定要不要加。"
+          ],
+          "note": "标题党往往死在不必要的符号上。"
+        },
+        {
+          "id": "type-2",
+          "channel": "paper",
+          "title": "等宽字体不要用在正文，只在数字与代码里出现",
+          "summary": "等宽字体的字宽一致但节奏单调，长段落读起来累。",
+          "source": "排印观察",
+          "sourceDate": "2026.10.28",
+          "url": "",
+          "highlights": [
+            "时间戳、坐标、代码片段用等宽。",
+            "正文用衬线或人文无衬线，行高 1.7 起步。"
+          ],
+          "note": "主题里所有 mono 都只用在元信息上。"
+        }
+      ]
+    },
+    {
+      "date": "2026.11.07",
+      "weekday": "星期五",
+      "label": "每日选刊",
+      "kicker": "每日拾光",
+      "title": "Typecho 维护 / 运维备忘",
+      "desc": "主题目录只有 www 可写时，缓存该放哪里？",
+      "cover": "https://picsum.photos/id/1043/1200/700",
+      "notice": "本期为示例数据：3 条 Typecho 运维备忘。",
+      "items": [
+        {
+          "id": "tc-1",
+          "channel": "ai",
+          "title": "Typecho 1.3 的 Widget 参数要在 execute 之前写",
+          "summary": "themeInit 钩子在 Archive::execute 组装查询前触发，此时改 parameter 才有效。",
+          "source": "Typecho 源码笔记",
+          "sourceDate": "2026.11.01",
+          "url": "",
+          "highlights": [
+            "pageSize 是官方可写入口。",
+            "列表页不输出分页条时，靠它一次取完。"
+          ],
+          "note": "主题的「无分页」就是这么实现的。"
+        },
+        {
+          "id": "tc-2",
+          "channel": "paper",
+          "title": "外链图片 302 到 CDN 时，直连 CDN 会 404",
+          "summary": "picsum 的 fastly 地址带 hmac 签名，手写域名缺签名直接 404。",
+          "source": "运维备忘",
+          "sourceDate": "2026.10.31",
+          "url": "",
+          "highlights": [
+            "从入口域名引用，让服务端自己签名。",
+            "占位图统一走 sg_placeholder()。"
+          ],
+          "note": "这条已经写进 agens.md 的占位图约定。"
+        },
+        {
+          "id": "tc-3",
+          "channel": "paper",
+          "title": "PHP 8.2 下 curl 与 file_get_contents 的双通道写法",
+          "summary": "主机禁用 allow_url_fopen 时只能走 curl，反过来也可能没装 curl 扩展。",
+          "source": "运维备忘",
+          "sourceDate": "2026.10.29",
+          "url": "",
+          "highlights": [
+            "先用 function_exists('curl_init') 判断。",
+            "两条路都要设超时，否则后台会卡住。"
+          ],
+          "note": "网易云歌单抓取就是这么写的。"
+        }
+      ]
+    }
+  ]
+}

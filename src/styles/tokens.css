@@ -23,6 +23,7 @@
   --sg-blur-card: 12px;   /* backdrop-blur-md */
   --sg-blur-nav: 24px;    /* backdrop-blur-xl */
   --sg-radius: 1.5rem;    /* rounded-3xl */
+  --sg-radius-xl: 2.5rem; /* 关于页大卡 rounded-[40px] */
 
   --sg-indigo: #6366f1;   /* indigo-500 */
   --sg-indigo-deep: #4f46e5;
@@ -33,6 +34,29 @@
   --sg-glow-a: rgba(255, 255, 255, .40);
   --sg-glow-b: rgba(129, 140, 248, .30);   /* indigo-400/30 */
   --sg-gradient-opacity: .6;
+
+  /* 交互：全站卡片共用一套时长与缓动，改这里即全局生效。
+     卡片 hover 统一为 translateY(-4px) + scale(--sg-lift)，只动 transform 不占位。 */
+  --sg-dur-card: 320ms;
+  --sg-dur-fast: 140ms;
+  --sg-ease: cubic-bezier(.22, .61, .36, 1);
+  /* 2026-11-12 第二轮：1.5% 缩放实测几乎看不出来（用户反馈「还是没效果」），
+     统一提到 2% + 上浮 6px。位移只走 transform，不参与布局，不会挤动邻居。 */
+  --sg-lift: 1.02;         /* 普通卡面缩放 */
+  --sg-lift-sm: 1.012;     /* 大面板（海报 / 选刊）缩放 */
+  --sg-nudge: -6px;        /* 卡面 hover 上浮距离 */
+  --sg-nudge-sm: -3px;     /* 大面板上浮距离 */
+  --sg-thumb-zoom: 1.06;   /* 卡内图片缩放 */
+
+  --sg-ring: #ffffff;      /* 关于页头像白描边 */
+  --sg-polaroid: #ffffff;  /* 拍立得相纸边框，暗色也保持白 */
+
+  /* 贡献热力图（GitHub 同款五档，暗底也认得出层次） */
+  --sg-heat-0: rgba(148, 163, 184, .18);
+  --sg-heat-1: #166534;
+  --sg-heat-2: #16a34a;
+  --sg-heat-3: #22c55e;
+  --sg-heat-4: #4ade80;
 }
 
 html.dark {
@@ -55,6 +79,9 @@ html.dark {
   --sg-glow-a: rgba(49, 46, 129, .20);      /* indigo-900/20 */
   --sg-glow-b: rgba(88, 28, 135, .30);      /* purple-900/30 */
   --sg-gradient-opacity: .2;
+
+  /* 头像描边跟着卡片底色走，暗色下用 slate-800 才不刺眼 */
+  --sg-ring: #1e293b;
 }
 
 @layer base {
@@ -62,11 +89,28 @@ html.dark {
 
   html, body { min-height: 100%; margin: 0; padding: 0; }
 
+  /* 点击链接到新文档首帧之间，浏览器先铺 html 底色：
+     跟站点同色就不会闪白/闪黑，是消除「跳转黑屏」的第一层保障。
+     底色过渡也挂在这里，暗色切换仍有 1s 渐变。 */
+  html {
+    background-color: var(--sg-page);
+    transition: background-color 1s;
+  }
+
   body {
+    /* 竖向 flex：内容短时（归档/分类页）把页脚压到视口底部，
+       不让仪表盘悬在半空。fixed 定位的子元素不参与此布局。 */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
     font-family: var(--font-serif);
     color: var(--sg-text);
-    background: var(--sg-page);
-    transition: color 1s, background-color 1s;
+    /* 绝不能给 body 铺不透明底色：.sg-bg 是它的 z-index:-10 子元素。
+       按 CSS 绘制顺序，负 z-index 子层先画、body 自身背景后画，
+       不透明底会把整张壁纸盖成一块纯色（线上「背景全黑」就死在这里）。
+       底色统一由上面的 html 承担。 */
+    background: transparent;
+    transition: color 1s;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }

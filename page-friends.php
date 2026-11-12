@@ -18,18 +18,18 @@ $sgHead = [
 ];
 ?>
 <main class="sg-main sg-main--pad" data-sg-page="friends">
-  <?php $this->need('partials/page-head.php'); ?>
+  <?php sg_page_head($sgHead); ?>
 
   <?php if (trim((string) $this->content) !== '') : ?>
   <div class="sg-prose" style="margin-bottom:2rem"><?php $this->content(); ?></div>
   <?php endif; ?>
 
-  <div class="sg-card-grid">
+  <div class="sg-friend-grid">
     <?php foreach ($sgFriends as $sgFriend) : ?>
     <?php if (!is_array($sgFriend)) { continue; } ?>
-    <a class="sg-glass sg-friend" href="<?php echo sg_value($sgFriend, 'url', '#'); ?>" target="_blank" rel="noopener noreferrer">
+    <a class="sg-glass sg-friend" href="<?php echo sg_value($sgFriend, 'url', '#'); ?>" target="_blank" rel="noopener noreferrer" data-sg-hover>
       <span class="sg-friend-avatar">
-        <img src="<?php echo sg_media(sg_value($sgFriend, 'avatar', ''), sg_theme_url('dist/img/avatar.svg')); ?>" alt="" loading="lazy">
+        <img src="<?php echo sg_media(sg_value($sgFriend, 'avatar', ''), sg_theme_url('dist/img/avatar.svg')); ?>" alt="<?php echo sg_value($sgFriend, 'name', ''); ?>" loading="lazy">
       </span>
       <span class="sg-friend-main">
         <span class="sg-friend-head">

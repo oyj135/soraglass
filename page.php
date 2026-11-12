@@ -1,14 +1,43 @@
 <?php
 /**
- * 通用独立页兜底模板。
- * 未提供 page-{slug}.php 的独立页面会走到这里：封面 + 正文 + 目录。
+ * 独立页模板（所有页面的默认落点）。
+ *
+ * 两个职责：
+ * 1. 白名单分发：缩略名命中 archives / categories / label 时，直接渲染对应的
+ *    列表视图（partials/views/*）。Typecho 只按 contents.template 选模板文件，
+ *    page-{slug}.php 不会自动生效；放在这里就不需要去后台逐个选模板。
+ * 2. 兜底：其余页面仍按「封面 + 正文 + 目录」渲染。
+ *
+ * 想关掉分发，在页面自定义字段里加 view=default 即可。
  */
 if (!defined('SG_ROOT')) {
     require_once __DIR__ . '/functions.php';
 }
 $this->need('header.php');
+
 $sgHome = rtrim((string) $this->options->siteUrl, '/') . '/';
 $sgLead = sg_field($this, 'description', '');
+
+$sgViews = ['archives', 'categories', 'label'];
+$sgView = '';
+
+try {
+    $sgSlug = (string) $this->slug;
+    if ($sgSlug !== '' && in_array($sgSlug, $sgViews, true)) {
+        $sgView = $sgSlug;
+    }
+    if ((string) $this->fields->view === 'default') {
+        $sgView = '';
+    }
+} catch (\Throwable $e) {
+    $sgView = '';
+}
+
+if ($sgView !== '') {
+    $this->need('partials/views/' . $sgView . '.php');
+    $this->need('footer.php');
+    return;
+}
 ?>
 <main class="sg-main sg-article-layout" data-sg-page="page">
   <article class="sg-glass sg-article">

@@ -1,6 +1,7 @@
 <?php
 /** 首页封面轮播的单张（由 index.php 在循环中 include，$sgSlideActive 控制首屏显示） */
-$sgSlideActive = !empty($sgSlideActive);
+$sgSlideActive = empty($GLOBALS['SG_SLIDE_SEEN']);
+$GLOBALS['SG_SLIDE_SEEN'] = true;
 ?>
 <article class="sg-post-slide<?php echo $sgSlideActive ? ' is-active' : ''; ?>" data-sg-slide>
   <img class="sg-slide-cover" src="<?php echo sg_e(sg_cover($this)); ?>" alt="" <?php echo $sgSlideActive ? '' : 'loading="lazy"'; ?>>

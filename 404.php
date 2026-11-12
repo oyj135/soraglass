@@ -12,7 +12,7 @@ $sgHome = rtrim((string) $this->options->siteUrl, '/') . '/';
     <p>链接可能已经失效，或者页面被移到了别处。不如回到首页重新出发。</p>
     <div class="sg-notfound-actions">
       <a class="sg-btn" href="<?php echo sg_e($sgHome); ?>"><?php echo sg_icon('arrow-left'); ?>回到首页</a>
-      <a class="sg-btn sg-btn--ghost" href="<?php echo sg_e($sgHome); ?>timeline.html"><?php echo sg_icon('folder'); ?>浏览全部归档</a>
+      <a class="sg-btn sg-btn--ghost" href="<?php echo sg_e(sg_page_url('archives')); ?>"><?php echo sg_icon('folder'); ?>浏览全部归档</a>
     </div>
     <form class="sg-search sg-search--sm" role="search" method="get" action="<?php echo sg_e($sgHome); ?>" style="margin-top:2rem;max-width:26rem">
       <span class="sg-search-icon"><?php echo sg_icon('search'); ?></span>

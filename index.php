@@ -5,7 +5,7 @@
  * 二次元毛玻璃 Typecho 主题，视觉与信息架构对齐 XHBlogs，模板与样式独立实现。
  *
  * @package Soraglass
- * @version 1.1.0
+ * @version 1.2.0
  */
 if (!defined('SG_ROOT')) {
     require_once __DIR__ . '/functions.php';
@@ -13,40 +13,17 @@ if (!defined('SG_ROOT')) {
 $this->need('header.php');
 
 $sgHome = rtrim((string) $this->options->siteUrl, '/') . '/';
-$sgAlbums = sg_json('sgAlbums', 'albums', []);
-$sgAlbum = isset($sgAlbums[0]) && is_array($sgAlbums[0]) ? $sgAlbums[0] : [];
 
-// 宽幅海报：取最新一篇带封面的文章；没有文章时回退到相册封面
-$sgPoster = ['title' => '', 'desc' => '', 'link' => '', 'cover' => ''];
-try {
-    $this->widget('Widget_Contents_Post_Recent', 'pageSize=1')->to($sgTop);
-    while ($sgTop->next()) {
-        $sgPoster['title'] = (string) $sgTop->title;
-        $sgPoster['desc'] = sg_excerpt($sgTop, 44);
-        $sgPoster['link'] = (string) $sgTop->permalink;
-        $sgPoster['cover'] = sg_cover($sgTop);
-    }
-} catch (\Throwable $e) {
-    $sgPoster = ['title' => '', 'desc' => '', 'link' => '', 'cover' => ''];
-}
-if ($sgPoster['title'] === '' && $sgAlbum) {
-    $sgPoster = [
-        'title' => (string) ($sgAlbum['title'] ?? '照片墙'),
-        'desc' => (string) ($sgAlbum['description'] ?? '查看摄影'),
-        'link' => $sgHome . 'photowall.html',
-        'cover' => sg_media((string) ($sgAlbum['cover'] ?? '')),
-    ];
-}
-if ($sgPoster['cover'] === '') {
-    $sgPoster['cover'] = sg_theme_url('dist/img/cover-default.svg');
-}
+// 宽幅卡：后台可选「光影画廊 / 最新文章 / 自定义」，默认放相册卡（对齐源站 latestAlbum 海报）
+$sgPoster = sg_home_poster($this);
+$sgCoverFallback = $sgPoster['cover'] !== '' ? $sgPoster['cover'] : sg_theme_url('dist/img/cover-default.svg');
 
 // 杂谈轮播：优先取分类 chatter，取不到回退最近文章
 $sgChatter = sg_category_posts($this, 'chatter', 4);
 if ($sgChatter === null) {
     $this->widget('Widget_Contents_Post_Recent', 'pageSize=4')->to($sgChatter);
 }
-$sgChatterLink = $sgHome . 'chatter.html';
+$sgChatterLink = sg_page_url('chatter');
 ?>
 <main class="sg-main" data-sg-page="index">
   <form class="sg-search" role="search" method="get" action="<?php echo sg_e($sgHome); ?>">
@@ -56,21 +33,20 @@ $sgChatterLink = $sgHome . 'chatter.html';
 
   <div class="sg-stack">
     <div class="sg-grid sg-grid-12">
-      <section class="sg-glass sg-card-pad sg-col-7 sg-profile"><?php $this->need('partials/card-profile.php'); ?></section>
-      <section class="sg-glass sg-card-pad sg-col-5"><?php $this->need('partials/player.php'); ?></section>
+      <section class="sg-glass sg-card-pad sg-col-7 sg-profile" data-sg-hover data-sg-spotlight><?php $this->need('partials/card-profile.php'); ?></section>
+      <section class="sg-glass sg-card-pad sg-col-5 sg-player-card" data-sg-hover data-sg-spotlight><?php $this->need('partials/player.php'); ?></section>
     </div>
 
     <div class="sg-grid sg-grid-12">
-      <section class="sg-glass sg-post-carousel sg-col-4" data-sg-carousel>
-        <?php $sgSlideActive = true; ?>
+      <section class="sg-glass sg-post-carousel sg-col-4" data-sg-carousel data-sg-hover>
+        <?php $GLOBALS['SG_SLIDE_SEEN'] = false; ?>
         <?php if ($this->have()) : ?>
           <?php while ($this->next()) : ?>
             <?php $this->need('partials/slide-post.php'); ?>
-            <?php $sgSlideActive = false; ?>
           <?php endwhile; ?>
         <?php else : ?>
           <article class="sg-post-slide is-active">
-            <img class="sg-slide-cover" src="<?php echo sg_e($sgPoster['cover']); ?>" alt="">
+            <img class="sg-slide-cover" src="<?php echo sg_e($sgCoverFallback); ?>" alt="">
             <span class="sg-slide-veil"></span>
             <div class="sg-slide-body">
               <span class="sg-slide-chips"><span class="sg-chip--tag">空璃</span></span>
@@ -83,23 +59,40 @@ $sgChatterLink = $sgHome . 'chatter.html';
       </section>
 
       <div class="sg-col-8 sg-stack">
-        <a class="sg-poster-wide" href="<?php echo sg_e($sgPoster['link'] !== '' ? $sgPoster['link'] : $sgHome); ?>">
+        <a class="sg-poster-wide" href="<?php echo sg_e($sgPoster['link'] !== '' ? $sgPoster['link'] : $sgHome); ?>" data-sg-hover data-sg-spotlight>
           <img src="<?php echo sg_e($sgPoster['cover']); ?>" alt="" loading="lazy">
           <span class="sg-veil"></span>
           <div class="sg-poster-body">
-            <h3><?php echo sg_e($sgPoster['title'] !== '' ? $sgPoster['title'] : '最新内容'); ?></h3>
+            <span class="sg-poster-kicker"><?php echo sg_icon('image'); ?><?php echo sg_e($sgPoster['kicker']); ?></span>
+            <h3><?php echo sg_e($sgPoster['title']); ?></h3>
             <p><?php echo sg_e($sgPoster['desc']); ?></p>
           </div>
         </a>
 
         <div class="sg-subgrid">
-          <div class="sg-glass sg-chatter sg-subgrid-2" data-sg-carousel>
-            <?php $sgSlideActive = true; ?>
+          <div class="sg-glass sg-chatter sg-subgrid-2" data-sg-carousel data-sg-hover>
+            <?php $GLOBALS['SG_SLIDE_SEEN'] = false; ?>
+            <?php $sgChatterHas = false; ?>
             <?php if ($sgChatter) : ?>
               <?php while ($sgChatter->next()) : ?>
+                <?php $sgChatterHas = true; ?>
                 <?php $this->need('partials/slide-chatter.php'); ?>
-                <?php $sgSlideActive = false; ?>
               <?php endwhile; ?>
+            <?php endif; ?>
+            <?php if (!$sgChatterHas) : ?>
+              <article class="sg-chatter-slide is-active" data-sg-slide>
+                <div class="sg-chatter-body sg-chatter-body--empty">
+                  <span class="sg-chatter-meta">
+                    <span class="sg-chip--tag"><?php echo sg_icon('tag'); ?>杂谈</span>
+                    <time>空空如也</time>
+                  </span>
+                  <h3>还没有杂谈</h3>
+                  <p>写一篇随手记，或者把文章归到「杂谈」分类，这里就会活起来。</p>
+                  <a class="sg-chatter-link" href="<?php echo sg_e($sgChatterLink); ?>">
+                    去看看<?php echo sg_icon('arrow-up-right'); ?>
+                  </a>
+                </div>
+              </article>
             <?php endif; ?>
             <span class="sg-dots" data-sg-dots></span>
           </div>
@@ -109,8 +102,6 @@ $sgChatterLink = $sgHome . 'chatter.html';
     </div>
 
     <?php $this->need('partials/briefing.php'); ?>
-
-    <div class="sg-pager"><?php $this->pageNav('&laquo; 上一页', '下一页 &raquo;'); ?></div>
   </div>
 </main>
 <?php $this->need('footer.php'); ?>

@@ -19,7 +19,7 @@ $sgHead = [
 ];
 ?>
 <main class="sg-main sg-main--pad" data-sg-page="projects">
-  <?php $this->need('partials/page-head.php'); ?>
+  <?php sg_page_head($sgHead); ?>
 
   <div class="sg-card-grid" data-sg-filter-grid>
     <?php foreach ($sgProjects as $sgProject) : ?>

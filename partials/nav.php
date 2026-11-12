@@ -17,6 +17,7 @@ $sgBrandAfter = sg_opt('sgNavAfter', '空璃');
       <?php $this->widget('Widget_Contents_Page_List')->to($sgNavPages); ?>
       <?php while ($sgNavPages->next()): ?>
       <?php $sgNavSlug = (string) $sgNavPages->slug; ?>
+      <?php if ($sgNavSlug === 'tree') { continue; } ?>
       <a class="sg-nav-link<?php echo $sgActive === $sgNavSlug ? ' is-active' : ''; ?>" href="<?php $sgNavPages->permalink(); ?>"><?php $sgNavPages->title(); ?><?php if ($sgActive === $sgNavSlug) : ?><span class="sg-nav-dot"></span><?php endif; ?></a>
       <?php endwhile; ?>
     </nav>
@@ -33,6 +34,7 @@ $sgBrandAfter = sg_opt('sgNavAfter', '空璃');
     <?php $this->widget('Widget_Contents_Page_List')->to($sgSheetPages); ?>
     <?php while ($sgSheetPages->next()): ?>
     <?php $sgSheetSlug = (string) $sgSheetPages->slug; ?>
+    <?php if ($sgSheetSlug === 'tree') { continue; } ?>
     <a class="sg-sheet-link<?php echo $sgActive === $sgSheetSlug ? ' is-active' : ''; ?>" href="<?php $sgSheetPages->permalink(); ?>"><?php $sgSheetPages->title(); ?></a>
     <?php endwhile; ?>
     <hr class="sg-divider">
