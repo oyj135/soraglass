@@ -4,14 +4,14 @@
     "title": "樱色纪行",
     "description": "三月的风把整条街吹成粉色，快门按下去的时候花瓣正好落在镜头前",
     "date": "2026.03",
-    "cover": "dist/img/ph-1.svg",
+    "cover": "https://picsum.photos/id/1015/900/700",
     "photos": [
-      { "url": "dist/img/ph-1.svg", "caption": "坡道尽头的那棵树" },
-      { "url": "dist/img/ph-3.svg", "caption": "花瓣落在水面上" },
-      { "url": "dist/img/ph-4.svg", "caption": "逆光里的枝丫" },
-      { "url": "dist/img/ph-1.svg", "caption": "长椅与影子" },
-      { "url": "dist/img/ph-6.svg", "caption": "黄昏的站台" },
-      { "url": "dist/img/ph-5.svg", "caption": "夜樱与路灯" }
+      { "url": "https://picsum.photos/id/15/900/1200", "caption": "坡道尽头的那棵树" },
+      { "url": "https://picsum.photos/id/1018/900/700", "caption": "花瓣落在水面上" },
+      { "url": "https://picsum.photos/id/16/900/1100", "caption": "逆光里的枝丫" },
+      { "url": "https://picsum.photos/id/1024/900/700", "caption": "长椅与影子" },
+      { "url": "https://picsum.photos/id/17/900/1200", "caption": "黄昏的站台" },
+      { "url": "https://picsum.photos/id/1035/900/700", "caption": "夜樱与路灯" }
     ]
   },
   {
@@ -19,13 +19,13 @@
     "title": "深夜观测站",
     "description": "城市熄灯之后，天空才肯把真正的颜色露出来",
     "date": "2026.01",
-    "cover": "dist/img/ph-2.svg",
+    "cover": "https://picsum.photos/id/1016/900/700",
     "photos": [
-      { "url": "dist/img/ph-2.svg", "caption": "银河初现" },
-      { "url": "dist/img/ph-5.svg", "caption": "山脊线与星轨" },
-      { "url": "dist/img/ph-2.svg", "caption": "帐篷里的一盏灯" },
-      { "url": "dist/img/ph-5.svg", "caption": "凌晨四点的地平线" },
-      { "url": "dist/img/ph-3.svg", "caption": "回程路上的雾" }
+      { "url": "https://picsum.photos/id/18/900/1100", "caption": "银河初现" },
+      { "url": "https://picsum.photos/id/1039/900/700", "caption": "山脊线与星轨" },
+      { "url": "https://picsum.photos/id/19/900/1200", "caption": "帐篷里的一盏灯" },
+      { "url": "https://picsum.photos/id/1043/900/700", "caption": "凌晨四点的地平线" },
+      { "url": "https://picsum.photos/id/20/900/1100", "caption": "回程路上的雾" }
     ]
   },
   {
@@ -33,12 +33,12 @@
     "title": "房间与光",
     "description": "把日常拍成静物，是因为它们每天都在悄悄改变",
     "date": "2025.11",
-    "cover": "dist/img/ph-4.svg",
+    "cover": "https://picsum.photos/id/1050/900/700",
     "photos": [
-      { "url": "dist/img/ph-4.svg", "caption": "桌角的光斑" },
-      { "url": "dist/img/ph-6.svg", "caption": "窗台上的绿" },
-      { "url": "dist/img/ph-3.svg", "caption": "书页与咖啡" },
-      { "url": "dist/img/ph-4.svg", "caption": "午后三点" }
+      { "url": "https://picsum.photos/id/21/900/1100", "caption": "桌角的光斑" },
+      { "url": "https://picsum.photos/id/1062/900/700", "caption": "窗台上的绿" },
+      { "url": "https://picsum.photos/id/22/900/1200", "caption": "书页与咖啡" },
+      { "url": "https://picsum.photos/id/23/900/700", "caption": "午后三点" }
     ]
   }
 ]

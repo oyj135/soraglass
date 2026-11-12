@@ -11,7 +11,7 @@
       "kicker": "每日拾光",
       "title": "AI 日报 / 文献雷达",
       "desc": "压实钠蒙脱石里的水，主要从哪些孔隙扩散？",
-      "cover": "dist/img/ph-5.svg",
+      "cover": "https://picsum.photos/id/1024/1200/700",
       "notice": "本期收录 3 条 AI 动态与 3 篇研究论文。示例数据，替换成你自己的阅读清单即可直接使用。",
       "items": [
         {
@@ -107,7 +107,7 @@
       "kicker": "每日拾光",
       "title": "前端手记 / 视觉随手记",
       "desc": "毛玻璃不是加个 blur 就完事，先把层级和对比度想清楚。",
-      "cover": "dist/img/ph-2.svg",
+      "cover": "https://picsum.photos/id/1015/1200/700",
       "notice": "本期为示例数据：3 条前端笔记 + 2 条排印观察。",
       "items": [
         {
@@ -189,7 +189,7 @@
       "kicker": "每日拾光",
       "title": "Typecho 维护 / 运维备忘",
       "desc": "主题目录只有 www 可写时，缓存该放哪里？",
-      "cover": "dist/img/ph-6.svg",
+      "cover": "https://picsum.photos/id/1043/1200/700",
       "notice": "本期为示例数据：3 条 Typecho 运维备忘。",
       "items": [
         {
@@ -209,14 +209,14 @@
         {
           "id": "tc-2",
           "channel": "paper",
-          "title": "占位图改成本地 SVG，不再看外部图床的脸色",
-          "summary": "picsum.photos 在国内网络经常直接超时，首页宽幅卡会整块变成黑卡。",
+          "title": "外链图片 302 到 CDN 时，直连 CDN 会 404",
+          "summary": "picsum 的 fastly 地址带 hmac 签名，手写域名缺签名直接 404。",
           "source": "运维备忘",
           "sourceDate": "2026.10.31",
           "url": "",
           "highlights": [
-            "占位图随部署包上传（dist/img/ph-1..6.svg）。",
-            "后台填的外链一旦加载失败，前端自动换成内置占位图。"
+            "从入口域名引用，让服务端自己签名。",
+            "占位图统一走 sg_placeholder()。"
           ],
           "note": "这条已经写进 agens.md 的占位图约定。"
         },
