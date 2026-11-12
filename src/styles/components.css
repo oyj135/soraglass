@@ -1884,7 +1884,7 @@ html.dark .sg-tags span { color: #a5b4fc; }
    否则白字糊在浅色壁纸上（归档页默认壁纸就是浅紫，实测几乎读不出来）。
    阴影只做对比度补偿，不是光效。 */
 .sg-footer {
-  padding: .9rem 1.5rem 1.1rem;
+  padding: .85rem 1.5rem 1rem;
   text-align: center;
   font-family: var(--font-serif);
   color: rgba(15, 23, 42, .80);
@@ -1893,42 +1893,44 @@ html.dark .sg-tags span { color: #a5b4fc; }
 
 .sg-footer p { margin: 0; }
 
-/* ① 状态行：绿点 + 「系统已稳定运行：」+ 靛蓝时长 +（可选）备案号，整行居中 */
+/* ① 状态行：绿点 + 「系统已稳定运行：」+ 靛蓝时长 +（可选）备案号，整行居中。
+   第九轮把整组从 20px 降到 14px：页脚是附属信息，20px 比正文（.95rem）还大，
+   压在壁纸上有喧宾夺主的感觉。 */
 .sg-footer-status {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: .35rem 2rem;
-  font-size: 1.25rem;
-  font-weight: 700;
-  line-height: 1.5;
+  gap: .3rem 1.5rem;
+  font-size: .875rem;
+  font-weight: 600;
+  line-height: 1.6;
   color: rgba(15, 23, 42, .90);
 }
 
-.sg-footer-run { display: inline-flex; align-items: center; gap: .45rem; }
+.sg-footer-run { display: inline-flex; align-items: center; gap: .4rem; }
 .sg-footer-dot {
-  width: .8125rem;
-  height: .8125rem;
+  width: .5rem;
+  height: .5rem;
   border-radius: 50%;
   background: #16a34a;
   flex: none;
 }
 /* 时长是这一行唯一的彩色项：亮底退一档用 indigo-600，暗底进一档用 indigo-400 */
 .sg-footer-uptime { font-weight: 900; color: var(--sg-indigo-deep); letter-spacing: .01em; }
-.sg-footer-icp { font-weight: 400; color: rgba(51, 65, 85, .78); }
+.sg-footer-icp { font-weight: 400; font-size: .8125rem; color: rgba(51, 65, 85, .78); }
 
 /* ② 状态行与版权之间的通栏细分隔线（参考图里就是一条 1px 细线） */
 .sg-footer-rule {
   border: 0;
   border-top: 1px solid rgba(15, 23, 42, .14);
-  margin: 1.35rem 0 0;
+  margin: .9rem 0 0;
   text-shadow: none;
 }
 
-/* ③ 版权两行：同字号（参考样例实测均为 20px），只用字重区分主次 */
-.sg-footer-copy { margin-top: 1.5rem; font-size: 1.25rem; font-weight: 500; line-height: 1.5; letter-spacing: .01em; }
-.sg-footer-powered { margin-top: .375rem; font-size: 1.25rem; font-weight: 400; line-height: 1.5; }
+/* ③ 版权两行：13px / 12px，只用字重区分主次 */
+.sg-footer-copy { margin-top: .9rem; font-size: .8125rem; font-weight: 500; line-height: 1.6; letter-spacing: .01em; }
+.sg-footer-powered { margin-top: .25rem; font-size: .75rem; line-height: 1.6; }
 
 /* 深色模式 = 用户截图里的那版：冷白字 + 靛蓝时长 + 亮分隔线 */
 html.dark .sg-footer {
@@ -1941,17 +1943,15 @@ html.dark .sg-footer-uptime { color: var(--sg-indigo-soft); }
 html.dark .sg-footer-icp { color: rgba(233, 239, 247, .70); }
 html.dark .sg-footer-rule { border-top-color: rgba(226, 232, 240, .18); }
 
-/* 窄屏：20px 的参考尺寸在 390px 宽度会把状态行顶出视口（实测「211 天 20 小时」直接裁掉），
-   整组缩到 16px，间距同步收窄；版权两行也跟着降一档 */
+/* 窄屏：字号整体再降一档（14px 在 390px 上仍略宽，状态行与备案号会换行） */
 @media (max-width: 767px) {
-  .sg-footer { padding: .85rem 1rem 1rem; }
-  .sg-footer-status { font-size: 1rem; gap: .3rem 1rem; }
-  .sg-footer-dot { width: .625rem; height: .625rem; }
-  .sg-footer-copy, .sg-footer-powered { font-size: 1rem; }
-  /* 390px 下「Powered by … 空璃」只剩一个「璃」掉到第三行，第二行降半档刚好一行放下 */
-  .sg-footer-powered { font-size: .9375rem; }
-  .sg-footer-copy { margin-top: 1.15rem; }
-  .sg-footer-rule { margin-top: 1rem; }
+  .sg-footer { padding: .75rem 1rem .9rem; }
+  .sg-footer-status { font-size: .8125rem; gap: .25rem 1rem; }
+  .sg-footer-dot { width: .4375rem; height: .4375rem; }
+  .sg-footer-icp { font-size: .75rem; }
+  .sg-footer-copy { font-size: .8125rem; margin-top: .75rem; }
+  .sg-footer-powered { font-size: .75rem; }
+  .sg-footer-rule { margin-top: .75rem; }
 }
 
 
@@ -2561,16 +2561,23 @@ html.dark .sg-archive-tag { color: #a5b4fc; }
 .sg-gallery[hidden],
 .sg-gallery-detail[hidden] { display: none; }
 
+/* 2026-11-12 第九轮：卡片底色去掉（原来挂了 .sg-glass）。
+   相册列表是一墙照片，玻璃卡把照片框成了「应用卡片」，厚重且抢画面；
+   去掉底、边框、阴影与内边距，只留三张拍立得 + 元信息，hover 也只上浮不投影
+   （没有卡面还投影会像悬空的黑块）。 */
 .sg-album-card {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding: 1rem;
-  transition:
-    transform var(--sg-dur-card) var(--sg-ease),
-    box-shadow var(--sg-dur-card) var(--sg-ease);
+  gap: .9rem;
+  padding: 0;
+  background: none;
+  border: 0;
+  box-shadow: none;
+  transition: transform var(--sg-dur-card) var(--sg-ease);
 }
-.sg-album-card:hover { transform: translateY(-4px) scale(var(--sg-lift)); box-shadow: var(--sg-shadow-strong); }
+.sg-album-card:hover { transform: translateY(-4px) scale(var(--sg-lift)); }
+.sg-album-card:hover .sg-album-meta h2 { color: var(--sg-indigo-deep); }
+html.dark .sg-album-card:hover .sg-album-meta h2 { color: var(--sg-indigo-soft); }
 
 .sg-album-open { display: block; width: 100%; border: 0; padding: 0; background: none; }
 
