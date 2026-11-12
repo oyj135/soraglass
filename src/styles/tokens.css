@@ -6,12 +6,12 @@
 :root {
   color-scheme: light;
 
-  /* 2026-11-12 第四轮曾把卡面提到 55–72% 换对比度；第十一轮改走毛玻璃路线：
-     不透明度降回 42/58%，改用更强的 backdrop blur + saturate 把壁纸「磨」成均匀底色，
-     对比度靠模糊后的均匀背景 + 顶部高光描边撑住，磨砂感才真正出得来。 */
+  /* 2026-11-12 第四轮：原卡片只有 30–40% 白、次要文字用 slate-500/400，
+     压在亮壁纸上直接糊成一片（用户反馈「看不清」）。现在卡片提高到底色 55–72%，
+     muted/faint 各降两档到 slate-600/500，正文对比度稳定在 WCAG AA 以上。 */
   --sg-page: #f8fafc;                       /* slate-50 */
-  --sg-card: rgba(255, 255, 255, .42);      /* 卡面（毛玻璃：低不透明 + 强模糊） */
-  --sg-card-strong: rgba(255, 255, 255, .58); /* 文章卡 / 弹窗 */
+  --sg-card: rgba(255, 255, 255, .55);      /* 卡面（原 40%） */
+  --sg-card-strong: rgba(255, 255, 255, .72); /* 文章卡 / 弹窗（原 60%） */
   --sg-border: rgba(255, 255, 255, .55);    /* 描边 */
   --sg-chip: rgba(255, 255, 255, .45);      /* 元信息胶囊底（原 30%） */
   --sg-text: #0b1220;                       /* 正文，比 slate-900 再深一档 */
@@ -20,20 +20,11 @@
   --sg-veil: rgba(255, 255, 255, .34);      /* 壁纸遮罩（强度由 html[data-sg-veil] 再乘） */
   --sg-line: rgba(148, 163, 184, .45);      /* 分隔线 */
 
-  /* 阴影自带顶缘 1px 内高光（--sg-gloss 惰性求值，暗色自动取暗档）：
-     所有玻璃卡及其 hover 变体共用这两个 token，高光全站一致。 */
-  --sg-shadow:
-    0 20px 25px -5px rgb(0 0 0 / .10),
-    0 8px 10px -6px rgb(0 0 0 / .10),
-    inset 0 1px 0 var(--sg-gloss);
-  --sg-shadow-strong:
-    0 25px 50px -12px rgb(0 0 0 / .25),
-    inset 0 1px 0 var(--sg-gloss);
+  --sg-shadow: 0 20px 25px -5px rgb(0 0 0 / .10), 0 8px 10px -6px rgb(0 0 0 / .10);
+  --sg-shadow-strong: 0 25px 50px -12px rgb(0 0 0 / .25);
 
-  --sg-blur-card: 20px;   /* 毛玻璃主模糊（原 12px，配合低不透明度才有磨砂感） */
+  --sg-blur-card: 12px;   /* backdrop-blur-md */
   --sg-blur-nav: 24px;    /* backdrop-blur-xl */
-  --sg-glass-sat: 1.6;    /* 磨砂饱和度：把磨过的颜色提回来，避免卡面发灰 */
-  --sg-gloss: rgba(255, 255, 255, .50); /* 卡片顶缘 1px 高光（玻璃厚度的暗示） */
   --sg-radius: 1.5rem;    /* rounded-3xl */
   --sg-radius-xl: 2.5rem; /* 关于页大卡 rounded-[40px] */
 
@@ -76,10 +67,11 @@ html.dark {
   color-scheme: dark;
 
   --sg-page: #020617;                       /* slate-950 */
-  /* 暗色毛玻璃：不透明度同步下调（62/74 → 50/62），靠 blur+saturate 维持白字对比度 */
-  --sg-card: rgba(15, 23, 42, .50);         /* slate-900/50 */
-  --sg-card-strong: rgba(15, 23, 42, .62);
-  --sg-border: rgba(226, 232, 240, .24);    /* 描边提亮一档，玻璃轮廓在暗壁纸上立得住 */
+  /* 半透明 slate-800/50 压在亮壁纸上几乎等于没底，白字对比度跌到 3:1 附近。
+     提高不透明度并改用更深的 slate-900 色相，白字稳定 7:1 以上。 */
+  --sg-card: rgba(15, 23, 42, .62);         /* slate-900/62 */
+  --sg-card-strong: rgba(15, 23, 42, .74);
+  --sg-border: rgba(226, 232, 240, .18);    /* 描边提亮，卡片轮廓在暗壁纸上也能立住 */
   --sg-chip: rgba(15, 23, 42, .58);         /* 胶囊底 */
   --sg-text: #f8fafc;                       /* slate-50 */
   --sg-muted: #cbd5e1;                      /* slate-300（原 slate-400，暗底对比 4.6→9.1） */
@@ -87,13 +79,8 @@ html.dark {
   --sg-veil: rgba(2, 6, 23, .46);           /* 暗色壁纸遮罩 */
   --sg-line: rgba(226, 232, 240, .16);
 
-  --sg-shadow:
-    0 20px 25px -5px rgb(0 0 0 / .35),
-    0 8px 10px -6px rgb(0 0 0 / .30),
-    inset 0 1px 0 var(--sg-gloss);
-  --sg-shadow-strong:
-    0 25px 50px -12px rgb(0 0 0 / .45),
-    inset 0 1px 0 var(--sg-gloss);
+  --sg-shadow: 0 20px 25px -5px rgb(0 0 0 / .35), 0 8px 10px -6px rgb(0 0 0 / .30);
+  --sg-shadow-strong: 0 25px 50px -12px rgb(0 0 0 / .45);
 
   --sg-glow-a: rgba(49, 46, 129, .20);      /* indigo-900/20 */
   --sg-glow-b: rgba(88, 28, 135, .30);      /* purple-900/30 */
@@ -101,9 +88,6 @@ html.dark {
 
   /* 头像描边跟着卡片底色走，暗色下用 slate-800 才不刺眼 */
   --sg-ring: #1e293b;
-
-  /* 暗色顶缘高光：白 12% 就够，太亮像塑料 */
-  --sg-gloss: rgba(255, 255, 255, .12);
 }
 
 @layer base {
