@@ -7,12 +7,15 @@
   color-scheme: light;
 
   /* 2026-11-12 第四轮：原卡片只有 30–40% 白、次要文字用 slate-500/400，
-     压在亮壁纸上直接糊成一片（用户反馈「看不清」）。现在卡片提高到底色 55–72%，
-     muted/faint 各降两档到 slate-600/500，正文对比度稳定在 WCAG AA 以上。 */
+     压在亮壁纸上直接糊成一片（用户反馈「看不清」）。当时把卡面提到 55%，
+     但真正的原因是入场动画把 backdrop-filter 的采样根锁死了（见 effects.css
+     .sg-main 的注释）——毛玻璃根本没生效，只剩一层半透明底在硬撑。
+     2026-11-13 修好采样根后，卡面/描边回到源站 bg-white/40 + border-white/40。 */
   --sg-page: #f8fafc;                       /* slate-50 */
-  --sg-card: rgba(255, 255, 255, .55);      /* 卡面（原 40%） */
+  --sg-card: rgba(255, 255, 255, .40);      /* 卡面：源站 bg-white/40 */
   --sg-card-strong: rgba(255, 255, 255, .72); /* 文章卡 / 弹窗（原 60%） */
-  --sg-border: rgba(255, 255, 255, .55);    /* 描边 */
+  --sg-card-border: rgba(255, 255, 255, .40); /* 卡面描边：源站 border-white/40 */
+  --sg-border: rgba(255, 255, 255, .55);    /* 结构线（表格 / 分页 / 输入框） */
   --sg-chip: rgba(255, 255, 255, .45);      /* 元信息胶囊底（原 30%） */
   --sg-text: #0b1220;                       /* 正文，比 slate-900 再深一档 */
   --sg-muted: #475569;                      /* 次要文字：slate-600 */
@@ -55,6 +58,10 @@
   --sg-ring: #ffffff;      /* 关于页头像白描边 */
   --sg-polaroid: #ffffff;  /* 拍立得相纸边框，暗色也保持白 */
 
+  /* 首页歌词栏：源站 LyricBar 两种主题都是深色条（slate-900/80 → 暗色 slate-950/90） */
+  --sg-lyric-bg: rgba(15, 23, 42, .80);
+  --sg-lyric-border: rgba(255, 255, 255, .10);
+
   /* 贡献热力图（GitHub 同款五档，暗底也认得出层次） */
   --sg-heat-0: rgba(148, 163, 184, .18);
   --sg-heat-1: #166534;
@@ -67,11 +74,12 @@ html.dark {
   color-scheme: dark;
 
   --sg-page: #020617;                       /* slate-950 */
-  /* 半透明 slate-800/50 压在亮壁纸上几乎等于没底，白字对比度跌到 3:1 附近。
-     提高不透明度并改用更深的 slate-900 色相，白字稳定 7:1 以上。 */
-  --sg-card: rgba(15, 23, 42, .62);         /* slate-900/62 */
+  /* 源站暗色卡面是 slate-800/50、描边 white/10。之前提到 slate-900/62 是在
+     毛玻璃失效的前提下的补偿，修好采样根后回落源站值（见 :root 顶部注释）。 */
+  --sg-card: rgba(30, 41, 59, .50);         /* slate-800/50 */
   --sg-card-strong: rgba(15, 23, 42, .74);
-  --sg-border: rgba(226, 232, 240, .18);    /* 描边提亮，卡片轮廓在暗壁纸上也能立住 */
+  --sg-card-border: rgba(255, 255, 255, .10); /* 源站 dark:border-white/10 */
+  --sg-border: rgba(226, 232, 240, .18);    /* 结构线，比卡面描边亮一档 */
   --sg-chip: rgba(15, 23, 42, .58);         /* 胶囊底 */
   --sg-text: #f8fafc;                       /* slate-50 */
   --sg-muted: #cbd5e1;                      /* slate-300（原 slate-400，暗底对比 4.6→9.1） */
@@ -88,6 +96,9 @@ html.dark {
 
   /* 头像描边跟着卡片底色走，暗色下用 slate-800 才不刺眼 */
   --sg-ring: #1e293b;
+
+  /* 歌词栏暗色再压深一档：源站 dark:bg-slate-950/90 */
+  --sg-lyric-bg: rgba(2, 6, 23, .90);
 }
 
 @layer base {

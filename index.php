@@ -37,8 +37,10 @@ $sgChatterLink = sg_page_url('chatter');
       <section class="sg-glass sg-card-pad sg-col-5 sg-player-card" data-sg-hover data-sg-spotlight><?php $this->need('partials/player.php'); ?></section>
     </div>
 
+    <?php $this->need('partials/lyric-bar.php'); ?>
+
     <div class="sg-grid sg-grid-12">
-      <section class="sg-glass sg-post-carousel sg-col-4" data-sg-carousel data-sg-hover>
+      <section class="sg-glass sg-post-carousel sg-col-4" data-sg-carousel data-sg-interval="5000" data-sg-hover>
         <?php $GLOBALS['SG_SLIDE_SEEN'] = false; ?>
         <?php if ($this->have()) : ?>
           <?php while ($this->next()) : ?>

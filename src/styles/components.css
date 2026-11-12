@@ -10,7 +10,7 @@
   background: var(--sg-card);
   -webkit-backdrop-filter: blur(var(--sg-blur-card));
   backdrop-filter: blur(var(--sg-blur-card));
-  border: 1px solid var(--sg-border);
+  border: 1px solid var(--sg-card-border);
   border-radius: var(--sg-radius);
   box-shadow: var(--sg-shadow);
   /* 配色过渡保持 1s（后台「保存即生效」的昼夜渐变靠它），transform 单独走卡片时长。
@@ -838,17 +838,148 @@ html.dark .sg-song.is-active .sg-song-title { color: #a5b4fc; }
 
 .sg-music-note { padding: 0 1.25rem 1.25rem; font-size: .72rem; line-height: 1.7; color: var(--sg-faint); }
 
+/* ---------- 首页歌词栏（LyricBar） ---------- */
+/* 源站 components/LyricBar.tsx：7:5 行与 4:8 行之间一条深色通栏条，
+   左五根声波、中逐字歌词 + 闪烁光标、右音符图标。两种主题共用同一套深色底
+   （源站是 slate-900/80，暗色 slate-950/90），所以颜色只走 --sg-lyric-* 两个 token。 */
+.sg-lyric-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  height: 5rem;
+  padding: 1.25rem;
+  /* 源站的 mt-[-10px]：压在 7:5 行下面，比常规栅格间距再近一点 */
+  margin-top: -.625rem;
+  border: 1px solid var(--sg-lyric-border);
+  border-radius: var(--sg-radius);
+  background: var(--sg-lyric-bg);
+  -webkit-backdrop-filter: blur(var(--sg-blur-nav));
+  backdrop-filter: blur(var(--sg-blur-nav));
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / .25);
+  color: #fff;
+  overflow: hidden;
+  transition: background-color 1s, border-color 1s, box-shadow .5s;
+}
+
+/* 声波：静止 4px，播放时 8px ↔ 28px。用 scaleY 代替源站的 height 动画，
+   只碰 transform，不触发重排。 */
+.sg-lyric-wave {
+  display: flex;
+  flex: none;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px;
+  width: 4rem;
+  height: 1.75rem;
+}
+
+.sg-lyric-wave i {
+  display: block;
+  width: 6px;
+  height: 1.75rem;
+  border-radius: 3px 3px 0 0;
+  background: rgba(148, 163, 184, .90);
+  transform: scaleY(.143);
+  transform-origin: bottom;
+  transition: transform .5s ease-out, background-color 1s;
+}
+
+/* 源站的五根颜色与延迟：indigo-400 / purple-400 / indigo-500 / purple-500 / indigo-300 */
+.sg-lyric-wave i:nth-child(1) { background: #818cf8; }
+.sg-lyric-wave i:nth-child(2) { background: #c084fc; }
+.sg-lyric-wave i:nth-child(3) { background: #6366f1; }
+.sg-lyric-wave i:nth-child(4) { background: #a855f7; }
+.sg-lyric-wave i:nth-child(5) { background: #a5b4fc; }
+
+.sg-lyric-bar.is-playing .sg-lyric-wave i { animation: sg-lyric-wave 1s ease-in-out infinite; }
+.sg-lyric-bar.is-playing .sg-lyric-wave i:nth-child(1) { animation-delay: 0ms; }
+.sg-lyric-bar.is-playing .sg-lyric-wave i:nth-child(2) { animation-delay: 200ms; }
+.sg-lyric-bar.is-playing .sg-lyric-wave i:nth-child(3) { animation-delay: 400ms; }
+.sg-lyric-bar.is-playing .sg-lyric-wave i:nth-child(4) { animation-delay: 100ms; }
+.sg-lyric-bar.is-playing .sg-lyric-wave i:nth-child(5) { animation-delay: 300ms; }
+
+@keyframes sg-lyric-wave {
+  0%, 100% { transform: scaleY(.286); }
+  50% { transform: scaleY(1); }
+}
+
+.sg-lyric-text {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0 2rem;
+  text-align: center;
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 0 8px rgba(99, 102, 241, .80);
+}
+
+/* 打字光标：源站是独立 span + cursorBlink；这里挂在文本节点后面，少一层 DOM */
+.sg-lyric-text::after {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 1.25rem;
+  margin-left: .25rem;
+  vertical-align: middle;
+  background: #818cf8;
+  box-shadow: 0 0 8px rgba(99, 102, 241, .80);
+  animation: sg-lyric-caret .8s step-end infinite;
+}
+
+@keyframes sg-lyric-caret {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.sg-lyric-icon {
+  display: flex;
+  flex: none;
+  justify-content: flex-end;
+  width: 4rem;
+  color: rgba(129, 140, 248, .50);
+  transition: opacity .5s, color 1s;
+}
+
+.sg-lyric-icon svg { width: 1.5rem; height: 1.5rem; }
+
+.sg-lyric-bar.is-playing .sg-lyric-icon { animation: sg-lyric-bounce 1s infinite; }
+
+@keyframes sg-lyric-bounce {
+  0%, 100% { transform: translateY(-25%); }
+  50% { transform: none; }
+}
+
+.sg-lyric-bar:not(.is-playing) .sg-lyric-icon { opacity: .30; }
+
+@media (max-width: 639px) {
+  .sg-lyric-bar { height: 4.5rem; padding: 1rem; gap: .75rem; }
+  .sg-lyric-wave { width: 3rem; }
+  .sg-lyric-text { padding: 0 .5rem; font-size: 1rem; }
+  .sg-lyric-icon { width: 2.5rem; }
+  .sg-lyric-icon svg { width: 1.25rem; height: 1.25rem; }
+}
+
 /* ---------- 封面轮播（首页 4 列） ---------- */
 .sg-post-carousel {
   position: relative;
   overflow: hidden;
-  min-height: 20rem;
+  /* 源站 min-h-[420px]（实测 464px 高）：低于 420 时右侧海报 + 杂谈会把左列拉矮 */
+  min-height: 26.25rem;
   padding: 0;
   transition: transform var(--sg-dur-card) var(--sg-ease), box-shadow var(--sg-dur-card) var(--sg-ease);
 }
 .sg-post-carousel:hover { transform: scale(var(--sg-lift-sm)); box-shadow: var(--sg-shadow-strong); }
 
-.sg-post-slide { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity 1s; }
+/* 0.8s 与 carousel.ts 的 FADE 常量一致：退场播完才挂 is-active，两张图不会同时可见 */
+.sg-post-slide { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity .8s; }
 .sg-post-slide.is-active { opacity: 1; pointer-events: auto; }
 
 .sg-slide-cover { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform var(--sg-dur-card) var(--sg-ease); }
@@ -907,6 +1038,8 @@ html.dark .sg-song.is-active .sg-song-title { color: #a5b4fc; }
 }
 
 .sg-dots { position: absolute; right: 1.5rem; bottom: 1rem; z-index: 30; display: flex; align-items: center; gap: .5rem; }
+/* 杂谈卡圆点比封面卡低一档：源站是 posts bottom-4 / chatter bottom-5 */
+.sg-chatter .sg-dots { bottom: 1.25rem; }
 
 .sg-dot {
   width: 8px;
@@ -1024,7 +1157,7 @@ html.dark .sg-poster-wide .sg-veil { background: rgba(0, 0, 0, .50); }
 }
 
 /* 轮播单张：与 .sg-post-slide 同一套淡入逻辑，供 index.php 的杂谈轮播使用 */
-.sg-chatter-slide { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity 1s; }
+.sg-chatter-slide { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity .8s; }
 .sg-chatter-slide.is-active { opacity: 1; pointer-events: auto; }
 .sg-chatter-slide > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .80; transition: transform var(--sg-dur-card) var(--sg-ease); }
 .sg-chatter:hover .sg-chatter-slide.is-active > img { transform: scale(var(--sg-thumb-zoom)); }

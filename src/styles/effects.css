@@ -262,8 +262,14 @@ html[data-sg-veil="strong"] .sg-bg-veil::after {
   to { opacity: 1; transform: none; }
 }
 
-/* 源站 PageTransition.tsx：y:20 → 0 / 0.8s easeOut */
-.sg-main { animation: sg-page-in .8s cubic-bezier(0, 0, .2, 1) both; }
+/* 源站 PageTransition.tsx：y:20 → 0 / 0.8s easeOut
+ *
+ * 这里绝对不能写 fill-mode: both（2026-11-13 修）。动画一旦带 both，Chrome 会把这个
+ * 元素当成「永久在动画里」的合成层，而带 opacity/transform 动画的元素自成一个
+ * backdrop root —— 卡片里的 backdrop-filter 采样不到页面壁纸，只剩一层半透明底，
+ * 毛玻璃整站失效（表现为「卡片是透明的但不模糊」，且和演示站对不上）。
+ * 无 fill 时动画播完即释放，0.8s 后采样根回到根元素，模糊恢复。 */
+.sg-main { animation: sg-page-in .8s cubic-bezier(0, 0, .2, 1); }
 
 @keyframes sg-gradient-move {
   0% { background-position: 0 50%; }
