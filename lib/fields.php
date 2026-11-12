@@ -136,11 +136,15 @@ function sg_page_head(array $head = []): void
     $back = (bool) ($head['back'] ?? false);
     $search = (bool) ($head['search'] ?? false);
     $center = (bool) ($head['center'] ?? false);
+    /* 2026-11-12 第九轮：允许调用方直接渲染成隐藏状态。
+       光影画廊的二级路由（?album=<id>）要在服务端就藏掉页头，否则刷新详情页
+       会先闪一下「光影画廊」大标题再被 gallery.ts 收起。 */
+    $hidden = (bool) ($head['hidden'] ?? false);
     $placeholder = (string) ($head['placeholder'] ?? '搜索标题、描述或标签…');
     $options = sg_options();
     $home = is_object($options) ? rtrim((string) $options->siteUrl, '/') . '/' : '/';
     ?>
-<div class="sg-page-head">
+<div class="sg-page-head"<?php echo $hidden ? ' hidden' : ''; ?>>
   <?php if ($back) : ?>
   <a class="sg-back" href="<?php echo sg_e($home); ?>"><?php echo sg_icon('arrow-left'); ?>返回上一级</a>
   <?php endif; ?>

@@ -48,9 +48,30 @@ $sgHead = [
     'center'      => false,
     'placeholder' => '搜索相册名或照片描述...',
 ];
+
+/**
+ * 二级路由（?album=<id>）是「相册详情」，不是列表：页头那套
+ * 「光影画廊 + 副标题 + 搜索」在详情里既重复又占掉首屏，整块不显示。
+ *
+ * 这里在服务端先判一次，让刷新 / 直接分享详情链接时不会先闪一下大标题
+ * （客户端由 gallery.ts 在列表 ↔ 详情切换时同步 hidden）。
+ * id 必须能在相册里找到，否则非法参数会把页头藏在列表页上。
+ */
+$sgOpenId = isset($_GET['album']) ? trim((string) $_GET['album']) : '';
+if ($sgOpenId !== '') {
+    $sgKnownIds = [];
+    foreach ($sgAlbums as $sgIndexOf => $sgOne) {
+        if (is_array($sgOne)) {
+            $sgKnownIds[] = (string) ($sgOne['id'] ?? ('album-' . $sgIndexOf));
+        }
+    }
+    if (!in_array($sgOpenId, $sgKnownIds, true)) {
+        $sgOpenId = '';
+    }
+}
 ?>
 <main class="sg-main sg-main--wide sg-main--pad" data-sg-page="photowall" data-sg-gallery data-sg-grid>
-  <?php sg_page_head($sgHead); ?>
+  <?php sg_page_head($sgHead + ['hidden' => $sgOpenId !== '']); ?>
 
   <!-- 搜索结果区：默认隐藏，输入关键词后由 gallery.ts 打开 -->
   <section class="sg-gallery-found" data-sg-gallery-found hidden>
@@ -120,7 +141,7 @@ $sgHead = [
       }
       $sgKeywords = $sgTitle . ' ' . $sgDesc . ' ' . implode(' ', $sgCaptions);
     ?>
-    <article class="sg-glass sg-album-card" data-sg-album="<?php echo sg_e($sgId); ?>" data-keywords="<?php echo sg_e($sgKeywords); ?>" data-sg-spotlight>
+    <article class="sg-album-card" data-sg-album="<?php echo sg_e($sgId); ?>" data-keywords="<?php echo sg_e($sgKeywords); ?>">
       <button class="sg-album-open" type="button" data-sg-album-open="<?php echo sg_e($sgId); ?>" aria-label="打开专辑：<?php echo sg_e($sgTitle); ?>">
         <span class="sg-polaroid-stack">
           <img class="sg-polaroid" src="<?php echo sg_e($sgLayerBack); ?>" alt="" loading="lazy">
