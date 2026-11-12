@@ -5,8 +5,12 @@
  * @package custom
  *
  * 结构与源站 components/TimelineClient.tsx + TimelineNode.tsx 一致：
- * 标题 → 搜索 → 「全部档案」+ 标签胶囊（带计数）→ 右侧双视图切换
- * → 矩阵网格（封面/日期/标题/描述/#标签）或中枢链路（左右交替时间线）。
+ * 标题 → 搜索 → 「全部档案」+ 标签胶囊（带计数）→ 固定矩阵网格
+ * （封面/日期/标题/描述/#标签）。
+ *
+ * 2026-11-12 第四轮：去掉「中枢链路 / 矩阵网格」双视图切换。
+ * 两套布局的阅读节奏差异太大，切换按钮本身也在抢标签胶囊的注意力；
+ * 现只保留等宽矩阵，行高与列宽由 CSS 固定，翻页时不会跳版。
  *
  * 缩略名仍是 timeline，旧链接不失效；只是导航与标题换成了更贴切的名字。
  *
@@ -33,7 +37,9 @@ try {
             'cid'       => (int) $sgRecent->cid,
             'title'     => (string) $sgRecent->title,
             'permalink' => (string) $sgRecent->permalink,
-            'date'      => (string) $sgRecent->date('Y.m.d'),
+            // Widget::date() 是「打印」而不是「返回」——写成 $sgRecent->date('Y.m.d')
+            // 会把这 6 个日期直接 echo 到 <main> 之前（页首那串裸日期）。
+            'date'      => $sgRecent->date->format('Y.m.d'),
             'cover'     => sg_cover($sgRecent),
             'desc'      => sg_field($sgRecent, 'description', '') !== ''
                 ? sg_field($sgRecent, 'description', '')
@@ -65,12 +71,11 @@ $sgHead = [
     'title'       => (string) $this->title,
     'sub'         => sg_page_sub($this, '总计 ' . count($sgPosts) . ' 篇研究记录'),
     'search'      => true,
-    'back'        => true,
     'center'      => false,
     'placeholder' => '搜寻被封存的知识...',
 ];
 ?>
-<main class="sg-main sg-main--wide sg-main--pad sg-archive" data-sg-page="timeline" data-sg-archive data-view="matrix" data-sg-grid>
+<main class="sg-main sg-main--wide sg-main--pad sg-archive" data-sg-page="timeline" data-sg-archive data-sg-grid>
   <?php sg_page_head($sgHead); ?>
 
   <div class="sg-archive-toolbar">
@@ -79,11 +84,6 @@ $sgHead = [
       <?php foreach ($sgTagStats as $sgSlug => $sgStat) : ?>
       <button class="sg-filter-btn" type="button" data-sg-archive-tag="<?php echo sg_e((string) $sgSlug); ?>"><?php echo sg_e($sgStat['name']); ?><span class="sg-filter-count"><?php echo (int) $sgStat['count']; ?></span></button>
       <?php endforeach; ?>
-    </div>
-
-    <div class="sg-seg sg-archive-switch" role="group" aria-label="切换阅读视图">
-      <button class="sg-seg-btn" type="button" data-sg-archive-view="chain" aria-pressed="false">中枢链路</button>
-      <button class="sg-seg-btn is-active" type="button" data-sg-archive-view="matrix" aria-pressed="true">矩阵网格</button>
     </div>
   </div>
 

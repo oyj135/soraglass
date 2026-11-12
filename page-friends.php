@@ -13,7 +13,6 @@ $sgHead = [
     'title'  => (string) $this->title,
     'sub'    => sg_page_sub($this, '那些散落在赛博宇宙中的有趣灵魂与神经节点。'),
     'search' => false,
-    'back'   => true,
     'center' => true,
 ];
 ?>

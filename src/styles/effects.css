@@ -61,14 +61,34 @@ html.sg-splash-pending .sg-splash { animation: sg-splash-auto .45s ease 1.2s for
   width: 100%;
   height: 100%;
   object-fit: cover;
+  /* 模糊档位从 html[data-sg-blur] 读；放大 1.06 是为了盖住 blur 后的透明边缘 */
+  filter: blur(var(--sg-bg-blur, 0px));
+  transform: scale(var(--sg-bg-blur-scale, 1));
+  transition: filter .6s linear, transform .6s linear;
 }
+
+/* 背景模糊三档（后台「背景模糊」）：soft / strong 时同时轻微虚化 + 放大，
+   避免 blur 让图片四边露出底色。 */
+html[data-sg-blur="soft"] { --sg-bg-blur: 5px; --sg-bg-blur-scale: 1.04; }
+html[data-sg-blur="strong"] { --sg-bg-blur: 12px; --sg-bg-blur-scale: 1.08; }
 
 .sg-bg-veil {
   position: absolute;
   inset: 0;
   z-index: 2;
   background: var(--sg-veil);
-  transition: background-color 1s;
+  opacity: var(--sg-veil-opacity, 1);
+  transition: background-color 1s, opacity 1s;
+}
+
+/* 遮罩浓度三档：`strong` 再叠一层同色，等效把壁纸压暗/压亮一档（不写死颜色，跟随主题）。 */
+html[data-sg-veil="soft"] { --sg-veil-opacity: .62; }
+html[data-sg-veil="strong"] { --sg-veil-opacity: 1; }
+html[data-sg-veil="strong"] .sg-bg-veil::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--sg-veil);
 }
 
 .sg-gradient {
@@ -229,11 +249,6 @@ html.sg-splash-pending .sg-splash { animation: sg-splash-auto .45s ease 1.2s for
   50% { opacity: .35; }
 }
 
-@keyframes sg-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
-
 @keyframes sg-breathe {
   0%, 100% { opacity: .45; }
   50% { opacity: 1; }
@@ -273,8 +288,7 @@ html.sg-splash-pending .sg-splash { animation: sg-splash-auto .45s ease 1.2s for
 @media print {
   html, body { background: #fff !important; }
   .sg-bg, .sg-glow, .sg-gradient, .sg-effects, .sg-danmaku, .sg-ripple,
-  .sg-splash, .sg-nav, .sg-disc, .sg-sheet, .sg-toolbox, .sg-to-top,
-  .sg-floating-player, .sg-pet, .sg-toast { display: none !important; }
+  .sg-splash, .sg-nav, .sg-disc, .sg-sheet, .sg-toolbox, .sg-toast { display: none !important; }
   .sg-main { animation: none !important; padding-top: 1rem; }
   .sg-glass, .sg-glass-strong {
     background: #fff !important;

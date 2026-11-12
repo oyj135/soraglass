@@ -99,11 +99,19 @@ if (!$sgChannels) {
 
 $sgTotal = count($sgIssues);
 $sgFirst = $sgIssues[0];
+
+// 卡片背景图：后台「每日选刊背景图」填了就以它为准（一张图铺满横幅，切期不换），
+// 没填才回到「每期自带 cover 交叉淡入」的老行为。
+$sgBriefingBg = sg_bg_url((string) sg_opt('sgBriefingBg', ''));
 ?>
 
 <section class="sg-glass sg-briefing" data-sg-briefing data-sg-spotlight>
   <div class="sg-briefing-hero">
     <div class="sg-briefing-covers" aria-hidden="true">
+      <?php if ($sgBriefingBg !== '') : ?>
+      <!-- 后台指定了背景图：整卡只用这一张，切期时保持不变 -->
+      <img class="sg-briefing-cover is-active" src="<?php echo sg_e($sgBriefingBg); ?>" alt="">
+      <?php else : ?>
       <?php foreach ($sgIssues as $sgIndex => $sgIssue) : ?>
       <?php $sgCover = sg_media($sgIssue['cover'], sg_placeholder(1015 + (int) $sgIndex, 1200, 700)); ?>
       <img class="sg-briefing-cover<?php echo $sgIndex === 0 ? ' is-active' : ''; ?>"
@@ -111,6 +119,7 @@ $sgFirst = $sgIssues[0];
            data-sg-briefing-cover="<?php echo (int) $sgIndex; ?>"
            <?php echo $sgIndex === 0 ? '' : 'loading="lazy"'; ?>>
       <?php endforeach; ?>
+      <?php endif; ?>
     </div>
     <span class="sg-briefing-scrim" aria-hidden="true"></span>
 
@@ -146,7 +155,6 @@ $sgFirst = $sgIssues[0];
       <button type="button" data-sg-briefing-prev aria-label="上一期"<?php echo $sgTotal < 2 ? ' disabled' : ''; ?>><?php echo sg_icon('chevron-left'); ?></button>
       <span data-sg-briefing-index>1/<?php echo $sgTotal; ?></span>
       <button type="button" data-sg-briefing-next aria-label="下一期"<?php echo $sgTotal < 2 ? ' disabled' : ''; ?>><?php echo sg_icon('chevron-right'); ?></button>
-      <button type="button" class="sg-briefing-auto" data-sg-briefing-auto aria-label="暂停自动切换" aria-pressed="false"<?php echo $sgTotal < 2 ? ' disabled' : ''; ?>><?php echo sg_icon('pause'); ?></button>
     </div>
   </div>
 

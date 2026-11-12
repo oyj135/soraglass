@@ -57,13 +57,18 @@ function sg_opt(string $key, string $default = ''): string
 /**
  * 占位图地址。
  *
- * 约定：一律从 https://picsum.photos 入口引用，它会 302 到
- * fastly.picsum.photos 的带签名地址。直接手写 fastly.picsum.photos/id/.. 
- * 因为缺 ?hmac= 会返回 404 —— 这是线上挂图最常见的原因。
+ * ⚠️ 2026-11-12 第六轮：不再返回 picsum.photos。
+ *    该域名（及其 302 目标 fastly.picsum.photos）在国内网络经常直接超时，
+ *    首页宽幅卡、相册封面、每日选刊封面会整块变成「黑卡」——这就是
+ *    「某处背景图无法显示」的根因。现在改成主题内置的 6 张渐变占位图
+ *    （dist/img/ph-1..6.svg），随部署包上传，不依赖任何外部图床。
+ *    宽高参数保留只为兼容旧调用方：SVG 本身可任意缩放。
  */
 function sg_placeholder(int $id = 1015, int $width = 1200, int $height = 600): string
 {
-    return 'https://picsum.photos/id/' . $id . '/' . $width . '/' . $height;
+    unset($width, $height);
+    $index = ((($id % 6) + 6) % 6) + 1;
+    return sg_theme_url('dist/img/ph-' . $index . '.svg');
 }
 
 /** 按行读取多行配置（壁纸、弹幕等），自动过滤空行 */

@@ -1,5 +1,5 @@
 <?php
-/** 左下悬浮工具箱：主题 / 音乐 / 回到顶部 */
+/** 左下悬浮工具箱：昼夜切换 / 音乐馆（「回到顶部」箭头已按需求下线） */
 $sgMusicPage = null;
 try {
     $this->widget('Widget_Contents_Page_List')->to($sgToolPages);
@@ -21,5 +21,4 @@ try {
   <?php if ($sgMusicPage !== null) : ?>
   <a class="sg-tool" href="<?php echo sg_e($sgMusicPage); ?>" aria-label="音乐馆"><?php echo sg_icon('music'); ?></a>
   <?php endif; ?>
-  <button class="sg-tool" type="button" data-sg-totop aria-label="回到顶部"><?php echo sg_icon('arrow-up'); ?></button>
 </div>

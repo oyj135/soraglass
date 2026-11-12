@@ -18,7 +18,6 @@ $sgHead = [
     'title'  => (string) $this->title,
     'sub'    => sg_page_sub($this, '在代码的缝隙里找一点共鸣'),
     'search' => false,
-    'back'   => true,
     'center' => true,
 ];
 ?>
@@ -48,7 +47,10 @@ $sgHead = [
       </div>
 
       <div class="sg-music-controls">
-        <button type="button" data-sg-mode aria-label="播放模式" title="循环 / 单曲 / 随机"><?php echo sg_icon('repeat'); ?></button>
+        <button class="sg-music-mode" type="button" data-sg-mode data-mode="loop" aria-label="播放模式：列表循环">
+          <span data-sg-mode-icon><?php echo sg_icon('repeat'); ?></span>
+          <span data-sg-mode-label>列表循环</span>
+        </button>
 
         <div class="sg-music-center">
           <button type="button" data-sg-prev aria-label="上一首"><?php echo sg_icon('prev'); ?></button>

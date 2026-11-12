@@ -47,7 +47,6 @@ if ($sgWeek) {
     <div class="sg-about-banner">
       <img src="<?php echo sg_e($sgBanner); ?>" alt="<?php echo sg_e((string) $this->title); ?>">
       <div class="sg-about-veil"></div>
-      <a class="sg-about-back" href="<?php echo sg_e($sgHome); ?>"><?php echo sg_icon('arrow-left'); ?>返回首页</a>
     </div>
 
     <div class="sg-about-inner">

@@ -45,7 +45,6 @@ $sgHead = [
     'title'       => (string) $this->title,
     'sub'         => sg_page_sub($this, '定格时间，封存泰拉与现实的每一次心跳 · 共 ' . $sgPhotoTotal . ' 张照片'),
     'search'      => true,
-    'back'        => true,
     'center'      => false,
     'placeholder' => '搜索相册名或照片描述...',
 ];

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800" role="img" aria-label="樱色渐变占位图">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f7c8e0"/>
+      <stop offset=".55" stop-color="#e7b7e2"/>
+      <stop offset="1" stop-color="#a18cd1"/>
+    </linearGradient>
+    <linearGradient id="hill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8b6bb5" stop-opacity=".62"/>
+      <stop offset="1" stop-color="#8b6bb5" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#sky)"/>
+  <circle cx="860" cy="238" r="112" fill="#fff6fb" opacity=".62"/>
+  <circle cx="860" cy="238" r="208" fill="#fff6fb" opacity=".14"/>
+  <path d="M0 612C214 512 366 556 528 606s338 92 672-14v208H0z" fill="url(#hill)"/>
+  <path d="M0 706c182-62 418-14 636 18s346 34 564-22v98H0z" fill="#4b2f55" opacity=".20"/>
+</svg>

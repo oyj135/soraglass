@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800" role="img" aria-label="暖阳渐变占位图">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f8d27a"/>
+      <stop offset=".55" stop-color="#f9b489"/>
+      <stop offset="1" stop-color="#e58f7a"/>
+    </linearGradient>
+    <linearGradient id="hill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b35c46" stop-opacity=".48"/>
+      <stop offset="1" stop-color="#b35c46" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#sky)"/>
+  <circle cx="392" cy="282" r="118" fill="#fff6e2" opacity=".78"/>
+  <circle cx="392" cy="282" r="220" fill="#fff6e2" opacity=".18"/>
+  <g stroke="#fff1d8" stroke-width="6" stroke-linecap="round" opacity=".34">
+    <path d="M742 168h180"/><path d="M792 226h240"/><path d="M718 284h150"/>
+  </g>
+  <path d="M0 614c210-94 372-46 542 8s340 88 658-12v190H0z" fill="url(#hill)"/>
+  <path d="M0 708c190-50 422-4 638 26s346 18 562-38v104H0z" fill="#6b2f22" opacity=".24"/>
+</svg>

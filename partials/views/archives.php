@@ -39,7 +39,8 @@ $sgHead = [
     'title'  => (string) $this->title,
     'sub'    => $sgTotal > 0 ? '共 ' . $sgTotal . ' 篇记录' : '还没有文章',
     'center' => true,
-    'back'   => true,
+    // 第六轮：去掉 'back' => true。归档页本身就是导航里的一级入口，
+    // 页头再挂「返回上一级」既重复又抢标题（用户截图里那颗胶囊）。
 ];
 ?>
 <main class="sg-main sg-main--pad" data-sg-page="archives">

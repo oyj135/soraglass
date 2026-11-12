@@ -16,7 +16,6 @@ $sgHead = [
     'title'       => (string) $this->title,
     'sub'         => sg_page_sub($this, '生活动态 · 随手记下的碎片'),
     'search'      => true,
-    'back'        => true,
     'center'      => true,
     'placeholder' => '搜索说说内容...',
 ];

@@ -18,7 +18,6 @@ $sgHead = [
     'title'       => (string) $this->title,
     'sub'         => sg_page_sub($this, '碎碎念与随手记录 · 想到什么写什么'),
     'search'      => true,
-    'back'        => true,
     'center'      => true,
     'placeholder' => '搜索杂谈标题或内容...',
 ];

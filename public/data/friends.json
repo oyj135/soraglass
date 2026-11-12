@@ -4,7 +4,7 @@
     "name": "Typecho",
     "description": "轻量级开源博客程序，这个主题就长在它上面",
     "url": "https://typecho.org",
-    "avatar": "https://picsum.photos/id/24/200/200",
+    "avatar": "dist/img/ph-1.svg",
     "themeColor": "rgba(99,102,241,.5)"
   },
   {
@@ -12,7 +12,7 @@
     "name": "Typecho Docs",
     "description": "官方文档与主题开发参考，改模板前必翻",
     "url": "https://docs.typecho.org",
-    "avatar": "https://picsum.photos/id/25/200/200",
+    "avatar": "dist/img/ph-2.svg",
     "themeColor": "rgba(16,185,129,.5)"
   },
   {
@@ -20,15 +20,15 @@
     "name": "Vite",
     "description": "前端构建工具，dist 里的哈希文件名都出自它手",
     "url": "https://vitejs.dev",
-    "avatar": "https://picsum.photos/id/26/200/200",
+    "avatar": "dist/img/ph-3.svg",
     "themeColor": "rgba(251,191,36,.5)"
   },
   {
-    "id": "picsum",
-    "name": "Lorem Picsum",
-    "description": "本站所有占位图的来源，接图床前先用它顶着",
-    "url": "https://picsum.photos",
-    "avatar": "https://picsum.photos/id/27/200/200",
+    "id": "example",
+    "name": "示例友链",
+    "description": "占位条目：把这里换成你朋友的站点名、简介与头像即可",
+    "url": "https://example.com",
+    "avatar": "dist/img/ph-4.svg",
     "themeColor": "rgba(219,39,119,.5)"
   }
 ]

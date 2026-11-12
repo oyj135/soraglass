@@ -13,7 +13,6 @@ $sgHead = [
     'title'       => (string) $this->title,
     'sub'         => sg_page_sub($this, '写过的代码、跑过的实验与还没做完的想法。'),
     'search'      => true,
-    'back'        => true,
     'center'      => true,
     'placeholder' => '搜索项目名称或标签...',
 ];

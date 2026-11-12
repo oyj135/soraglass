@@ -59,17 +59,17 @@ function sg_runtime_config(): string
     }
     $config = [
         'themeUrl' => sg_theme_url(''),
-        'bgImages' => sg_lines('sgBgImages', [sg_theme_url('dist/img/bg-1.svg'), sg_theme_url('dist/img/bg-2.svg')]),
+        'bgImages' => array_map('sg_bg_url', sg_lines('sgBgImages', [sg_theme_url('dist/img/bg-1.svg'), sg_theme_url('dist/img/bg-2.svg')])),
         'themeColors' => array_values(array_filter(array_map('trim', explode(',', sg_opt('sgThemeColors', '#a18cd1,#fbc2eb,#a1c4fd,#c2e9fb'))))),
         'danmaku' => $danmaku,
         'effects' => sg_opt('sgEffects', 'on') === 'on',
         'clickEffect' => sg_opt('sgClickEffect', 'on') === 'on',
         'season' => sg_opt('sgSeason', 'none'),
-        'floatingPlayer' => sg_opt('sgFloatingPlayer', 'on') === 'on',
-        'pet' => sg_opt('sgPet', 'none'),
         // 歌单三层回退（后台 JSON → 网易云 ID → dist/data）：和 page-music.php 共用同一个函数，
         // 否则首页卡与音乐页会拿到两份不一样的数据
         'playlist' => sg_playlist(),
+        // 内置占位图：前端 <img> 外链失败时换成它（见 core.ts initImageFallback）
+        'placeholder' => sg_placeholder(1015),
         'nav' => [],
     ];
     return '<script>window.SG=' . json_encode($config, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) . ';</script>';

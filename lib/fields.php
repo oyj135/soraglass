@@ -34,19 +34,44 @@ function sg_value($row, string $key, string $default = ''): string
 
 /**
  * 静态数据（JSON）里的媒体地址归一化。
- * 外链 / 站内绝对路径原样返回；写成 `dist/img/x.svg` 这种主题相对路径时补上主题前缀，
- * 否则浏览器会按当前页面 URL 解析成 /dist/... 导致 404。
+ *
+ * 解析规则与 sg_bg_url() 完全一致：
+ *   外链 / 站内绝对路径 / data: → 原样返回；
+ *   `usr/uploads/2026/11/x.jpg` 这种「站点根相对路径」→ 补 siteUrl；
+ *   其余（如 `dist/img/x.svg`）→ 补主题目录前缀。
+ *
+ * 第六轮把这三档抽出来共用：之前这里只认「主题内相对路径」，后台附件地址
+ * （usr/uploads/...，宝塔后台传图默认就长这样）会被拼成
+ * `/usr/themes/soraglass/usr/uploads/...`，封面 / 相册图必然 404。
  */
 function sg_media(string $value, string $fallback = ''): string
 {
+    $url = sg_bg_url($value);
+    return $url !== '' ? $url : $fallback;
+}
+
+/**
+ * 背景图地址解析：比 sg_media() 多认一种「站点根相对路径」。
+ *
+ * 宝塔后台传图默认落在 `usr/uploads/YYYY/MM/xxx.jpg`，用户复制这段填进设置里
+ * 时不会带前导斜杠；若直接丢给 sg_media()，会被当成主题内文件拼成
+ * `/usr/themes/soraglass/usr/uploads/...`，必然 404。
+ */
+function sg_bg_url(string $value): string
+{
     $value = trim($value);
     if ($value === '') {
-        return $fallback;
+        return '';
     }
     if (preg_match('#^(?:https?:)?//#i', $value) === 1
         || str_starts_with($value, 'data:')
         || str_starts_with($value, '/')) {
         return $value;
+    }
+    if (str_starts_with($value, 'usr/') || str_starts_with($value, 'www/')) {
+        $options = sg_options();
+        $root = is_object($options) ? rtrim((string) $options->siteUrl, '/') : '';
+        return $root . '/' . $value;
     }
     return sg_theme_url($value);
 }
@@ -93,18 +118,22 @@ function sg_excerpt($archive, int $length = 60, string $suffix = '...'): string
 }
 
 /**
- * 独立页统一页头（返回胶囊 + 大标题 + 副标题 + 可选搜索框）。
+ * 独立页统一页头（大标题 + 副标题 + 可选搜索框，可选返回胶囊）。
  *
  * 为什么是函数而不是 partial：Typecho 的 need() 实现是方法内的 require
  * （var/Widget/Archive.php: need() { require $this->themeDir . $fileName; }），
  * 调用方作用域的变量不会传进去，partial 里读 $sgHead 永远是空数组 ——
  * 线上所有独立页标题消失就是这个原因。
+ *
+ * 2026-11-12 第四轮：$back 默认改成 false。独立页本身就是导航一级入口
+ * （侧栏 / 顶部导航都能直达），页头再挂一个「返回上一级」既多余又抢视觉。
+ * 文章页与列表页仍在 page.php / post.php 里各自渲染 `.sg-back`。
  */
 function sg_page_head(array $head = []): void
 {
     $title = (string) ($head['title'] ?? '');
     $sub = (string) ($head['sub'] ?? '');
-    $back = (bool) ($head['back'] ?? true);
+    $back = (bool) ($head['back'] ?? false);
     $search = (bool) ($head['search'] ?? false);
     $center = (bool) ($head['center'] ?? false);
     $placeholder = (string) ($head['placeholder'] ?? '搜索标题、描述或标签…');

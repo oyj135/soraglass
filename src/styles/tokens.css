@@ -6,16 +6,19 @@
 :root {
   color-scheme: light;
 
+  /* 2026-11-12 第四轮：原卡片只有 30–40% 白、次要文字用 slate-500/400，
+     压在亮壁纸上直接糊成一片（用户反馈「看不清」）。现在卡片提高到底色 55–72%，
+     muted/faint 各降两档到 slate-600/500，正文对比度稳定在 WCAG AA 以上。 */
   --sg-page: #f8fafc;                       /* slate-50 */
-  --sg-card: rgba(255, 255, 255, .40);      /* bg-white/40 */
-  --sg-card-strong: rgba(255, 255, 255, .60); /* bg-white/60（文章卡） */
-  --sg-border: rgba(255, 255, 255, .40);    /* border-white/40 */
-  --sg-chip: rgba(255, 255, 255, .30);      /* 元信息胶囊底 */
-  --sg-text: #0f172a;                       /* slate-900 */
-  --sg-muted: #64748b;                      /* slate-500 */
-  --sg-faint: #94a3b8;                      /* slate-400 */
-  --sg-veil: rgba(255, 255, 255, .30);      /* 壁纸遮罩 bg-white/30 */
-  --sg-line: rgba(203, 213, 225, .50);      /* 分隔线 slate-300/50 */
+  --sg-card: rgba(255, 255, 255, .55);      /* 卡面（原 40%） */
+  --sg-card-strong: rgba(255, 255, 255, .72); /* 文章卡 / 弹窗（原 60%） */
+  --sg-border: rgba(255, 255, 255, .55);    /* 描边 */
+  --sg-chip: rgba(255, 255, 255, .45);      /* 元信息胶囊底（原 30%） */
+  --sg-text: #0b1220;                       /* 正文，比 slate-900 再深一档 */
+  --sg-muted: #475569;                      /* 次要文字：slate-600 */
+  --sg-faint: #5b6b80;                      /* 三级文字：原 slate-400 在白底上仅 2.6:1 */
+  --sg-veil: rgba(255, 255, 255, .34);      /* 壁纸遮罩（强度由 html[data-sg-veil] 再乘） */
+  --sg-line: rgba(148, 163, 184, .45);      /* 分隔线 */
 
   --sg-shadow: 0 20px 25px -5px rgb(0 0 0 / .10), 0 8px 10px -6px rgb(0 0 0 / .10);
   --sg-shadow-strong: 0 25px 50px -12px rgb(0 0 0 / .25);
@@ -63,15 +66,17 @@ html.dark {
   color-scheme: dark;
 
   --sg-page: #020617;                       /* slate-950 */
-  --sg-card: rgba(30, 41, 59, .50);         /* slate-800/50 */
-  --sg-card-strong: rgba(30, 41, 59, .50);
-  --sg-border: rgba(255, 255, 255, .10);    /* border-white/10 */
-  --sg-chip: rgba(15, 23, 42, .50);         /* slate-900/50 */
-  --sg-text: #f1f5f9;                       /* slate-100 */
-  --sg-muted: #94a3b8;                      /* slate-400 */
-  --sg-faint: #64748b;
-  --sg-veil: rgba(15, 23, 42, .40);         /* slate-900/40 */
-  --sg-line: rgba(255, 255, 255, .10);
+  /* 半透明 slate-800/50 压在亮壁纸上几乎等于没底，白字对比度跌到 3:1 附近。
+     提高不透明度并改用更深的 slate-900 色相，白字稳定 7:1 以上。 */
+  --sg-card: rgba(15, 23, 42, .62);         /* slate-900/62 */
+  --sg-card-strong: rgba(15, 23, 42, .74);
+  --sg-border: rgba(226, 232, 240, .18);    /* 描边提亮，卡片轮廓在暗壁纸上也能立住 */
+  --sg-chip: rgba(15, 23, 42, .58);         /* 胶囊底 */
+  --sg-text: #f8fafc;                       /* slate-50 */
+  --sg-muted: #cbd5e1;                      /* slate-300（原 slate-400，暗底对比 4.6→9.1） */
+  --sg-faint: #9aa9bc;                      /* 原 slate-500，暗底仅 3.4:1 */
+  --sg-veil: rgba(2, 6, 23, .46);           /* 暗色壁纸遮罩 */
+  --sg-line: rgba(226, 232, 240, .16);
 
   --sg-shadow: 0 20px 25px -5px rgb(0 0 0 / .35), 0 8px 10px -6px rgb(0 0 0 / .30);
   --sg-shadow-strong: 0 25px 50px -12px rgb(0 0 0 / .45);

@@ -3,11 +3,50 @@ if (!defined('SG_ROOT')) {
     require_once __DIR__ . '/functions.php';
 }
 sg_context($this);
-$sgFirstBg = sg_lines('sgBgImages', [sg_theme_url('dist/img/bg-1.svg')])[0];
 $sgSplash = sg_opt('sgSplash', 'on') === 'on';
+
+/* ---------------- 背景（2026-11-12 第四轮新增可配置项） ----------------
+   1. 壁纸：多行 = 多张，按后台「背景轮播间隔」轮换；
+   2. 单篇 / 单页可用自定义字段 sgBg 单独指定一张，覆盖全站设置；
+   3. 遮罩与模糊是 html 上的 data 属性，CSS 按档位取值，不写死颜色。 */
+$sgBgList = array_values(array_filter(array_map('trim', sg_lines('sgBgImages', [
+    sg_theme_url('dist/img/bg-1.svg'),
+    sg_theme_url('dist/img/bg-2.svg'),
+]))));
+if (!$sgBgList) {
+    $sgBgList = [sg_theme_url('dist/img/bg-1.svg')];
+}
+try {
+    $sgOwnBg = trim((string) ($this->fields->sgBg ?? ''));
+    if ($sgOwnBg !== '') {
+        $sgBgList = [$sgOwnBg];
+    }
+} catch (\Throwable $e) {
+    /* 归档页没有自定义字段，忽略 */
+}
+$sgBgList = array_values(array_filter(array_map('sg_bg_url', $sgBgList)));
+
+/* 默认 9 秒：与上一版写死的 BG_INTERVAL 一致，老站升级后观感不变；
+   填 0 才是关闭。*/
+$sgBgInterval = (int) sg_opt('sgBgInterval', '9');
+if ($sgBgInterval < 0) {
+    $sgBgInterval = 0;
+}
+if (count($sgBgList) < 2) {
+    $sgBgInterval = 0;
+}
+
+$sgVeil = (string) sg_opt('sgBgVeil', 'mid');
+if (!in_array($sgVeil, ['soft', 'mid', 'strong'], true)) {
+    $sgVeil = 'mid';
+}
+$sgBlur = (string) sg_opt('sgBgBlur', 'none');
+if (!in_array($sgBlur, ['none', 'soft', 'strong'], true)) {
+    $sgBlur = 'none';
+}
 ?>
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-sg-veil="<?php echo sg_e($sgVeil); ?>" data-sg-blur="<?php echo sg_e($sgBlur); ?>">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -41,8 +80,10 @@ $sgSplash = sg_opt('sgSplash', 'on') === 'on';
 <div class="sg-splash" aria-hidden="true"><span class="sg-splash-mark">空 璃</span></div>
 <?php endif; ?>
 <div class="sg-bg" aria-hidden="true">
-  <div class="sg-bg-images" data-sg-bg>
-    <div class="sg-bg-frame is-active"><img src="<?php echo sg_e($sgFirstBg); ?>" alt=""></div>
+  <div class="sg-bg-images" data-sg-bg data-sg-bg-interval="<?php echo (int) $sgBgInterval; ?>">
+    <?php foreach ($sgBgList as $sgBgIndex => $sgBgSrc) : ?>
+    <div class="sg-bg-frame<?php echo $sgBgIndex === 0 ? ' is-active' : ''; ?>"><img src="<?php echo sg_e($sgBgSrc); ?>" alt=""<?php echo $sgBgIndex === 0 ? '' : ' loading="lazy"'; ?>></div>
+    <?php endforeach; ?>
   </div>
   <div class="sg-bg-veil"></div>
   <div class="sg-gradient" data-sg-gradient></div>
