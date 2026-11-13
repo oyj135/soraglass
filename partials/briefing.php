@@ -1,15 +1,13 @@
 <?php
 /**
- * 每日选刊（首页最下方那块）。
+ * AI 日报（首页最下方那块）。
  *
  * 结构对齐源站 components/DailyBriefing.tsx：
  *   封面横幅（DAILY SIGNAL / 日期 / 大标题 / 导语 / 频道计数 / 展开按钮 / 期号翻页）
  *   └ 展开区（本期来信 + 往期查看 + 只看收藏 + 双栏目录 + 页脚说明）
  *
- * 数据两种格式都吃：
- *   新：{"channels":[{"id","name"}],"issues":[{"date","weekday","label","title","desc","cover","notice","items":[...]}]}
- *   旧：[{"date","title","desc","cover","label","meta":[...]}]（没有 items，只出横幅）
- * 旧格式是上一版线上已经存进 options 的结构，直接抛弃会让后台配置一夜消失。
+ * 数据只有一个来源：lib/ai.php 的 sg_ai_briefing()（模型每天从 RSS 候选里挑）。
+ * 没有 AI 期就不输出这一块 —— 静态「每日选刊 JSON」已在第二十二轮删除。
  *
  * 全部内容服务端渲染，JS 只做「切期 / 展开 / 收藏 / 弹窗」，不重建 DOM。
  */
@@ -17,91 +15,54 @@ if (!defined('SG_ROOT')) {
     require_once __DIR__ . '/functions.php';
 }
 
-$sgRaw = sg_json('sgBriefing', 'briefing', []);
-$sgChannels = [];
-$sgIssues = [];
+/* 第二十一轮起：首页这一块**只用 AI 日报**。
+   模型每天挑一份（见 lib/ai.php），拿不到（没配 Key / 没配 RSS / 接口报错）就整块不输出 ——
+   不再有「静态选刊」兜底，免得页面上一半是手写数据一半是模型数据，分不清哪条该信。 */
+$sgIssues = sg_ai_issues(5);
+$sgAiIssue = $sgIssues[0] ?? null;
 
-$sgNormalizeItems = static function (array $items, array $channels): array {
-    $out = [];
-    foreach ($items as $item) {
-        if (!is_array($item)) {
-            continue;
+if (!is_array($sgAiIssue) || empty($sgAiIssue['items'])) {
+    /* 站长视角：整块不输出时也要给一行原因，否则「我填了怎么没显示」完全无从查起。
+       访客什么也看不到，源码里也没有。 */
+    if (sg_user_is_admin()) {
+        $sgAiWhy = sg_ai_error();
+        if ($sgAiWhy === '') {
+            $sgAiWhy = sg_ai_enabled()
+                ? '这一期还没生成（可能正在请求模型），刷新一次试试。'
+                : '还没配置：填「AI 日报 · 主题」与「API Key」才会开启。';
         }
-        $title = trim((string) ($item['title'] ?? ''));
-        if ($title === '') {
-            continue;
-        }
-        $out[] = [
-            'id'         => (string) ($item['id'] ?? md5($title)),
-            'channel'    => (string) ($item['channel'] ?? $item['category'] ?? ($channels[0]['id'] ?? '')),
-            'title'      => $title,
-            'summary'    => (string) ($item['summary'] ?? $item['desc'] ?? ''),
-            'source'     => (string) ($item['source'] ?? ''),
-            'sourceDate' => (string) ($item['sourceDate'] ?? $item['date'] ?? ''),
-            'url'        => (string) ($item['url'] ?? ''),
-            'note'       => (string) ($item['note'] ?? $item['readingNote'] ?? ''),
-            'highlights' => array_values(array_filter(array_map('strval', (array) ($item['highlights'] ?? [])))),
-        ];
+        echo '<div class="sg-briefing-diag" data-sg-briefing-diag>'
+            . '<b>AI 日报没有输出</b>：' . sg_e($sgAiWhy)
+            . '</div>';
     }
-    return $out;
-};
-
-if (isset($sgRaw['issues']) && is_array($sgRaw['issues'])) {
-    foreach (($sgRaw['channels'] ?? []) as $channel) {
-        if (is_array($channel) && isset($channel['id'])) {
-            $sgChannels[] = ['id' => (string) $channel['id'], 'name' => (string) ($channel['name'] ?? $channel['id'])];
-        }
-    }
-    foreach ($sgRaw['issues'] as $issue) {
-        if (!is_array($issue)) {
-            continue;
-        }
-        $items = $sgNormalizeItems((array) ($issue['items'] ?? []), $sgChannels);
-        $sgIssues[] = [
-            'date'     => (string) ($issue['date'] ?? ''),
-            'weekday'  => (string) ($issue['weekday'] ?? ''),
-            'label'    => (string) ($issue['label'] ?? '每日选刊'),
-            'kicker'   => (string) ($issue['kicker'] ?? '每日拾光'),
-            'title'    => (string) ($issue['title'] ?? ''),
-            'desc'     => (string) ($issue['desc'] ?? ''),
-            'cover'    => (string) ($issue['cover'] ?? ''),
-            'notice'   => (string) ($issue['notice'] ?? ''),
-            'items'    => $items,
-        ];
-    }
-} elseif ($sgRaw) {
-    // 兼容旧的扁平数组：每项当成一期没有条目的选刊
-    foreach ($sgRaw as $row) {
-        if (!is_array($row)) {
-            continue;
-        }
-        $sgIssues[] = [
-            'date'    => (string) ($row['date'] ?? ''),
-            'weekday' => '',
-            'label'   => (string) ($row['label'] ?? '每日选刊'),
-            'kicker'  => (string) ($row['badge'] ?? 'DAILY SIGNAL'),
-            'title'   => (string) ($row['title'] ?? ''),
-            'desc'    => (string) ($row['desc'] ?? ''),
-            'cover'   => (string) ($row['cover'] ?? ''),
-            'notice'  => '',
-            'items'   => [],
-        ];
-    }
-}
-
-if (!$sgIssues) {
     return;
 }
 
-if (!$sgChannels) {
-    $sgChannels = [['id' => 'note', 'name' => '笔记']];
-}
+$sgChannels = [
+    ['id' => 'ai', 'name' => 'AI 动态'],
+    ['id' => 'paper', 'name' => '研究论文'],
+];
 
+/* 往期来自同配置下历史生成的缓存（见 lib/ai.php 的 sg_ai_archive()），
+   所以「翻页」能不能用，取决于这套配置有没有连续几天被访问过。 */
 $sgTotal = count($sgIssues);
 $sgFirst = $sgIssues[0];
 
-// 卡片背景图：后台「每日选刊背景图」填了就以它为准（一张图铺满横幅，切期不换），
-// 没填才回到「每期自带 cover 交叉淡入」的老行为。
+/** 某一期里真正有条目的栏目（空栏目直接不渲染，避免大片「这一栏还没有条目」） */
+$sgIssueChannels = static function (array $issue) use ($sgChannels): array {
+    $list = [];
+    foreach ($sgChannels as $channel) {
+        foreach ((array) $issue['items'] as $item) {
+            if (($item['channel'] ?? '') === $channel['id']) {
+                $list[] = $channel;
+                break;
+            }
+        }
+    }
+    return $list;
+};
+
+// 卡片背景图：后台「AI 日报背景图」填了就以它为准，否则用本期的 cover
 $sgBriefingBg = sg_bg_url((string) sg_opt('sgBriefingBg', ''));
 ?>
 
@@ -110,12 +71,12 @@ $sgBriefingBg = sg_bg_url((string) sg_opt('sgBriefingBg', ''));
     <div class="sg-briefing-covers" aria-hidden="true">
       <?php if ($sgBriefingBg !== '') : ?>
       <!-- 后台指定了背景图：整卡只用这一张，切期时保持不变 -->
-      <img class="sg-briefing-cover is-active" src="<?php echo sg_e($sgBriefingBg); ?>" alt="">
+      <img class="sg-briefing-cover is-active" src="<?php echo sg_e($sgBriefingBg); ?>" alt="" referrerpolicy="no-referrer">
       <?php else : ?>
       <?php foreach ($sgIssues as $sgIndex => $sgIssue) : ?>
       <?php $sgCover = sg_media($sgIssue['cover'], sg_placeholder(1015 + (int) $sgIndex, 1200, 700)); ?>
       <img class="sg-briefing-cover<?php echo $sgIndex === 0 ? ' is-active' : ''; ?>"
-           src="<?php echo sg_e($sgCover); ?>" alt=""
+           src="<?php echo sg_e($sgCover); ?>" alt="" referrerpolicy="no-referrer"
            data-sg-briefing-cover="<?php echo (int) $sgIndex; ?>"
            <?php echo $sgIndex === 0 ? '' : 'loading="lazy"'; ?>>
       <?php endforeach; ?>
@@ -139,7 +100,17 @@ $sgBriefingBg = sg_bg_url((string) sg_opt('sgBriefingBg', ''));
       <span class="sg-briefing-foot">
         <span class="sg-briefing-meta" data-sg-briefing-meta>
           <?php foreach ($sgChannels as $sgChannel) : ?>
-          <?php $sgCount = 0; foreach ($sgFirst['items'] as $sgItem) { if ($sgItem['channel'] === $sgChannel['id']) { $sgCount++; } } ?>
+          <?php
+            $sgCount = 0;
+            foreach ($sgFirst['items'] as $sgItem) {
+                if ($sgItem['channel'] === $sgChannel['id']) {
+                    $sgCount++;
+                }
+            }
+            if ($sgCount === 0) {
+                continue;
+            }
+          ?>
           <span><?php echo sg_e($sgChannel['name']); ?><b><?php echo str_pad((string) $sgCount, 2, '0', STR_PAD_LEFT); ?></b></span>
           <?php endforeach; ?>
           <span class="is-unread" data-sg-briefing-unread><i></i><?php echo count($sgFirst['items']); ?> 条未读</span>
@@ -197,7 +168,8 @@ $sgBriefingBg = sg_bg_url((string) sg_opt('sgBriefingBg', ''));
             $sgCounts[] = ['name' => $sgChannelRow['name'], 'count' => $sgNum];
         }
       ?>
-      <nav class="sg-briefing-cols"
+      <?php $sgCols = $sgIssueChannels($sgIssue); ?>
+      <nav class="sg-briefing-cols<?php echo count($sgCols) < 2 ? ' is-single' : ''; ?>"
            data-sg-briefing-issue="<?php echo (int) $sgIndex; ?>"
            data-date="<?php echo sg_e($sgIssue['date']); ?>"
            data-weekday="<?php echo sg_e($sgIssue['weekday']); ?>"
@@ -209,7 +181,7 @@ $sgBriefingBg = sg_bg_url((string) sg_opt('sgBriefingBg', ''));
            data-counts="<?php echo sg_e((string) json_encode($sgCounts, JSON_UNESCAPED_UNICODE)); ?>"
            aria-label="第 <?php echo (int) $sgIndex + 1; ?> 期目录"
            <?php echo $sgIndex === 0 ? '' : 'hidden'; ?>>
-        <?php foreach ($sgChannels as $sgChannel) : ?>
+        <?php foreach ($sgCols as $sgChannel) : ?>
         <?php
           $sgGroup = array_values(array_filter($sgIssue['items'], static fn($item) => $item['channel'] === $sgChannel['id']));
         ?>
@@ -232,6 +204,10 @@ $sgBriefingBg = sg_bg_url((string) sg_opt('sgBriefingBg', ''));
                   data-source-date="<?php echo sg_e($sgItem['sourceDate']); ?>"
                   data-url="<?php echo sg_e($sgItem['url']); ?>"
                   data-note="<?php echo sg_e($sgItem['note']); ?>"
+                  data-title-zh="<?php echo sg_e($sgItem['titleZh'] ?? ''); ?>"
+                  data-points="<?php echo sg_e((string) json_encode($sgItem['points'] ?? [], JSON_UNESCAPED_UNICODE)); ?>"
+                  data-tags="<?php echo sg_e((string) json_encode($sgItem['tags'] ?? [], JSON_UNESCAPED_UNICODE)); ?>"
+                  data-minutes="<?php echo (int) ($sgItem['minutes'] ?? 1); ?>"
                   data-channel="<?php echo sg_e($sgChannel['name']); ?>">
             <span class="sg-briefing-num"><?php echo str_pad((string) ($sgItemIndex + 1), 2, '0', STR_PAD_LEFT); ?></span>
             <span class="sg-briefing-item-main">
@@ -259,6 +235,11 @@ $sgBriefingBg = sg_bg_url((string) sg_opt('sgBriefingBg', ''));
   </div>
 
   <p class="sg-briefing-status" role="status" aria-live="polite" data-sg-briefing-status></p>
+
+  <?php $sgAiDiag = sg_user_is_admin() ? sg_ai_diag() : ''; ?>
+  <?php if ($sgAiDiag !== '') : ?>
+  <p class="sg-briefing-diag" style="font-size:.75rem;color:var(--sg-faint);padding:0 1.25rem 1.25rem;margin:0"><?php echo sg_e($sgAiDiag); ?></p>
+  <?php endif; ?>
 </section>
 
 <dialog class="sg-reader" data-sg-briefing-dialog aria-labelledby="sg-reader-title">
@@ -270,9 +251,11 @@ $sgBriefingBg = sg_bg_url((string) sg_opt('sgBriefingBg', ''));
     <article class="sg-reader-article">
       <p class="sg-reader-meta" data-sg-reader-meta></p>
       <h2 id="sg-reader-title" data-sg-reader-title></h2>
+      <p class="sg-reader-sub" data-sg-reader-sub hidden></p>
       <p class="sg-reader-summary" data-sg-reader-summary></p>
       <div class="sg-reader-highlights" data-sg-reader-highlights></div>
       <div class="sg-reader-note" data-sg-reader-note hidden></div>
+      <div class="sg-reader-tags" data-sg-reader-tags hidden></div>
     </article>
     <div class="sg-reader-foot">
       <button type="button" class="sg-reader-save" data-sg-reader-save aria-pressed="false"><?php echo sg_icon('bookmark'); ?>留着慢慢读</button>

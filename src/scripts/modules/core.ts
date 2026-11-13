@@ -220,28 +220,15 @@ function initSpotlight(): void {
   });
 }
 
-/** 壁纸：多帧交叉淡入（对应源站 2s 交叉淡出），首帧由 header.php 直接输出避免闪白 */
+/**
+ * 壁纸：单张 + 呼吸光晕。
+ *
+ * 2026-11-13 第二十轮：多帧轮播整块删掉（后台配置也一起下线）。
+ * 壁纸永远压在最底层，每 9 秒换一张只会打断阅读；帧仍由 header.php 服务端
+ * 输出一张（相对路径要过 sg_bg_url()），这里只负责给渐变光晕上色。
+ */
 function initBackground(): void {
   const cfg = config();
-  const host = document.querySelector<HTMLElement>('[data-sg-bg]');
-
-  /* 帧全部由 header.php 服务端渲染（这样才能对每个 URL 跑 sg_bg_url()，
-     相对路径也能正确解析）；这里只负责按间隔切 is-active。
-     间隔来自后台设置，0 = 不轮播（单张壁纸时服务端也会直接给 0）。 */
-  if (host) {
-    const frames = Array.from(host.querySelectorAll<HTMLElement>('.sg-bg-frame'));
-    const interval = Number(host.dataset.sgBgInterval ?? '0') || 0;
-
-    if (frames.length > 1 && interval > 0) {
-      let index = 0;
-      window.setInterval(() => {
-        if (document.hidden) return;
-        frames[index]?.classList.remove('is-active');
-        index = (index + 1) % frames.length;
-        frames[index]?.classList.add('is-active');
-      }, interval * 1000);
-    }
-  }
 
   const gradient = document.querySelector<HTMLElement>('[data-sg-gradient]');
   if (gradient && cfg.themeColors.length >= 2) {

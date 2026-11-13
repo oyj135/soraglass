@@ -34,6 +34,7 @@ function sg_icon(string $name, string $class = ''): string
         'bilibili'    => '<rect x="2" y="6" width="20" height="14" rx="4"/><path d="M7 6 5 3M17 6l2-3"/><path d="M9 11v4M15 11v4"/>',
         'twitter'     => '<path d="M4 4l7.5 9.5L4.5 20h2.3l5.8-6.3L17.5 20H20l-7.8-10L19.4 4h-2.3l-5.3 5.8L7.3 4z"/>',
         'close'       => '<path d="M6 6l12 12M18 6 6 18"/>',
+        'map-pin'     => '<path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/>',
         'plus'        => '<path d="M12 5v14M5 12h14"/>',
         /* 音乐页与选刊用到的补充图标（同一套 24×24 线性风格） */
         'repeat'      => '<path d="m17 2 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>',

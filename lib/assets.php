@@ -59,7 +59,8 @@ function sg_runtime_config(): string
     }
     $config = [
         'themeUrl' => sg_theme_url(''),
-        'bgImages' => array_map('sg_bg_url', sg_lines('sgBgImages', [sg_theme_url('dist/img/bg-1.svg'), sg_theme_url('dist/img/bg-2.svg')])),
+        // 单张壁纸（第二十轮轮播下线）：前端已不再消费这个字段，保留只是为了不破坏旧缓存
+        'bgImages' => array_values(array_filter([sg_bg_url((string) sg_opt('sgBg', ''))])) ?: [sg_theme_url('dist/img/bg-1.svg')],
         'themeColors' => array_values(array_filter(array_map('trim', explode(',', sg_opt('sgThemeColors', '#a18cd1,#fbc2eb,#a1c4fd,#c2e9fb'))))),
         'danmaku' => $danmaku,
         'effects' => sg_opt('sgEffects', 'on') === 'on',

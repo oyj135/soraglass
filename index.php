@@ -59,7 +59,7 @@ $sgNotesLink = sg_page_url('notes');
 
       <div class="sg-col-8 sg-stack">
         <a class="sg-poster-wide" href="<?php echo sg_e($sgPoster['link'] !== '' ? $sgPoster['link'] : $sgHome); ?>" data-sg-hover data-sg-spotlight>
-          <img src="<?php echo sg_e($sgPoster['cover']); ?>" alt="" loading="lazy">
+          <img src="<?php echo sg_e($sgPoster['cover']); ?>" alt="" loading="lazy" referrerpolicy="no-referrer">
           <span class="sg-veil"></span>
           <div class="sg-poster-body">
             <span class="sg-poster-kicker"><?php echo sg_icon('image'); ?><?php echo sg_e($sgPoster['kicker']); ?></span>

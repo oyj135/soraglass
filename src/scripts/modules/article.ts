@@ -119,6 +119,9 @@ function initLightbox(): void {
 
       const img = document.createElement('img');
       img.alt = '';
+      /* 原图多半挂在图床/OSS 上，带防盗链的站点只放行空 Referer 或指定域名，
+         这里跟模板里的 <img referrerpolicy="no-referrer"> 保持一致。 */
+      img.referrerPolicy = 'no-referrer';
 
       const counter = document.createElement('span');
       counter.className = 'sg-lightbox-count';

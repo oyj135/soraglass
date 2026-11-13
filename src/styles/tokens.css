@@ -14,6 +14,7 @@
   --sg-page: #f8fafc;                       /* slate-50 */
   --sg-card: rgba(255, 255, 255, .40);      /* 卡面：源站 bg-white/40 */
   --sg-card-strong: rgba(255, 255, 255, .72); /* 文章卡 / 弹窗（原 60%） */
+  --sg-panel: rgba(255, 255, 255, .94);      /* 阅读弹窗：满屏文字，需要接近实底 */
   --sg-card-border: rgba(255, 255, 255, .40); /* 卡面描边：源站 border-white/40 */
   --sg-border: rgba(255, 255, 255, .55);    /* 结构线（表格 / 分页 / 输入框） */
   --sg-chip: rgba(255, 255, 255, .45);      /* 元信息胶囊底（原 30%） */
@@ -78,6 +79,7 @@ html.dark {
      毛玻璃失效的前提下的补偿，修好采样根后回落源站值（见 :root 顶部注释）。 */
   --sg-card: rgba(30, 41, 59, .50);         /* slate-800/50 */
   --sg-card-strong: rgba(15, 23, 42, .74);
+  --sg-panel: rgba(15, 23, 42, .95);
   --sg-card-border: rgba(255, 255, 255, .10); /* 源站 dark:border-white/10 */
   --sg-border: rgba(226, 232, 240, .18);    /* 结构线，比卡面描边亮一档 */
   --sg-chip: rgba(15, 23, 42, .58);         /* 胶囊底 */

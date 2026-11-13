@@ -29,6 +29,15 @@ const loadSet = (key: string): Set<string> => {
   }
 };
 
+const parseList = (raw?: string): string[] => {
+  try {
+    const value = JSON.parse(raw ?? '[]');
+    return Array.isArray(value) ? value.map((item) => String(item)).filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+};
+
 const saveSet = (key: string, value: Set<string>): void => {
   try {
     window.localStorage.setItem(key, JSON.stringify([...value]));
@@ -238,6 +247,8 @@ export function initBriefing(): void {
   const readerSummary = dialog?.querySelector<HTMLElement>('[data-sg-reader-summary]');
   const readerHighlights = dialog?.querySelector<HTMLElement>('[data-sg-reader-highlights]');
   const readerNote = dialog?.querySelector<HTMLElement>('[data-sg-reader-note]');
+  const readerSub = dialog?.querySelector<HTMLElement>('[data-sg-reader-sub]');
+  const readerTags = dialog?.querySelector<HTMLElement>('[data-sg-reader-tags]');
   const readerLink = dialog?.querySelector<HTMLAnchorElement>('[data-sg-reader-link]');
   const readerSave = dialog?.querySelector<HTMLButtonElement>('[data-sg-reader-save]');
   let activeId = '';
@@ -257,14 +268,48 @@ export function initBriefing(): void {
       read.add(activeId);
       saveSet(READ_KEY, read);
 
-      if (readerKind) readerKind.textContent = `${data.channel ?? ''} · ${document.querySelector<HTMLElement>('[data-sg-briefing-date]')?.textContent ?? ''}`;
-      if (readerTitle) readerTitle.textContent = data.title ?? '';
+      const minutes = Number(data.minutes ?? 0) || 1;
+      const points = parseList(data.points);
+      const tags = parseList(data.tags);
+
+      if (readerKind) {
+        readerKind.textContent = [data.channel, document.querySelector<HTMLElement>('[data-sg-briefing-date]')?.textContent ?? '', `约 ${minutes} 分钟`]
+          .filter(Boolean)
+          .join(' · ');
+      }
+      /* 中文标题当主标题，原文标题退成一行小字（源站就是这种排版） */
+      if (readerTitle) readerTitle.textContent = data.titleZh || data.title || '';
+      if (readerSub) {
+        const sub = data.titleZh ? data.title ?? '' : '';
+        readerSub.hidden = sub === '';
+        readerSub.textContent = sub;
+      }
       if (readerMeta) readerMeta.textContent = [data.source, data.sourceDate && `原文 ${data.sourceDate}`].filter(Boolean).join(' · ');
       if (readerSummary) readerSummary.textContent = data.summary ?? '';
-      if (readerHighlights) readerHighlights.innerHTML = '';
+      if (readerHighlights) {
+        readerHighlights.innerHTML = '';
+        points.forEach((point, i) => {
+          const row = document.createElement('p');
+          row.className = 'sg-reader-point';
+          const num = document.createElement('span');
+          num.textContent = String(i + 1).padStart(2, '0');
+          row.append(num, document.createTextNode(point));
+          readerHighlights.append(row);
+        });
+        readerHighlights.hidden = points.length === 0;
+      }
       if (readerNote) {
         readerNote.hidden = !data.note;
         readerNote.textContent = data.note ?? '';
+      }
+      if (readerTags) {
+        readerTags.innerHTML = '';
+        tags.forEach((tag) => {
+          const chip = document.createElement('span');
+          chip.textContent = `#${tag}`;
+          readerTags.append(chip);
+        });
+        readerTags.hidden = tags.length === 0;
       }
       if (readerLink) {
         const url = data.url ?? '';

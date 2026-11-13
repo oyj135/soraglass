@@ -8,6 +8,7 @@ import { initFilters } from './modules/filter';
 import { initArchive } from './modules/archive';
 import { initGallery } from './modules/gallery';
 import { initArticle } from './modules/article';
+import { initNotes } from './modules/notes';
 
 /**
  * 单独兜住每个模块的异常。
@@ -37,6 +38,7 @@ function boot(): void {
   safe('archive', initArchive);
   safe('gallery', initGallery);
   safe('article', initArticle);
+  safe('notes', initNotes);
 }
 
 if (document.readyState === 'loading') {

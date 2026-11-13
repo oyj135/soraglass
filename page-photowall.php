@@ -16,7 +16,7 @@ if (!defined('SG_ROOT')) {
 }
 $this->need('header.php');
 
-$sgAlbums = sg_json('sgAlbums', 'albums', []);
+$sgAlbums = sg_albums();
 $sgPhotoTotal = 0;
 foreach ($sgAlbums as $sgCountAlbum) {
     if (is_array($sgCountAlbum) && is_array($sgCountAlbum['photos'] ?? null)) {
@@ -32,12 +32,12 @@ $sgPick = static function (array $album, int $index, string $fallback): string
 {
     $photos = is_array($album['photos'] ?? null) ? array_values($album['photos']) : [];
     if (isset($photos[$index]) && is_array($photos[$index])) {
-        $url = trim((string) ($photos[$index]['url'] ?? ''));
+        $url = trim((string) ($photos[$index]['thumb'] ?? $photos[$index]['url'] ?? ''));
         if ($url !== '') {
             return sg_media($url, $fallback);
         }
     }
-    $cover = trim((string) ($album['cover'] ?? ''));
+    $cover = trim((string) ($album['coverThumb'] ?? $album['cover'] ?? ''));
     return $cover !== '' ? sg_media($cover, $fallback) : $fallback;
 };
 
@@ -94,6 +94,7 @@ if ($sgOpenId !== '') {
             if ($sgUrl === '') {
                 continue;
             }
+            $sgThumb = trim((string) ($sgPhoto['thumb'] ?? $sgUrl));
             $sgCap = trim((string) ($sgPhoto['caption'] ?? ''));
       ?>
       <a class="sg-photo" href="<?php echo sg_e(sg_media($sgUrl)); ?>"
@@ -101,7 +102,7 @@ if ($sgOpenId !== '') {
          data-search-photo
          data-caption="<?php echo sg_e($sgCap); ?>"
          data-album-name="<?php echo sg_e($sgAlbumTitle); ?>">
-        <img src="<?php echo sg_e(sg_media($sgUrl)); ?>" alt="<?php echo sg_e($sgCap !== '' ? $sgCap : $sgAlbumTitle); ?>" loading="lazy">
+        <img src="<?php echo sg_e(sg_media($sgThumb)); ?>" alt="<?php echo sg_e($sgCap !== '' ? $sgCap : $sgAlbumTitle); ?>" loading="lazy" referrerpolicy="no-referrer">
         <?php if ($sgCap !== '') : ?><span class="sg-photo-cap"><?php echo sg_e($sgCap); ?></span><?php endif; ?>
       </a>
       <?php } ?>
@@ -124,7 +125,7 @@ if ($sgOpenId !== '') {
       $sgDesc   = sg_value($sgAlbum, 'description', '');
       $sgDate   = sg_value($sgAlbum, 'date', '');
       $sgPhotos = is_array($sgAlbum['photos'] ?? null) ? array_values($sgAlbum['photos']) : [];
-      $sgCover  = sg_value($sgAlbum, 'cover', '');
+      $sgCover  = sg_value($sgAlbum, 'coverThumb', sg_value($sgAlbum, 'cover', ''));
 
       // 占位图 id 固定（1015 + 序号），同一相册每次刷新都是同一张，不会闪
       $sgFallback = sg_placeholder(1015 + (int) $sgIndex, 800, 600);
@@ -144,9 +145,9 @@ if ($sgOpenId !== '') {
     <article class="sg-album-card" data-sg-album="<?php echo sg_e($sgId); ?>" data-keywords="<?php echo sg_e($sgKeywords); ?>">
       <button class="sg-album-open" type="button" data-sg-album-open="<?php echo sg_e($sgId); ?>" aria-label="打开专辑：<?php echo sg_e($sgTitle); ?>">
         <span class="sg-polaroid-stack">
-          <img class="sg-polaroid" src="<?php echo sg_e($sgLayerBack); ?>" alt="" loading="lazy">
-          <img class="sg-polaroid" src="<?php echo sg_e($sgLayerMid); ?>" alt="" loading="lazy">
-          <img class="sg-polaroid" src="<?php echo sg_e($sgLayerFront); ?>" alt="<?php echo sg_e($sgTitle); ?>" loading="lazy">
+          <img class="sg-polaroid" src="<?php echo sg_e($sgLayerBack); ?>" alt="" loading="lazy" referrerpolicy="no-referrer">
+          <img class="sg-polaroid" src="<?php echo sg_e($sgLayerMid); ?>" alt="" loading="lazy" referrerpolicy="no-referrer">
+          <img class="sg-polaroid" src="<?php echo sg_e($sgLayerFront); ?>" alt="<?php echo sg_e($sgTitle); ?>" loading="lazy" referrerpolicy="no-referrer">
         </span>
       </button>
 
@@ -165,7 +166,7 @@ if ($sgOpenId !== '') {
   <div class="sg-glass sg-notfound">
     <span class="sg-notfound-code">空</span>
     <h1>还没有相册</h1>
-    <p>到后台「设置外观 → 相册 JSON」添加，或直接把 Typecho 附件链接填进 photos。</p>
+    <p>照片在阿里云 OSS 的话，把相册清单 JSON 传上 OSS，再把链接填到「设置外观 → 相册清单」；用站内附件的话，到后台「撰写 → 附件」传图，会自动按年月成册。</p>
   </div>
   <?php endif; ?>
 
@@ -205,10 +206,11 @@ if ($sgOpenId !== '') {
         }
         $sgUrl = trim((string) ($sgPhoto['url'] ?? ''));
         $sgUrl = $sgUrl !== '' ? sg_media($sgUrl, sg_placeholder(1015 + (int) $sgIndex, 800, 600)) : sg_placeholder(1015 + (int) $sgIndex, 800, 600);
+        $sgThumb = sg_media((string) ($sgPhoto['thumb'] ?? ''), $sgUrl);
         $sgCap = trim((string) ($sgPhoto['caption'] ?? ''));
       ?>
       <a class="sg-photo" href="<?php echo sg_e($sgUrl); ?>" data-sg-photo>
-        <img src="<?php echo sg_e($sgUrl); ?>" alt="<?php echo sg_e($sgCap !== '' ? $sgCap : $sgTitle . ' 第 ' . ((int) $sgPhotoIndex + 1) . ' 张'); ?>" loading="lazy">
+        <img src="<?php echo sg_e($sgThumb !== '' ? $sgThumb : $sgUrl); ?>" alt="<?php echo sg_e($sgCap !== '' ? $sgCap : $sgTitle . ' 第 ' . ((int) $sgPhotoIndex + 1) . ' 张'); ?>" loading="lazy" referrerpolicy="no-referrer">
         <?php if ($sgCap !== '') : ?><span class="sg-photo-cap"><?php echo sg_e($sgCap); ?></span><?php endif; ?>
       </a>
       <?php endforeach; ?>

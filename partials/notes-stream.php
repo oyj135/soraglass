@@ -1,9 +1,12 @@
 <?php
 /**
- * 「碎语」流 —— page-notes.php 与两个维护旧地址的兼容页（chatter / moments）共用。
+ * 「碎语」时间轴 —— page-notes.php 与两个维护旧地址的兼容页（chatter / moments）共用。
  *
- * 为什么放进 partial：三个模板只需各自准备标题与占位文案，正文结构只有一份，
- * 改版时不会出现「notes 变了、旧链接没变」的分叉。
+ * 第二十一轮重做：碎语不再是「小号文章列表」，而是**一条一条的时间轴**。
+ * 定位：比文章短、比说说重 —— 一句正文 + 最多九张图 + 心情与地点，
+ * 按「年·月」分组、左侧一条竖轴，扫一眼能看出「哪天在做什么」。
+ * 与首页的「碎语」轮播同源（sg_notes()），但这里给的是完整形态。
+ *
  * 变量通过 $GLOBALS 传（Typecho 的 need() 是独立作用域，普通变量进不来）。
  */
 $sgNotes = sg_notes();
@@ -17,8 +20,35 @@ $sgHead = array_merge([
 ], is_array($sgHead) ? $sgHead : []);
 
 $sgHome = rtrim((string) $this->options->siteUrl, '/') . '/';
+
+/* 按「年-月」分组；sg_notes() 已按时间倒序，这里只做归堆 */
+$sgGroups = [];
+foreach ($sgNotes as $sgNote) {
+    $sgKey = (string) ($sgNote['group'] ?? '');
+    if ($sgKey === '') {
+        $sgKey = 'misc';
+    }
+    if (!isset($sgGroups[$sgKey])) {
+        $sgGroups[$sgKey] = [
+            'label' => (string) ($sgNote['groupLabel'] ?? '未归类'),
+            'items' => [],
+        ];
+    }
+    $sgGroups[$sgKey]['items'][] = $sgNote;
+}
+
+/* 标签胶囊：按出现次数排序，最多 8 个，避免一排胶囊把页头压垮 */
+$sgTagCount = [];
+foreach ($sgNotes as $sgNote) {
+    $sgTag = (string) ($sgNote['tag'] ?? '');
+    if ($sgTag !== '') {
+        $sgTagCount[$sgTag] = ($sgTagCount[$sgTag] ?? 0) + 1;
+    }
+}
+arsort($sgTagCount);
+$sgTags = array_slice(array_keys($sgTagCount), 0, 8);
 ?>
-<main class="sg-main sg-main--pad" data-sg-page="notes">
+<main class="sg-main sg-main--pad" data-sg-page="notes" data-sg-notes>
   <?php sg_page_head($sgHead); ?>
 
   <?php if (trim((string) $this->content) !== '') : ?>
@@ -26,40 +56,100 @@ $sgHome = rtrim((string) $this->options->siteUrl, '/') . '/';
   <?php endif; ?>
 
   <?php if ($sgNotes) : ?>
-  <div class="sg-note-stream" data-sg-filter-grid>
-    <?php foreach ($sgNotes as $sgNote) : ?>
-    <?php
-    $sgText = (string) ($sgNote['text'] ?? '');
-    $sgTitle = (string) ($sgNote['title'] ?? '');
-    $sgTag = (string) ($sgNote['tag'] ?? '碎语');
-    $sgDate = (string) ($sgNote['date'] ?? '');
-    $sgCover = sg_media((string) ($sgNote['cover'] ?? ''));
-    $sgLink = (string) ($sgNote['url'] ?? '');
-    ?>
-    <article class="sg-glass sg-note sg-note--stream" data-sg-filter-item data-keywords="<?php echo sg_e($sgTitle . ' ' . $sgText . ' ' . $sgTag); ?>">
-      <span class="sg-note-meta">
-        <span class="sg-chip--tag"><?php echo sg_e($sgTag); ?></span>
-        <?php if ($sgDate !== '') : ?><time><?php echo sg_e($sgDate); ?></time><?php endif; ?>
-      </span>
-      <?php if ($sgTitle !== '') : ?>
-      <h3>
-        <?php if ($sgLink !== '') : ?><a href="<?php echo sg_e($sgLink); ?>"><?php echo sg_e($sgTitle); ?></a><?php else : ?><?php echo sg_e($sgTitle); ?><?php endif; ?>
-      </h3>
-      <?php endif; ?>
-      <?php if ($sgText !== '') : ?><p><?php echo nl2br(sg_e($sgText)); ?></p><?php endif; ?>
-      <?php if ($sgCover !== '') : ?>
-      <a class="sg-note-thumb" href="<?php echo sg_e($sgCover); ?>" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true">
-        <img src="<?php echo sg_e($sgCover); ?>" alt="" loading="lazy">
-      </a>
-      <?php endif; ?>
-    </article>
+  <div class="sg-notes-bar">
+    <?php if (count($sgTags) > 1) : ?>
+    <div class="sg-notes-tags" role="group" aria-label="按标签筛选">
+      <button class="sg-notes-tag is-active" type="button" data-sg-notes-tag="">全部<span><?php echo count($sgNotes); ?></span></button>
+      <?php foreach ($sgTags as $sgTagName) : ?>
+      <button class="sg-notes-tag" type="button" data-sg-notes-tag="<?php echo sg_e($sgTagName); ?>"><?php echo sg_e($sgTagName); ?><span><?php echo (int) $sgTagCount[$sgTagName]; ?></span></button>
+      <?php endforeach; ?>
+    </div>
+    <?php else : ?>
+    <div class="sg-notes-tags"><span class="sg-notes-count">共 <?php echo count($sgNotes); ?> 条</span></div>
+    <?php endif; ?>
+
+    <div class="sg-notes-sort" role="group" aria-label="排序">
+      <button class="is-active" type="button" data-sg-notes-sort="desc" aria-pressed="true">最新</button>
+      <button type="button" data-sg-notes-sort="asc" aria-pressed="false">最早</button>
+    </div>
+  </div>
+
+  <div class="sg-timeline">
+    <?php foreach ($sgGroups as $sgGroupKey => $sgGroup) : ?>
+    <section class="sg-tl-month" data-sg-tl-month="<?php echo sg_e((string) $sgGroupKey); ?>">
+      <h2 class="sg-tl-month-label">
+        <span><?php echo sg_e($sgGroup['label']); ?></span>
+        <b><?php echo count($sgGroup['items']); ?></b>
+      </h2>
+      <ol class="sg-tl-items" data-sg-tl-items>
+        <?php foreach ($sgGroup['items'] as $sgNote) : ?>
+        <?php
+        $sgBody  = trim((string) ($sgNote['body'] ?? ''));
+        if ($sgBody === '') {
+            $sgBody = (string) ($sgNote['text'] ?? '');
+        }
+        $sgTitle = (string) ($sgNote['title'] ?? '');
+        $sgTag   = (string) ($sgNote['tag'] ?? '');
+        $sgMood  = (string) ($sgNote['mood'] ?? '');
+        $sgPlace = (string) ($sgNote['location'] ?? '');
+        $sgLink  = (string) ($sgNote['url'] ?? '');
+        $sgImgs  = is_array($sgNote['images'] ?? null) ? array_values($sgNote['images']) : [];
+        $sgTs    = (int) ($sgNote['ts'] ?? 0);
+        $sgKeywords = implode(' ', array_filter([$sgTitle, $sgBody, $sgTag, $sgMood, $sgPlace]));
+        ?>
+        <li class="sg-tl-item" data-sg-tl-item data-ts="<?php echo $sgTs; ?>" data-tag="<?php echo sg_e($sgTag); ?>" data-keywords="<?php echo sg_e($sgKeywords); ?>">
+          <span class="sg-tl-dot" aria-hidden="true"></span>
+          <article class="sg-glass sg-tl-card">
+            <header class="sg-tl-head">
+              <time datetime="<?php echo sg_e(date('c', $sgTs)); ?>"><?php echo sg_e((string) ($sgNote['date'] ?? '')); ?><i><?php echo sg_e((string) ($sgNote['time'] ?? '')); ?></i></time>
+              <?php if ($sgMood !== '') : ?><span class="sg-tl-mood"><?php echo sg_e($sgMood); ?></span><?php endif; ?>
+              <?php if ($sgTag !== '') : ?><span class="sg-tl-tag">#<?php echo sg_e($sgTag); ?></span><?php endif; ?>
+            </header>
+
+            <?php if ($sgTitle !== '') : ?>
+            <h3 class="sg-tl-title">
+              <?php if ($sgLink !== '') : ?><a href="<?php echo sg_e($sgLink); ?>"><?php echo sg_e($sgTitle); ?></a><?php else : ?><?php echo sg_e($sgTitle); ?><?php endif; ?>
+            </h3>
+            <?php endif; ?>
+
+            <?php if ($sgBody !== '') : ?>
+            <p class="sg-tl-text"><?php echo nl2br(sg_e($sgBody)); ?></p>
+            <?php endif; ?>
+
+            <?php if ($sgImgs) : ?>
+            <?php
+            /* 1 张给大图、2 张并排、3 张一行、4 张 2×2、其余九宫格；
+               全部走全局灯箱（data-sg-photo + data-sg-photo-group）。 */
+            $sgGrid = count($sgImgs);
+            $sgSize = $sgGrid === 1 ? 'is-one' : ($sgGrid === 2 ? 'is-two' : ($sgGrid === 4 ? 'is-four' : 'is-many'));
+            ?>
+            <div class="sg-tl-media <?php echo $sgSize; ?>" data-sg-photo-group>
+              <?php foreach ($sgImgs as $sgImgIndex => $sgImg) : ?>
+              <a class="sg-photo" href="<?php echo sg_e($sgImg); ?>" data-sg-photo>
+                <img src="<?php echo sg_e($sgImg); ?>" alt="<?php echo sg_e($sgTitle !== '' ? $sgTitle . ' 第 ' . ((int) $sgImgIndex + 1) . ' 张' : '碎语配图 ' . ((int) $sgImgIndex + 1)); ?>" loading="lazy" referrerpolicy="no-referrer">
+              </a>
+              <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+
+            <footer class="sg-tl-foot">
+              <?php if ($sgPlace !== '') : ?><span class="sg-tl-loc"><?php echo sg_icon('map-pin'); ?><?php echo sg_e($sgPlace); ?></span><?php endif; ?>
+              <?php if ($sgLink !== '') : ?><a class="sg-tl-more" href="<?php echo sg_e($sgLink); ?>">原文<?php echo sg_icon('arrow-up-right'); ?></a><?php endif; ?>
+            </footer>
+          </article>
+        </li>
+        <?php endforeach; ?>
+      </ol>
+    </section>
     <?php endforeach; ?>
   </div>
+
+  <p class="sg-filter-empty" data-sg-notes-empty hidden>没有匹配的碎语，换个词试试。</p>
   <?php else : ?>
   <div class="sg-glass sg-notfound">
     <span class="sg-notfound-code">空</span>
     <h1>还没有碎语</h1>
-    <p>后台「碎语 JSON」里写两条，这里就会活起来。</p>
+    <p>写一篇文章、勾上「碎语」分类（缩略名 <code>notes</code>）并发布，这里就会按时间排起来。</p>
     <div class="sg-notfound-actions">
       <a class="sg-btn" href="<?php echo sg_e($sgHome); ?>"><?php echo sg_icon('arrow-left'); ?>回到首页</a>
     </div>

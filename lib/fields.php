@@ -76,7 +76,14 @@ function sg_bg_url(string $value): string
     return sg_theme_url($value);
 }
 
-/** 文章分类列表（名称 + 链接），取不到时返回空数组 */
+/** 站内绝对地址：把 `usr/uploads/...` 这类相对路径补成能从任何 URL 打开的形式 */
+function sg_site_url(string $path = ''): string
+{
+    $options = sg_options();
+    $root = is_object($options) ? rtrim((string) $options->siteUrl, '/') : '';
+    return $root . '/' . ltrim($path, '/');
+}
+
 function sg_categories($archive): array
 {
     try {
@@ -408,22 +415,24 @@ function sg_home_poster($archive = null): array
         }
     }
 
-    $albums = sg_json('sgAlbums', 'albums', []);
-    $album = (is_array($albums) && isset($albums[0]) && is_array($albums[0])) ? $albums[0] : [];
+    /* 相册不再是后台 JSON，而是扫描 usr/uploads 自动分组（见 sg_albums()） */
+    $albums = sg_albums();
+    $album = isset($albums[0]) && is_array($albums[0]) ? $albums[0] : [];
     if ($album) {
         $photos = is_array($album['photos'] ?? null) ? array_values($album['photos']) : [];
-        $cover = trim((string) ($album['cover'] ?? ''));
-        if ($cover === '' && isset($photos[0]['url'])) {
-            $cover = (string) $photos[0]['url'];
+        /* 首页宽幅卡只有 4:1 的窄条，用缩略图就够（OSS 站省流量） */
+        $cover = trim((string) ($album['coverThumb'] ?? $album['cover'] ?? ''));
+        if ($cover === '' && isset($photos[0]['thumb'])) {
+            $cover = (string) $photos[0]['thumb'];
         }
-        /* 首页宽幅卡是 4.2:1 的长条，竖构图封面会被裁成一条中段；
-           相册 JSON 可以额外给一张 coverWide（横构图），只在这里使用。 */
-        $wide = trim((string) ($album['coverWide'] ?? ''));
         return [
             'title'  => (string) ($album['title'] ?? $fallback['title']),
-            'desc'   => (string) ($album['description'] ?? $fallback['desc']),
+            /* 自动成册的相册没有手写简介，用张数当副标题；手写 JSON 时代填的简介仍然优先 */
+            'desc'   => (string) ($album['description'] ?? '') !== ''
+                ? (string) $album['description']
+                : (count($photos) > 0 ? count($photos) . ' 张照片' : $fallback['desc']),
             'link'   => sg_page_url('photowall'),
-            'cover'  => sg_media($wide !== '' ? $wide : $cover, $fallback['cover']),
+            'cover'  => sg_media($cover, $fallback['cover']),
             'kicker' => 'PHOTO WALL',
         ];
     }
@@ -567,7 +576,8 @@ function sg_playlist_cap(array $list): array
 /**
  * 首页「碎语」轮播的一张。
  *
- * 数据来自 notes.json，没有封面时退到主题自带渐变图，避免出现一条空白卡片。
+ * 数据来自 sg_notes()（「碎语」分类下的文章），没有封面时退到主题自带渐变图，
+ * 避免出现一条空白卡片。
  */
 function sg_note_slide(array $note): string
 {
@@ -607,35 +617,433 @@ function sg_note_slide(array $note): string
 }
 
 /**
- * 碎语：后台 JSON → dist/data/notes.json。
+ * 碎语：直接读「碎语」分类下的文章（约定 slug = `notes`）。
  *
- * 合并「杂谈 / 说说」之后刻意不再按文章分类聚合 —— 短记不是文章，
- * 否则动不动就把正文塞进一个分类里，归档页也跟着乱。
- * 字段：date（已排好序的展示字符串）、tag、title、text、cover、url。
+ * 2026-11-13 第二十轮按用户要求改的：碎语回归「写文章」这一条路 ——
+ * 后台写一篇短文章扔进「碎语」分类，前台首页轮播与碎语页都会自动出现，
+ * 不再有「后台填 JSON」和「写文章」两套并存的维护方式。
+ *
+ * 字段映射：时间 → created、标签 → 第一个标签（没有就用分类名）、
+ * 标题 → 文章标题、正文 → 自定义字段 description（没填则截正文）、
+ * 封面 → 自定义字段 cover、链接 → 文章永久地址。
  */
-function sg_notes(): array
+function sg_notes(int $limit = 60): array
 {
-    $list = sg_json('sgNotes', 'notes', []);
-    $out = [];
-    foreach ($list as $item) {
-        if (!is_array($item)) {
+    static $cache = null;
+    if ($cache === null) {
+        $cache = sg_notes_query(60);
+    }
+    return $limit > 0 ? array_slice($cache, 0, $limit) : $cache;
+}
+
+/** 碎语分类的固定缩略名；后台建分类时用这个名字即可 */
+function sg_notes_slug(): string
+{
+    return 'notes';
+}
+
+/** 碎语页副标题里要显示的条数（与首页轮播共用同一份数据） */
+function sg_notes_count(): int
+{
+    return count(sg_notes(0));
+}
+
+/**
+ * 真正取数的地方。查不到分类 / 查库失败一律返回空数组，绝不让页面 500。
+ */
+function sg_notes_query(int $limit): array
+{
+    try {
+        $db = \Typecho\Db::get();
+        $p = $db->getPrefix();
+
+        $cat = $db->fetchRow($db->select('mid', 'name')->from('table.metas')
+            ->where('type = ?', 'category')->where('slug = ?', sg_notes_slug())->limit(1));
+        if (!$cat || empty($cat['mid'])) {
+            return [];
+        }
+        $mid = (int) $cat['mid'];
+        $catName = (string) ($cat['name'] ?? '碎语');
+
+        $rels = $db->fetchAll($db->select('cid')->from('table.relationships')->where('mid = ?', $mid));
+        $cids = [];
+        foreach ($rels as $rel) {
+            $cid = (int) ($rel['cid'] ?? 0);
+            if ($cid > 0) {
+                $cids[] = $cid;
+            }
+        }
+        if (!$cids) {
+            return [];
+        }
+        $in = implode(',', $cids);
+
+        $rows = $db->fetchAll("SELECT cid, title, slug, created, text FROM {$p}contents"
+            . " WHERE cid IN ({$in}) AND type = 'post' AND status = 'publish'"
+            . " ORDER BY created DESC LIMIT " . max(1, $limit));
+        if (!$rows) {
+            return [];
+        }
+
+        $fields = [];
+        foreach ($db->fetchAll("SELECT cid, name, str_value FROM {$p}fields WHERE cid IN ({$in})") as $f) {
+            $cid = (int) ($f['cid'] ?? 0);
+            if ($cid > 0 && (string) ($f['str_value'] ?? '') !== '') {
+                $fields[$cid][(string) $f['name']] = (string) $f['str_value'];
+            }
+        }
+
+        $tags = [];
+        foreach ($db->fetchAll("SELECT r.cid, m.name FROM {$p}relationships r"
+            . " INNER JOIN {$p}metas m ON m.mid = r.mid"
+            . " WHERE r.cid IN ({$in}) AND m.type = 'tag'") as $t) {
+            $cid = (int) ($t['cid'] ?? 0);
+            if ($cid > 0 && !isset($tags[$cid])) {
+                $tags[$cid] = (string) ($t['name'] ?? '');
+            }
+        }
+
+        $tz = 0;
+        try {
+            $tz = (int) \Widget\Options::alloc()->timezone;
+        } catch (\Throwable $e) {
+            $tz = 0;
+        }
+
+        $out = [];
+        foreach ($rows as $row) {
+            $cid = (int) ($row['cid'] ?? 0);
+            $text = (string) ($row['text'] ?? '');
+            $own = $fields[$cid] ?? [];
+
+            $desc = trim((string) ($own['description'] ?? ''));
+            if ($desc === '') {
+                $desc = sg_notes_excerpt($text);
+            }
+            $cover = trim((string) ($own['cover'] ?? ''));
+
+            /* 图集：正文里所有 <img>，最多 9 张（九宫格上限）。
+               碎语是「一句 + 几张图」的记录，图片本身就是内容的一部分。 */
+            $images = [];
+            if (preg_match_all('/<img[^>]+src=["\']([^"\']+)["\']/i', $text, $mm)) {
+                foreach ($mm[1] as $src) {
+                    $src = trim((string) $src);
+                    if ($src === '' || in_array($src, $images, true)) {
+                        continue;
+                    }
+                    $images[] = $src;
+                    if (count($images) >= 9) {
+                        break;
+                    }
+                }
+            }
+            if ($cover === '' && $images) {
+                $cover = $images[0];
+            }
+
+            $url = (string) \Typecho\Router::url('post', [
+                'cid'     => $cid,
+                'slug'    => (string) ($row['slug'] ?? ''),
+                'created' => (int) ($row['created'] ?? 0),
+                'type'    => 'post',
+            ]);
+            if ($url === '' || $url === '#') {
+                $url = sg_site_url('archives/' . $cid . '/');
+            }
+
+            $ts = (int) ($row['created'] ?? 0) + $tz;
+            $plain = trim(preg_replace('/\s+/u', ' ', strip_tags($text)) ?? '');
+
+            $out[] = [
+                'cid'      => $cid,
+                'ts'       => $ts,
+                'date'     => date('Y.m.d', $ts),
+                'time'     => date('H:i', $ts),
+                'group'    => date('Y-m', $ts),
+                'groupLabel' => date('Y 年 n 月', $ts),
+                'tag'      => ($tags[$cid] ?? '') !== '' ? $tags[$cid] : $catName,
+                'title'    => (string) ($row['title'] ?? ''),
+                'text'     => $desc,
+                'body'     => $plain,
+                'images'   => array_map(static fn(string $src): string => sg_media($src), $images),
+                'mood'     => trim((string) ($own['mood'] ?? '')),
+                'location' => trim((string) ($own['location'] ?? '')),
+                'cover'    => sg_media($cover),
+                'url'      => $url,
+            ];
+        }
+        return $out;
+    } catch (\Throwable $e) {
+        return [];
+    }
+}
+
+/**
+ * 相册：**扫描 `usr/uploads/YYYY/MM/` 自动成册**，不再由后台 JSON 维护。
+ *
+ * 2026-11-13 第二十轮按用户要求改的：照片本来就该由站长在「附件」里传，
+ * 再手抄一遍 JSON 纯属重复劳动，还容易写错路径。
+ * 规则：
+ *  - 后台传图默认落在 `usr/uploads/2026/11/xxx.jpg`，按「年/月」两段分组；
+ *  - 不是这种结构的图（比如直接扔在 `usr/uploads/` 根下）归到「未归类」；
+ *  - 相册按时间倒序，同一相册内按文件名升序（上传顺序基本等于拍摄顺序）；
+ *  - 没有图注来源，`caption` 一律给空串，前台不会渲染空图注气泡。
+ *
+ * 返回值与旧 JSON 结构保持一致（id/title/description/date/cover/photos），
+ * 所以 page-photowall.php、sg_home_poster()、gallery.ts 都不用改契约。
+ */
+function sg_albums(): array
+{
+    static $cache = null;
+    if ($cache !== null) {
+        return $cache;
+    }
+
+    /* 第二十三轮：照片存在 OSS 的站，直接在「相册图片」里一行一个贴链接，
+       这里按链接里的年月自动成册。留空才退回扫 `usr/uploads`。 */
+    $links = trim((string) sg_opt('sgOssPhotos', ''));
+    if ($links !== '') {
+        $remote = sg_oss_photos($links);
+        if ($remote) {
+            return $cache = $remote;
+        }
+    }
+
+    $root = defined('__TYPECHO_ROOT_DIR__') ? __TYPECHO_ROOT_DIR__ : dirname(__DIR__, 2);
+    $base = rtrim(str_replace('\\', '/', $root), '/') . '/usr/uploads';
+    if (!is_dir($base)) {
+        return $cache = [];
+    }
+
+    $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'bmp', 'svg'];
+    $groups = [];
+
+    try {
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($base, \FilesystemIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::LEAVES_ONLY
+        );
+        foreach ($iterator as $file) {
+            if (!$file->isFile()) {
+                continue;
+            }
+            $ext = strtolower($file->getExtension());
+            if (!in_array($ext, $allowed, true)) {
+                continue;
+            }
+            $path = str_replace('\\', '/', $file->getPathname());
+            $rel = ltrim(substr($path, strlen($base)), '/');
+            if ($rel === '') {
+                continue;
+            }
+            $parts = explode('/', $rel);
+            $key = 'misc';
+            $title = '未归类';
+            $date = '';
+            if (count($parts) >= 3
+                && preg_match('/^\d{4}$/', $parts[0]) === 1
+                && preg_match('/^\d{2}$/', $parts[1]) === 1) {
+                $key = $parts[0] . '-' . $parts[1];
+                $title = $parts[0] . ' 年 ' . (int) $parts[1] . ' 月';
+                $date = $parts[0] . '.' . $parts[1];
+            }
+            if (!isset($groups[$key])) {
+                $groups[$key] = ['title' => $title, 'date' => $date, 'photos' => []];
+            }
+            $groups[$key]['photos'][] = [
+                'url'     => sg_site_url('usr/uploads/' . $rel),
+                'thumb'   => sg_site_url('usr/uploads/' . $rel),
+                'caption' => '',
+                'name'    => $rel,
+            ];
+        }
+    } catch (\Throwable $e) {
+        return $cache = [];
+    }
+
+    $albums = [];
+    foreach ($groups as $key => $group) {
+        $photos = $group['photos'];
+        sort($photos);
+        if (!$photos) {
             continue;
         }
-        $text = trim((string) ($item['text'] ?? ''));
-        $title = trim((string) ($item['title'] ?? ''));
-        if ($text === '' && $title === '') {
-            continue;
-        }
-        $out[] = [
-            'date'  => trim((string) ($item['date'] ?? '')),
-            'tag'   => trim((string) ($item['tag'] ?? '碎语')),
-            'title' => $title,
-            'text'  => $text,
-            'cover' => sg_media(trim((string) ($item['cover'] ?? ''))),
-            'url'   => trim((string) ($item['url'] ?? '')),
+        $count = count($photos);
+        $albums[] = [
+            'id'          => (string) $key,
+            'title'       => (string) $group['title'],
+            'date'        => (string) $group['date'],
+            /* 张数模板里已经单独渲染（「2026.11 · 2 张照片」），
+               这里再写一遍会重复成「2 张照片 / 2 张照片」 */
+            'description' => '',
+            'cover'       => (string) $photos[0]['url'],
+            'coverThumb'  => (string) ($photos[0]['thumb'] ?? $photos[0]['url']),
+            'photos'      => $photos,
         ];
     }
-    return $out;
+
+    usort($albums, static function (array $a, array $b): int {
+        if ($a['id'] === 'misc') {
+            return 1;
+        }
+        if ($b['id'] === 'misc') {
+            return -1;
+        }
+        return strcmp($b['id'], $a['id']);
+    });
+
+    return $cache = $albums;
+}
+
+/** OSS 相册清单的失败原因（后台诊断行用） */
+function sg_oss_error(): string
+{
+    return (string) ($GLOBALS['SG_OSS_ERROR'] ?? '');
+}
+
+/** 记录 OSS 相册的失败原因 */
+function sg_oss_fail(string $message): void
+{
+    if (sg_oss_error() === '') {
+        $GLOBALS['SG_OSS_ERROR'] = $message;
+    }
+}
+
+/**
+ * 图片处理后缀：OSS 自带 `x-oss-process`，列表里按宽度压一版并转 webp，省流量也快。
+ * 留空则不处理（原图直出）；已经是完整 `x-oss-process` 的链接不会重复拼。
+ */
+function sg_oss_suffix(): string
+{
+    $suffix = trim((string) sg_opt('sgOssSuffix', 'x-oss-process=image/resize,w_1200/format,webp/quality,q_82'));
+    if ($suffix === '') {
+        return '';
+    }
+    if ($suffix[0] !== '?') {
+        $suffix = '?' . ltrim($suffix, '&');
+    }
+    return $suffix;
+}
+
+/** 给一条 OSS 链接套上缩略图参数；站内相对路径与非 OSS 链接原样返回 */
+function sg_oss_thumb(string $url): string
+{
+    $url = trim($url);
+    if ($url === '' || preg_match('#^https?://#i', $url) !== 1) {
+        return $url;
+    }
+    $suffix = sg_oss_suffix();
+    if ($suffix === '' || stripos($url, 'x-oss-process') !== false) {
+        return $url;
+    }
+    return $url . (strpos($url, '?') === false ? $suffix : '&' . ltrim($suffix, '?'));
+}
+
+/**
+ * 把「一行一个 OSS 链接」的相册配置解析成相册数组。
+ *
+ * 每行格式：`https://….jpg` 或 `https://….jpg | 一句说明`（# 开头为注释）。
+ * 分组规则：从链接路径里找年份与月份（`2026/11`、`2026-11`、`2026_11`），
+ * 找到就归到「2026 年 11 月」，找不到归到「未归类」。相册按时间倒序，未归类永远最后。
+ *
+ * 产出结构与扫附件那条路完全一致（page-photowall.php / sg_home_poster() 都不用改）：
+ *   id / title / date / description / cover / coverThumb / photos[{url,thumb,caption,name}]
+ */
+function sg_oss_photos(string $links): array
+{
+    $lines = preg_split('/\r\n|\r|\n/', $links) ?: [];
+    $groups = [];
+
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '' || strpos($line, '#') === 0) {
+            continue;
+        }
+        // 「链接 | 说明」
+        $caption = '';
+        $pos = strpos($line, '|');
+        if ($pos !== false) {
+            $caption = trim(substr($line, $pos + 1));
+            $line = trim(substr($line, 0, $pos));
+        }
+        if (preg_match('#^(https?://|/)#i', $line) !== 1) {
+            continue;
+        }
+
+        $url = sg_media($line);
+        $key = 'misc';
+        $title = '未归类';
+        $date = '';
+        if (preg_match('#(20\d{2})[-_/](\d{1,2})(?:[-_/]|$)#', $line, $m) === 1) {
+            $year = (int) $m[1];
+            $month = (int) $m[2];
+            if ($month >= 1 && $month <= 12) {
+                $key = sprintf('%04d-%02d', $year, $month);
+                $title = $year . ' 年 ' . $month . ' 月';
+                $date = sprintf('%04d.%02d', $year, $month);
+            }
+        }
+
+        if (!isset($groups[$key])) {
+            $groups[$key] = [
+                'id'          => $key,
+                'title'       => $title,
+                'date'        => $date,
+                'description' => '',
+                'photos'      => [],
+            ];
+        }
+        $groups[$key]['photos'][] = [
+            'url'     => $url,
+            'thumb'   => sg_media(sg_oss_thumb($url)),
+            'caption' => $caption,
+            'name'    => (string) basename((string) parse_url($line, PHP_URL_PATH)),
+        ];
+    }
+
+    if (!$groups) {
+        return [];
+    }
+
+    // 时间倒序，未归类永远最后
+    $keys = array_keys($groups);
+    usort($keys, static function (string $a, string $b): int {
+        if ($a === 'misc') {
+            return 1;
+        }
+        if ($b === 'misc') {
+            return -1;
+        }
+        return strcmp($b, $a);
+    });
+
+    $albums = [];
+    foreach ($keys as $key) {
+        $album = $groups[$key];
+        $first = $album['photos'][0];
+        $album['cover'] = $first['url'];
+        $album['coverThumb'] = $first['thumb'];
+        /* 张数由模板用 count(photos) 统一渲染，这里留空，避免出现两行「N 张照片」 */
+        $album['description'] = '';
+        $albums[] = $album;
+    }
+    return $albums;
+}
+
+/** 去掉短代码/标签后截一段纯文本，用于「没填摘要」的碎语卡片 */
+function sg_notes_excerpt(string $html): string
+{
+    $text = preg_replace('/<!--.*?-->/s', ' ', $html) ?? $html;
+    $text = strip_tags($text);
+    $text = preg_replace('/\s+/u', ' ', $text) ?? $text;
+    $text = trim($text);
+    if ($text === '') {
+        return '';
+    }
+    if (function_exists('mb_strlen') && mb_strlen($text, 'UTF-8') > 90) {
+        return mb_substr($text, 0, 90, 'UTF-8') . '…';
+    }
+    return $text;
 }
 
 /**
@@ -735,6 +1143,95 @@ function sg_http_get(string $url, array $headers = [], int $timeout = 6): string
     ]);
     $body = @file_get_contents($url, false, $ctx);
     return is_string($body) ? $body : '';
+}
+
+/**
+ * POST JSON：AI 接口用。与 sg_http_get() 同样的「curl 失败退 fgc」策略，
+ * 同样只放行 http/https，同样按 open_basedir 决定要不要看 curl.cainfo。
+ *
+ * @param array<string,mixed> $payload
+ * @param array<int,string>   $headers
+ */
+function sg_http_post_json(string $url, array $payload, array $headers = [], int $timeout = 20): string
+{
+    if (preg_match('#^https?://#i', $url) !== 1) {
+        return '';
+    }
+
+    $body = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if (!is_string($body)) {
+        return '';
+    }
+
+    $ua = 'soraglass/1.0 (+https://github.com/oyj135/soraglass)';
+    $headers = array_merge([
+        'User-Agent: ' . $ua,
+        'Content-Type: application/json',
+        'Accept: application/json',
+        'Content-Length: ' . strlen($body),
+    ], $headers);
+
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        $opts = [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $body,
+            CURLOPT_TIMEOUT        => $timeout,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS      => 2,
+            CURLOPT_HTTPHEADER     => $headers,
+        ];
+        if (defined('CURLOPT_PROTOCOLS')) {
+            $opts[CURLOPT_PROTOCOLS] = CURLPROTO_HTTP | CURLPROTO_HTTPS;
+        }
+        if (defined('CURLOPT_REDIR_PROTOCOLS')) {
+            $opts[CURLOPT_REDIR_PROTOCOLS] = CURLPROTO_HTTP | CURLPROTO_HTTPS;
+        }
+        $cainfo = (string) ini_get('curl.cainfo');
+        if ($cainfo !== '') {
+            $allowed = trim((string) ini_get('open_basedir'));
+            $ok = $allowed === '';
+            if (!$ok) {
+                foreach (explode(PATH_SEPARATOR, $allowed) as $dir) {
+                    $dir = rtrim(trim($dir), '/\\');
+                    if ($dir !== '' && strpos($cainfo, $dir . DIRECTORY_SEPARATOR) === 0) {
+                        $ok = true;
+                        break;
+                    }
+                }
+            }
+            if ($ok && @is_file($cainfo)) {
+                $opts[CURLOPT_CAINFO] = $cainfo;
+            }
+        }
+        curl_setopt_array($ch, $opts);
+        $result = curl_exec($ch);
+        $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+        curl_close($ch);
+        if (is_string($result) && $result !== '' && $status >= 200 && $status < 300) {
+            return $result;
+        }
+        if (is_string($result) && $result !== '' && $status >= 400) {
+            /* 4xx/5xx 的响应体常常就是错误说明，交给上层解析比丢一句「没响应」有用 */
+            return $result;
+        }
+    }
+
+    $ctx = stream_context_create([
+        'http' => [
+            'method'          => 'POST',
+            'timeout'         => $timeout,
+            'header'          => implode("\r\n", $headers) . "\r\n",
+            'content'         => $body,
+            'ignore_errors'   => true,
+            'follow_location' => 1,
+            'max_redirects'   => 2,
+        ],
+    ]);
+    $result = @file_get_contents($url, false, $ctx);
+    return is_string($result) ? $result : '';
 }
 
 /**

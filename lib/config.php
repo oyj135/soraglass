@@ -165,22 +165,18 @@ function sg_e($value): string
 }
 
 /**
- * 首页个人卡的三项统计：文章 / 碎语 / 照片。
- * 文章、照片查库；碎语数直接数 notes.json 的条数（它已经不挂在分类上了）。
- * 后台留空则自动统计；查库失败回落 0，绝不让页面 500。
+ * 首页个人卡的三项统计：文章 / 碎语 / 照片，**全部自动统计**。
+ *
+ * 2026-11-13 第二十轮按用户要求去掉手填：以前三个数字允许后台覆盖，
+ * 结果站点内容变了数字不动，还被误当成 bug。现在一律实时数：
+ *  - 文章：contents 里 type=post 且已发布；
+ *  - 碎语：「碎语」分类下的文章条数（sg_notes_count()）；
+ *  - 照片：usr/uploads 下能被相册认出来的图片总数（sg_albums() 累加）。
+ * 任何一步失败都回落 0，绝不让首页 500。
  */
 function sg_stats(): array
 {
-    $fallback = [
-        'posts'  => sg_opt('sgStatPosts', ''),
-        'notes'  => sg_opt('sgStatNotes', ''),
-        'photos' => sg_opt('sgStatPhotos', ''),
-    ];
-    if ($fallback['posts'] !== '' && $fallback['notes'] !== '' && $fallback['photos'] !== '') {
-        return $fallback;
-    }
-
-    $count = static function (string $type) : int {
+    $count = static function (string $type): int {
         try {
             $db = \Typecho\Db::get();
             $row = $db->fetchObject(
@@ -193,10 +189,15 @@ function sg_stats(): array
         }
     };
 
+    $photos = 0;
+    foreach (sg_albums() as $album) {
+        $photos += is_array($album['photos'] ?? null) ? count($album['photos']) : 0;
+    }
+
     return [
-        'posts'  => $fallback['posts'] !== '' ? $fallback['posts'] : (string) $count('post'),
-        'notes'  => $fallback['notes'] !== '' ? $fallback['notes'] : (string) count(sg_notes()),
-        'photos' => $fallback['photos'] !== '' ? $fallback['photos'] : (string) $count('attachment'),
+        'posts'  => (string) $count('post'),
+        'notes'  => (string) sg_notes_count(),
+        'photos' => (string) $photos,
     ];
 }
 
