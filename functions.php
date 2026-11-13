@@ -473,9 +473,14 @@ function themeConfig($form): void
     $posterModes = ['album' => _t('光影画廊（最新相册）'), 'post' => _t('最新文章'), 'custom' => _t('自定义')];
     $form->addInput(new Select('sgPosterMode', $posterModes, 'album', _t('首页宽幅卡（右侧大海报）'), _t('决定首页右侧那张宽幅海报取什么内容；默认放「光影画廊」最新相册（照片按上传年月自动成册）。它的背景图就是相册 cover / 文章 cover / 下一项 JSON 里的 cover。')));
     $form->addInput(new Textarea('sgPoster', null, '', _t('宽幅卡 JSON'), _t('<b>显示位置</b>：仅上面选「自定义」时生效，替换首页右上那张海报。<br>格式：<code>{"title":"…","desc":"…","cover":"…","url":"…","kicker":"PHOTO WALL"}</code><br>其中 <code>cover</code> 就是这张卡的背景图，支持 https 外链与 <code>usr/uploads/…</code> 相对路径。')));
-    $form->addInput(new Text('sgBriefingBg', null, '', _t('AI 日报 · 背景图'), _t(
+    $form->addInput(new Textarea('sgBriefingBg', null, '', _t('AI 日报 · 背景图（一行一个，可轮播）'), _t(
         '<b>显示位置</b>：首页最下方「AI 日报」卡片顶部的横幅背景，展开目录后仍是这张。<br>'
-        . '<b>与模型封面的关系</b>：填了就统一用这张；留空则依次取「最新相册封面 → 主题自带的 briefing-3.jpg」。<br>'
+        . '<b>多张轮播</b>：一行贴一个图片地址。两张及以上自动循环播放 —— 每 7 秒一张，'
+        . '0.9 秒交叉淡入 + 缓慢推镜；只填一行就是一张静态图，行为和以前一致。最多 12 张。<br>'
+        . '<b>与主题切换</b>：日间/夜间模式共用这一组图；切换主题时轮播进度保持不变，'
+        . '不会跳回第 1 张，本张的停留时间重新计 7 秒。<br>'
+        . '<b>与模型封面的关系</b>：填了就以这里为准；留空则依次取每期选刊的封面，'
+        . '点「‹ 2/3 ›」翻期时背景跟着换，并暂停自动轮播 12 秒。<br>'
         . '<b>怎么填</b>：直接贴图片地址 —— <code>https://…</code> 外链、<code>/</code> 开头的站内绝对路径，'
         . '或 <code>usr/uploads/2026/11/bg.jpg</code> 这种相对路径。<br>'
         . '<b>建议</b>：1200×700 左右的横图，深色构图更耐看（横幅上压着白色标题）。'

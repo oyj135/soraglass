@@ -750,7 +750,16 @@ function sg_ai_json_block(string $content): string
  */
 function sg_ai_cover(): string
 {
-    $cover = trim((string) sg_opt('sgBriefingBg', ''));
+    /* 设置项现在是一行一个地址（多张轮播），封面只需要第一张 —— 保持「一张图」的语义，
+       否则整段多行文本会被当成一个地址写进期次数据。 */
+    $cover = '';
+    foreach (preg_split('/[\r\n,]+/', (string) sg_opt('sgBriefingBg', '')) ?: [] as $line) {
+        $line = trim($line);
+        if ($line !== '') {
+            $cover = $line;
+            break;
+        }
+    }
     if ($cover === '') {
         $albums = sg_albums();
         $cover = trim((string) ($albums[0]['coverThumb'] ?? ($albums[0]['cover'] ?? '')));

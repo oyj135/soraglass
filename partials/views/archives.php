@@ -13,8 +13,16 @@ $sgGroups = [];
 $sgTotal = 0;
 
 try {
-    $this->widget('Widget_Contents_Post_Recent', 'pageSize=' . $sgLimit)->to($sgPosts);
+    /* 碎语不进归档（2026-11-13）：多取碎语条数再剔掉，保证普通文章的量不被挤占 */
+    $sgNoteTotal = count(sg_note_cids());
+    $this->widget('Widget_Contents_Post_Recent', 'pageSize=' . ($sgLimit + $sgNoteTotal))->to($sgPosts);
     while ($sgPosts->next()) {
+        if (sg_is_note((int) $sgPosts->cid)) {
+            continue;
+        }
+        if ($sgTotal >= $sgLimit) {
+            break;
+        }
         $sgYear = (string) $sgPosts->date->year;
         $sgMonth = (string) $sgPosts->date->month;
         $sgGroups[$sgYear][$sgMonth][] = [

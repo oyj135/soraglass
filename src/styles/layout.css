@@ -73,6 +73,14 @@
 .sg-card-grid { display: grid; gap: 1.5rem; grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 768px) { .sg-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
+/* 项目页专用网格（2026-11-13 第三十一轮）。
+   原来沿用 .sg-card-grid：容器上限 72rem，1440px 屏下每张卡被拉到 560px 宽，
+   描述行长达 100+ 字符，读起来很累。这里单列 → 两列 → 三列，每列稳定在 320–360px。
+   不动 .sg-card-grid 本身：友链 / 说说 / 杂谈仍是两列。 */
+.sg-project-grid { display: grid; gap: 1.25rem; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 640px) { .sg-project-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1200px) { .sg-project-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; } }
+
 .sg-photo-grid { display: grid; gap: .875rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (min-width: 640px) { .sg-photo-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (min-width: 1024px) { .sg-photo-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }

@@ -4,6 +4,7 @@ import { initEffects } from './modules/effects';
 import { initCarousels } from './modules/carousel';
 import { initPlayer } from './modules/player';
 import { initBriefing } from './modules/briefing';
+import { initBriefingBg } from './modules/briefing-bg';
 import { initFilters } from './modules/filter';
 import { initArchive } from './modules/archive';
 import { initGallery } from './modules/gallery';
@@ -33,6 +34,8 @@ function boot(): void {
   // 各模块自己判断 DOM 是否存在，缺失就空跑，不需要按页面分发
   safe('carousel', initCarousels);
   safe('player', initPlayer);
+  /* 背景轮播要先监听，briefing 初始化时就会派发第一次「当前期」事件 */
+  safe('briefing-bg', initBriefingBg);
   safe('briefing', initBriefing);
   safe('filter', initFilters);
   safe('archive', initArchive);

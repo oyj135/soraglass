@@ -39,9 +39,21 @@ $sgNotesLink = sg_page_url('notes');
     <div class="sg-grid sg-grid-12">
       <section class="sg-glass sg-post-carousel sg-col-4" data-sg-carousel data-sg-interval="5000" data-sg-hover>
         <?php $GLOBALS['SG_SLIDE_SEEN'] = false; ?>
-        <?php if ($this->have()) : ?>
+        <?php
+        /* 碎语不进首页封面轮播（2026-11-13）：碎语在下方有专门的轮播区块。
+           用「总数 > 碎语数」判断是否还有普通文章，避免全是碎语时轮播空着。 */
+        $sgHasPlainPost = true;
+        try {
+            $sgHasPlainPost = (int) $this->getTotal() > count(sg_note_cids());
+        } catch (\Throwable $e) {
+            $sgHasPlainPost = true;
+        }
+        ?>
+        <?php if ($this->have() && $sgHasPlainPost) : ?>
           <?php while ($this->next()) : ?>
+            <?php if (!sg_is_note((int) $this->cid)) : ?>
             <?php $this->need('partials/slide-post.php'); ?>
+            <?php endif; ?>
           <?php endwhile; ?>
         <?php else : ?>
           <article class="sg-post-slide is-active">

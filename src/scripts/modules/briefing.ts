@@ -53,7 +53,6 @@ export function initBriefing(): void {
   const body = root.querySelector<HTMLElement>('[data-sg-briefing-body]');
   const toggle = root.querySelector<HTMLButtonElement>('[data-sg-briefing-toggle]');
   const issues = Array.from(root.querySelectorAll<HTMLElement>('[data-sg-briefing-issue]'));
-  const covers = Array.from(root.querySelectorAll<HTMLElement>('[data-sg-briefing-cover]'));
   const status = root.querySelector<HTMLElement>('[data-sg-briefing-status]');
 
   const text = (name: string): HTMLElement | null => root.querySelector<HTMLElement>(`[data-sg-briefing-${name}]`);
@@ -124,18 +123,20 @@ export function initBriefing(): void {
     return items.filter((item) => !read.has(item.dataset.id ?? '')).length;
   };
 
-  const paintIssue = (index: number): void => {
+  const paintIssue = (index: number, reason: 'init' | 'manual' | 'auto' = 'manual'): void => {
     current = (index + issues.length) % issues.length;
     const issue = issues[current];
     if (!issue) return;
     const data = issue.dataset;
 
     issues.forEach((item, i) => { item.hidden = i !== current; });
-    /* 后台指定了「每日选刊背景图」时服务端只渲染 1 张封面（数量对不上期数），
-       这时不能按下标切换，否则翻到第 2 期封面就被撤掉了。 */
-    if (covers.length === issues.length) {
-      covers.forEach((cover, i) => cover.classList.toggle('is-active', i === current));
-    }
+    /* 背景图切换交给 briefing-bg 模块（它会跳到对应序号并暂停轮播 12 秒）。
+       这里只派发事件、不碰 .sg-briefing-cover 的类名，否则两边会抢 is-active。
+       注意必须带上 reason：自动切期每 8 秒发生一次，若也算「手动翻期」，
+       背景就会被反复暂停 12 秒、永远轮不起来。 */
+    root.dispatchEvent(new CustomEvent('sg:briefing-issue', {
+      detail: { index: current, total: issues.length, reason },
+    }));
 
     if (elDate) elDate.textContent = data.date ?? '';
     if (elLabel) elLabel.textContent = `/ ${data.label ?? ''}`;
@@ -220,7 +221,7 @@ export function initBriefing(): void {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     timer = window.setInterval(() => {
       if (hovered || root.classList.contains('is-open') || document.hidden) return;
-      paintIssue(current + 1);
+      paintIssue(current + 1, 'auto');
     }, AUTO_MS);
   };
 
@@ -345,7 +346,7 @@ export function initBriefing(): void {
       if (dialog && typeof dialog.showModal === 'function') {
         try { dialog.showModal(); } catch { dialog.setAttribute('open', ''); }
       }
-      paintIssue(current);
+      paintIssue(current, 'auto');
     });
   });
 
@@ -372,6 +373,6 @@ export function initBriefing(): void {
     applySavedFilter();
   });
 
-  paintIssue(0);
+  paintIssue(0, 'init');
   startAuto();
 }

@@ -30,8 +30,17 @@ if ($sgSize <= 0) {
 $sgPosts = [];
 $sgCids  = [];
 try {
-    $this->widget('Widget_Contents_Post_Recent', 'pageSize=' . $sgSize)->to($sgRecent);
+    /* 碎语不属于知识档案（2026-11-13）：多取「碎语条数」那么多再剔掉，
+       保证普通文章仍能填满一页，不会被碎语挤掉。 */
+    $sgNoteTotal = count(sg_note_cids());
+    $this->widget('Widget_Contents_Post_Recent', 'pageSize=' . ($sgSize + $sgNoteTotal))->to($sgRecent);
     while ($sgRecent->next()) {
+        if (sg_is_note((int) $sgRecent->cid)) {
+            continue;
+        }
+        if (count($sgPosts) >= $sgSize) {
+            break;
+        }
         $sgCids[] = (int) $sgRecent->cid;
         $sgPosts[] = [
             'cid'       => (int) $sgRecent->cid,

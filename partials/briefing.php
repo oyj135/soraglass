@@ -61,22 +61,34 @@ $sgIssueChannels = static function (array $issue) use ($sgChannels): array {
     return $list;
 };
 
-// 卡片背景图：后台「AI 日报背景图」填了就以它为准，否则用本期的 cover
-$sgBriefingBg = sg_bg_url((string) sg_opt('sgBriefingBg', ''));
+// 卡片背景图：后台「AI 日报背景图」一行贴一个地址，两张及以上自动轮播；
+// 留空则回落到每期选刊的封面，翻「‹ 2/3 ›」时跟着换。
+$sgBgList = sg_bg_list((string) sg_opt('sgBriefingBg', ''));
+$sgBgTotal = $sgBgList ? count($sgBgList) : count($sgIssues);
 ?>
+
 
 <section class="sg-glass sg-briefing" data-sg-briefing data-sg-spotlight>
   <div class="sg-briefing-hero">
-    <div class="sg-briefing-covers" aria-hidden="true">
-      <?php if ($sgBriefingBg !== '') : ?>
-      <!-- 后台指定了背景图：整卡只用这一张，切期时保持不变 -->
-      <img class="sg-briefing-cover is-active" src="<?php echo sg_e($sgBriefingBg); ?>" alt="" referrerpolicy="no-referrer">
+    <div class="sg-briefing-covers" aria-hidden="true"
+         data-sg-briefing-bg
+         data-sg-bg-source="<?php echo $sgBgList ? 'custom' : 'issue'; ?>"
+         data-sg-bg-count="<?php echo $sgBgTotal > 0 ? (int) $sgBgTotal : 1; ?>"
+         data-sg-bg-interval="7000">
+      <?php if ($sgBgList) : ?>
+      <!-- 后台指定了背景图：同组内自动循环，翻期时跳到对应序号并暂停 12 秒 -->
+      <?php foreach ($sgBgList as $sgBgIndex => $sgBgSrc) : ?>
+      <img class="sg-briefing-cover<?php echo $sgBgIndex === 0 ? ' is-active' : ''; ?>"
+           src="<?php echo sg_e($sgBgSrc); ?>" alt="" referrerpolicy="no-referrer"
+           data-sg-bg-index="<?php echo (int) $sgBgIndex; ?>"
+           <?php echo $sgBgIndex === 0 ? '' : 'loading="lazy"'; ?>>
+      <?php endforeach; ?>
       <?php else : ?>
       <?php foreach ($sgIssues as $sgIndex => $sgIssue) : ?>
       <?php $sgCover = sg_media($sgIssue['cover'], sg_placeholder(1015 + (int) $sgIndex, 1200, 700)); ?>
       <img class="sg-briefing-cover<?php echo $sgIndex === 0 ? ' is-active' : ''; ?>"
            src="<?php echo sg_e($sgCover); ?>" alt="" referrerpolicy="no-referrer"
-           data-sg-briefing-cover="<?php echo (int) $sgIndex; ?>"
+           data-sg-bg-index="<?php echo (int) $sgIndex; ?>"
            <?php echo $sgIndex === 0 ? '' : 'loading="lazy"'; ?>>
       <?php endforeach; ?>
       <?php endif; ?>

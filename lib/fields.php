@@ -76,6 +76,38 @@ function sg_bg_url(string $value): string
     return sg_theme_url($value);
 }
 
+/**
+ * 背景图组：后台一个文本框里一行一个地址。
+ *
+ * 2026-11-13 第二十二轮新增：AI 日报卡片的背景从「一张静态图」升级成「多张轮播」，
+ * 用户不需要填 JSON 数组，按行贴地址最不容易出错。
+ * 单行（也就是这个设置项的历史值）解析出来就是一张图，行为与改动前完全一致。
+ *
+ * @param string $value 原始设置值，换行或逗号分隔
+ * @param int    $limit 最多保留几张，避免一屏几百张图把首页拖死
+ * @return string[] 已经过 sg_bg_url() 归一化、去重后的地址列表
+ */
+function sg_bg_list(string $value, int $limit = 12): array
+{
+    $value = trim($value);
+    if ($value === '') {
+        return [];
+    }
+
+    $out = [];
+    foreach (preg_split('/[\r\n,]+/', $value) ?: [] as $part) {
+        $url = sg_bg_url((string) $part);
+        if ($url === '' || in_array($url, $out, true)) {
+            continue;
+        }
+        $out[] = $url;
+        if (count($out) >= $limit) {
+            break;
+        }
+    }
+    return $out;
+}
+
 /** 站内绝对地址：把 `usr/uploads/...` 这类相对路径补成能从任何 URL 打开的形式 */
 function sg_site_url(string $path = ''): string
 {
@@ -400,8 +432,13 @@ function sg_home_poster($archive = null): array
 
     if ($mode === 'post' && $archive) {
         try {
-            $archive->widget('Widget_Contents_Post_Recent', 'pageSize=1')->to($recent);
+            /* 碎语不进「最新文章」海报（2026-11-13）：多取碎语条数再跳过，
+               否则最新一篇是碎语时，首页宽幅卡会顶着碎语标题。 */
+            $archive->widget('Widget_Contents_Post_Recent', 'pageSize=' . (1 + count(sg_note_cids())))->to($recent);
             while ($recent->next()) {
+                if (sg_is_note((int) $recent->cid)) {
+                    continue;
+                }
                 return [
                     'title'  => (string) $recent->title,
                     'desc'   => sg_excerpt($recent, 44),
@@ -642,6 +679,48 @@ function sg_notes_slug(): string
     return 'notes';
 }
 
+/**
+ * 碎语分类下的全部文章 cid（静态缓存，一次请求只查一次）。
+ *
+ * 2026-11-13：碎语与普通文章要求「完全隔离」—— 知识档案、首页封面轮播、
+ * 侧栏最近文章、归档页都要把碎语剔出去，所以单独提供一份 id 集合，
+ * 调用方用 sg_is_note() 过滤即可。不复用 sg_notes()：那份带 LIMIT、
+ * 封面与摘要计算，过滤时只需要 id。
+ */
+function sg_note_cids(): array
+{
+    static $cache = null;
+    if ($cache !== null) {
+        return $cache;
+    }
+
+    $cache = [];
+    try {
+        $db = \Typecho\Db::get();
+        $cat = $db->fetchRow($db->select('mid')->from('table.metas')
+            ->where('type = ?', 'category')->where('slug = ?', sg_notes_slug())->limit(1));
+        if ($cat && !empty($cat['mid'])) {
+            foreach ($db->fetchAll($db->select('cid')->from('table.relationships')
+                ->where('mid = ?', (int) $cat['mid'])) as $row) {
+                $cid = (int) ($row['cid'] ?? 0);
+                if ($cid > 0) {
+                    $cache[] = $cid;
+                }
+            }
+        }
+    } catch (\Throwable $e) {
+        $cache = [];
+    }
+
+    return $cache;
+}
+
+/** 这篇内容是不是碎语（挂在碎语分类下）。列表模板据此把碎语剔出通用列表 */
+function sg_is_note(int $cid): bool
+{
+    return $cid > 0 && in_array($cid, sg_note_cids(), true);
+}
+
 /** 碎语页副标题里要显示的条数（与首页轮播共用同一份数据） */
 function sg_notes_count(): int
 {
@@ -715,6 +794,16 @@ function sg_notes_query(int $limit): array
         foreach ($rows as $row) {
             $cid = (int) ($row['cid'] ?? 0);
             $text = (string) ($row['text'] ?? '');
+
+            /* Markdown 文章：库里存的是 `<!--markdown-->` + 源码（前缀判断与
+               Widget\Base\Contents::___isMarkdown() 一致）。碎语卡不走 $this->content()，
+               这里必须自己转一遍 HTML —— 否则 `![](url)` 既抽不出 <img>，
+               又会被 strip_tags 原样留成一段地址文字显示在卡片上。
+               用纯 HTML 写的碎语没有这个前缀，走原路径，行为不变。 */
+            if (strncmp($text, '<!--markdown-->', 15) === 0) {
+                $text = \Utils\Markdown::convert(substr($text, 15));
+            }
+
             $own = $fields[$cid] ?? [];
 
             $desc = trim((string) ($own['description'] ?? ''));

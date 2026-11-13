@@ -11,6 +11,19 @@ try {
     $sgTotal = 0;
 }
 $sgIsSearch = $this->is('search');
+
+/* 碎语不进通用归档（2026-11-13）：分类页/标签页/搜索页/日期归档都只列普通文章，
+   只有直接访问碎语分类本身时才全量显示，否则那个分类页会被自己清空。 */
+$sgIsNotesArchive = false;
+try {
+    $sgIsNotesArchive = $this->is('category') && $this->getArchiveSlug() === sg_notes_slug();
+} catch (\Throwable $e) {
+    $sgIsNotesArchive = false;
+}
+$sgSkipNotes = !$sgIsNotesArchive;
+if ($sgSkipNotes && $sgTotal > 0) {
+    $sgTotal = max(0, $sgTotal - min($sgTotal, count(sg_note_cids())));
+}
 $sgKeyword = '';
 if ($sgIsSearch) {
     try {
@@ -58,7 +71,10 @@ $sgCurrentPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PAT
 
   <?php if ($this->have()) : ?>
   <div class="sg-card-grid">
-    <?php while ($this->next()) : ?><?php $this->need('partials/card-post.php'); ?><?php endwhile; ?>
+    <?php while ($this->next()) : ?>
+      <?php if ($sgSkipNotes && sg_is_note((int) $this->cid)) : ?><?php continue; ?><?php endif; ?>
+      <?php $this->need('partials/card-post.php'); ?>
+    <?php endwhile; ?>
   </div>
   <?php else : ?>
   <div class="sg-glass sg-notfound">

@@ -63,6 +63,26 @@
   --sg-lyric-bg: rgba(15, 23, 42, .80);
   --sg-lyric-border: rgba(255, 255, 255, .10);
 
+  /* 项目卡专用（2026-11-13 第三十一轮）—— 原来项目卡与其它卡共用一层 40% 白，
+     图标是裸 emoji、没有身份行，一屏六张完全同质。这里给它单独一组：
+     双层渐变卡面（上亮下暗，制造光从上打下来的层次）、图标色块、顶部 1px 高光。 */
+  --sg-proj-face-a: rgba(255, 255, 255, .24);
+  --sg-proj-face-b: rgba(255, 255, 255, 0);
+  --sg-proj-inset: rgba(255, 255, 255, .70);       /* 内高光：只给 44px 图标色块，卡面不加（会压灰毛玻璃） */
+  --sg-proj-hairline: rgba(255, 255, 255, .88);    /* 顶部高光强度 */
+  --sg-proj-border: rgba(255, 255, 255, .58);      /* 静置描边：比通用卡亮一档，卡片才「有边」 */
+  --sg-proj-border-hot: rgba(255, 255, 255, .82);  /* hover 时描边再提亮 */
+  --sg-proj-icon-bg: rgba(99, 102, 241, .20);
+  --sg-proj-icon-bg-end: rgba(168, 85, 247, .16);  /* 图标块渐变另一端：一点点紫，别让全站只剩 indigo */
+  --sg-proj-icon-border: rgba(99, 102, 241, .30);
+  --sg-proj-tint: rgba(129, 140, 248, .10);        /* 卡片右下角冷光，压掉「一整片白」 */
+  --sg-proj-icon-fg: #4f46e5;                      /* 与 --sg-indigo-deep 同色，留给 emoji 之外的文字图标 */
+  --sg-proj-tag-bg: rgba(99, 102, 241, .11);
+  --sg-proj-tag-border: rgba(99, 102, 241, .22);
+  --sg-proj-tag-fg: #4338ca;                       /* indigo-700，胶囊里字要压得住 */
+  --sg-proj-accent: rgba(99, 102, 241, .42);       /* 图标 hover 的投影色 */
+  --sg-proj-avatar-ring: rgba(255, 255, 255, .85);
+
   /* 贡献热力图（GitHub 同款五档，暗底也认得出层次） */
   --sg-heat-0: rgba(148, 163, 184, .18);
   --sg-heat-1: #166534;
@@ -101,6 +121,25 @@ html.dark {
 
   /* 歌词栏暗色再压深一档：源站 dark:bg-slate-950/90 */
   --sg-lyric-bg: rgba(2, 6, 23, .90);
+
+  /* 项目卡：暗色下渐变改成「上偏蓝灰、下透明」，靠 slate-400 的微光提起上边缘；
+     图标 / 胶囊统一走 indigo-300/400，else 深底上对比不足。 */
+  --sg-proj-face-a: rgba(148, 163, 184, .10);
+  --sg-proj-face-b: rgba(15, 23, 42, 0);
+  --sg-proj-inset: rgba(255, 255, 255, .10);
+  --sg-proj-hairline: rgba(255, 255, 255, .22);
+  --sg-proj-border: rgba(255, 255, 255, .12);
+  --sg-proj-border-hot: rgba(255, 255, 255, .24);
+  --sg-proj-icon-bg: rgba(129, 140, 248, .20);
+  --sg-proj-icon-bg-end: rgba(192, 132, 252, .16);
+  --sg-proj-icon-border: rgba(129, 140, 248, .34);
+  --sg-proj-tint: rgba(129, 140, 248, .14);
+  --sg-proj-icon-fg: #a5b4fc;
+  --sg-proj-tag-bg: rgba(129, 140, 248, .16);
+  --sg-proj-tag-border: rgba(129, 140, 248, .28);
+  --sg-proj-tag-fg: #c7d2fe;
+  --sg-proj-accent: rgba(129, 140, 248, .34);
+  --sg-proj-avatar-ring: rgba(255, 255, 255, .16);
 }
 
 @layer base {

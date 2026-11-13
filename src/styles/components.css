@@ -1283,9 +1283,32 @@ html.dark .sg-i-moon { display: inline-flex; }
   opacity: 0;
   transform: scale(1.02);
   transition: opacity .9s var(--sg-ease);
+  will-change: opacity, transform;
+  backface-visibility: hidden;
 }
 
-.sg-briefing-cover.is-active { opacity: 1; }
+/* 当前张淡入的同时缓慢推镜；8 秒走完一程，下一张接力时旧张只负责淡出，
+   所以首尾衔接处看不到回缩，也看不到空白帧。 */
+.sg-briefing-cover.is-active {
+  opacity: 1;
+  animation: sg-bg-drift 8s var(--sg-ease) forwards;
+}
+
+@keyframes sg-bg-drift {
+  from { transform: scale(1.02); }
+  to { transform: scale(1.08); }
+}
+
+/* 关掉动效偏好下：只留极短的透明度切换，不做缩放 */
+@media (prefers-reduced-motion: reduce) {
+  .sg-briefing-cover,
+  .sg-briefing-cover.is-active {
+    animation: none;
+    transform: none;
+    transition: opacity .2s linear;
+    will-change: auto;
+  }
+}
 
 .sg-briefing-scrim {
   position: absolute;
@@ -1992,48 +2015,173 @@ html.dark .sg-page-head .sg-search { text-shadow: 0 1px 18px rgba(2, 6, 23, .55)
 
 @media (min-width: 768px) { .sg-friend-desc { -webkit-line-clamp: 3; font-size: .84rem; } }
 
-/* ---------- 项目 ---------- */
+/* ---------- 项目 ----------
+   五段结构：身份行（头像 + 名字 + 徽章）→ 图标 + 标题 → 描述 → 技术栈 → 底部指标。
+   2026-11-13 第三十一轮重做，解决「一屏卡片全同质」：
+     ① 卡面加一层自上而下的白，光感有方向；
+     ② emoji 装进 44px 圆角色块，成为视觉锚点（原来裸 emoji 飘在左上角）；
+     ③ 顶部 1px 高光只在 hover 拉满，制造「边缘立起来」的层次；
+     ④ 标题 / 描述 / 指标的字号差拉开到 1.08 / .845 / .70 rem，不再是三档挤在一起。 */
 .sg-project {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: .625rem;
-  padding: 1.5rem;
+  gap: .875rem;
+  overflow: hidden;
+  padding: 1.25rem 1.25rem 1rem;
+  background-image:
+    linear-gradient(158deg, var(--sg-proj-face-a), var(--sg-proj-face-b) 62%),
+    radial-gradient(120% 90% at 100% 100%, var(--sg-proj-tint), transparent 62%);
+  border-color: var(--sg-proj-border);
+  transition:
+    transform var(--sg-dur-card) var(--sg-ease),
+    box-shadow var(--sg-dur-card) var(--sg-ease),
+    border-color var(--sg-dur-card) var(--sg-ease),
+    background-color 1s;
+}
+
+@media (min-width: 768px) {
+  .sg-project { gap: 1rem; padding: 1.5rem 1.5rem 1.125rem; }
+}
+
+.sg-project:hover {
+  transform: translateY(-4px) scale(var(--sg-lift));
+  border-color: var(--sg-proj-border-hot);
+  box-shadow: var(--sg-shadow-strong);
+}
+
+/* 键盘可达：Tab 到整卡链接时给同样的反馈，不然只有鼠标能用 */
+.sg-project:focus-within {
+  transform: translateY(-4px) scale(var(--sg-lift));
+  border-color: var(--sg-proj-border-hot);
+  box-shadow: var(--sg-shadow-strong);
+}
+
+/* 顶部高光：静置 45% 若隐若现，hover 才拉满 */
+.sg-project::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--sg-proj-hairline) 24%, var(--sg-proj-hairline) 76%, transparent);
+  opacity: .45;
+  pointer-events: none;
+  transition: opacity var(--sg-dur-card) var(--sg-ease);
+}
+.sg-project:hover::after { opacity: 1; }
+
+/* 身份行：头像 + 名字 + 徽章。GitHub 项目显示仓库所属账号，手填项目回退站点作者 */
+.sg-project-top {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 1.75rem;
+}
+
+.sg-project-avatar {
+  display: block;
+  flex: none;
+  width: 1.625rem;
+  height: 1.625rem;
+  overflow: hidden;
+  border: 1px solid var(--sg-proj-avatar-ring);
+  border-radius: 50%;
+  background: var(--sg-proj-icon-bg);
+}
+
+.sg-project-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.sg-project-owner {
+  min-width: 0;
+  overflow: hidden;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .7rem;
+  letter-spacing: .02em;
+  color: var(--sg-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sg-project-badge {
+  flex: none;
+  margin-left: auto;
+  padding: .12rem .5rem;
+  border-radius: 999px;
+  background: rgba(99, 102, 241, .16);
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--sg-indigo-deep);
+  white-space: nowrap;
+}
+html.dark .sg-project-badge { color: var(--sg-indigo-soft); }
+
+/* 图标 + 标题 */
+.sg-project-head { display: flex; align-items: center; gap: .75rem; }
+
+.sg-project-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--sg-proj-icon-border);
+  border-radius: .9rem;
+  background-image: linear-gradient(140deg, var(--sg-proj-icon-bg), var(--sg-proj-icon-bg-end));
+  box-shadow: inset 0 1px 0 var(--sg-proj-inset);
+  color: var(--sg-proj-icon-fg);
+  font-size: 1.4rem;
+  line-height: 1;
   transition:
     transform var(--sg-dur-card) var(--sg-ease),
     box-shadow var(--sg-dur-card) var(--sg-ease);
 }
-.sg-project:hover { transform: translateY(-4px) scale(var(--sg-lift)); box-shadow: var(--sg-shadow-strong); }
-.sg-project-icon { font-size: 1.75rem; }
-.sg-project h3 { font-size: 1.2rem; }
+
+.sg-project:hover .sg-project-icon {
+  transform: translateY(-1px) scale(1.06);
+  box-shadow: inset 0 1px 0 var(--sg-proj-inset), 0 10px 20px -12px var(--sg-proj-accent);
+}
+
+.sg-project h3 {
+  min-width: 0;
+  font-size: 1.08rem;
+  line-height: 1.45;
+  letter-spacing: -.01em;
+  overflow-wrap: anywhere;
+}
+
 .sg-project p {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
   overflow: hidden;
-  font-size: .875rem;
-  line-height: 1.8;
+  font-size: .845rem;
+  line-height: 1.75;
   color: var(--sg-muted);
+}
+
+/* 技术栈：描边胶囊（全局 .sg-tags 是实底，这里只覆盖项目卡内的，别动友链 / 文章卡） */
+.sg-project .sg-tags {
+  gap: .375rem;
+  margin-top: auto;
+  padding-top: .25rem;
+}
+
+.sg-project .sg-tags span {
+  padding: .16rem .5rem;
+  border: 1px solid var(--sg-proj-tag-border);
+  border-radius: 999px;
+  background: var(--sg-proj-tag-bg);
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .01em;
+  color: var(--sg-proj-tag-fg);
 }
 
 /* 整卡可点：链接铺满卡片，文字仍然可读但不可选中（和原站一致） */
 .sg-project-link { position: absolute; inset: 0; z-index: 1; border-radius: inherit; }
 .sg-project-link:focus-visible { outline: 2px solid var(--sg-indigo); outline-offset: 3px; }
-
-.sg-project-badge {
-  position: absolute;
-  top: .85rem;
-  right: .85rem;
-  padding: .12rem .55rem;
-  border-radius: 999px;
-  background: rgba(99, 102, 241, .16);
-  font-size: .64rem;
-  font-weight: 700;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  color: var(--sg-indigo-deep);
-}
-html.dark .sg-project-badge { color: var(--sg-indigo-soft); }
 
 .sg-project-foot {
   display: flex;
@@ -2041,20 +2189,36 @@ html.dark .sg-project-badge { color: var(--sg-indigo-soft); }
   justify-content: space-between;
   gap: .5rem;
   margin-top: .25rem;
-  padding-top: .625rem;
-  border-top: 1px solid var(--sg-border);
-  font-size: .72rem;
-  color: var(--sg-muted);
+  padding-top: .75rem;
+  border-top: 1px solid var(--sg-line);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .7rem;
+  letter-spacing: .02em;
+  color: var(--sg-faint);
 }
+
+.sg-project-meta { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
 .sg-project-src {
   display: inline-flex;
+  flex: none;
   align-items: center;
   gap: .15rem;
+  font-family: var(--font-serif);
+  font-size: .72rem;
   font-weight: 700;
+  letter-spacing: 0;
   color: var(--sg-indigo-deep);
+  transition: color var(--sg-dur-fast) var(--sg-ease);
 }
 html.dark .sg-project-src { color: var(--sg-indigo-soft); }
-.sg-project-src svg { width: .85rem; height: .85rem; }
+
+.sg-project-src svg {
+  width: .85rem;
+  height: .85rem;
+  transition: transform var(--sg-dur-fast) var(--sg-ease);
+}
+.sg-project:hover .sg-project-src svg { transform: translateX(3px); }
 
 /* 数据源标注（GitHub 账号填了才出现） */
 .sg-projects-source {
@@ -3615,6 +3779,7 @@ html.dark .sg-about-title h1 {
   .sg-term-card:hover,
   .sg-note:hover,
   .sg-project:hover,
+  .sg-project:focus-within,
   .sg-friend:hover,
   .sg-theme-block:hover,
   .sg-poster-wide:hover,
