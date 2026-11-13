@@ -55,7 +55,7 @@ if ($sgAuthor === '') {
 }
 $sgAvatar = sg_media((string) sg_opt('sgAvatarUrl', ''), sg_theme_url('dist/img/avatar.svg'));
 ?>
-<main class="sg-main sg-main--pad" data-sg-page="notes" data-sg-notes>
+<main id="sg-main" class="sg-main sg-main--pad" data-sg-page="notes" data-sg-notes>
   <?php sg_page_head($sgHead); ?>
 
   <?php if (trim((string) $this->content) !== '') : ?>

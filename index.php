@@ -22,7 +22,7 @@ $sgCoverFallback = $sgPoster['cover'] !== '' ? $sgPoster['cover'] : sg_theme_url
 $sgNotes = array_slice(sg_notes(), 0, 4);
 $sgNotesLink = sg_page_url('notes');
 ?>
-<main class="sg-main" data-sg-page="index">
+<main id="sg-main" class="sg-main" data-sg-page="index">
   <form class="sg-search" role="search" method="get" action="<?php echo sg_e($sgHome); ?>">
     <span class="sg-search-icon"><?php echo sg_icon('search'); ?></span>
     <input class="sg-search-input" type="search" name="s" placeholder="搜寻标题、描述或标签..." aria-label="站内搜索">

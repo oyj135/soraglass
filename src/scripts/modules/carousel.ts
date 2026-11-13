@@ -12,6 +12,11 @@ import { reducedMotion } from './core';
 const DEFAULT_INTERVAL = 6000;
 /** 与源站 transition={{ duration: 0.8 }} 对齐；CSS 里的 opacity 过渡必须同值 */
 const FADE = 800;
+/** 超过这个张数就不再逐张画圆点（2026-11-13 第三十二轮）。
+ *  线上 15 篇封面曾渲染出 15 个 8×6px 的方块，横向吃掉卡片底部 232px，
+ *  既看不清也点不准；改用「进度轨 + 当前/总数」。6 及以下仍走圆点，
+ *  碎语卡（4 条）维持原样。 */
+const DOTS_MAX = 6;
 
 function setupCarousel(host: HTMLElement): void {
   const slides = Array.from(host.querySelectorAll<HTMLElement>('[data-sg-slide]'));
@@ -32,7 +37,26 @@ function setupCarousel(host: HTMLElement): void {
   let pending = 0;
 
   const dots: HTMLButtonElement[] = [];
-  if (dotsHost) {
+  let progressFill: HTMLElement | null = null;
+  let progressCount: HTMLElement | null = null;
+  let progressBtn: HTMLButtonElement | null = null;
+
+  if (dotsHost && slides.length > DOTS_MAX) {
+    /* 进度轨模式：一条 2px 轨道 + 「3/15」。整块是按钮，点一下看下一张，
+       命中区由 padding 撑到 24px 高（原来的圆点只有 8×6px）。 */
+    dotsHost.classList.add('is-progress');
+    progressBtn = document.createElement('button');
+    progressBtn.type = 'button';
+    progressBtn.className = 'sg-progress';
+    progressBtn.innerHTML = '<span class="sg-progress-track"><i></i></span><span class="sg-progress-count"></span>';
+    progressBtn.addEventListener('click', () => {
+      show(index + 1);
+      restart();
+    });
+    dotsHost.appendChild(progressBtn);
+    progressFill = progressBtn.querySelector<HTMLElement>('i');
+    progressCount = progressBtn.querySelector<HTMLElement>('.sg-progress-count');
+  } else if (dotsHost) {
     slides.forEach((_, i) => {
       const dot = document.createElement('button');
       dot.type = 'button';
@@ -47,9 +71,23 @@ function setupCarousel(host: HTMLElement): void {
     });
   }
 
+  /** 只重画指示器（圆点 / 进度轨），不动幻灯片 —— show() 里要「跟手」 */
+  const paintIndicator = (): void => {
+    dots.forEach((dot, i) => dot.classList.toggle('is-active', i === index));
+    if (progressFill) {
+      progressFill.style.transform = `scaleX(${(index + 1) / slides.length})`;
+    }
+    if (progressCount) {
+      progressCount.textContent = `${index + 1}/${slides.length}`;
+    }
+    if (progressBtn) {
+      progressBtn.setAttribute('aria-label', `第 ${index + 1} 张，共 ${slides.length} 张，点击看下一张`);
+    }
+  };
+
   const paint = (): void => {
     slides.forEach((slide, i) => slide.classList.toggle('is-active', i === index));
-    dots.forEach((dot, i) => dot.classList.toggle('is-active', i === index));
+    paintIndicator();
   };
 
   /** 直接切换（首屏、reduced-motion 走这里，不要留 0.8s 的空白） */
@@ -71,8 +109,8 @@ function setupCarousel(host: HTMLElement): void {
     window.clearTimeout(pending);
     index = target;
     slides.forEach((slide) => slide.classList.remove('is-active'));
-    // 圆点立刻跟手：源站 setCurrentIndex 也是即时生效，动的是图不是点
-    dots.forEach((dot, i) => dot.classList.toggle('is-active', i === index));
+    // 指示器立刻跟手：源站 setCurrentIndex 也是即时生效，动的是图不是点
+    paintIndicator();
     pending = window.setTimeout(() => {
       pending = 0;
       paint();

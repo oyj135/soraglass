@@ -81,9 +81,9 @@ $sgActiveKey = in_array($sgActive, array_merge(['notes'], $sgMergedSlugs), true)
   <div class="sg-nav-inner">
     <a class="sg-brand" href="<?php echo sg_e($sgHome); ?>"><?php echo sg_e($sgBrandTitle); ?><span class="sg-brand-accent"><?php echo sg_e($sgBrandSuffix); ?></span><?php echo sg_e($sgBrandAfter); ?></a>
     <nav class="sg-nav-links" aria-label="主导航">
-      <a class="sg-nav-link<?php echo $sgActive === 'index' ? ' is-active' : ''; ?>" href="<?php echo sg_e($sgHome); ?>">首页<?php if ($sgActive === 'index') : ?><span class="sg-nav-dot"></span><?php endif; ?></a>
+      <a class="sg-nav-link<?php echo $sgActive === 'index' ? ' is-active' : ''; ?>"<?php echo $sgActive === 'index' ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgHome); ?>">首页<?php if ($sgActive === 'index') : ?><span class="sg-nav-dot"></span><?php endif; ?></a>
       <?php foreach ($sgNavItems as $sgPage) : ?>
-      <a class="sg-nav-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>" href="<?php echo sg_e($sgPage['url']); ?>"><?php echo sg_e($sgPage['title']); ?><?php if ($sgActiveKey === $sgPage['slug']) : ?><span class="sg-nav-dot"></span><?php endif; ?></a>
+      <a class="sg-nav-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>"<?php echo $sgActiveKey === $sgPage['slug'] ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgPage['url']); ?>"><?php echo sg_e($sgPage['title']); ?><?php if ($sgActiveKey === $sgPage['slug']) : ?><span class="sg-nav-dot"></span><?php endif; ?></a>
       <?php endforeach; ?>
     </nav>
   </div>
@@ -95,9 +95,9 @@ $sgActiveKey = in_array($sgActive, array_merge(['notes'], $sgMergedSlugs), true)
 
 <div class="sg-sheet" data-sg-sheet aria-hidden="true">
   <div class="sg-sheet-panel">
-    <a class="sg-sheet-link<?php echo $sgActive === 'index' ? ' is-active' : ''; ?>" href="<?php echo sg_e($sgHome); ?>">首页</a>
+    <a class="sg-sheet-link<?php echo $sgActive === 'index' ? ' is-active' : ''; ?>"<?php echo $sgActive === 'index' ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgHome); ?>">首页</a>
     <?php foreach ($sgNavItems as $sgPage) : ?>
-    <a class="sg-sheet-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>" href="<?php echo sg_e($sgPage['url']); ?>"><?php echo sg_e($sgPage['title']); ?></a>
+    <a class="sg-sheet-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>"<?php echo $sgActiveKey === $sgPage['slug'] ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgPage['url']); ?>"><?php echo sg_e($sgPage['title']); ?></a>
     <?php endforeach; ?>
     <hr class="sg-divider">
     <button class="sg-sheet-link" type="button" data-sg-theme-toggle><?php echo sg_icon('sun', 'sg-i-sun'); ?><?php echo sg_icon('moon', 'sg-i-moon'); ?> 切换昼夜</button>

@@ -27,7 +27,7 @@ $sgHead = [
     'placeholder' => '搜索项目名称、简介或技术栈...',
 ];
 ?>
-<main class="sg-main sg-main--pad" data-sg-page="projects">
+<main id="sg-main" class="sg-main sg-main--pad" data-sg-page="projects">
   <?php sg_page_head($sgHead); ?>
 
   <?php if ($sgSourceLine !== '') : ?>

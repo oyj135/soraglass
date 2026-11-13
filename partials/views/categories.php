@@ -26,7 +26,7 @@ $sgHead = [
     'back'   => true,
 ];
 ?>
-<main class="sg-main sg-main--pad" data-sg-page="categories">
+<main id="sg-main" class="sg-main sg-main--pad" data-sg-page="categories">
   <?php sg_page_head($sgHead); ?>
 
   <?php if (!$sgRows) : ?>

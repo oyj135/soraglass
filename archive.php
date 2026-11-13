@@ -34,7 +34,7 @@ if ($sgIsSearch) {
 }
 $sgCurrentPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
 ?>
-<main class="sg-main sg-main--pad" data-sg-page="archive">
+<main id="sg-main" class="sg-main sg-main--pad" data-sg-page="archive">
   <div class="sg-page-head">
     <div class="sg-page-head-row is-centered">
       <div>

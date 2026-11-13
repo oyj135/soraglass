@@ -44,6 +44,46 @@ function sg_asset(string $entry = 'src/scripts/main.ts'): string
     return $html;
 }
 
+/**
+ * 首屏字体预加载（第三十三轮）。
+ *
+ * 实测（docs/IMPLEMENTATION.md §36）：首页 293 个不同汉字触发 19 个分片 / 1314 KB，
+ * 其中 094 / 095 / 096 三片就覆盖每页 66%–77% 的汉字，合计 188 KB。
+ * 不 preload 的话，字体请求要等 207 KB 的 CSS 下载 + 解析完才发起 —— 首屏文字
+ * 先是后备衬线渲染，再整页换装，视觉上是一次明显的闪动。
+ *
+ * ⚠️ `crossorigin` 必须写，哪怕同源：字体请求恒为 CORS 匿名模式，少了这个属性
+ *    浏览器会当成「另一个资源」，preload 的响应无法被 @font-face 复用，等于把
+ *    同一批分片下载两遍。
+ * ⚠️ 文件名带 Vite hash，不能写死；这里用 glob 现查。dist 未上传或被清理时静默
+ *    返回空串，绝不让字体拖垮页面。
+ * ⚠️ 这三个编号是 `scripts/font-scan.mjs` 扫出来的。**重跑 `npm run fonts` 之后
+ *    分片顺序可能变，必须重新扫一遍并更新下面的数组**，否则会 preload 错文件
+ *    （不报错，只是白下 188 KB）。
+ */
+function sg_font_preload(): string
+{
+    static $html = null;
+    if ($html !== null) {
+        return $html;
+    }
+    $html = '';
+    $dir = SG_ROOT . '/dist/assets';
+    if (!is_dir($dir)) {
+        return $html;
+    }
+    // 顺序即倾向：096 覆盖的字符最多，先让它排队
+    foreach (['096', '095', '094'] as $id) {
+        $hits = glob($dir . '/subset-' . $id . '-*.woff2');
+        if (!$hits) {
+            continue;
+        }
+        $html .= '<link rel="preload" href="' . sg_e(sg_theme_url('dist/assets/' . basename($hits[0])))
+            . '" as="font" type="font/woff2" crossorigin>' . "\n";
+    }
+    return $html;
+}
+
 /** 供前端读取的运行时配置，输出为一小段内联 JSON */
 function sg_runtime_config(): string
 {

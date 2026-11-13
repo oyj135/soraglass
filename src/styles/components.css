@@ -1067,6 +1067,7 @@ html.dark .sg-song.is-active .sg-song-title { color: #a5b4fc; }
 .sg-chatter .sg-dots { bottom: 1.25rem; }
 
 .sg-dot {
+  position: relative;
   width: 8px;
   height: 6px;
   border: 0;
@@ -1075,8 +1076,64 @@ html.dark .sg-song.is-active .sg-song-title { color: #a5b4fc; }
   transition: width .5s, background-color .5s;
 }
 
+/* 视觉只有 8×6px，命中区要撑到 22px 高才算点得中（WCAG 2.5.8 的 24px 目标）。
+   用伪元素扩展不占布局，按钮之间也不会互相挤压。 */
+.sg-dot::after {
+  content: '';
+  position: absolute;
+  inset: -8px -5px;
+}
+
 .sg-dot:hover { background: rgba(255, 255, 255, .80); }
-.sg-dot.is-active { width: 1.5rem; background: #818cf8; }
+.sg-dot.is-active { width: 1.5rem; background: var(--sg-indigo-soft); }
+
+/* 进度轨指示器：轮播超过 6 张时由 carousel.ts 换成这套（原来 15 个点会横占 232px）。
+   整块是按钮，min-height 1.5rem 保证 24px 命中区。 */
+.sg-dots.is-progress { right: 1rem; bottom: .85rem; }
+
+.sg-progress {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 1.5rem;
+  padding: .25rem .6rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--sg-indicator-bg);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: .64rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color .3s;
+}
+
+.sg-progress:hover { background: var(--sg-indicator-bg-hot); }
+
+.sg-progress-track {
+  display: block;
+  width: 3rem;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--sg-indicator-track);
+  overflow: hidden;
+}
+
+.sg-progress-track i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--sg-indigo-soft);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform .5s var(--sg-ease);
+}
+
+.sg-progress-count { min-width: 2.1rem; text-align: right; font-variant-numeric: tabular-nums; }
 
 /* ---------- 宽幅海报（8 列上） ---------- */
 .sg-poster-wide {
@@ -1847,7 +1904,11 @@ html.dark .sg-meta-chip.is-pink { color: #f472b6; }
 .sg-prose ul, .sg-prose ol { margin: 0 0 1rem; padding-left: 1.5rem; }
 .sg-prose li { margin-bottom: .35rem; }
 .sg-prose img { border-radius: 1rem; margin: 1.25rem auto; }
-.sg-prose a { color: var(--sg-indigo); text-decoration: underline; text-underline-offset: 3px; }
+/* 正文链接：--sg-indigo(#6366f1) 在白底只有 4.47:1，压着 AA 正文阈值（4.5:1）差 0.03。
+   2026-11-13 第三十二轮改用 indigo-deep(6.29:1)；暗色底反过来要更亮的一档（6.04:1）。
+   下划线一直保留，颜色不是唯一区分手段。 */
+.sg-prose a { color: var(--sg-indigo-deep); text-decoration: underline; text-underline-offset: 3px; }
+html.dark .sg-prose a { color: var(--sg-indigo-soft); }
 .sg-prose blockquote { margin: 1.25rem 0; padding: .5rem 1rem; border-left: 3px solid var(--sg-indigo); color: var(--sg-muted); }
 .sg-prose pre { overflow-x: auto; padding: 1rem; border-radius: .875rem; background: #0b1220; color: #e2e8f0; font-size: .84rem; line-height: 1.7; }
 .sg-prose :not(pre) > code { padding: .12rem .35rem; border-radius: .35rem; background: rgba(99, 102, 241, .15); font-size: .9em; }
@@ -3765,6 +3826,21 @@ html.dark .sg-about-title h1 {
 .sg-theme-block:active { transform: translateY(-1px) scale(.99); transition-duration: .08s; }
 .sg-slide-body:active,
 .sg-chatter-body:active { transform: scale(.985); transition: transform .08s; }
+
+/* ---------- 小字号元信息改用无衬线（2026-11-13 第三十二轮） ----------
+   站点正文字体是 Noto Serif SC，衬线体在 9–12px 上的中文笔画会糊成一片，
+   受影响最明显的是 .sg-stat-label（9px）、.sg-project-badge（.62rem）、
+   .sg-briefing-kicker（10px）。这批元素承载日期、计数、标签，属于
+   「读得清比好看重要」的信息层，统一走系统无衬线；标题 / 正文 / 导航
+   一件不动，视觉语言保持原样。字体栈见 main.css 的 --font-sans。 */
+.sg-meta-chip,
+.sg-project-meta,
+.sg-project-badge,
+.sg-briefing-kicker,
+.sg-stat-label,
+.sg-tags span {
+  font-family: var(--font-sans);
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

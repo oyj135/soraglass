@@ -70,7 +70,7 @@ if ($sgOpenId !== '') {
     }
 }
 ?>
-<main class="sg-main sg-main--wide sg-main--pad" data-sg-page="photowall" data-sg-gallery data-sg-grid>
+<main id="sg-main" class="sg-main sg-main--wide sg-main--pad" data-sg-page="photowall" data-sg-gallery data-sg-grid>
   <?php sg_page_head($sgHead + ['hidden' => $sgOpenId !== '']); ?>
 
   <!-- 搜索结果区：默认隐藏，输入关键词后由 gallery.ts 打开 -->

@@ -12,6 +12,10 @@
 @theme {
   --font-serif: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* 无衬线族（2026-11-13 第三十二轮）：仅供 9–12px 的元信息使用。
+     全部走系统字体，不新增网络请求 —— 自托管的只有 Noto Serif SC，
+     为了几个小标签再切一套中文 Webfont 不划算。 */
+  --font-sans: ui-sans-serif, -apple-system, "SF Pro SC", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", "Source Han Sans SC", sans-serif;
   --color-sg-indigo: #6366f1;
 }
 

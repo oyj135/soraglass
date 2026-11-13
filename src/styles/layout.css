@@ -3,6 +3,29 @@
  * 容器：w-[95%] md:w-[90%] max-w-6xl mx-auto mt-24 md:mt-28
  */
 
+/* 跳到正文（2026-11-13 第三十二轮）：键盘用户的第一个 Tab 落点。
+   平时用 transform 移出视口而不是 display:none —— 后者会让元素不可聚焦，
+   跳过链接就彻底失效了。z-index 必须高于 .sg-nav(50) 与 .sg-sheet(60)。 */
+.sg-skip {
+  position: fixed;
+  top: .75rem;
+  left: .75rem;
+  z-index: 90;
+  padding: .55rem .95rem;
+  border: 1px solid var(--sg-border);
+  border-radius: .75rem;
+  background: var(--sg-panel);
+  box-shadow: var(--sg-shadow-strong);
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--sg-text);
+  transform: translateY(-200%);
+  transition: transform .2s var(--sg-ease);
+}
+
+.sg-skip:focus,
+.sg-skip:focus-visible { transform: translateY(0); }
+
 .sg-main {
   position: relative;
   z-index: 1;
@@ -48,6 +71,20 @@
   .sg-subgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .sg-subgrid-2 { grid-column: span 2; }
   .sg-subgrid-1 { grid-column: span 1; }
+}
+
+/* 首页昼夜卡让位（2026-11-13 第三十二轮）：
+   这块纯氛围内容只有一枚圆盘 + 两行字，但在 640–1023px 会固定占掉 1/3 列宽，
+   把碎语轮播挤成 2/3（文字被截断）。窄屏一律收起，宽度整份给碎语卡；
+   桌面（≥1024）保持原有三列，圆盘仍是首页的一个视觉记号。
+   切主题的入口不受影响：左下浮动按钮与导航抽屉里的「切换昼夜」都还在。 */
+@media (min-width: 640px) and (max-width: 1023.98px) {
+  .sg-theme-block { display: none; }
+  .sg-subgrid .sg-subgrid-2 { grid-column: span 3; }
+}
+
+@media (max-width: 639.98px) {
+  .sg-theme-block { display: none; }
 }
 
 /* 文章页：正文 + 320px 侧栏 */

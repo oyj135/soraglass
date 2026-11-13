@@ -41,7 +41,7 @@ if ($sgWeek) {
     $sgWeeks[] = array_pad($sgWeek, 7, null);
 }
 ?>
-<main class="sg-main sg-main--narrow" data-sg-page="about" data-sg-grid>
+<main id="sg-main" class="sg-main sg-main--narrow" data-sg-page="about" data-sg-grid>
   <article class="sg-glass sg-about" data-sg-spotlight>
 
     <div class="sg-about-banner">
