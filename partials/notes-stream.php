@@ -47,6 +47,13 @@ foreach ($sgNotes as $sgNote) {
 }
 arsort($sgTagCount);
 $sgTags = array_slice(array_keys($sgTagCount), 0, 8);
+
+/* 卡片作者栏：头像与名字取主题设置，没填头像就用内置的 */
+$sgAuthor = trim((string) sg_opt('sgAuthorName', ''));
+if ($sgAuthor === '') {
+    $sgAuthor = (string) sg_opt('sgNavTitle', 'Sonora');
+}
+$sgAvatar = sg_media((string) sg_opt('sgAvatarUrl', ''), sg_theme_url('dist/img/avatar.svg'));
 ?>
 <main class="sg-main sg-main--pad" data-sg-page="notes" data-sg-notes>
   <?php sg_page_head($sgHead); ?>
@@ -100,10 +107,17 @@ $sgTags = array_slice(array_keys($sgTagCount), 0, 8);
         <li class="sg-tl-item" data-sg-tl-item data-ts="<?php echo $sgTs; ?>" data-tag="<?php echo sg_e($sgTag); ?>" data-keywords="<?php echo sg_e($sgKeywords); ?>">
           <span class="sg-tl-dot" aria-hidden="true"></span>
           <article class="sg-glass sg-tl-card">
-            <header class="sg-tl-head">
-              <time datetime="<?php echo sg_e(date('c', $sgTs)); ?>"><?php echo sg_e((string) ($sgNote['date'] ?? '')); ?><i><?php echo sg_e((string) ($sgNote['time'] ?? '')); ?></i></time>
-              <?php if ($sgMood !== '') : ?><span class="sg-tl-mood"><?php echo sg_e($sgMood); ?></span><?php endif; ?>
+            <header class="sg-tl-author">
+              <img class="sg-tl-avatar" src="<?php echo sg_e($sgAvatar); ?>" alt="" referrerpolicy="no-referrer" loading="lazy">
+              <div class="sg-tl-who">
+                <b><?php echo sg_e($sgAuthor); ?></b>
+                <span class="sg-tl-when">
+                  <?php echo sg_icon('clock'); ?>
+                  <time datetime="<?php echo sg_e(date('c', $sgTs)); ?>"><?php echo sg_e((string) ($sgNote['date'] ?? '')); ?><?php if ((string) ($sgNote['time'] ?? '') !== '') : ?> <?php echo sg_e((string) $sgNote['time']); ?><?php endif; ?></time>
+                </span>
+              </div>
               <?php if ($sgTag !== '') : ?><span class="sg-tl-tag">#<?php echo sg_e($sgTag); ?></span><?php endif; ?>
+              <?php if ($sgMood !== '') : ?><span class="sg-tl-mood"><?php echo sg_e($sgMood); ?></span><?php endif; ?>
             </header>
 
             <?php if ($sgTitle !== '') : ?>

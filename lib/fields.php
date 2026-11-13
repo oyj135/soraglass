@@ -656,6 +656,7 @@ function sg_notes_query(int $limit): array
     try {
         $db = \Typecho\Db::get();
         $p = $db->getPrefix();
+        $options = sg_options();
 
         $cat = $db->fetchRow($db->select('mid', 'name')->from('table.metas')
             ->where('type = ?', 'category')->where('slug = ?', sg_notes_slug())->limit(1));
@@ -741,15 +742,18 @@ function sg_notes_query(int $limit): array
                 $cover = $images[0];
             }
 
-            $url = (string) \Typecho\Router::url('post', [
+            /* Router::url 只给路径（/archives/40/），要自己跟站点入口拼：
+               开了伪静态时 index 是站点根，关掉时带 /index.php，混用站点才不会 404。 */
+            $path = (string) \Typecho\Router::url('post', [
                 'cid'     => $cid,
                 'slug'    => (string) ($row['slug'] ?? ''),
                 'created' => (int) ($row['created'] ?? 0),
                 'type'    => 'post',
             ]);
-            if ($url === '' || $url === '#') {
-                $url = sg_site_url('archives/' . $cid . '/');
+            if ($path === '' || $path === '#') {
+                $path = '/archives/' . $cid . '/';
             }
+            $url = (string) \Typecho\Common::url($path, $options->index);
 
             $ts = (int) ($row['created'] ?? 0) + $tz;
             $plain = trim(preg_replace('/\s+/u', ' ', strip_tags($text)) ?? '');

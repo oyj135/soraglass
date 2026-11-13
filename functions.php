@@ -492,10 +492,11 @@ function themeConfig($form): void
         . 'Claude 与 Gemini 由主题自动切换成各自的请求格式。<br>'
         . '<b>留空 Key 或主题即关闭 AI 日报</b>，首页这一块不输出。'
     )));
-    $form->addInput(new Text('sgAiTopic', null, '', _t('AI 日报 · 主题'), _t(
-        '每天让模型按这个主题从候选条目里挑一份日报。<br>'
-        . '例：<code>AI 与前端工程</code>、<code>多模态大模型与检索增强</code>、<code>Typecho / PHP 生态</code>。<br>'
-        . '<b>留空即关闭 AI 日报</b>。'
+    $form->addInput(new Textarea('sgAiTopics', null, '', _t('AI 日报 · 主题（一行一个）'), _t(
+        '每个主题生成一份日报，<b>首页的 ‹ 1/3 › 翻的就是主题</b>，不是日期。<br>'
+        . '建议 2–6 个；只填一行就没有翻页。例：<br>'
+        . '<code>AI 与大模型</code><br><code>前端与 Typecho 生态</code><br><code>开源工具与自托管</code><br>'
+        . '<b>全部留空即关闭 AI 日报</b>。'
     )));
     $form->addInput(new Text('sgAiEndpoint', null, '', _t('AI 日报 · 接口地址'), _t(
         '留空即用所选服务商的默认地址。<br>'
@@ -507,12 +508,16 @@ function themeConfig($form): void
     $form->addInput(new Text('sgAiKey', null, '', _t('AI 日报 · API Key'), _t('只存在 options 表、只在服务端请求头里用，不会出现在页面里。留空则关闭 AI 日报')));
     $form->addInput(new Text('sgAiModel', null, '', _t('AI 日报 · 模型'), _t('留空用服务商默认模型。要指定就填该服务商的模型名，例如 <code>gpt-4o-mini</code>、<code>deepseek-chat</code>、<code>glm-4-flash</code>、<code>claude-3-5-sonnet-latest</code>、<code>gemini-1.5-flash</code>')));
     $form->addInput(new Text('sgAiCount', null, '6', _t('AI 日报 · 每日条数'), _t('模型最多挑几条，1–12，默认 6')));
-    $form->addInput(new Textarea('sgAiFeeds', null, '', _t('AI 日报 · 候选源（RSS）'), _t(
-        '一行一个 RSS / Atom 地址，主题抓取当天的候选，交给模型按主题挑选。<br>'
-        . '<b>必填</b>：没有候选源就没有内容，首页这一块不会输出。<br>'
-        . '标题与链接都回原文，模型只写摘要与理由，不会编造。<br>'
-        . '例：<code>https://www.ruanyifeng.com/blog/atom.xml</code>、<code>https://sspai.com/feed</code>、<code>https://hnrss.org/frontpage</code>。<br>'
-        . '<b>缓存</b>：一天一份，凌晨自动失效；管理员带 <code>?sg_ai=refresh</code> 访问首页可强制重生成。'
+    $form->addInput(new Textarea('sgAiFeedsAi', null, '', _t('AI 日报 · AI 动态源（RSS）'), _t(
+        '这一栏喂给日报的<b>「AI 动态」</b>栏目，一行一个 RSS / Atom 地址。<br>'
+        . '例：<code>https://www.ruanyifeng.com/blog/atom.xml</code>、<code>https://hnrss.org/frontpage</code>。<br>'
+        . '标题与链接都回原文，模型只写摘要与理由，不会编造。'
+    )));
+    $form->addInput(new Textarea('sgAiFeedsPaper', null, '', _t('AI 日报 · 科技前沿源（RSS）'), _t(
+        '这一栏喂给<b>「科技前沿」</b>栏目（论文、评测、研究进展），一行一个地址。<br>'
+        . '例：<code>https://export.arxiv.org/rss/cs.AI</code>、<code>https://blog.google/technology/ai/rss/</code>。<br>'
+        . '两组都留空就没有候选，首页这一块不会输出；只配一组时另一栏自动隐藏。<br>'
+        . '<b>缓存</b>：每个主题一天一份，凌晨自动失效；管理员带 <code>?sg_ai=refresh</code> 访问首页可强制重生成。'
     )));
     $form->addInput(new Textarea('sgDanmaku', null, '', _t('背景弹幕'), _t('每行一条，留空使用 dist/data/danmaku.json')));
 

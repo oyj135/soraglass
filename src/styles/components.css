@@ -1341,6 +1341,16 @@ html.dark .sg-i-moon { display: inline-flex; }
 .sg-briefing-date { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .12em; }
 .sg-briefing-label { color: rgba(255, 255, 255, .45); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+/* 当前主题名：翻页翻的是主题，得让人看见自己停在哪一个 */
+.sg-briefing-theme {
+  color: rgba(255, 255, 255, .72);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sg-briefing-theme::before { content: '· '; color: rgba(255, 255, 255, .35); }
+
 .sg-briefing-mid { display: block; max-width: 82%; }
 
 @media (min-width: 640px) { .sg-briefing-mid { max-width: 68%; } }
@@ -1422,10 +1432,39 @@ html.dark .sg-i-moon { display: inline-flex; }
 .sg-briefing-pager svg { width: .85rem; height: .85rem; }
 
 /* 展开区：默认 hidden，JS 切换；作者写的 display 会盖掉 [hidden]，这里显式声明 */
-.sg-briefing-body { border-top: 1px solid var(--sg-line); }
+/* 展开/收起用 grid-template-rows 过渡（不需要知道内容高度），
+   内容整体再轻微下移淡入，观感比直接 display 切换连贯。 */
+.sg-briefing-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  border-top: 1px solid var(--sg-line);
+  opacity: 0;
+  transition:
+    grid-template-rows .42s cubic-bezier(.22, 1, .36, 1),
+    opacity .3s linear;
+}
+
+.sg-briefing.is-open .sg-briefing-body {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
 .sg-briefing-body[hidden] { display: none; }
 
-.sg-briefing-inner { display: block; }
+.sg-briefing-inner {
+  display: block;
+  min-height: 0;
+  overflow: hidden;
+  transform: translateY(-.5rem);
+  transition: transform .42s cubic-bezier(.22, 1, .36, 1);
+}
+
+.sg-briefing.is-open .sg-briefing-inner { transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sg-briefing-body,
+  .sg-briefing-inner { transition: none; }
+}
 
 .sg-briefing-subhead {
   display: flex;
@@ -2216,6 +2255,66 @@ html.dark .sg-tags span { color: #a5b4fc; }
   display: flex;
   flex-direction: column;
   gap: .625rem;
+}
+
+/* 卡片作者栏：头像 + 站点名 + 日期（第二十七轮按原站说说卡补的） */
+.sg-tl-author {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: .875rem;
+}
+
+.sg-tl-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: none;
+  border-radius: .875rem;
+  object-fit: cover;
+  border: 1px solid var(--sg-card-border);
+}
+
+.sg-tl-who {
+  display: grid;
+  gap: .125rem;
+  min-width: 0;
+}
+
+.sg-tl-who b {
+  font-size: .9375rem;
+  font-weight: 600;
+  letter-spacing: .01em;
+  color: var(--sg-fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sg-tl-when {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  font-size: .75rem;
+  color: var(--sg-faint);
+}
+
+.sg-tl-when svg {
+  width: .875rem;
+  height: .875rem;
+  opacity: .8;
+}
+
+/* 标签贴着右侧，心情胶囊再靠外一点 */
+.sg-tl-author .sg-tl-tag {
+  margin-left: auto;
+}
+
+.sg-tl-author .sg-tl-tag + .sg-tl-mood {
+  margin-left: .375rem;
+}
+
+.sg-tl-author .sg-tl-mood:first-of-type {
+  margin-left: auto;
 }
 
 .sg-tl-head {

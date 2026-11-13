@@ -59,6 +59,7 @@ export function initBriefing(): void {
   const text = (name: string): HTMLElement | null => root.querySelector<HTMLElement>(`[data-sg-briefing-${name}]`);
   const elDate = text('date');
   const elLabel = text('label');
+  const elTheme = text('theme');
   const elKicker = text('kicker');
   const elTitle = text('title');
   const elDesc = text('desc');
@@ -83,9 +84,26 @@ export function initBriefing(): void {
   const pad = (value: number): string => String(value).padStart(2, '0');
 
   /* ---------------- 展开 / 收起 ---------------- */
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let closeTimer = 0;
+
   const setOpen = (open: boolean): void => {
     root.classList.toggle('is-open', open);
-    if (body) body.hidden = !open;
+    if (body) {
+      window.clearTimeout(closeTimer);
+      if (open) {
+        body.hidden = false;
+        /* 先让浏览器认下「0fr」这一帧，再加 is-open，过渡才会真的跑起来 */
+        void body.offsetHeight;
+      } else if (reduced) {
+        body.hidden = true;
+      } else {
+        /* 收起时等过渡走完再 hidden，否则内容会瞬间消失 */
+        closeTimer = window.setTimeout(() => {
+          if (!root.classList.contains('is-open')) body.hidden = true;
+        }, 430);
+      }
+    }
     toggle?.setAttribute('aria-expanded', open ? 'true' : 'false');
     if (elMore) elMore.textContent = open ? '收起这封来信' : '展开今日选刊';
     if (sign) sign.innerHTML = open
@@ -121,6 +139,11 @@ export function initBriefing(): void {
 
     if (elDate) elDate.textContent = data.date ?? '';
     if (elLabel) elLabel.textContent = `/ ${data.label ?? ''}`;
+    if (elTheme) {
+      const theme = data.theme ?? '';
+      elTheme.textContent = theme;
+      elTheme.hidden = theme === '';
+    }
     if (elKicker) elKicker.textContent = data.kicker ?? '';
     if (elTitle) elTitle.textContent = data.title ?? '';
     if (elDesc) elDesc.textContent = data.desc ?? '';

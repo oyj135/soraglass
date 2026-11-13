@@ -40,11 +40,10 @@ if (!is_array($sgAiIssue) || empty($sgAiIssue['items'])) {
 
 $sgChannels = [
     ['id' => 'ai', 'name' => 'AI 动态'],
-    ['id' => 'paper', 'name' => '研究论文'],
+    ['id' => 'paper', 'name' => '科技前沿'],
 ];
 
-/* 往期来自同配置下历史生成的缓存（见 lib/ai.php 的 sg_ai_archive()），
-   所以「翻页」能不能用，取决于这套配置有没有连续几天被访问过。 */
+/* 每一期 = 一个主题（后台「AI 日报 · 主题」一行一个），‹ 1/N › 翻主题 */
 $sgTotal = count($sgIssues);
 $sgFirst = $sgIssues[0];
 
@@ -89,6 +88,9 @@ $sgBriefingBg = sg_bg_url((string) sg_opt('sgBriefingBg', ''));
         <span class="sg-briefing-tag">DAILY SIGNAL</span>
         <span class="sg-briefing-date" data-sg-briefing-date><?php echo sg_e($sgFirst['date']); ?></span>
         <span class="sg-briefing-label" data-sg-briefing-label>/ <?php echo sg_e($sgFirst['label']); ?></span>
+        <?php if (($sgFirst['theme'] ?? '') !== '') : ?>
+        <span class="sg-briefing-theme" data-sg-briefing-theme><?php echo sg_e((string) $sgFirst['theme']); ?></span>
+        <?php endif; ?>
       </span>
 
       <span class="sg-briefing-mid">
@@ -173,6 +175,7 @@ $sgBriefingBg = sg_bg_url((string) sg_opt('sgBriefingBg', ''));
            data-sg-briefing-issue="<?php echo (int) $sgIndex; ?>"
            data-date="<?php echo sg_e($sgIssue['date']); ?>"
            data-weekday="<?php echo sg_e($sgIssue['weekday']); ?>"
+           data-theme="<?php echo sg_e((string) ($sgIssue['theme'] ?? '')); ?>"
            data-label="<?php echo sg_e($sgIssue['label']); ?>"
            data-kicker="<?php echo sg_e($sgIssue['kicker']); ?>"
            data-title="<?php echo sg_e($sgIssue['title']); ?>"
