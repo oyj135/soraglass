@@ -33,7 +33,7 @@ $sgHead = [
       <span class="sg-friend-main">
         <span class="sg-friend-head">
           <span class="sg-friend-name"><?php echo sg_value($sgFriend, 'name', ''); ?></span>
-          <span class="sg-friend-status"><i style="background:<?php echo sg_value($sgFriend, 'themeColor', '#6366f1'); ?>"></i>ONLINE</span>
+          <span class="sg-friend-status"><i style="background:<?php echo sg_value($sgFriend, 'themeColor', '#35616b'); ?>"></i>ONLINE</span>
         </span>
         <span class="sg-friend-desc"><?php echo sg_value($sgFriend, 'description', ''); ?></span>
       </span>

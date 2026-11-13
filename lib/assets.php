@@ -84,6 +84,29 @@ function sg_font_preload(): string
     return $html;
 }
 
+/**
+ * 呼吸光晕的配色（壁纸之上那两个大光斑）。
+ *
+ * 2026-11-13 第三十四轮：签名色由 indigo 改青瓷，这组光晕必须跟着换，
+ * 否则页面主色已经是青的、顶上两个光斑还是紫粉的，比不换更难看。
+ *
+ * 但 Typecho 的设置一旦保存过就落在 options 表里，改代码里的默认值**不会**覆盖它。
+ * 所以这里额外判断一次：如果存下来的正是 indigo 时代那串默认值，就按「未设置」处理。
+ * 只精确匹配那一串，用户自己配过的任何颜色都不会被动到。
+ */
+function sg_theme_colors(): array
+{
+    $default = '#5f9299,#8ec5c9,#b8d8dc,#dcebed';
+    $legacy = '#a18cd1,#fbc2eb,#a1c4fd,#c2e9fb';   // indigo 时代的默认值
+    $raw = trim((string) sg_opt('sgThemeColors', $default));
+    if (strtolower($raw) === $legacy) {
+        $raw = $default;
+    }
+    return array_values(array_filter(array_map('trim', explode(',', $raw)), static function ($v) {
+        return $v !== '';
+    }));
+}
+
 /** 供前端读取的运行时配置，输出为一小段内联 JSON */
 function sg_runtime_config(): string
 {
@@ -101,7 +124,7 @@ function sg_runtime_config(): string
         'themeUrl' => sg_theme_url(''),
         // 单张壁纸（第二十轮轮播下线）：前端已不再消费这个字段，保留只是为了不破坏旧缓存
         'bgImages' => array_values(array_filter([sg_bg_url((string) sg_opt('sgBg', ''))])) ?: [sg_theme_url('dist/img/bg-1.svg')],
-        'themeColors' => array_values(array_filter(array_map('trim', explode(',', sg_opt('sgThemeColors', '#a18cd1,#fbc2eb,#a1c4fd,#c2e9fb'))))),
+        'themeColors' => sg_theme_colors(),
         'danmaku' => $danmaku,
         'effects' => sg_opt('sgEffects', 'on') === 'on',
         'clickEffect' => sg_opt('sgClickEffect', 'on') === 'on',

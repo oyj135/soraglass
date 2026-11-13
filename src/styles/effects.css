@@ -28,7 +28,7 @@ html.sg-ready .sg-splash { opacity: 0; visibility: hidden; }
   to { opacity: 0; visibility: hidden; }
 }
 html.sg-splash-pending .sg-splash { animation: sg-splash-auto .45s ease 1.2s forwards; }
-.sg-splash-mark { font-size: 1.5rem; font-weight: 900; letter-spacing: .3em; color: var(--sg-indigo); animation: sg-breathe 1.4s ease-in-out infinite; }
+.sg-splash-mark { font-size: 1.5rem; font-weight: 900; letter-spacing: .3em; color: var(--sg-accent-ink); animation: sg-breathe 1.4s ease-in-out infinite; }
 
 /* 背景栈 */
 .sg-bg {

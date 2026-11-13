@@ -452,7 +452,7 @@ function themeConfig($form): void
         '<b>显示位置</b>：同样作用于全站壁纸层，卡片与文字不受影响。<br>'
         . '<b>怎么选</b>：照片类壁纸建议「轻度模糊」，避免细节抢正文；渐变壁纸不需要模糊。移动端会自动降低模糊强度。'
     )));
-    $form->addInput(new Text('sgThemeColors', null, '#a18cd1,#fbc2eb,#a1c4fd,#c2e9fb', _t('呼吸渐变色（壁纸之上的光晕）'), _t(
+    $form->addInput(new Text('sgThemeColors', null, '#5f9299,#8ec5c9,#b8d8dc,#dcebed', _t('呼吸渐变色（壁纸之上的光晕）'), _t(
         '<b>显示位置</b>：壁纸最上层缓慢流动的渐变光晕，全站生效（壁纸被遮罩压暗时尤其明显）。<br>'
         . '英文逗号分隔的十六进制色值，至少两个。'
     )));
