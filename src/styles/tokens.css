@@ -36,8 +36,14 @@
 
   --sg-blur-card: 12px;   /* backdrop-blur-md */
   --sg-blur-nav: 24px;    /* backdrop-blur-xl */
-  --sg-radius: 1.5rem;    /* rounded-3xl */
-  --sg-radius-xl: 2.5rem; /* 关于页大卡 rounded-[40px] */
+  /* 圆角三档（2026-11-14 第三十五轮）：外框 20 / 内件 8 / 关于页大卡 28。
+     卡片、面板、图片、封面、输入框一律走 outer；卡片内部的按钮、chip、代码块、
+     缩略图、列表项一律走 inner；胶囊与圆形继续用 999px / 50%，不进档位。
+     目的：消灭 12 / 13.6 / 14 / 16 / 24 / 40 混用造成的"每个组件各圆各的"。 */
+  --sg-radius-outer: 1.25rem;  /* 20px —— 外框 */
+  --sg-radius-inner: .5rem;    /* 8px  —— 卡内小件 */
+  --sg-radius: var(--sg-radius-outer);  /* 兼容别名，历史代码仍写 var(--sg-radius) */
+  --sg-radius-xl: 1.75rem;     /* 28px —— 仅 .sg-about 大卡 */
 
   /* ---------- 签名色：青瓷（2026-11-13 第三十四轮）----------
      这里原来是 Tailwind indigo-500/600/400 的原值。indigo #6366f1 + rounded-3xl +
@@ -183,8 +189,6 @@ html.dark {
   /* 签名色：填充保持深青（白字 7.3:1），前景/描边提到亮青（暗卡 8.65:1）。
      这是「一个 token 同时当底色和当字色」的必然分裂，见 :root 里 accent-ink 的注释。 */
   --sg-accent-ink: #8ec5c9;
-  --sg-ring-a: var(--sg-accent-2);
-  --sg-ring-b: var(--sg-accent-soft);
   --sg-ring-a: var(--sg-accent-2);
   --sg-ring-b: var(--sg-accent-soft);
   --sg-accent-deep: #a8d8db;                /* 暗色下 deep = 更强对比（不是更深） */

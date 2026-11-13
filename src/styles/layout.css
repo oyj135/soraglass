@@ -13,7 +13,7 @@
   z-index: 90;
   padding: .55rem .95rem;
   border: 1px solid var(--sg-border);
-  border-radius: .75rem;
+  border-radius: var(--sg-radius-inner);
   background: var(--sg-panel);
   box-shadow: var(--sg-shadow-strong);
   font-size: .85rem;

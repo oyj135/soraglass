@@ -89,11 +89,12 @@ $sgActiveKey = in_array($sgActive, array_merge(['notes'], $sgMergedSlugs), true)
   </div>
 </header>
 
-<button class="sg-disc" type="button" data-sg-sheet-open aria-label="打开导航">
-  <span class="sg-disc-dots"><i></i><i></i><i></i></span>
+<button class="sg-disc" type="button" data-sg-sheet-open aria-label="打开导航" aria-expanded="false" aria-controls="sg-sheet">
+  <span class="sg-disc-label" aria-hidden="true">菜单</span>
+  <span class="sg-disc-dots" aria-hidden="true"><i></i><i></i><i></i></span>
 </button>
 
-<div class="sg-sheet" data-sg-sheet aria-hidden="true">
+<div class="sg-sheet" id="sg-sheet" data-sg-sheet aria-hidden="true">
   <div class="sg-sheet-panel">
     <a class="sg-sheet-link<?php echo $sgActive === 'index' ? ' is-active' : ''; ?>"<?php echo $sgActive === 'index' ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgHome); ?>">首页</a>
     <?php foreach ($sgNavItems as $sgPage) : ?>

@@ -180,7 +180,7 @@ html[data-sg-veil="strong"] .sg-bg-veil::after {
   cursor: zoom-out;
 }
 
-.sg-lightbox img { max-width: 92vw; max-height: 86vh; border-radius: 1rem; }
+.sg-lightbox img { max-width: 92vw; max-height: 86vh; border-radius: var(--sg-radius-outer); }
 
 /* 灯箱翻页：只在一组照片 ≥2 张时出现，单张时按钮带 hidden 属性不占位 */
 .sg-lightbox-nav {

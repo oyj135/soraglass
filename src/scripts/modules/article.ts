@@ -3,6 +3,44 @@
  * highlight.js / katex 走动态 import，只会在真的有代码块 / 公式的页面下载。
  */
 
+/**
+ * 阅读进度中轴线（2026-11-14 第三十五轮）。
+ * 只在带 .sg-article-layout 的正文页生成，轨道样式见 components.css .sg-readline。
+ * 进度写进 CSS 变量，一次 rAF 一次 style 写入；正文不足一屏直接收线。
+ */
+function initReadline(): void {
+  const body = document.querySelector<HTMLElement>('.sg-article-layout [data-sg-article]');
+  if (!body) return;
+
+  const host = document.createElement('div');
+  host.className = 'sg-readline';
+  host.setAttribute('aria-hidden', 'true');
+  host.appendChild(document.createElement('i'));
+  document.body.appendChild(host);
+
+  let raf = 0;
+  const paint = (): void => {
+    raf = 0;
+    const rect = body.getBoundingClientRect();
+    // 可滚动量 = 正文高 - 视口高；低于 160px 说明内容本来就短
+    const span = rect.height - window.innerHeight;
+    if (span < 160) {
+      host.classList.add('is-off');
+      return;
+    }
+    host.classList.remove('is-off');
+    const p = Math.min(1, Math.max(0, -rect.top / span));
+    host.style.setProperty('--sg-read-p', p.toFixed(4));
+  };
+  const schedule = (): void => {
+    if (!raf) raf = window.requestAnimationFrame(paint);
+  };
+
+  paint();
+  window.addEventListener('scroll', schedule, { passive: true });
+  window.addEventListener('resize', schedule, { passive: true });
+}
+
 function initTOC(): void {
   const article = document.querySelector<HTMLElement>('[data-sg-article]');
   const toc = document.querySelector<HTMLElement>('[data-sg-toc]');
@@ -199,6 +237,7 @@ function initLightbox(): void {
 }
 
 export function initArticle(): void {
+  initReadline();
   initTOC();
   initLightbox();
   void initHighlight();

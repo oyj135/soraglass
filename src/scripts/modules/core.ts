@@ -96,6 +96,10 @@ function initNav(): void {
     sheet.classList.toggle('is-open', open);
     sheet.setAttribute('aria-hidden', open ? 'false' : 'true');
     document.documentElement.classList.toggle('sg-lock', open);
+    // 入口按钮同步展开态，读屏能念出「已展开 / 已收起」
+    document.querySelectorAll<HTMLElement>('[data-sg-sheet-open]').forEach((btn) => {
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
   };
 
   document.querySelectorAll<HTMLElement>('[data-sg-sheet-open]').forEach((btn) => {
