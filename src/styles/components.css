@@ -244,8 +244,10 @@ html.sg-lock, html.sg-lock body { overflow: hidden; }
   position: relative;
   z-index: 100;
   width: 100%;
-  max-width: 42rem;
-  margin: 0 auto 2.5rem;
+  /* 42rem → 36rem（第三十六轮）：首屏主角交给封面，搜索退成一条检索入口，
+     再宽就变成压在内容上的一道横杠。 */
+  max-width: 36rem;
+  margin: 0 auto 2rem;
 }
 
 .sg-search-input {
@@ -1009,7 +1011,37 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
   .sg-lyric-icon svg { width: 1.25rem; height: 1.25rem; }
 }
 
-/* ---------- 封面轮播（首页 4 列） ---------- */
+/* ---------- 主编区（2026-11-14 第三十六轮） ----------
+   首屏从「四块等权」改成「一张封面 + 两个副卡」：左 7 列封面轮播当主视觉，
+   右 5 列竖排个人卡与播放器（右栏的分配规则在 layout.css 的 .sg-hero-side）。 */
+
+@media (min-width: 1024px) {
+  /* 封面高度跟视口挂钩，两头封顶：短屏不至于把歌词条顶出折叠线，
+     超宽屏也不会被拉成一条扁带。用双类名是为了压过后面 .sg-post-carousel
+     的 min-height（同权重时后者会赢，clamp 就白写了）。 */
+  .sg-hero .sg-hero-cover { min-height: clamp(21rem, 46vh, 27rem); }
+
+  /* 封面成了主角，字号跟着放一档。原来是按 4 列小轮播定的 1.5rem，
+     在 7 列的宽度上标题缩在左下角，与"主视觉"的身份不匹配。
+     只放大标题与内边距，描述仍限三行 —— 再长会盖住封面本身。 */
+  .sg-hero-cover .sg-slide-body { padding: 1.75rem 2rem; }
+  .sg-hero-cover .sg-slide-title { font-size: 1.875rem; line-height: 1.3; }
+  .sg-hero-cover .sg-slide-desc { font-size: .9375rem; max-width: 44ch; }
+
+  /* 副卡窄了一档，内边距、字号、行距同步收，否则还是按 7 列的尺度在排 */
+  .sg-hero-side .sg-profile { padding: 1.5rem 1.75rem; gap: 1rem; }
+  .sg-hero-side .sg-profile-name { font-size: 1.5rem; margin-bottom: .35rem; }
+  .sg-hero-side .sg-profile-bio { overflow: hidden; -webkit-line-clamp: 2; }
+  .sg-hero-side .sg-profile-foot { margin-top: .75rem; }
+  .sg-hero-side .sg-player-card { padding: 1.35rem 1.5rem; }
+  .sg-hero-side .sg-stat-num { font-size: 1.375rem; }
+}
+
+/* 播放器在副栏里要撑满整卡：四段（唱片 / 歌词 / 进度 / 控制）space-between 分布，
+   否则高度给足内容仍堆在顶上，下面空一大块。只作用于首页副栏，不影响音乐页。 */
+.sg-hero-side .sg-player { justify-content: space-between; }
+
+/* ---------- 封面轮播（首页主编区 7 列） ---------- */
 .sg-post-carousel {
   position: relative;
   overflow: hidden;

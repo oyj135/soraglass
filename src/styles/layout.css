@@ -55,35 +55,39 @@
 
 .sg-grid { display: grid; gap: 1.5rem; grid-template-columns: minmax(0, 1fr); }
 
-/* 首页 7:5 与 4:8；断点 1024px 与源站 lg 一致 */
+/* 首页 7:5 与 5:4:3；断点 1024px 与源站 lg 一致 */
 @media (min-width: 1024px) {
   .sg-grid-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
   .sg-col-7 { grid-column: span 7; }
   .sg-col-5 { grid-column: span 5; }
   .sg-col-4 { grid-column: span 4; }
+  .sg-col-3 { grid-column: span 3; }
   .sg-col-8 { grid-column: span 8; }
 }
 
-/* 右列内部：宽幅海报 + 三小格（说说 2 / 昼夜 1） */
-.sg-subgrid { display: grid; gap: 1.5rem; grid-template-columns: minmax(0, 1fr); }
+/* 主编区（2026-11-14 第三十六轮）
+   —— 左 7 列封面轮播，右 5 列竖排「个人卡 + 播放器」。
+   右栏两卡不拉伸、按内容自然高，剩余高度交给 `justify-content: space-between`
+   分到两卡之间的空隙上：封面更高时两卡贴上下两端，副卡更高时整行跟着长高。
+   不用 `flex: 1 1 0` —— 基数为 0 会让右栏的固有高度塌成 0，网格行高只认封面的
+   min-height，两卡再被强行二等分会溢出卡片（个人卡塞不下头像 + 简介 + 三格统计）。
+   原来的 .sg-subgrid（3 分栏放碎语 + 昼夜）随轮播上移一起下线，首页不再用它。 */
+.sg-hero { align-items: stretch; }
 
-@media (min-width: 640px) {
-  .sg-subgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .sg-subgrid-2 { grid-column: span 2; }
-  .sg-subgrid-1 { grid-column: span 1; }
+.sg-hero-side {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.5rem;
+  min-width: 0;
 }
 
-/* 首页昼夜卡让位（2026-11-13 第三十二轮）：
-   这块纯氛围内容只有一枚圆盘 + 两行字，但在 640–1023px 会固定占掉 1/3 列宽，
-   把碎语轮播挤成 2/3（文字被截断）。窄屏一律收起，宽度整份给碎语卡；
-   桌面（≥1024）保持原有三列，圆盘仍是首页的一个视觉记号。
+.sg-hero-side > section { flex: 0 0 auto; min-height: 0; }
+
+/* 首页昼夜卡让位（2026-11-13 第三十二轮 / 第三十六轮改到第二行）：
+   这块纯氛围内容只有一枚圆盘 + 两行字，窄屏一律收起，宽度让给同排的海报与碎语。
    切主题的入口不受影响：左下浮动按钮与导航抽屉里的「切换昼夜」都还在。 */
-@media (min-width: 640px) and (max-width: 1023.98px) {
-  .sg-theme-block { display: none; }
-  .sg-subgrid .sg-subgrid-2 { grid-column: span 3; }
-}
-
-@media (max-width: 639.98px) {
+@media (max-width: 1023.98px) {
   .sg-theme-block { display: none; }
 }
 

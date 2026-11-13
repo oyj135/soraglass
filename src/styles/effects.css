@@ -91,6 +91,13 @@ html[data-sg-veil="strong"] .sg-bg-veil::after {
   background: var(--sg-veil);
 }
 
+/* 壁纸色相统一层（2026-11-14 第三十六轮：留色不留动）
+   原来这里有一条 15s 无限循环的 background-position 位移，配合 400% 背景尺寸
+   让色彩缓慢漂移。问题是这一层是全屏的 `mix-blend-mode: color`——混合模式没法
+   走纯合成，位移期间每一帧都要重新把整屏混合一遍，是全站最贵的一层。
+   它换来的只是色相漂移，而首屏主角区需要的是稳定底色（图片、标题都在上面），
+   所以停掉动画、保留静态渐变：色调统一的作用不变，逐帧成本归零。
+   颜色本身由 core.ts 按后台「主题配色」写进内联 style，这里只是兜底值。 */
 .sg-gradient {
   position: absolute;
   inset: 0;
@@ -98,19 +105,21 @@ html[data-sg-veil="strong"] .sg-bg-veil::after {
   opacity: var(--sg-gradient-opacity);
   mix-blend-mode: color;
   background-image: linear-gradient(-45deg, #a18cd1, #fbc2eb, #a1c4fd, #c2e9fb);
-  background-size: 400% 400%;
-  animation: sg-gradient-move 15s ease infinite;
   transform: translateZ(0);
   transition: opacity 1s;
 }
 
+/* 两团模糊光球（2026-11-14 第三十六轮收敛）：
+   40% → 34%、blur 100px → 72px。这两团的作用是给壁纸一点体积感，
+   但 40% 的直径叠两团几乎盖住了整屏，封面主视觉被压平；
+   缩小后只在左上 / 右下各留一处亮区，主角区重新成为视线落点。 */
 .sg-glow {
   position: absolute;
   z-index: 4;
-  width: 40%;
-  height: 40%;
+  width: 34%;
+  height: 34%;
   border-radius: 50%;
-  filter: blur(100px);
+  filter: blur(72px);
   transition: background-color 1s;
 }
 
@@ -147,7 +156,9 @@ html[data-sg-veil="strong"] .sg-bg-veil::after {
   white-space: nowrap;
   font-size: .85rem;
   color: var(--sg-text);
-  opacity: .28;
+  /* 第三十六轮 .28 → .20：弹幕在 z-index 0，卡片是半透明毛玻璃，
+     飘过去时会从卡面底下透出来。压到 .20 后只当纸纹，不再和正文抢注意力。 */
+  opacity: .20;
   animation: sg-danmaku-move linear forwards;
 }
 
@@ -271,12 +282,6 @@ html[data-sg-veil="strong"] .sg-bg-veil::after {
  * 无 fill 时动画播完即释放，0.8s 后采样根回到根元素，模糊恢复。 */
 .sg-main { animation: sg-page-in .8s cubic-bezier(0, 0, .2, 1); }
 
-@keyframes sg-gradient-move {
-  0% { background-position: 0 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0 50%; }
-}
-
 @keyframes sg-danmaku-move {
   from { transform: translateX(100vw); }
   to { transform: translateX(-100%); }
@@ -284,7 +289,6 @@ html[data-sg-veil="strong"] .sg-bg-veil::after {
 
 @media (prefers-reduced-motion: reduce) {
   .sg-effects, .sg-danmaku { display: none; }
-  .sg-gradient { animation: none; }
   .sg-main { animation: none; }
   /* 开屏文字保留：只停呼吸动画，否则遮罩会退化成一块纯色，观感等同黑屏 */
   .sg-splash-mark { animation: none; opacity: 1; }

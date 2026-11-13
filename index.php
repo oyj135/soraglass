@@ -29,15 +29,15 @@ $sgNotesLink = sg_page_url('notes');
   </form>
 
   <div class="sg-stack">
-    <div class="sg-grid sg-grid-12">
-      <section class="sg-glass sg-card-pad sg-col-7 sg-profile" data-sg-hover data-sg-spotlight><?php $this->need('partials/card-profile.php'); ?></section>
-      <section class="sg-glass sg-card-pad sg-col-5 sg-player-card" data-sg-hover data-sg-spotlight><?php $this->need('partials/player.php'); ?></section>
-    </div>
-
-    <?php $this->need('partials/lyric-bar.php'); ?>
-
-    <div class="sg-grid sg-grid-12">
-      <section class="sg-glass sg-post-carousel sg-col-4" data-sg-carousel data-sg-interval="5000" data-sg-hover>
+    <?php
+    /* 主编区（2026-11-14 第三十六轮）：封面轮播从第二屏提到首屏当主视觉，
+       个人卡与播放器退到右侧副栏。
+       改之前是「个人卡 7 + 播放器 5」并排、轮播压在第二行只露 100px —— 四块等权、
+       整屏没有一张图，视线没有落点。改成「一张封面 + 两个副卡」，
+       右栏两卡靠 flex:1 均分左列高度，不写死像素。 */
+    ?>
+    <div class="sg-grid sg-grid-12 sg-hero">
+      <section class="sg-glass sg-post-carousel sg-col-7 sg-hero-cover" data-sg-carousel data-sg-interval="5000" data-sg-hover>
         <?php $GLOBALS['SG_SLIDE_SEEN'] = false; ?>
         <?php
         /* 碎语不进首页封面轮播（2026-11-13）：碎语在下方有专门的轮播区块。
@@ -69,45 +69,56 @@ $sgNotesLink = sg_page_url('notes');
         <div class="sg-dots" data-sg-dots></div>
       </section>
 
-      <div class="sg-col-8 sg-stack">
-        <a class="sg-poster-wide" href="<?php echo sg_e($sgPoster['link'] !== '' ? $sgPoster['link'] : $sgHome); ?>" data-sg-hover data-sg-spotlight>
-          <img src="<?php echo sg_e($sgPoster['cover']); ?>" alt="" loading="lazy" referrerpolicy="no-referrer">
-          <span class="sg-veil"></span>
-          <div class="sg-poster-body">
-            <span class="sg-poster-kicker"><?php echo sg_icon('image'); ?><?php echo sg_e($sgPoster['kicker']); ?></span>
-            <h3><?php echo sg_e($sgPoster['title']); ?></h3>
-            <p><?php echo sg_e($sgPoster['desc']); ?></p>
-          </div>
-        </a>
-
-        <div class="sg-subgrid">
-          <div class="sg-glass sg-chatter sg-subgrid-2" data-sg-carousel data-sg-hover>
-            <?php $GLOBALS['SG_SLIDE_SEEN'] = false; ?>
-            <?php if ($sgNotes) : ?>
-              <?php foreach ($sgNotes as $sgNoteIndex => $sgNote) : ?>
-                <?php $sgNote['active'] = $sgNoteIndex === 0; ?>
-                <?php echo sg_note_slide($sgNote); ?>
-              <?php endforeach; ?>
-            <?php else : ?>
-              <article class="sg-chatter-slide is-active" data-sg-slide>
-                <div class="sg-chatter-body sg-chatter-body--empty">
-                  <span class="sg-chatter-meta">
-                    <span class="sg-chip--tag"><?php echo sg_icon('tag'); ?>碎语</span>
-                    <time>空空如也</time>
-                  </span>
-                  <h3>还没有碎语</h3>
-                  <p>后台「碎语 JSON」里写两条随手记，这里就会活起来。</p>
-                  <a class="sg-chatter-link" href="<?php echo sg_e($sgNotesLink); ?>">
-                    去看看<?php echo sg_icon('arrow-up-right'); ?>
-                  </a>
-                </div>
-              </article>
-            <?php endif; ?>
-            <span class="sg-dots" data-sg-dots></span>
-          </div>
-          <?php $this->need('partials/theme-block.php'); ?>
-        </div>
+      <div class="sg-col-5 sg-hero-side">
+        <section class="sg-glass sg-card-pad sg-profile" data-sg-hover data-sg-spotlight><?php $this->need('partials/card-profile.php'); ?></section>
+        <section class="sg-glass sg-card-pad sg-player-card" data-sg-hover data-sg-spotlight><?php $this->need('partials/player.php'); ?></section>
       </div>
+    </div>
+
+    <?php $this->need('partials/lyric-bar.php'); ?>
+
+    <?php
+    /* 第二行（第三十六轮）：原来是 4:8 的「轮播 + 海报 / 碎语 / 昼夜」，
+       轮播上移后改成 5:4:3 三卡同排 —— 海报仍是最大的一块，碎语居中，
+       昼夜收成最小的一个记号（切主题的入口另外还有左下浮动按钮与抽屉）。 */
+    ?>
+    <div class="sg-grid sg-grid-12">
+      <a class="sg-poster-wide sg-col-5" href="<?php echo sg_e($sgPoster['link'] !== '' ? $sgPoster['link'] : $sgHome); ?>" data-sg-hover data-sg-spotlight>
+        <img src="<?php echo sg_e($sgPoster['cover']); ?>" alt="" loading="lazy" referrerpolicy="no-referrer">
+        <span class="sg-veil"></span>
+        <div class="sg-poster-body">
+          <span class="sg-poster-kicker"><?php echo sg_icon('image'); ?><?php echo sg_e($sgPoster['kicker']); ?></span>
+          <h3><?php echo sg_e($sgPoster['title']); ?></h3>
+          <p><?php echo sg_e($sgPoster['desc']); ?></p>
+        </div>
+      </a>
+
+      <div class="sg-glass sg-chatter sg-col-4" data-sg-carousel data-sg-hover>
+        <?php $GLOBALS['SG_SLIDE_SEEN'] = false; ?>
+        <?php if ($sgNotes) : ?>
+          <?php foreach ($sgNotes as $sgNoteIndex => $sgNote) : ?>
+            <?php $sgNote['active'] = $sgNoteIndex === 0; ?>
+            <?php echo sg_note_slide($sgNote); ?>
+          <?php endforeach; ?>
+        <?php else : ?>
+          <article class="sg-chatter-slide is-active" data-sg-slide>
+            <div class="sg-chatter-body sg-chatter-body--empty">
+              <span class="sg-chatter-meta">
+                <span class="sg-chip--tag"><?php echo sg_icon('tag'); ?>碎语</span>
+                <time>空空如也</time>
+              </span>
+              <h3>还没有碎语</h3>
+              <p>后台「碎语 JSON」里写两条随手记，这里就会活起来。</p>
+              <a class="sg-chatter-link" href="<?php echo sg_e($sgNotesLink); ?>">
+                去看看<?php echo sg_icon('arrow-up-right'); ?>
+              </a>
+            </div>
+          </article>
+        <?php endif; ?>
+        <span class="sg-dots" data-sg-dots></span>
+      </div>
+
+      <?php $this->need('partials/theme-block.php'); ?>
     </div>
 
     <?php $this->need('partials/briefing.php'); ?>
