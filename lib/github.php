@@ -61,7 +61,7 @@ function sg_github_fail(string $message): void
 function sg_github_cache_file(string $user, string $token): string
 {
     $key = md5($user . '|' . substr(md5($token), 0, 8));
-    return rtrim(sys_get_temp_dir(), '/\\') . DIRECTORY_SEPARATOR . 'soraglass-github-' . $key . '.json';
+    return sg_cache_file('github-' . $key . '.json');
 }
 
 /**
@@ -69,8 +69,9 @@ function sg_github_cache_file(string $user, string $token): string
  *
  * 返回 [] 时看 sg_github_error()：'rate' 限流、'404' 账号不存在、'net' 网络失败。
  *
- * 缓存 30 分钟 + 管理员绕过，和歌单同一套规则：站长改完刷新就能看到，
- * 访客吃缓存，避免每次访问都打外网。
+ * 缓存 30 分钟，**只有显式 `?sg-refresh=1` 才绕过**（原来登录管理员就绕过，
+ * 结果是站长每次打开项目页都直连 api.github.com，等 1–10s）。
+ * 访客与站长都吃缓存，避免每次访问都打外网。
  */
 function sg_github_repos(): array
 {
@@ -82,18 +83,18 @@ function sg_github_repos(): array
     $cacheFile = sg_github_cache_file($cfg['user'], $cfg['token']);
     /* 失败也缓存一小会儿：国内机房连不上 api.github.com 时，
        每个访客都等一次超时（最多 ~10s）会让项目页慢得不像话。 */
-    $failFile = $cacheFile . '.fail';
-    $bypass = sg_user_is_admin();
+    $failFile = $cacheFile !== '' ? $cacheFile . '.fail' : '';
+    $bypass = isset($_GET['sg-refresh']) && sg_user_is_admin();
     $ttl = 1800;
 
-    if (!$bypass && is_file($cacheFile) && (time() - (int) filemtime($cacheFile)) < $ttl) {
+    if (!$bypass && $cacheFile !== '' && is_file($cacheFile) && (time() - (int) filemtime($cacheFile)) < $ttl) {
         $cached = json_decode((string) file_get_contents($cacheFile), true);
         if (is_array($cached) && $cached) {
             return $cached;
         }
     }
 
-    if (!$bypass && is_file($failFile) && (time() - (int) filemtime($failFile)) < 300) {
+    if (!$bypass && $failFile !== '' && is_file($failFile) && (time() - (int) filemtime($failFile)) < 300) {
         sg_github_fail(trim((string) file_get_contents($failFile)));
         return [];
     }
@@ -125,10 +126,10 @@ function sg_github_repos(): array
             sg_github_fail('连不上 GitHub（超时或被墙），已退回手动数据');
         }
 
-        @file_put_contents($failFile, sg_github_error());
+        if ($failFile !== '') @file_put_contents($failFile, sg_github_error());
 
         // 失败时退回上一份缓存：宁可展示旧数据，也好过整页空掉
-        if (is_file($cacheFile)) {
+        if ($cacheFile !== '' && is_file($cacheFile)) {
             $stale = json_decode((string) file_get_contents($cacheFile), true);
             if (is_array($stale) && $stale) {
                 return $stale;
@@ -137,7 +138,7 @@ function sg_github_repos(): array
         return [];
     }
 
-    if (is_file($failFile)) {
+    if ($failFile !== '' && is_file($failFile)) {
         @unlink($failFile);
     }
 
@@ -152,7 +153,7 @@ function sg_github_repos(): array
     if ($clean) {
         $json = json_encode($clean, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if (is_string($json)) {
-            @file_put_contents($cacheFile, $json);
+            if ($cacheFile !== '') @file_put_contents($cacheFile, $json);
         }
     }
 
@@ -223,6 +224,44 @@ function sg_github_icon(string $language): string
     ];
     $key = strtolower(trim($language));
     return $map[$key] ?? '✦';
+}
+
+/**
+ * 语言色点（第三十七轮）。
+ *
+ * 项目卡用一枚 8px 圆点标语言，取代原来裸 emoji 的图标块 —— 小、准、不抢。
+ * 这些是各语言在 GitHub linguist 里的品牌色，属于「数据自带的语义色」，
+ * 不进 tokens.css 的调色板：它们不该跟着昼夜主题或签名色变，
+ * 否则「PHP 是紫的、TypeScript 是蓝的」这条通用认知就没了。
+ * 认不出来的语言一律用签名色，不硬编一个乱猜的颜色。
+ */
+function sg_lang_color(string $language): string
+{
+    static $map = [
+        'php'               => '#4f5d95',
+        'typescript'        => '#3178c6',
+        'javascript'        => '#f1e05a',
+        'vue'               => '#41b883',
+        'html'              => '#e34c26',
+        'css'               => '#563d7c',
+        'scss'              => '#c6538c',
+        'python'            => '#3572a5',
+        'go'                => '#00add8',
+        'rust'              => '#dea584',
+        'java'              => '#b07219',
+        'kotlin'            => '#a97bff',
+        'swift'             => '#f05138',
+        'dart'              => '#00b4ab',
+        'c'                 => '#555555',
+        'c++'               => '#f34b7d',
+        'c#'                => '#178600',
+        'shell'             => '#89e051',
+        'ruby'              => '#701516',
+        'lua'               => '#000080',
+        'jupyter notebook'  => '#da5b0b',
+    ];
+    $key = strtolower(trim($language));
+    return $map[$key] ?? 'var(--sg-accent-ink)';
 }
 
 /** 「更新于」用的日期：UTC → 站点时区 */
@@ -368,6 +407,15 @@ function sg_github_projects(?int $limit = null): array
             ])),
             'badge'       => $badge,
             'keywords'    => $keywords,
+            /* 第三十七轮：卡片改成结构化渲染（语言点 + 星数 + 更新日期各占一格），
+               meta 那串「★ 3 · 更新于 …」不再需要拆字符串。手填 JSON 没有这些字段时，
+               模板会退回 meta 解析，所以这里多给的只是「有则更好」。 */
+            'language'    => $language,
+            'stars'       => $stars,
+            'updated'     => $updated,
+            'forks'       => (int) ($repo['forks_count'] ?? 0),
+            'archived'    => !empty($repo['archived']),
+            'fork'        => !empty($repo['fork']),
         ];
     }
 

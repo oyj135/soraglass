@@ -49,6 +49,9 @@ function sg_icon(string $name, string $class = ''): string
         'disc'        => '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/>',
         'sliders-h'   => '<path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="8" cy="18" r="2"/>',
         'minus'       => '<path d="M5 12h14"/>',
+        /* 项目卡（第三十七轮）：星数与分支数改成图标 + 数字，比裸「★ 3」清楚 */
+        'star'        => '<path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>',
+        'fork'        => '<circle cx="6" cy="5" r="2"/><circle cx="18" cy="5" r="2"/><circle cx="12" cy="19" r="2"/><path d="M6 7v2.5A2.5 2.5 0 0 0 8.5 12h7a2.5 2.5 0 0 0 2.5-2.5V7"/><path d="M12 12v5"/>',
     ];
     if (!isset($paths[$name])) {
         return '';

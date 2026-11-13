@@ -135,7 +135,7 @@ export function initPlayer(): void {
      「正在等待旋律…」——功能其实一次都没跑起来过。全文档查一次即可（只有一份）。 */
   const lyricBox = document.querySelector<HTMLElement>('[data-sg-lyrics]');
   const lyricEmpty = document.querySelector<HTMLElement>('[data-sg-lyrics-empty]');
-  let lines: Array<{ time: number; text: string; el: HTMLElement }> = [];
+  let lines: Array<{ time: number; text: string; el: HTMLElement | null }> = [];
   let activeLine = -1;
   /* 没有歌词面板时（首页只有一个歌词栏），buildLyrics 不再建 DOM，
      但「当前这一句」仍要留着给 paintLyric 用。 */
@@ -171,15 +171,21 @@ export function initPlayer(): void {
     typeTimers.length = 0;
     lyricTargets.forEach((el) => { el.textContent = ''; });
     if (!text) return;
-    // 单行打字机：源站 CloudPlayer / LyricBar 的逐字效果，纯 JS，不用 CSS 动画。
-    // 切歌时必须先清掉上一轮的定时器，否则两段文字会交替往同一个节点里写。
+    /* 单行打字机：源站 CloudPlayer / LyricBar 的逐字效果，纯 JS，不用 CSS 动画。
+       切歌时必须先清掉上一轮的定时器，否则两段文字会交替往同一个节点里写。
+
+       每字间隔 45ms 对短句刚好，但 LRC 里常有 30–40 字的整句（含翻译括注），
+       45ms 就是 1.4–1.8s，而一句歌词往往只唱 2–3s —— 文字永远追不上歌，
+       看着像「卡住不动」。改成按长度反推：整句必须在 0.5s 内打完，
+       短句仍保留 45ms/字的观感，下限 10ms 防止超长句变成闪光。 */
+    const step = Math.min(45, Math.max(10, 500 / Math.max(1, text.length)));
     let i = 0;
     const timer = window.setInterval(() => {
       i += 1;
       const slice = text.slice(0, i);
       lyricTargets.forEach((el) => { el.textContent = slice; });
       if (i >= text.length) window.clearInterval(timer);
-    }, 45);
+    }, step);
     typeTimers.push(timer);
   };
 
@@ -191,9 +197,18 @@ export function initPlayer(): void {
       parsed.push({ time: -1, text: fallbackText });
     }
     currentLyricText = parsed.length ? parsed[0].text : '';
-    lines = [];
     activeLine = -1;
+
+    /* 行数据先无条件建好，DOM 之后再说。
+       2026-11-14 修：这里原来紧跟着一句 `if (!lyricBox) return;`，
+       本意是「首页没有滚动歌词面板就不建列表」，但它把下面的
+       lines.push 一起跳过了 —— 首页的 lines 永远是空数组，
+       syncLyricLine 开头 `if (!lines.length) return` 直接返回，
+       于是歌词栏只显示 applyLyrics 里 paint 的第一句，之后再也不变。
+       音乐页有面板所以看着正常，问题只出在首页那条歌词栏。 */
+    lines = parsed.map((line) => ({ time: line.time, text: line.text, el: null }));
     if (!lyricBox) return;   // 首页只有一行歌词栏，不需要建列表
+
     lyricBox.querySelectorAll('.sg-lyric-line').forEach((el) => el.remove());
     if (lyricEmpty) lyricEmpty.hidden = parsed.length > 0;
 
@@ -221,7 +236,7 @@ export function initPlayer(): void {
         void i;
       });
       inner.appendChild(el);
-      lines.push({ time: line.time, text: line.text, el });
+      lines[i].el = el;
     });
   };
 
@@ -256,13 +271,27 @@ export function initPlayer(): void {
       .catch(() => { /* 歌词拿不到不影响播放 */ });
   };
 
-  const syncLyricLine = (): void => {    if (!lines.length) return;
+  const syncLyricLine = (): void => {
+    if (!lines.length) return;
     let next = 0;
+    let hit = false;
     for (let i = 0; i < lines.length; i += 1) {
-      if (lines[i].time >= 0 && lines[i].time <= audio.currentTime + 0.25) next = i;
+      if (lines[i].time >= 0 && lines[i].time <= audio.currentTime + 0.25) {
+        next = i;
+        hit = true;
+      }
+    }
+    /* 整篇没有一个时间轴（纯文本歌词 / 纯音乐）：这不是「进度还没到」，
+       而是根本无从对齐。钉在第一句上不动是正确行为，别去刷打字机。 */
+    if (!hit) {
+      if (activeLine !== 0) {
+        activeLine = 0;
+        paintLyric(lines[0].text);
+      }
+      return;
     }
     if (next === activeLine) return;
-    lines.forEach((line, i) => line.el.classList.toggle('is-active', i === next));
+    lines.forEach((line, i) => line.el?.classList.toggle('is-active', i === next));
     activeLine = next;
     // 首页两处歌词跟着滚动歌词一起换行（源站 currentLyric 由 MusicProvider 逐行推送）
     paintLyric(lines[next].text);

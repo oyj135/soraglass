@@ -105,6 +105,40 @@ function sg_json(string $key, string $name, array $default = []): array
 }
 
 /**
+ * 外网数据的缓存文件路径（歌单 / GitHub 仓库 / AI 日报共用）。
+ *
+ * 优先 `/tmp/soraglass-cache/`；宝塔的 open_basedir 一般放行 /tmp，
+ * 但少数环境把它锁死在站点目录里 —— 那时退回 `dist/data/cache/`，
+ * 否则 `@file_put_contents` 静默失败，缓存永远建不起来，
+ * 每次访问都直连外网、每次都要等到超时，页面慢得莫名其妙。
+ *
+ * 返回空串表示两处都不可写：调用方按「不缓存」处理，功能不受影响。
+ */
+function sg_cache_file(string $name): string
+{
+    static $dir = null;
+
+    if ($dir === null) {
+        $dir = '';
+        $candidates = [
+            rtrim(sys_get_temp_dir(), '/\\') . DIRECTORY_SEPARATOR . 'soraglass-cache',
+            SG_ROOT . '/dist/data/cache',
+        ];
+        foreach ($candidates as $candidate) {
+            if (!is_dir($candidate)) {
+                @mkdir($candidate, 0755, true);
+            }
+            if (is_dir($candidate) && is_writable($candidate)) {
+                $dir = $candidate;
+                break;
+            }
+        }
+    }
+
+    return $dir !== '' ? $dir . DIRECTORY_SEPARATOR . $name : '';
+}
+
+/**
  * 主题 URL。
  *
  * ⚠️ 不要用 `$options->themeUrl` 属性当唯一来源：Typecho 1.3 里它走 ___themeUrl() 懒加载，

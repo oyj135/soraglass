@@ -269,18 +269,22 @@ html[data-sg-veil="strong"] .sg-bg-veil::after {
    源站靠 framer-motion 在客户端挂载时播 y:20→0 / 0.8s。
    Typecho 是整页导航，改用纯 CSS：HTML 一到就播，不等 JS，也不隐藏整页。 */
 @keyframes sg-page-in {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: none; }
 }
 
-/* 源站 PageTransition.tsx：y:20 → 0 / 0.8s easeOut
+/* 源站 PageTransition.tsx：y:20 → 0 / 0.8s easeOut。**这里刻意不照抄 0.8s**
+ * （2026-11-14 第三十七轮）：源站是 SPA，入场动画只在首次挂载播一次；
+ * 本主题是整页导航，每翻一页都要重播 —— 0.8s 的淡入 + 20px 位移叠在
+ * 200–500ms 的 PHP 渲染后面，主观感受就是「点了链接半天没反应」。
+ * 缩到 0.4s / 10px：仍有明确的「内容落下来」的手感，但不拖。
  *
- * 这里绝对不能写 fill-mode: both（2026-11-13 修）。动画一旦带 both，Chrome 会把这个
+ * 另外绝对不能写 fill-mode: both（2026-11-13 修）。动画一旦带 both，Chrome 会把这个
  * 元素当成「永久在动画里」的合成层，而带 opacity/transform 动画的元素自成一个
  * backdrop root —— 卡片里的 backdrop-filter 采样不到页面壁纸，只剩一层半透明底，
  * 毛玻璃整站失效（表现为「卡片是透明的但不模糊」，且和演示站对不上）。
- * 无 fill 时动画播完即释放，0.8s 后采样根回到根元素，模糊恢复。 */
-.sg-main { animation: sg-page-in .8s cubic-bezier(0, 0, .2, 1); }
+ * 无 fill 时动画播完即释放，0.4s 后采样根回到根元素，模糊恢复。 */
+.sg-main { animation: sg-page-in .4s cubic-bezier(0, 0, .2, 1); }
 
 @keyframes sg-danmaku-move {
   from { transform: translateX(100vw); }

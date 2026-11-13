@@ -2172,23 +2172,27 @@ html.dark .sg-page-head .sg-search { text-shadow: 0 1px 18px rgba(2, 6, 23, .55)
 
 @media (min-width: 768px) { .sg-friend-desc { -webkit-line-clamp: 3; font-size: .84rem; } }
 
-/* ---------- 项目 ----------
-   五段结构：身份行（头像 + 名字 + 徽章）→ 图标 + 标题 → 描述 → 技术栈 → 底部指标。
-   2026-11-13 第三十一轮重做，解决「一屏卡片全同质」：
-     ① 卡面加一层自上而下的白，光感有方向；
-     ② emoji 装进 44px 圆角色块，成为视觉锚点（原来裸 emoji 飘在左上角）；
-     ③ 顶部 1px 高光只在 hover 拉满，制造「边缘立起来」的层次；
-     ④ 标题 / 描述 / 指标的字号差拉开到 1.08 / .845 / .70 rem，不再是三档挤在一起。 */
+/* ---------- 项目卡（第三十七轮重做） ----------
+   改之前是五段式：@owner 等宽小字 → 44px emoji 色块 + 标题 → 描述 → 标签 → 指标。
+   症结是「层级多、信息少」：身份行和图标块都在重复回答「这是什么项目」，
+   四成高度被装饰吃掉，一屏三张也只看得见三个名字。
+   现在是四段：头像 + 项目名（同一行，名字是主角）→ 描述 → 语言 / 星数 → 标签 → 日期 + 源码。
+
+   加厚靠三样不占版面的东西，而不是往里塞文案：
+     ① 顶部 2px 渐变细带，静置半亮、hover 从左往右长满；
+     ② 头像外面套一圈渐变描边（容器当环，img 缩 2px 进去）；
+     ③ 卡面右上角铺一层所用语言的色晕（7% 透明），三张卡并排时颜色各不相同。 */
 .sg-project {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: .875rem;
+  gap: .8125rem;
   overflow: hidden;
   padding: 1.25rem 1.25rem 1rem;
   background-image:
     linear-gradient(158deg, var(--sg-proj-face-a), var(--sg-proj-face-b) 62%),
-    radial-gradient(120% 90% at 100% 100%, var(--sg-proj-tint), transparent 62%);
+    radial-gradient(120% 90% at 100% 100%, var(--sg-proj-tint), transparent 62%),
+    radial-gradient(90% 80% at 100% 0%, color-mix(in srgb, var(--sg-lang, var(--sg-accent)) 10%, transparent), transparent 70%);
   border-color: var(--sg-proj-border);
   transition:
     transform var(--sg-dur-card) var(--sg-ease),
@@ -2198,7 +2202,7 @@ html.dark .sg-page-head .sg-search { text-shadow: 0 1px 18px rgba(2, 6, 23, .55)
 }
 
 @media (min-width: 768px) {
-  .sg-project { gap: 1rem; padding: 1.5rem 1.5rem 1.125rem; }
+  .sg-project { gap: .9375rem; padding: 1.375rem 1.375rem 1.0625rem; }
 }
 
 .sg-project:hover {
@@ -2214,49 +2218,58 @@ html.dark .sg-page-head .sg-search { text-shadow: 0 1px 18px rgba(2, 6, 23, .55)
   box-shadow: var(--sg-shadow-strong);
 }
 
-/* 顶部高光：静置 45% 若隐若现，hover 才拉满 */
+/* 顶部渐变细带：静置 46% 宽、半亮，hover / focus 时铺满整条边。
+   比整卡描边亮起更克制，也更像「档案卡」的索引条。 */
 .sg-project::after {
   content: '';
   position: absolute;
-  inset: 0 0 auto;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--sg-proj-hairline) 24%, var(--sg-proj-hairline) 76%, transparent);
-  opacity: .45;
+  inset: 0 auto auto 0;
+  width: 46%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--sg-accent), var(--sg-accent-2) 62%, transparent);
+  /* .45 实测在浅色卡面上几乎看不见（2px × 45% 的青瓷 = 一条灰），.7 才读得出来 */
+  opacity: .7;
   pointer-events: none;
-  transition: opacity var(--sg-dur-card) var(--sg-ease);
+  transition:
+    width var(--sg-dur-card) var(--sg-ease),
+    opacity var(--sg-dur-card) var(--sg-ease);
 }
-.sg-project:hover::after { opacity: 1; }
+.sg-project:hover::after,
+.sg-project:focus-within::after { width: 100%; opacity: 1; }
 
-/* 身份行：头像 + 名字 + 徽章。GitHub 项目显示仓库所属账号，手填项目回退站点作者 */
+/* 身份行：头像 + 项目名 + 徽章。名字用 h3，和卡片的字号层级绑在一起 */
 .sg-project-top {
   display: flex;
   align-items: center;
-  gap: .5rem;
-  min-height: 1.75rem;
+  gap: .625rem;
+  min-height: 2rem;
 }
 
+/* 头像自己当渐变环：border 用透明占位，背景铺环色，img 用 border-box 缩进去 2px。
+   比再套一层 span 少一个节点，圆角也不会因为两层各算一次而错位。 */
 .sg-project-avatar {
   display: block;
   flex: none;
-  width: 1.625rem;
-  height: 1.625rem;
+  width: 2rem;
+  height: 2rem;
+  padding: 1px;
   overflow: hidden;
-  border: 1px solid var(--sg-proj-avatar-ring);
   border-radius: 50%;
-  background: var(--sg-proj-icon-bg);
+  background: linear-gradient(135deg, var(--sg-ring-a), var(--sg-ring-b));
+  transition: box-shadow var(--sg-dur-card) var(--sg-ease);
 }
 
-.sg-project-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.sg-project-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--sg-card);
+}
 
-.sg-project-owner {
-  min-width: 0;
-  overflow: hidden;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: .7rem;
-  letter-spacing: .02em;
-  color: var(--sg-muted);
-  white-space: nowrap;
-  text-overflow: ellipsis;
+.sg-project:hover .sg-project-avatar {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sg-accent) 14%, transparent);
 }
 
 .sg-project-badge {
@@ -2274,49 +2287,62 @@ html.dark .sg-page-head .sg-search { text-shadow: 0 1px 18px rgba(2, 6, 23, .55)
 }
 html.dark .sg-project-badge { color: var(--sg-indigo-soft); }
 
-/* 图标 + 标题 */
-.sg-project-head { display: flex; align-items: center; gap: .75rem; }
-
-.sg-project-icon {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  border: 1px solid var(--sg-proj-icon-border);
-  border-radius: var(--sg-radius-inner);
-  background-image: linear-gradient(140deg, var(--sg-proj-icon-bg), var(--sg-proj-icon-bg-end));
-  box-shadow: inset 0 1px 0 var(--sg-proj-inset);
-  color: var(--sg-proj-icon-fg);
-  font-size: 1.4rem;
-  line-height: 1;
-  transition:
-    transform var(--sg-dur-card) var(--sg-ease),
-    box-shadow var(--sg-dur-card) var(--sg-ease);
-}
-
-.sg-project:hover .sg-project-icon {
-  transform: translateY(-1px) scale(1.06);
-  box-shadow: inset 0 1px 0 var(--sg-proj-inset), 0 10px 20px -12px var(--sg-proj-accent);
-}
-
+/* 项目名：卡里最大的一档字，允许长仓库名折行（GitHub 上带连字符的名字很常见） */
 .sg-project h3 {
   min-width: 0;
-  font-size: 1.08rem;
-  line-height: 1.45;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.35;
   letter-spacing: -.01em;
   overflow-wrap: anywhere;
 }
 
-.sg-project p {
+/* 描述固定两行：三行会让同一排卡片的高度差出一个行高，网格看着不齐 */
+.sg-project-desc {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   overflow: hidden;
-  font-size: .845rem;
-  line-height: 1.75;
+  font-size: .8125rem;
+  line-height: 1.7;
   color: var(--sg-muted);
 }
+
+/* 语言 / 星数 / 分支数：一行等宽小字，用图标和色点代替文字前缀 */
+.sg-project-facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .7rem;
+  letter-spacing: .02em;
+  color: var(--sg-faint);
+}
+
+.sg-project-lang,
+.sg-project-star,
+.sg-project-fork {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+}
+
+.sg-project-lang i {
+  width: .5rem;
+  height: .5rem;
+  flex: none;
+  border-radius: 50%;
+  background: var(--sg-lang, var(--sg-accent));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--sg-lang, var(--sg-accent)) 18%, transparent);
+}
+
+/* 品牌色是按「白底」定的（PHP #4f5d95、C #555），压到暗色卡面 #12262a 上就糊成一团。
+   暗色统一提一档亮度与饱和度：颜色还认得出来，只是不再埋在底色里。 */
+html.dark .sg-project-lang i { filter: brightness(1.55) saturate(1.15); }
+
+.sg-project-star svg,
+.sg-project-fork svg { width: .78rem; height: .78rem; }
 
 /* 技术栈：描边胶囊（全局 .sg-tags 是实底，这里只覆盖项目卡内的，别动友链 / 文章卡） */
 .sg-project .sg-tags {
@@ -2346,7 +2372,7 @@ html.dark .sg-project-badge { color: var(--sg-indigo-soft); }
   justify-content: space-between;
   gap: .5rem;
   margin-top: .25rem;
-  padding-top: .75rem;
+  padding-top: .6875rem;
   border-top: 1px solid var(--sg-line);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: .7rem;

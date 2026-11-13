@@ -1350,11 +1350,18 @@ function sg_meting_playlist(string $endpoint): array
         return [];
     }
 
-    $bypass = sg_user_is_admin();
-    $cacheFile = rtrim(sys_get_temp_dir(), '/\\') . DIRECTORY_SEPARATOR
-        . 'soraglass-meting-' . md5($endpoint) . '.json';
+    /* 2026-11-14 第三十七轮：这两个变量决定「翻一页要等多久」。
+       原来写的是 `$bypass = sg_user_is_admin();` + 600 秒 TTL —— 站长自己浏览时
+       永远是登录态，于是**每一次翻页都绕过缓存直连 Meting**，而 sg_http_get 的
+       超时是 6 秒；接口正常时也要多花 0.3–1s，接口抖动时整页卡住几秒。
+       这就是「页面间跳转很慢」最直接的原因：PHP 在吐第一个字节之前先等了一次外网。
+       现在缓存优先、谁登录都一样，要强制刷新用 `?sg-refresh=1`（仅管理员有效），
+       TTL 10 分钟 → 1 小时。 */
+    $bypass = isset($_GET['sg-refresh']) && sg_user_is_admin();
+    $ttl = 3600;
+    $cacheFile = sg_cache_file('meting-' . md5($endpoint) . '.json');
 
-    if (!$bypass && is_file($cacheFile) && (time() - (int) filemtime($cacheFile)) < 600) {
+    if (!$bypass && $cacheFile !== '' && is_file($cacheFile) && (time() - (int) filemtime($cacheFile)) < $ttl) {
         $cached = json_decode((string) file_get_contents($cacheFile), true);
         if (is_array($cached) && $cached) {
             return $cached;
@@ -1401,7 +1408,9 @@ function sg_meting_playlist(string $endpoint): array
         return [];
     }
 
-    @file_put_contents($cacheFile, json_encode($out, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    if ($cacheFile !== '') {
+        @file_put_contents($cacheFile, json_encode($out, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    }
 
     return $out;
 }

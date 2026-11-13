@@ -136,23 +136,15 @@
      双层渐变卡面（上亮下暗，制造光从上打下来的层次）、图标色块、顶部 1px 高光。 */
   --sg-proj-face-a: rgba(255, 255, 255, .24);
   --sg-proj-face-b: rgba(255, 255, 255, 0);
-  --sg-proj-inset: rgba(255, 255, 255, .70);       /* 内高光：只给 44px 图标色块，卡面不加（会压灰毛玻璃） */
-  --sg-proj-hairline: rgba(255, 255, 255, .88);    /* 顶部高光强度 */
   --sg-proj-border: rgba(255, 255, 255, .58);      /* 静置描边：比通用卡亮一档，卡片才「有边」 */
   --sg-proj-border-hot: rgba(255, 255, 255, .82);  /* hover 时描边再提亮 */
   /* 下面这批原来是按 indigo-500 手算的 rgba(99,102,241,…)，主色一动就得逐个重算，
      下次再换还得再来一遍。改成 color-mix() 从 --sg-accent 派生：换签名色只改主色 4 个值。
      color-mix 在 Chrome 111 / Safari 16.2 / Firefox 113 起可用，本站无更老的目标。 */
-  --sg-proj-icon-bg: color-mix(in srgb, var(--sg-accent) 20%, transparent);
-  --sg-proj-icon-bg-end: color-mix(in srgb, var(--sg-accent-2) 26%, transparent);  /* 图标块渐变另一端：同色相浅一档 */
-  --sg-proj-icon-border: color-mix(in srgb, var(--sg-accent) 30%, transparent);
   --sg-proj-tint: color-mix(in srgb, var(--sg-accent-soft) 12%, transparent);      /* 卡片右下角冷光，压掉「一整片白」 */
-  --sg-proj-icon-fg: var(--sg-accent-deep);
   --sg-proj-tag-bg: color-mix(in srgb, var(--sg-accent) 11%, transparent);
   --sg-proj-tag-border: color-mix(in srgb, var(--sg-accent) 22%, transparent);
   --sg-proj-tag-fg: var(--sg-accent-deep);      /* 胶囊里的字要压得住 */
-  --sg-proj-accent: color-mix(in srgb, var(--sg-accent) 42%, transparent);
-  --sg-proj-avatar-ring: rgba(255, 255, 255, .85);
 
   /* 贡献热力图（2026-11-13 第三十四轮：绿色 → 青瓷单色梯度）。
      原来是 GitHub 同款绿。留着它就是全站第二个「主色」，签名色立刻失效 ——
@@ -215,20 +207,12 @@ html.dark {
      图标 / 胶囊统一走 accent-soft，深底上才够对比。全部从签名色派生，换色不用再手算。 */
   --sg-proj-face-a: color-mix(in srgb, var(--sg-accent-soft) 10%, transparent);
   --sg-proj-face-b: rgba(12, 26, 29, 0);
-  --sg-proj-inset: rgba(255, 255, 255, .10);
-  --sg-proj-hairline: rgba(255, 255, 255, .22);
   --sg-proj-border: rgba(255, 255, 255, .12);
   --sg-proj-border-hot: rgba(255, 255, 255, .24);
-  --sg-proj-icon-bg: color-mix(in srgb, var(--sg-accent-soft) 20%, transparent);
-  --sg-proj-icon-bg-end: color-mix(in srgb, var(--sg-accent-pale) 16%, transparent);
-  --sg-proj-icon-border: color-mix(in srgb, var(--sg-accent-soft) 34%, transparent);
   --sg-proj-tint: color-mix(in srgb, var(--sg-accent-soft) 14%, transparent);
-  --sg-proj-icon-fg: var(--sg-accent-soft);
   --sg-proj-tag-bg: color-mix(in srgb, var(--sg-accent-soft) 16%, transparent);
   --sg-proj-tag-border: color-mix(in srgb, var(--sg-accent-soft) 28%, transparent);
   --sg-proj-tag-fg: var(--sg-accent-pale);
-  --sg-proj-accent: color-mix(in srgb, var(--sg-accent-soft) 34%, transparent);
-  --sg-proj-avatar-ring: rgba(255, 255, 255, .16);
 }
 
 @layer base {
