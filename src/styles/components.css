@@ -585,7 +585,15 @@ input.sg-progress::-moz-range-thumb {
 }
 
 @media (min-width: 1024px) {
-  .sg-music-page { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: stretch; }
+  .sg-music-page {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    align-items: stretch;
+    /* 源站 MusicClient.tsx:148 「md:h-[calc(100vh-320px)] md:min-h-[600px] md:max-h-[720px]」。
+       这块高度必须由容器兜住：否则 50 条歌单把 grid 行撑到 3000px+，
+       左栏跟着 stretch 成一根空白长条（唱片被顶到屏幕外），
+       右侧的 overflow-y 也永远不触发 —— 表现就是「歌单全部展开、页面被撑开」。 */
+    height: clamp(37.5rem, calc(100vh - 20rem), 45rem);
+  }
 }
 
 .sg-music-panel {
@@ -744,7 +752,13 @@ html.dark .sg-music-disc { border-color: rgba(71, 85, 105, .80); }
 .sg-music-volume:focus-within input { width: 5rem; opacity: 1; }
 
 /* 右侧面板：歌词 / 歌单 */
-.sg-music-side { display: flex; flex-direction: column; overflow: hidden; padding: 0; }
+.sg-music-side { display: flex; flex-direction: column; overflow: hidden; padding: 0; min-height: 0; }
+
+/* 窄屏没有上面那条定高容器，右栏自己定高（源站 mobile 是 h-[450px]），
+   歌单同样在面板内部滚动，不把整页拉长。 */
+@media (max-width: 1023.98px) {
+  .sg-music-side { height: 28rem; }
+}
 
 .sg-music-tabs { display: flex; justify-content: center; padding: 1rem 0 .75rem; flex-shrink: 0; }
 
@@ -754,10 +768,21 @@ html.dark .sg-music-disc { border-color: rgba(71, 85, 105, .80); }
   position: relative;
   flex: 1;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
   padding: 1.5rem 1.25rem;
   -webkit-mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
   mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+}
+
+/* 歌词块：行数少时靠 margin-block:auto 竖直居中（演示站是 py-[30vh] 把
+   当前行顶到面板中间）；行数多到溢出时两个 auto 自动归零，正常从上往下滚。
+   直接写 justify-content:center 会裁掉溢出内容的顶部且滚不回去。 */
+.sg-lyrics-inner {
+  display: flex;
+  flex-direction: column;
+  margin-block: auto;
 }
 
 .sg-lyric-line {

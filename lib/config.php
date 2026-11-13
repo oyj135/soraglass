@@ -286,10 +286,12 @@ function sg_current_slug($archive): string
 }
 
 /**
- * 按缩略名取独立页永久链接；页面不存在时回退到站点首页。
- * 用来避免模板里硬编码 xxx.html 造成的死链（站点未必建了同名页面）。
+ * 全站独立页的「缩略名 → 永久链接」映射。
+ *
+ * 一次查询、进程内复用：导航要判断「碎语页建没建」，模板要用永久链接，
+ * 都不该各查一次。
  */
-function sg_page_url(string $slug): string
+function sg_page_map(): array
 {
     static $cache = null;
 
@@ -307,8 +309,24 @@ function sg_page_url(string $slug): string
         }
     }
 
-    if (isset($cache[$slug])) {
-        return $cache[$slug];
+    return $cache;
+}
+
+/** 站点里是否建了某个缩略名的独立页 */
+function sg_page_exists(string $slug): bool
+{
+    return isset(sg_page_map()[$slug]);
+}
+
+/**
+ * 按缩略名取独立页永久链接；页面不存在时回退到站点首页。
+ * 用来避免模板里硬编码 xxx.html 造成的死链（站点未必建了同名页面）。
+ */
+function sg_page_url(string $slug): string
+{
+    $map = sg_page_map();
+    if (isset($map[$slug])) {
+        return $map[$slug];
     }
 
     $options = sg_options();
@@ -317,8 +335,32 @@ function sg_page_url(string $slug): string
     return rtrim($home, '/') . '/';
 }
 
-/** 独立页副标题：优先自定义字段 subtitle */
-function sg_page_sub($archive, string $default = ''): string
+/**
+ * 当前访问者是不是登录用户。
+ *
+ * 只用于「管理员改完配置立刻看到效果」这一件事：远程歌单缓存、后台 JSON 之类
+ * 在登录状态下绕过，前台访客仍然走缓存。取不到用户信息时一律当访客处理。
+ */
+function sg_user_is_admin(): bool
+{
+    static $isAdmin = null;
+
+    if ($isAdmin === null) {
+        $isAdmin = false;
+        try {
+            if (class_exists('\\Widget\\User')) {
+                $user = \Widget\User::alloc();
+                $isAdmin = is_object($user) && method_exists($user, 'hasLogin') && $user->hasLogin();
+            }
+        } catch (\Throwable $e) {
+            $isAdmin = false;
+        }
+    }
+
+    return $isAdmin;
+}
+
+/** 独立页副标题：优先自定义字段 subtitle */function sg_page_sub($archive, string $default = ''): string
 {
     try {
         $value = $archive->fields->subtitle;

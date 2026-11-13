@@ -50,7 +50,17 @@ if (!in_array($sgBlur, ['none', 'soft', 'strong'], true)) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title><?php if ($this->is('post') || $this->is('page') || $this->is('category') || $this->is('tag') || $this->is('search')) { $this->archiveTitle('', '', ' - '); } ?><?php $this->options->title(); ?></title>
+<title><?php
+    /* 「杂谈」「说说」两个旧页现在渲染的是「碎语」流（§21），
+       标题标签跟着统一，别让浏览器标签页还写着旧名字。 */
+    $sgDocSlug = sg_current_slug($this);
+    if (in_array($sgDocSlug, ['chatter', 'moments'], true)) {
+        echo '碎语 - ';
+    } elseif ($this->is('post') || $this->is('page') || $this->is('category') || $this->is('tag') || $this->is('search')) {
+        $this->archiveTitle('', '', ' - ');
+    }
+    $this->options->title();
+    ?></title>
 <link rel="icon" href="<?php echo sg_e(sg_theme_url('dist/favicon.svg')); ?>">
 <script>
 (function () {

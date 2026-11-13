@@ -295,9 +295,19 @@ function themeConfig($form): void
     $form->addInput(new Select('sgPosterMode', $posterModes, 'album', _t('首页宽幅卡（右侧大海报）'), _t('决定首页右侧那张宽幅海报取什么内容；默认放「光影画廊」最新相册。它的背景图就是相册 cover / 文章 cover / 下一项 JSON 里的 cover。')));
     $form->addInput(new Textarea('sgPoster', null, '', _t('宽幅卡 JSON'), _t('<b>显示位置</b>：仅上面选「自定义」时生效，替换首页右上那张海报。<br>格式：<code>{"title":"…","desc":"…","cover":"…","url":"…","kicker":"PHOTO WALL"}</code><br>其中 <code>cover</code> 就是这张卡的背景图，支持 https 外链与 <code>usr/uploads/…</code> 相对路径。')));
 
-    $form->addInput(new Textarea('sgPlaylist', null, '', _t('歌单 JSON'), _t('留空使用 dist/data/playlist.json；字段：title/artist/cover/url/lrc。自带音源放在 <code>public/audio/</code>，地址写 <code>dist/audio/xxx.mp3</code> 即可')));
+    $form->addInput(new Textarea('sgPlaylist', null, '', _t('歌单'), _t(
+        '主题只有这一处歌单配置，三种写法任选其一：<br>'
+        . '<b>①留空</b>：用主题自带的 CC-BY 纯音乐（<code>dist/data/playlist.json</code>）。<br>'
+        . '<b>②填 JSON 数组</b>：自己挑的曲目，字段 <code>title / artist / cover / url / lrc</code>；'
+        . '自带音源放 <code>public/audio/</code> 时 url 写 <code>dist/audio/xxx.mp3</code>。<br>'
+        . '<b>③填 Meting 接口地址</b>：整条 URL 原样透传，例如 '
+        . '<code>https://api.injahow.cn/meting/?server=netease&amp;type=playlist&amp;id=2619366284</code>，'
+        . '主题把返回的 JSON 当歌单用，音频地址与歌词都来自接口。<br>'
+        . '<b>生效时机</b>：前台缓存 10 分钟；以管理员身份登录时每次刷新都会重新取，改完即可见。'
+        . '音乐页底部会显示「当前数据源 + 条数」，可据此确认命中哪一条。'
+    )));
+    $form->addInput(new Text('sgPlaylistLimit', null, '50', _t('歌单上限（条）'), _t('只对 Meting 远程歌单生效：一个热门歌单常有几百首，全量塞进页面会让单页体积超过 500 KB。填 0 表示不截断；手填的 JSON 歌单不受此限')));
     $form->addInput(new Textarea('sgNotes', null, '', _t('碎语 JSON'), _t('「碎语」页与首页碎语轮播的数据源，留空使用 dist/data/notes.json。<br>格式：<code>[{"date":"2026.11.13","tag":"日常","title":"…","text":"…","cover":"…"}]</code>')));
-    $form->addInput(new Textarea('sgPlaylistIds', null, '', _t('网易云歌曲 ID'), _t('逗号或换行分隔。歌单 JSON 留空时才启用：服务端拉歌曲名/封面/歌词，播放地址是 outer/url 外链（有 403 风险）')));
     $form->addInput(new Textarea('sgBriefing', null, '', _t('每日选刊 JSON'), _t('格式：{"channels":[{"id","name"}],"issues":[{"date","title","desc","cover","items":[...]}]}；也兼容旧的数组格式，留空使用 dist/data/briefing.json')));
     $form->addInput(new Text('sgIcp', null, '', _t('备案号'), _t('显示位置：页脚第一行「系统已稳定运行」的右侧。填阿里云备案下来的完整号（例：湘ICP备2023030699号）；留空则整段不输出，不留空位')));
 

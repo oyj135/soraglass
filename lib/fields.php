@@ -432,26 +432,136 @@ function sg_home_poster($archive = null): array
 }
 
 /**
- * 歌单：后台 JSON → 后台网易云歌曲 ID → dist/data/playlist.json。
- * 三层回退保证「只要配了任意一层，播放器就有声音」。
+ * 歌单数据源 —— 只有一套配置：后台「歌单」文本域 `sgPlaylist`。
+ *
+ * 填什么就是什么，三种写法：
+ *   ①留空                    → `dist/data/playlist.json`（主题自带的 CC-BY 音频）
+ *   ②以 `[` 开头的 JSON 数组 → 直接当歌单用（自己挑的曲目）
+ *   ③以 http(s) 开头的地址   → 当作 Meting 兼容接口整条请求
+ *     例：`https://api.injahow.cn/meting/?server=netease&type=playlist&id=2619366284`
+ *
+ * 之所以收成一层：以前「后台 JSON / Meting 四件套 / 网易云 ID」并列，
+ * 谁生效取决于留空顺序，站长改完不知道卡在哪 —— 歌单不更新多半就是这么来的。
+ * 现在只有一个输入框，命中结果由 `sg_playlist_source()` 显示在音乐页。
  */
 function sg_playlist(): array
 {
-    $list = sg_json('sgPlaylist', 'playlist', []);
-    $list = array_values(array_filter($list, static fn($item) => is_array($item)));
-    if ($list) {
-        return sg_playlist_media($list);
-    }
+    $raw = trim((string) sg_opt('sgPlaylist', ''));
 
-    $ids = sg_opt('sgPlaylistIds', '');
-    if (trim($ids) !== '') {
-        $remote = sg_netease_playlist($ids);
-        if ($remote) {
-            return $remote;
+    /* 旧版「Meting API 地址 + 平台 + 类型 + ID」四件套的兼容：
+       这四个字段已经下线，但老站的 options 里可能还留着值。直接把它们拼成一条
+       地址继续用，免得升级主题后歌单突然变回自带音频。站长把完整地址填进
+       「歌单」后，这一支自然失效。 */
+    if ($raw === '') {
+        $legacyApi = trim((string) sg_opt('sgMetingApi', ''));
+        $legacyId = trim((string) sg_opt('sgMetingId', ''));
+        if ($legacyApi !== '' && $legacyId !== '' && preg_match('#^https?://#i', $legacyApi)) {
+            $raw = rtrim($legacyApi, '/') . '/?' . http_build_query([
+                'server' => trim((string) sg_opt('sgMetingServer', 'netease')) ?: 'netease',
+                'type'   => trim((string) sg_opt('sgMetingType', 'playlist')) ?: 'playlist',
+                'id'     => $legacyId,
+            ]);
+            $GLOBALS['SG_PLAYLIST_LEGACY'] = true;
         }
     }
 
-    return [];
+    /* ③ 远程接口：整条 URL 透传 */
+    if ($raw !== '' && preg_match('#^https?://#i', $raw)) {
+        $remote = sg_meting_playlist($raw);
+        if ($remote) {
+            $GLOBALS['SG_PLAYLIST_SOURCE'] = 'Meting · ' . sg_meting_label($raw)
+                . (!empty($GLOBALS['SG_PLAYLIST_LEGACY']) ? '（旧版设置，建议把完整地址填进「歌单」）' : '');
+            return sg_playlist_cap($remote);
+        }
+    }
+
+    /* ② 手填 JSON */
+    if ($raw !== '' && !preg_match('#^https?://#i', $raw)) {
+        $list = json_decode($raw, true);
+        $list = is_array($list) ? array_values(array_filter($list, static fn($item) => is_array($item))) : [];
+        if ($list) {
+            $GLOBALS['SG_PLAYLIST_SOURCE'] = '后台「歌单 JSON」';
+            return sg_playlist_media($list);
+        }
+        $GLOBALS['SG_PLAYLIST_ERROR'] = '「歌单」里填的内容既不是 JSON 也不是 http(s) 地址，已回退到主题自带音频。';
+    }
+
+    /* ① 随包音频 */
+    $GLOBALS['SG_PLAYLIST_SOURCE'] = '主题自带音频（dist/data/playlist.json）';
+    $fallback = sg_json('sgPlaylist', 'playlist', []);
+    $fallback = array_values(array_filter($fallback, static fn($item) => is_array($item)));
+
+    return $fallback ? sg_playlist_media($fallback) : [];
+}
+
+/**
+ * 当前生效的歌单来源，给模板显示用。
+ */
+function sg_playlist_source(): string
+{
+    return (string) ($GLOBALS['SG_PLAYLIST_SOURCE'] ?? '主题自带音频（dist/data/playlist.json）');
+}
+
+/**
+ * 最近一次取远程歌单失败的原因；没有失败时是空串。
+ */
+function sg_playlist_error(): string
+{
+    return (string) ($GLOBALS['SG_PLAYLIST_ERROR'] ?? '');
+}
+
+/**
+ * 音乐页底部的一行诊断：来源 + 条数（+ 失败原因）。
+ */
+function sg_playlist_diag(int $count): string
+{
+    $text = sg_playlist_source() . '，共 ' . $count . ' 首';
+    $error = sg_playlist_error();
+    if ($error !== '') {
+        $text .= '；' . $error;
+    }
+    return $text;
+}
+
+/**
+ * 把 Meting 地址缩成 `server/type/id`，用于「当前数据源」那一行。
+ */
+function sg_meting_label(string $url): string
+{
+    $query = [];
+    $parts = parse_url($url);
+    if (is_array($parts) && isset($parts['query'])) {
+        parse_str((string) $parts['query'], $query);
+    }
+    $bits = [];
+    foreach (['server', 'type', 'id'] as $key) {
+        $value = trim((string) ($query[$key] ?? ''));
+        if ($value !== '') {
+            $bits[] = $value;
+        }
+    }
+
+    return $bits ? implode('/', $bits) : (string) parse_url($url, PHP_URL_HOST);
+}
+
+/**
+ * 远程歌单截断。
+ *
+ * 一个热门网易云歌单动辄几百首：整份塞进 `window.SG.playlist` 与歌单列表，
+ * 单页 HTML 会膨胀到 500 KB 以上，而且每一首都带一张懒加载封面。
+ * 这里按后台「歌单上限」截断（默认 50，填 0 不截断），手工填的歌单 JSON 不受影响
+ * —— 那份是站长自己挑过的。
+ *
+ * @param array<int,array<string,mixed>> $list
+ * @return array<int,array<string,mixed>>
+ */
+function sg_playlist_cap(array $list): array
+{
+    $limit = (int) sg_opt('sgPlaylistLimit', '50');
+    if ($limit > 0 && count($list) > $limit) {
+        return array_slice($list, 0, $limit);
+    }
+    return $list;
 }
 
 /**
@@ -552,81 +662,156 @@ function sg_playlist_media(array $list): array
 }
 
 /**
- * 网易云歌曲 ID → 歌单数组（对齐源站 app/api/music/route.ts 的做法）。
+ * 一个极简 GET：curl 优先，失败退 file_get_contents。
  *
- * 源站跑在 Node 上，用 route handler 代理请求绕开浏览器跨域；Typecho 没有
- * 路由层，所以把同样的两步（song/detail + song/lyric）搬到 PHP 侧，
- * 结果按「ID 列表 + 6 小时」缓存到系统临时目录，避免每次打开页面都打外网。
+ * 「失败」真的会发生：有些 PHP 构建没配 CA 包，curl 直接报
+ * `errno 60 unable to get local issuer certificate`，而 file_get_contents
+ * 走的是另一套 CA 配置、常常还能通 —— 所以 curl 拿不到内容时必须再试一次，
+ * 否则站长会看到「接口没数据」，实际只是证书链没配。
  *
- * 注意：`outer/url` 是 302 跳转，能否播放取决于网易云是否放行（常常 403）。
- * 这里只负责把数据补齐，真正的稳定播放仍建议填可直链的音频地址。
+ * 只允许 http/https（含重定向），避免配置里出现 file:// 之类的协议被 curl 跟着跑。
  *
- * @param string $ids 逗号或换行分隔的歌曲 ID
+ * @param array<int,string> $headers 形如 `Accept: application/json`
  */
-function sg_netease_playlist(string $ids): array
+function sg_http_get(string $url, array $headers = [], int $timeout = 6): string
 {
-    $list = preg_split('/[\s,]+/', trim($ids));
-    $list = array_values(array_filter(array_map('strval', $list), static fn($id) => preg_match('/^\d{3,}$/', $id) === 1));
-    if (!$list) {
+    $ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
+    $headers = array_merge(['User-Agent: ' . $ua], $headers);
+
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        $opts = [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => $timeout,
+            CURLOPT_CONNECTTIMEOUT => 3,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS      => 3,
+            CURLOPT_HTTPHEADER     => $headers,
+        ];
+        if (defined('CURLOPT_PROTOCOLS')) {
+            $opts[CURLOPT_PROTOCOLS] = CURLPROTO_HTTP | CURLPROTO_HTTPS;
+        }
+        if (defined('CURLOPT_REDIR_PROTOCOLS')) {
+            $opts[CURLOPT_REDIR_PROTOCOLS] = CURLPROTO_HTTP | CURLPROTO_HTTPS;
+        }
+        /* 只有 cainfo 落在 open_basedir 允许的目录里才去看它。
+           宝塔这类环境 curl.cainfo 指向 /etc/pki/tls/certs/ca-bundle.crt，
+           而 open_basedir 只有站点目录 + /tmp，直接 is_file() 会在页面顶部喷
+           「open_basedir restriction in effect」警告（首页/音乐页都会），
+           所以先比对目录前缀，必要时再用 @ 兜一层。 */
+        $cainfo = (string) ini_get('curl.cainfo');
+        if ($cainfo !== '') {
+            $allowed = trim((string) ini_get('open_basedir'));
+            $ok = $allowed === '';
+            if (!$ok) {
+                foreach (explode(PATH_SEPARATOR, $allowed) as $dir) {
+                    $dir = rtrim(trim($dir), '/\\');
+                    if ($dir !== '' && strpos($cainfo, $dir . DIRECTORY_SEPARATOR) === 0) {
+                        $ok = true;
+                        break;
+                    }
+                }
+            }
+            if ($ok && @is_file($cainfo)) {
+                $opts[CURLOPT_CAINFO] = $cainfo;
+            }
+        }
+        curl_setopt_array($ch, $opts);
+        $body = curl_exec($ch);
+        $failed = $body === false || $body === '';
+        curl_close($ch);
+        if (!$failed) {
+            return (string) $body;
+        }
+    }
+
+    $ctx = stream_context_create([
+        'http' => [
+            'timeout'         => $timeout,
+            'header'          => implode("\r\n", $headers) . "\r\n",
+            'follow_location' => 1,
+            'max_redirects'   => 3,
+        ],
+    ]);
+    $body = @file_get_contents($url, false, $ctx);
+    return is_string($body) ? $body : '';
+}
+
+/**
+ * Meting 兼容 API → 歌单数组。
+ *
+ * Meting 是 APlayer 生态里事实上的后端契约（Typecho 的 `Meting` 插件、MetingJS、
+ * 多数主题都吃同一份 JSON），所以这里只实现「读它的 JSON」，不引入 APlayer / 第三方 JS。
+ * 字段同时兼容两套命名：
+ *   `name / artist / url / pic / lrc`（APlayer 标准）
+ *   `title / author / url / pic`（i-meto 老接口）
+ *
+ * `lrc` 有两副面孔：有的是歌词正文（含 [mm:ss]），有的是纯文本地址（`type=lrc`）。
+ * 后者原样交给前端按需 fetch —— 该接口带 `Access-Control-Allow-Origin: *`。
+ *
+ * 缓存 10 分钟。**登录状态下的管理员不加缓存**：站长在后台换歌单、改配置后刷新页面
+ * 就该看到新内容 —— 之前固定缓存 3 小时，改完以为「没生效」，是「歌单不更新」的元凶。
+ * 前台访客仍然吃缓存，避免每次访问都打外网。
+ */
+function sg_meting_playlist(string $endpoint): array
+{
+    $endpoint = trim($endpoint);
+    if ($endpoint === '' || !preg_match('#^https?://#i', $endpoint)) {
         return [];
     }
 
-    $cacheKey = 'soraglass-netease-' . md5(implode(',', $list)) . '.json';
-    $cacheFile = rtrim(sys_get_temp_dir(), '/\\') . DIRECTORY_SEPARATOR . $cacheKey;
-    if (is_file($cacheFile) && (time() - (int) filemtime($cacheFile)) < 21600) {
+    $bypass = sg_user_is_admin();
+    $cacheFile = rtrim(sys_get_temp_dir(), '/\\') . DIRECTORY_SEPARATOR
+        . 'soraglass-meting-' . md5($endpoint) . '.json';
+
+    if (!$bypass && is_file($cacheFile) && (time() - (int) filemtime($cacheFile)) < 600) {
         $cached = json_decode((string) file_get_contents($cacheFile), true);
         if (is_array($cached) && $cached) {
             return $cached;
         }
     }
 
-    $ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
-    $get = static function (string $url) use ($ua): string {
-        if (function_exists('curl_init')) {
-            $ch = curl_init($url);
-            curl_setopt_array($ch, [
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_TIMEOUT        => 6,
-                CURLOPT_CONNECTTIMEOUT => 3,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_USERAGENT      => $ua,
-                CURLOPT_REFERER        => 'https://music.163.com/',
-            ]);
-            $body = curl_exec($ch);
-            curl_close($ch);
-            return is_string($body) ? $body : '';
+    $body = sg_http_get($endpoint, ['Accept: application/json']);
+    $rows = $body !== '' ? json_decode($body, true) : null;
+    if (!is_array($rows)) {
+        /* 拿不到就退回上一份缓存，总比音乐页空着强；失败原因照样报到页面上 */
+        $stale = is_file($cacheFile) ? json_decode((string) file_get_contents($cacheFile), true) : null;
+        if (is_array($stale) && $stale) {
+            $GLOBALS['SG_PLAYLIST_ERROR'] = '接口这次没返回可解析的 JSON，先用的是上次缓存。';
+            return $stale;
         }
-        $ctx = stream_context_create([
-            'http' => ['timeout' => 6, 'header' => "User-Agent: {$ua}\r\nReferer: https://music.163.com/\r\n"],
-        ]);
-        $body = @file_get_contents($url, false, $ctx);
-        return is_string($body) ? $body : '';
-    };
+        $GLOBALS['SG_PLAYLIST_ERROR'] = '接口没有返回可解析的 JSON（检查地址是否可达、是否需要换一个公共实例）。';
+        return [];
+    }
 
     $out = [];
-    foreach ($list as $id) {
-        $detail = json_decode($get('https://music.163.com/api/song/detail/?id=' . $id . '&ids=[' . $id . ']'), true);
-        $song = is_array($detail) ? ($detail['songs'][0] ?? null) : null;
-        if (!is_array($song)) {
+    foreach ($rows as $row) {
+        if (!is_array($row)) {
             continue;
         }
-
-        $lyric = json_decode($get('https://music.163.com/api/song/lyric?id=' . $id . '&lv=-1&kv=-1&tv=-1'), true);
-        $lrc = is_array($lyric) ? (string) ($lyric['lrc']['lyric'] ?? '') : '';
-
+        $title = trim((string) ($row['name'] ?? $row['title'] ?? ''));
+        $url = trim((string) ($row['url'] ?? ''));
+        if ($title === '' || $url === '') {
+            continue;   // 没有播放地址的条目直接丢掉，点了没反应比不显示更糟
+        }
+        $cover = trim((string) ($row['pic'] ?? $row['cover'] ?? ''));
         $out[] = [
-            'id'     => (string) $id,
-            'title'  => (string) ($song['name'] ?? '未命名'),
-            'artist' => (string) ($song['artists'][0]['name'] ?? '未知歌手'),
-            'cover'  => (string) ($song['album']['picUrl'] ?? ''),
-            'url'    => 'https://music.163.com/song/media/outer/url?id=' . $id . '.mp3',
-            'lrc'    => $lrc,
+            'title'  => $title,
+            'artist' => trim((string) ($row['artist'] ?? $row['author'] ?? '')),
+            'album'  => trim((string) ($row['album'] ?? '')),
+            'cover'  => $cover !== '' ? $cover : sg_theme_url('dist/img/cover-default.svg'),
+            'url'    => $url,
+            'lrc'    => trim((string) ($row['lrc'] ?? '')),
+            'lyric'  => '',
         ];
     }
 
-    if ($out) {
-        @file_put_contents($cacheFile, json_encode($out, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    if (!$out) {
+        $GLOBALS['SG_PLAYLIST_ERROR'] = '接口返回的条目里没有可播放地址（公共实例可能限制了该歌单）。';
+        return [];
     }
+
+    @file_put_contents($cacheFile, json_encode($out, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 
     return $out;
 }

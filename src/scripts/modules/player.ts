@@ -103,13 +103,17 @@ export function initPlayer(): void {
   );
   const lyricBar = document.querySelector<HTMLElement>('[data-sg-lyric-bar]');
   const typeTimers: number[] = [];
+  /* 歌词地址（Meting type=lrc 返回的是纯文本 URL）按次缓存；
+     applySeq 用来判断「异步拿回歌词时是不是已经切歌了」。 */
+  const lrcCache = new Map<string, string>();
+  let applySeq = 0;
 
   if (!tracks.length) {
     roots.forEach((root) => {
       const title = q(root, '[data-sg-track-title]');
       if (title) title.textContent = '歌单为空';
     });
-    lyricTargets.forEach((el) => { el.textContent = '到后台「歌单 JSON」或「网易云歌曲 ID」里加几首'; });
+    lyricTargets.forEach((el) => { el.textContent = '到后台「歌单 JSON」或「Meting」里加几首'; });
     roots.forEach((root) => {
       root.querySelectorAll<HTMLButtonElement>('button').forEach((btn) => {
         btn.addEventListener('click', () => toast('还没有配置音频，先到后台填歌单'));
@@ -133,10 +137,12 @@ export function initPlayer(): void {
   const lyricEmpty = document.querySelector<HTMLElement>('[data-sg-lyrics-empty]');
   let lines: Array<{ time: number; text: string; el: HTMLElement }> = [];
   let activeLine = -1;
+  /* 没有歌词面板时（首页只有一个歌词栏），buildLyrics 不再建 DOM，
+     但「当前这一句」仍要留着给 paintLyric 用。 */
+  let currentLyricText = '';
 
   const trackEls = Array.from(document.querySelectorAll<HTMLElement>('[data-sg-track]'));
   const songEls = Array.from(document.querySelectorAll<HTMLElement>('.sg-song[data-sg-track]'));
-
   const persist = (): void => {
     writeStore(STATE_KEY, {
       index,
@@ -178,17 +184,29 @@ export function initPlayer(): void {
   };
 
   const buildLyrics = (raw: string, fallbackText = ''): void => {
-    if (!lyricBox) return;
     const parsed = parseLrc(raw);
     /* 纯音乐没有 LRC：把 track.lyric 当成一句话铺进去，
        否则右侧歌词区永远停在「正在等待旋律…」，看着像加载失败。 */
     if (!parsed.length && fallbackText) {
       parsed.push({ time: -1, text: fallbackText });
     }
+    currentLyricText = parsed.length ? parsed[0].text : '';
     lines = [];
     activeLine = -1;
+    if (!lyricBox) return;   // 首页只有一行歌词栏，不需要建列表
     lyricBox.querySelectorAll('.sg-lyric-line').forEach((el) => el.remove());
     if (lyricEmpty) lyricEmpty.hidden = parsed.length > 0;
+
+    /* 歌词行套一层 .sg-lyrics-inner：CSS 用 margin-block:auto 让「只有几行」时
+       整块竖直居中（对齐演示站那种歌词停在面板中间的观感）；
+       行数多到溢出时 auto 归零，照旧从头开始滚动。 */
+    let inner = lyricBox.querySelector<HTMLElement>('.sg-lyrics-inner');
+    if (!inner) {
+      inner = document.createElement('div');
+      inner.className = 'sg-lyrics-inner';
+      lyricBox.appendChild(inner);
+    }
+    inner.textContent = '';
 
     parsed.forEach((line, i) => {
       const el = document.createElement('button');
@@ -202,13 +220,43 @@ export function initPlayer(): void {
         }
         void i;
       });
-      lyricBox?.appendChild(el);
+      inner.appendChild(el);
       lines.push({ time: line.time, text: line.text, el });
     });
   };
 
-  const syncLyricLine = (): void => {
-    if (!lines.length) return;
+  /* Meting 的 lrc 有两种：歌词正文，或一个纯文本地址（`type=lrc`）。
+     是地址就按需 fetch 一次并缓存；拿不到就按「没有歌词」处理，不打断播放。 */
+  const applyLyrics = (raw: string, fallbackText: string): void => {
+    const seq = (applySeq += 1);
+    const paint = (text: string): void => {
+      buildLyrics(text, fallbackText);
+      paintLyric(lines.length ? lines[0].text : (currentLyricText || '——'));
+    };
+
+    if (!/^https?:\/\//i.test(raw)) {
+      paint(raw);
+      return;
+    }
+
+    const cached = lrcCache.get(raw);
+    if (cached !== undefined) {
+      paint(cached);
+      return;
+    }
+
+    paint('');   // 先把兜底那句铺上，面板不至于空着
+    void fetch(raw, { mode: 'cors' })
+      .then((res) => (res.ok ? res.text() : ''))
+      .then((text) => {
+        lrcCache.set(raw, text);
+        if (seq !== applySeq) return;   // 已经把歌切走了，别拿旧歌词盖住新的
+        paint(text.replace(/\r/g, ''));
+      })
+      .catch(() => { /* 歌词拿不到不影响播放 */ });
+  };
+
+  const syncLyricLine = (): void => {    if (!lines.length) return;
     let next = 0;
     for (let i = 0; i < lines.length; i += 1) {
       if (lines[i].time >= 0 && lines[i].time <= audio.currentTime + 0.25) next = i;
@@ -270,8 +318,8 @@ export function initPlayer(): void {
     });
 
     // 有 LRC 用逐行歌词，没有就退化成一句静态说明（不要空着）
-    buildLyrics(String(track.lrc ?? ''), String(track.lyric ?? ''));
-    paintLyric(lines.length ? lines[0].text : (track.lyric ? String(track.lyric) : '——'));
+    // 歌词可能是 URL（Meting 的 type=lrc），拿回来之前先显示歌名，别让歌词栏空着
+    applyLyrics(String(track.lrc ?? ''), String(track.lyric ?? '') || String(track.title ?? ''));
     markTrack();
   };
 
