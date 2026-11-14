@@ -33,6 +33,7 @@ $sgHead = [
         <span class="sg-music-halo" aria-hidden="true"></span>
         <div class="sg-music-disc">
           <img src="<?php echo sg_e(sg_media((string) ($sgFirst['cover'] ?? ''), sg_theme_url('dist/img/cover-default.svg'))); ?>" alt="" data-sg-track-cover data-sg-fallback="<?php echo sg_e(sg_theme_url('dist/img/cover-default.svg')); ?>">
+          <span class="sg-music-dust" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
         </div>
       </div>
 
@@ -63,7 +64,7 @@ $sgHead = [
         </div>
 
         <div class="sg-music-volume">
-          <button type="button" data-sg-mute aria-label="静音"><?php echo sg_icon('volume'); ?></button>
+          <button type="button" class="sg-music-mute" data-sg-mute aria-label="静音"><?php echo sg_icon('volume'); ?></button>
           <input class="sg-progress" type="range" min="0" max="100" value="80" data-sg-volume aria-label="音量">
         </div>
       </div>

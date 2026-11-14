@@ -861,167 +861,159 @@ html.dark .sg-player-controls .sg-player-play:hover {
 
 @media (min-width: 768px) { .sg-music-panel { padding: 2.25rem; } }
 
-/* 大唱片（第三十九轮）：和首页那颗同一套语言 —— 封面静止、外层两片错位光环在转。
-   面板背景另有一层：封面主色渐晕 + 同心圆声波 + 稀疏光点（见 .sg-music-panel::after）。 */
+/* 视频参考：静止圆封面 + 两片半透明宽面，18s 顺时针慢转。
+   仅作用于音乐页；首页小播放器保留原来的虹彩皮肤。 */
 .sg-music-stage {
   position: relative;
   display: grid;
   place-items: center;
   flex: 1;
   min-height: 12rem;
-  padding: .5rem 0;
+  padding: 1.75rem 0;
 }
 
-/* 光晕只做「底光」，真正的形状交给两片环 */
+/* 底光不抢外环轮廓，颜色仍由封面取色驱动。 */
 .sg-music-halo {
   position: absolute;
-  width: 78%;
+  width: 74%;
   aspect-ratio: 1;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--sg-cover-tint, var(--sg-accent)) 34%, transparent);
+  pointer-events: none;
+  background: color-mix(in srgb, var(--sg-cover-tint, var(--sg-accent)) 26%, transparent);
   filter: blur(34px);
-  opacity: .28;
-  transition: opacity 1s var(--sg-ease), transform 1s var(--sg-ease);
+  opacity: .16;
+  transition: opacity 1s var(--sg-ease);
 }
+.sg-music.is-playing .sg-music-halo { opacity: .3; }
 
-.sg-music.is-playing .sg-music-halo { opacity: .9; transform: scale(1.05); }
-
-/* ⚠️ 容器不能 overflow:hidden —— 两片环要溢出到圆外；裁切与白边下放到 img。
-   环的旋转、半径组、层叠顺序与首页 `.sg-player-disc` 完全一致，只把尺寸放大。 */
+/* 两片略长的花瓣从圆封面背后露出：不用 conic-gradient 或挖心蒙版。
+   层级必须是 before(0) < after(1) < img(2)，封面不参与旋转。 */
 .sg-music-disc {
   position: relative;
+  isolation: isolate;
   width: min(17rem, 66%);
   aspect-ratio: 1;
-  --sg-iris-a: .46;          /* 虹彩强度，与首页那颗同一套取值 */
-  transition: transform .7s var(--sg-ease);
 }
-
-html.dark .sg-music-disc { --sg-iris-a: .32; }
-
 .sg-music-disc::before,
 .sg-music-disc::after {
   content: '';
   position: absolute;
   pointer-events: none;
-  /* 18s 一圈、linear、顺时针（与首页一致：约 20°/秒） */
   animation: sg-spin 18s linear infinite;
   animation-play-state: paused;
+  filter: blur(.6px);
+  background: linear-gradient(165deg,
+    color-mix(in srgb, var(--sg-music-petal-pearl) 64%, transparent) 0%,
+    color-mix(in srgb, var(--sg-music-petal-lilac) 50%, transparent) 58%,
+    color-mix(in srgb, var(--sg-music-petal-lilac) 66%, transparent) 100%);
 }
-
-.sg-music-disc::before { z-index: 0; animation-delay: -1s; }
-.sg-music-disc::after { z-index: 2; animation-delay: -3.5s; }
-
-/* 乳白主体：实心花瓣被封面压住中心，只露一圈窄边 */
 .sg-music-disc::before {
-  inset: -16%;
-  border-radius: 64% 36% 50% 50% / 58% 42% 62% 38%;
-  background: linear-gradient(150deg,
-      color-mix(in srgb, var(--sg-accent) 62%, transparent) 0,
-      color-mix(in srgb, var(--sg-accent) 36%, transparent) 55%,
-      color-mix(in srgb, var(--sg-accent) 14%, transparent) 100%);
-  opacity: .92;
-  /* 演示视频里这团光是柔边，不是硬边的圆 —— 大唱片尺寸下 1.5px 的模糊刚好 */
-  filter: blur(1.5px);
-  transition: opacity .7s var(--sg-ease);
+  z-index: 0;
+  inset: -11% -4%;
+  border-radius: 48% 52% 47% 53% / 47% 49% 51% 53%;
+  animation-delay: -1s;
 }
-
-/* 虹彩细纹：圆锥渐变三段上色 + mask 挖心，与主体错开 48°，交叠处才出月牙 */
 .sg-music-disc::after {
-  inset: -24%;
-  border-radius: 82% 18% 68% 32% / 24% 76% 30% 70%;
-  background: conic-gradient(from 40deg,
-      transparent 0,
-      rgba(255, 200, 224, var(--sg-iris-a)) 68deg,
-      rgba(172, 224, 240, var(--sg-iris-a)) 148deg,
-      rgba(255, 234, 198, var(--sg-iris-a)) 232deg,
-      transparent 308deg);
-  -webkit-mask-image: radial-gradient(closest-side,
-      transparent 74%, #000 77% 96%, transparent 98.5%);
-  mask-image: radial-gradient(closest-side,
-      transparent 74%, #000 77% 96%, transparent 98.5%);
+  z-index: 1;
+  inset: -10% -3%;
+  border-radius: 52% 48% 53% 47% / 49% 53% 47% 51%;
+  animation-delay: -3.5s;
+  background: linear-gradient(155deg,
+    color-mix(in srgb, var(--sg-music-petal-pearl) 48%, transparent) 0%,
+    color-mix(in srgb, var(--sg-music-petal-lilac) 38%, transparent) 56%,
+    color-mix(in srgb, var(--sg-music-petal-lilac) 56%, transparent) 100%);
 }
-
-html.dark .sg-music-disc::before {
-  /* 暗底上不能给实心乳白，会糊成一块白饼干；半透明偏冷的奶白才像「光」 */
-  background: linear-gradient(150deg,
-      rgba(214, 233, 240, .30) 0,
-      rgba(196, 220, 232, .20) 55%,
-      rgba(180, 206, 220, .10) 100%);
-}
-
-html.dark .sg-music-disc::after { --sg-iris-a: .55; }
-
 .sg-music.is-playing .sg-music-disc::before,
 .sg-music.is-playing .sg-music-disc::after { animation-play-state: running; }
 
-.sg-music.is-playing .sg-music-disc::before { opacity: 1; }
-
 .sg-music-disc img {
-  position: relative;      /* 参与层叠：封面压在主体环之上、细纹之下 */
-  z-index: 1;
+  position: relative;
+  z-index: 2;
+  display: block;
   box-sizing: border-box;
   width: 100%;
   height: 100%;
   object-fit: cover;
   border-radius: 50%;
-  border: 6px solid rgba(255, 255, 255, .78);
-  /* 封面不转：旋转是「播放中」的信号，交给外环；图转起来反而看不清封面 */
+  border: 3px solid color-mix(in srgb, var(--sg-music-petal-pearl) 74%, transparent);
   animation: none;
   transition: opacity .38s var(--sg-ease);
 }
-
-html.dark .sg-music-disc img { border-color: rgba(203, 213, 225, .22); }
-
 .sg-music-disc img.is-swap { opacity: 0; }
 
-/* 面板背景（第三十九轮）：从唱片中心向外淡的封面主色 + 同心圆声波 + 三颗光点。
-   圆心对齐唱片（stage 在左栏正中，约 50% / 34%）。
-   ⚠️ --sg-spark 原本只定义在 .sg-player-card 上；这里不补一份，
-   `radial-gradient(…, var(--sg-spark), …)` 会因变量无效导致整条 background 被丢弃（computed 变 none）。 */
+/* 少量微光沿外环漂移；装饰不进入可访问树，也不接收点击。 */
+.sg-music-dust {
+  position: absolute;
+  inset: -18%;
+  z-index: 3;
+  pointer-events: none;
+  animation: sg-spin 27s linear infinite;
+  animation-delay: -4s;
+  animation-play-state: paused;
+}
+.sg-music-dust i {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--sg-music-petal-pearl);
+  opacity: .18;
+  animation: sg-music-dust-pulse 5.6s ease-in-out infinite;
+  animation-play-state: paused;
+}
+.sg-music-dust i:nth-child(1) { left: 22%; top: 8%; animation-delay: -1.2s; }
+.sg-music-dust i:nth-child(2) { left: 73%; top: 13%; width: 2px; height: 2px; animation-delay: -3s; }
+.sg-music-dust i:nth-child(3) { left: 94%; top: 58%; animation-delay: -4.6s; }
+.sg-music-dust i:nth-child(4) { left: 63%; top: 96%; width: 2px; height: 2px; animation-delay: -2.2s; }
+.sg-music-dust i:nth-child(5) { left: 8%; top: 68%; width: 2px; height: 2px; animation-delay: -.6s; }
+.sg-music.is-playing .sg-music-dust,
+.sg-music.is-playing .sg-music-dust i { animation-play-state: running; }
+@keyframes sg-music-dust-pulse {
+  0%, 100% { opacity: .12; }
+  50% { opacity: .48; }
+}
+
+/* 面板只留很轻的封面底色，去掉旧的密集声波和全卡光点。 */
 .sg-music-panel {
   position: relative;
   overflow: hidden;
-  --sg-spark: color-mix(in srgb, var(--sg-accent) 58%, transparent);
 }
-
-html.dark .sg-music-panel { --sg-spark: rgba(255, 255, 255, .55); }
-
 .sg-music-panel::after {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background:
-    radial-gradient(2.5px 2.5px at 82% 12%, var(--sg-spark), transparent 100%),
-    radial-gradient(2px 2px at 12% 20%, var(--sg-spark), transparent 100%),
-    radial-gradient(1.5px 1.5px at 74% 32%, var(--sg-spark), transparent 100%),
-    repeating-radial-gradient(circle at 50% 34%,
-      transparent 0 34px,
-      color-mix(in srgb, var(--sg-cover-tint, var(--sg-accent)) 8%, transparent) 34.5px 36.5px),
-    radial-gradient(120% 85% at 50% 32%,
-      color-mix(in srgb, var(--sg-cover-tint, var(--sg-accent)) 24%, transparent) 0,
-      transparent 66%);
+  background: radial-gradient(100% 80% at 50% 34%,
+    color-mix(in srgb, var(--sg-cover-tint, var(--sg-accent)) 12%, transparent) 0,
+    transparent 68%);
 }
-
-/* 面板内所有内容压在背景层之上 */
 .sg-music-panel > * { position: relative; z-index: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sg-music-disc::before,
+  .sg-music-disc::after,
+  .sg-music-dust,
+  .sg-music-dust i { animation: none; transform: none; }
+  .sg-music-halo { transition: none; }
+}
 
 /* 换歌要把环的角度归零（player.ts 会短暂加这个类，逼一次回流） */
 .is-ring-reset .sg-player-disc::before,
 .is-ring-reset .sg-player-disc::after,
 .is-ring-reset .sg-music-disc::before,
-.is-ring-reset .sg-music-disc::after { animation: none; }
+.is-ring-reset .sg-music-disc::after,
+.is-ring-reset .sg-music-dust { animation: none; }
 
 .sg-music-meta { text-align: center; padding-inline: .5rem; }
 .sg-music-meta h2 { font-size: 1.5rem; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sg-music-meta p { margin-top: .35rem; font-size: .85rem; font-weight: 700; letter-spacing: .12em; color: var(--sg-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* 底部控制条：一套「玻璃圆钮」贯穿全部按钮。
-   第三轮的问题：选择器写成 .sg-music-controls > button（直接子元素），
-   但上一首/播放/下一首其实包在 .sg-music-center 里，三条规则都没命中 ——
-   结果是播放键只剩背景色、圆角失效变成方块，前后两键完全没有样式。
-   现在统一为后代选择器，并给主键单独做渐变实心样式。 */
+/* 底部控制条（第三阶段 · 完整音乐页统一）：与首页 .sg-player-controls 同一套语言 ——
+   辅键是裸图标，主键是四角半径不等的「豆形」，模式是唯一的说明性胶囊；
+   尺寸按大卡放大，但不再给每个键套玻璃圆钮（那会把主键的分量压平）。
+   通用规则用 :where(:not(…)) 排除 mode / play 且不抬权重：旧写法靠一堆 !important 兜，
+   hover 的 transform 其实一直被后代选择器压着没生效。 */
 .sg-music-controls {
   display: flex;
   align-items: center;
@@ -1030,74 +1022,117 @@ html.dark .sg-music-panel { --sg-spark: rgba(255, 255, 255, .55); }
   padding-top: .25rem;
 }
 
-.sg-music-controls button {
+.sg-music-controls button:where(:not(.sg-music-mode):not(.sg-music-play)) {
   display: grid;
   place-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2.4rem;
+  height: 2.4rem;
   padding: 0;
-  border: 1px solid var(--sg-border);
+  border: 0;
   border-radius: 50%;
+  background: transparent;
+  color: var(--sg-text);
+  opacity: .8;
+  transition:
+    opacity var(--sg-dur-fast) linear,
+    color var(--sg-dur-fast) linear,
+    transform var(--sg-dur-fast) var(--sg-ease),
+    background-color var(--sg-dur-fast) linear;
+}
+
+.sg-music-controls button:where(:not(.sg-music-mode):not(.sg-music-play)):hover {
+  opacity: 1;
+  color: var(--sg-accent-ink);
+  background: color-mix(in srgb, var(--sg-accent) 13%, transparent);
+  transform: scale(1.08);
+}
+
+.sg-music-controls button:where(:not(.sg-music-mode):not(.sg-music-play)):active { transform: scale(.96); }
+.sg-music-controls button:where(:not(.sg-music-mode):not(.sg-music-play)) svg { width: 1.25rem; height: 1.25rem; }
+
+/* 播放模式：图标 + 文案的胶囊（列表循环 / 单曲循环 / 随机播放），对齐首页 .sg-player-mode。 */
+.sg-music-controls .sg-music-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  width: auto;
+  height: 2.4rem;
+  padding: 0 .8rem;
+  border: 1px solid var(--sg-border);
+  border-radius: 999px;
   background: var(--sg-chip);
   color: var(--sg-text);
-  transition:
-    color var(--sg-dur-fast) linear,
-    border-color var(--sg-dur-fast) linear,
-    background-color var(--sg-dur-fast) linear,
-    transform var(--sg-dur-fast) var(--sg-ease);
-}
-
-.sg-music-controls button:hover { color: var(--sg-accent-ink); border-color: var(--sg-accent-ink); transform: translateY(-2px); }
-.sg-music-controls button:active { transform: translateY(0) scale(.95); }
-.sg-music-controls button svg { width: 1.15rem; height: 1.15rem; }
-
-/* 播放模式：带文字说明的胶囊（列表循环 / 单曲循环 / 随机播放），
-   图标 + 文案一起换，不再让用户猜这个小圆圈在做什么。 */
-.sg-music-mode {
-  display: inline-flex !important;
-  align-items: center;
-  gap: .4rem;
-  width: auto !important;
-  padding: 0 .85rem 0 .7rem !important;
-  border-radius: 999px !important;
-  font-size: .75rem;
-  font-weight: 800;
+  font-size: .7rem;
+  font-weight: 700;
   letter-spacing: .02em;
   white-space: nowrap;
+  opacity: .92;
+  transition: opacity var(--sg-dur-fast) linear, color var(--sg-dur-fast) linear;
 }
 
-.sg-music-mode svg { width: 1rem; height: 1rem; }
-.sg-music-mode.is-active { color: var(--sg-accent-ink); border-color: var(--sg-accent-ink); background: color-mix(in srgb, var(--sg-accent) 16%, transparent); }
+.sg-music-controls .sg-music-mode svg { width: .95rem; height: .95rem; }
+.sg-music-controls .sg-music-mode.is-active {
+  color: var(--sg-accent-ink);
+  border-color: color-mix(in srgb, var(--sg-accent) 35%, transparent);
+  opacity: 1;
+}
 
 .sg-music-center { display: flex; align-items: center; justify-content: center; gap: 1rem; }
 
-.sg-music-play {
-  width: 3.75rem !important;
-  height: 3.75rem !important;
-  border: 0 !important;
-  background: linear-gradient(135deg, var(--sg-indigo), var(--sg-accent-2)) !important;
-  color: #fff !important;
+/* 主键：与首页同款豆形，hover 时四角对调，轮廓像水面流一下。
+   暗色改用 accent-2 —— --sg-accent 在暗卡上对比不足，主键会「沉」进去。 */
+.sg-music-controls .sg-music-play {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 58% 42% 46% 54% / 48% 56% 42% 58%;
+  background: var(--sg-accent);
+  color: #fff;
+  opacity: 1;
   box-shadow:
-    0 16px 34px -14px color-mix(in srgb, var(--sg-accent) 95%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, .3);
+    0 10px 22px -10px color-mix(in srgb, var(--sg-accent) 80%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, .24);
+  transition:
+    border-radius .62s var(--sg-ease),
+    transform var(--sg-dur-fast) var(--sg-ease),
+    box-shadow var(--sg-dur-fast) var(--sg-ease);
 }
 
-.sg-music-play:hover {
-  color: #fff !important;
-  transform: translateY(-2px) scale(1.03);
-  box-shadow:
-    0 20px 40px -14px var(--sg-accent),
-    inset 0 1px 0 rgba(255, 255, 255, .35);
+.sg-music-controls .sg-music-play:hover {
+  color: #fff;
+  background: var(--sg-accent);
+  border-radius: 44% 56% 54% 46% / 56% 44% 58% 42%;
+  transform: scale(1.04) rotate(-2deg);
+  box-shadow: 0 14px 28px -12px var(--sg-accent);
 }
 
-.sg-music-play svg { width: 1.5rem; height: 1.5rem; }
+html.dark .sg-music-controls .sg-music-play { background: var(--sg-accent-2); }
+html.dark .sg-music-controls .sg-music-play:hover {
+  background: var(--sg-accent-2);
+  box-shadow: 0 14px 28px -12px var(--sg-accent-2);
+}
+
+.sg-music-controls .sg-music-play svg { width: 1.25rem; height: 1.25rem; }
 .sg-music-play .sg-i-play,
 .sg-music-play .sg-i-pause { grid-area: 1 / 1; display: grid; place-items: center; }
 .sg-music-play .sg-i-pause { display: none; }
 .sg-music.is-playing .sg-music-play .sg-i-play { display: none; }
 .sg-music.is-playing .sg-music-play .sg-i-pause { display: grid; }
 
-/* 音量：默认收起，点喇叭展开（纯 CSS 宽度过渡） */
+/* 静音激活态：paintMute() 给 [data-sg-mute] 加 is-active 并换图标，
+   首页那条 .sg-player-mute.is-active 管不到音乐页，这里补齐按下后的高亮。 */
+.sg-music-controls .sg-music-mute.is-active {
+  background: color-mix(in srgb, var(--sg-accent) 18%, transparent);
+  color: var(--sg-accent-deep);
+  opacity: 1;
+}
+
+html.dark .sg-music-controls .sg-music-mute.is-active { color: var(--sg-accent-soft); }
+
+/* 音量：默认收起，hover / 键盘聚焦展开（纯 CSS 宽度过渡），音乐页独有，保留。 */
 .sg-music-volume { position: relative; display: flex; align-items: center; gap: .4rem; }
 
 .sg-music-volume input {

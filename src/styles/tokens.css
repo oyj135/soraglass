@@ -117,6 +117,10 @@
   --sg-thumb-zoom: 1.06;   /* 卡内图片缩放 */
 
   --sg-ring: #ffffff;      /* 关于页头像白描边 */
+  /* 音乐页视频参考的淡紫/奶白花瓣，仅供大唱片使用。 */
+  --sg-music-petal-pearl: #ded3f2;
+  --sg-music-petal-lilac: #a58bd9;
+
   --sg-polaroid: #ffffff;  /* 拍立得相纸边框，暗色也保持白 */
 
   /* 首页歌词栏：两种主题都是深色条。底色由 slate-900/80 换成深青黑 —— 它压在封面图上，
