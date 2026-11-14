@@ -23,6 +23,11 @@
   --sg-reading-border: color-mix(in srgb, var(--sg-accent) 17%, transparent);
   --sg-shadow-reading: 0 8px 36px -16px rgb(10 24 26 / .16);
   --sg-space-section: clamp(2rem, 4vw, 3.5rem);
+  /* Uiverse旋转细边框：同色系两端，昼夜共用宽度与节奏。 */
+  --sg-rim-a: var(--sg-accent);
+  --sg-rim-b: var(--sg-accent-soft);
+  --sg-rim-width: 1.5px;
+  --sg-rim-opacity: .72;
   --sg-card-border: rgba(255, 255, 255, .40); /* 卡面描边：源站 border-white/40 */
   --sg-border: rgba(255, 255, 255, .55);    /* 结构线（表格 / 分页 / 输入框） */
   --sg-chip: rgba(255, 255, 255, .45);      /* 元信息胶囊底（原 30%） */
@@ -174,6 +179,9 @@
 
 html.dark {
   color-scheme: dark;
+  --sg-rim-a: var(--sg-accent-soft);
+  --sg-rim-b: var(--sg-accent-pale);
+  --sg-rim-opacity: .80;
 
   /* 底色由 slate-950 #020617 换成深青黑 #0a1618 —— 与签名色同色温。
      纯 slate 底配青瓷，会像把青色贴在一张蓝色的纸上。 */

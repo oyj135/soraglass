@@ -11,7 +11,7 @@ import { initGallery } from './modules/gallery';
 import { initParallax } from './modules/parallax';
 import { initArticle } from './modules/article';
 import { initNotes } from './modules/notes';
-import { initFriends } from './modules/friends';
+import { initCardBorders } from './modules/card-borders';
 
 /**
  * 单独兜住每个模块的异常。
@@ -45,7 +45,7 @@ function boot(): void {
   safe('parallax', initParallax);
   safe('article', initArticle);
   safe('notes', initNotes);
-  safe('friends', initFriends);
+  safe('card-borders', initCardBorders);
 }
 
 if (document.readyState === 'loading') {

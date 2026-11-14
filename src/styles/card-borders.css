@@ -1,0 +1,48 @@
+/* From Uiverse.io by bhaveshxrawat — rotating gradient stripe.
+   透明中部用mask切掉；独立span保留光晕/玻璃/花瓣。
+   用角度旋转适配长文章与通栏卡，不生成远超卡面尺寸的旋转图层。 */
+@property --sg-rim-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+.sg-rim-anchor { position: relative; }
+.sg-card-rim {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: block;
+  padding: var(--sg-rim-width);
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: var(--sg-rim-opacity);
+  transition: opacity var(--sg-dur-card) var(--sg-ease);
+}
+.sg-card-rim::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(from var(--sg-rim-angle), transparent 0deg, var(--sg-rim-a) 20deg, var(--sg-rim-b) 55deg, transparent 75deg, transparent 180deg, var(--sg-rim-a) 200deg, var(--sg-rim-b) 235deg, transparent 255deg, transparent 360deg);
+  animation: sg-rim-rotate 3s linear infinite;
+  animation-delay: var(--sg-rim-delay, 0s);
+  animation-play-state: paused;
+}
+.sg-rim-host.is-rim-visible > .sg-card-rim::before { animation-play-state: running; }
+.sg-rim-host:is(:hover, :focus-within) > .sg-card-rim { opacity: 1; }
+.sg-rims-paused .sg-rim-host > .sg-card-rim::before { animation-play-state: paused; }
+@keyframes sg-rim-rotate {
+  from { --sg-rim-angle: 0deg; }
+  to { --sg-rim-angle: 360deg; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sg-rim-host > .sg-card-rim::before { animation: none; --sg-rim-angle: 45deg; transform: none; }
+  .sg-card-rim { transition: none; }
+}
+@media (forced-colors: active), print {
+  .sg-card-rim { display: none; }
+}
