@@ -4,12 +4,6 @@ if (!defined('SG_ROOT')) {
 }
 $this->need('header.php');
 $sgHome = rtrim((string) $this->options->siteUrl, '/') . '/';
-$sgTotal = 0;
-try {
-    $sgTotal = (int) $this->getTotal();
-} catch (\Throwable $e) {
-    $sgTotal = 0;
-}
 $sgIsSearch = $this->is('search');
 
 /* 碎语不进通用归档（2026-11-13）：分类页/标签页/搜索页/日期归档都只列普通文章，
@@ -21,22 +15,32 @@ try {
     $sgIsNotesArchive = false;
 }
 $sgSkipNotes = !$sgIsNotesArchive;
-if ($sgSkipNotes && $sgTotal > 0) {
-    $sgTotal = max(0, $sgTotal - min($sgTotal, count(sg_note_cids())));
-}
 $sgKeyword = '';
 if ($sgIsSearch) {
     try {
-        $sgKeyword = (string) $this->request->get('s');
+        // Typecho 将 s 重写为搜索路由的 keywords；archiveSlug 已保存实际关键词。
+        $sgKeyword = (string) $this->getArchiveSlug();
     } catch (\Throwable $e) {
         $sgKeyword = isset($_GET['s']) ? (string) $_GET['s'] : '';
     }
 }
 $sgCurrentPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
+
+// 只计本页实际渲染的记录，不能从搜索结果总数扣除全站碎语数。
+$sgVisibleCount = 0;
+ob_start();
+while ($this->next()) {
+    if ($sgSkipNotes && sg_is_note((int) $this->cid)) {
+        continue;
+    }
+    ++$sgVisibleCount;
+    $this->need('partials/card-post.php');
+}
+$sgCardsHtml = (string) ob_get_clean();
 ?>
 <main id="sg-main" class="sg-main sg-main--pad" data-sg-page="archive">
   <div class="sg-page-head">
-    <div class="sg-page-head-row is-centered">
+    <div class="sg-page-head-row">
       <div>
         <h1 class="sg-page-title"><?php $this->archiveTitle(array(
           'category' => _t('分类 %s'),
@@ -45,7 +49,7 @@ $sgCurrentPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PAT
           'author'   => _t('%s 的文章'),
           'date'     => _t('%s 的文章')
         ), '', ''); ?></h1>
-        <p class="sg-page-sub"><?php echo $sgTotal > 0 ? '共 ' . $sgTotal . ' 篇记录' : '暂未找到相关内容'; ?></p>
+        <p class="sg-page-sub"><?php echo $sgVisibleCount > 0 ? '本页 ' . $sgVisibleCount . ' 篇记录' : '暂未找到相关内容'; ?></p>
       </div>
       <form class="sg-search sg-search--sm" role="search" method="get" action="<?php echo sg_e($sgHome); ?>">
         <span class="sg-search-icon"><?php echo sg_icon('search'); ?></span>
@@ -57,7 +61,7 @@ $sgCurrentPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PAT
   <?php if (!$sgIsSearch) : ?>
     <?php $this->widget('Widget_Metas_Tag_Cloud', 'sort=count&ignoreZeroCount=1&desc=1&limit=16')->to($sgTagCloud); ?>
     <?php if ($sgTagCloud->have()) : ?>
-    <div class="sg-filter" style="margin-bottom:1.5rem">
+    <div class="sg-filter">
       <a class="sg-filter-btn<?php echo $this->is('tag') ? '' : ' is-active'; ?>" href="<?php echo sg_e($sgHome); ?>">全部</a>
       <?php while ($sgTagCloud->next()) : ?>
       <?php $sgTagPath = parse_url((string) $sgTagCloud->permalink, PHP_URL_PATH); ?>
@@ -69,13 +73,10 @@ $sgCurrentPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PAT
     <?php endif; ?>
   <?php endif; ?>
 
-  <?php if ($this->have()) : ?>
-  <div class="sg-card-grid">
-    <?php while ($this->next()) : ?>
-      <?php if ($sgSkipNotes && sg_is_note((int) $this->cid)) : ?><?php continue; ?><?php endif; ?>
-      <?php $this->need('partials/card-post.php'); ?>
-    <?php endwhile; ?>
-  </div>
+  <?php if ($sgVisibleCount > 0) : ?>
+  <section class="sg-reading-list sg-reading-surface" aria-label="文章列表">
+    <?php echo $sgCardsHtml; ?>
+  </section>
   <?php else : ?>
   <div class="sg-glass sg-notfound">
     <span class="sg-notfound-code">0</span>

@@ -7,8 +7,7 @@
  * 结构对齐源站 app/music/MusicClient.tsx：左侧唱片 + 曲名 + 进度 + 控制，
  * 右侧「歌词 / 歌单」分段面板（歌词滚动高亮、歌单搜索）。
  * 数据统一来自 sg_playlist()：后台「歌单」留空 → dist/data/playlist.json，
- * 填 JSON → 直接用，填 Meting 接口地址 → 服务端取回。当前命中结果由
- * sg_playlist_diag() 显示在页面底部。
+ * 填 JSON → 直接用，填 Meting 接口地址 → 服务端取回。配置说明维护在使用手册。
  */
 if (!defined('SG_ROOT')) {
     require_once __DIR__ . '/functions.php';
@@ -115,12 +114,6 @@ $sgHead = [
         </div>
       </div>
 
-      <p class="sg-music-note">
-        当前数据源：<b><?php echo sg_e(sg_playlist_diag(count($sgTracks))); ?></b>。
-        后台只有「歌单」一处配置：留空用随主题自带的 CC-BY 纯音乐（Kevin MacLeod），
-        填 JSON 数组就用自己挑的曲目，填 Meting 接口地址就由接口提供曲目与音频。
-        想换自带曲目就把音频丢进 <code>public/audio/</code>，地址写 <code>dist/audio/文件名.mp3</code>。
-      </p>
     </section>
   </div>
 </main>

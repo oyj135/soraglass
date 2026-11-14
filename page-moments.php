@@ -14,7 +14,7 @@ $this->need('header.php');
 
 $GLOBALS['SG_NOTES_HEAD'] = [
     'title'       => '碎语',
-    'sub'         => '杂谈与说说合并后的随手记 · 想到什么写什么',
+    'sub'         => '随手记 · 想到什么写什么',
     'search'      => true,
     'center'      => true,
     'placeholder' => '搜索碎语...',

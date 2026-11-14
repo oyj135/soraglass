@@ -21,6 +21,7 @@ $sgMusicUrl = sg_page_url('music');
 
   <div class="sg-player-disc">
     <img src="<?php echo sg_e(sg_theme_url('dist/img/cover-default.svg')); ?>" alt="" data-sg-track-cover data-sg-fallback="<?php echo sg_e(sg_theme_url('dist/img/cover-default.svg')); ?>">
+    <span class="sg-music-dust" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
   </div>
 
   <div class="sg-player-info">

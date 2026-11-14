@@ -522,7 +522,7 @@ function themeConfig($form): void
         '这一栏喂给<b>「科技前沿」</b>栏目（论文、评测、研究进展），一行一个地址。<br>'
         . '例：<code>https://export.arxiv.org/rss/cs.AI</code>、<code>https://blog.google/technology/ai/rss/</code>。<br>'
         . '两组都留空就没有候选，首页这一块不会输出；只配一组时另一栏自动隐藏。<br>'
-        . '<b>缓存</b>：每个主题一天一份，凌晨自动失效；管理员带 <code>?sg_ai=refresh</code> 访问首页可强制重生成。'
+        . '<b>缓存</b>：每个主题一天一份；首页先显示最近成功的缓存，凌晨由 PHP-FPM 在页面响应后逐个更新主题，外部源失败不会阻塞页面。'
     )));
     $form->addInput(new Textarea('sgDanmaku', null, '', _t('背景弹幕'), _t('每行一条，留空使用 dist/data/danmaku.json')));
 

@@ -7,6 +7,7 @@ $sgHome = rtrim((string) $this->options->siteUrl, '/') . '/';
 $sgCats = sg_categories($this);
 $sgTags = sg_tag_chips($this);
 $sgLead = sg_field($this, 'description', '');
+$sgArticleTitle = trim((string) $this->title);
 
 /* 「返回上一级」按来源分流（2026-11-13）：
    碎语文章 → 碎语页（chatter），其余文章 → 知识档案页（timeline），与顶部导航一致。
@@ -33,18 +34,18 @@ if (
 }
 ?>
 <main id="sg-main" class="sg-main sg-article-layout" data-sg-page="post" data-sg-origin="<?php echo $sgIsNote ? 'note' : 'article'; ?>">
-  <article class="sg-glass sg-article">
+  <article class="sg-glass sg-article sg-reading-surface">
     <div class="sg-cover">
       <img src="<?php echo sg_e(sg_cover($this)); ?>" alt="<?php echo sg_e((string) $this->title); ?>">
     </div>
     <div class="sg-article-body">
       <a class="sg-back" href="<?php echo sg_e($sgBack); ?>"><?php echo sg_icon('arrow-left'); ?><?php echo sg_e($sgBackLabel); ?></a>
       <header class="sg-article-head">
-        <h1><?php $this->title(); ?></h1>
+        <h1><?php echo sg_e($sgArticleTitle !== '' ? $sgArticleTitle : '未命名文章'); ?></h1>
         <div class="sg-meta">
-          <span class="sg-meta-chip"><?php echo sg_icon('clock'); ?>写作时间：<?php $this->date('Y-m-d H:i:s'); ?></span>
+          <time class="sg-meta-chip" datetime="<?php $this->date('c'); ?>"><?php echo sg_icon('clock'); ?><?php $this->date('Y-m-d H:i:s'); ?></time>
           <?php foreach ($sgCats as $sgCat) : ?>
-          <a class="sg-meta-chip is-pink" href="<?php echo sg_e($sgCat['permalink']); ?>"><?php echo sg_icon('tag'); ?><?php echo sg_e($sgCat['name']); ?></a>
+          <a class="sg-meta-chip" href="<?php echo sg_e($sgCat['permalink']); ?>"><?php echo sg_icon('tag'); ?><?php echo sg_e($sgCat['name']); ?></a>
           <?php endforeach; ?>
           <?php if ($sgTags !== '') : ?><?php echo $sgTags; ?><?php endif; ?>
         </div>

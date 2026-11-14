@@ -18,6 +18,11 @@
   --sg-card: rgba(255, 255, 255, .40);      /* 卡面：源站 bg-white/40 */
   --sg-card-strong: rgba(255, 255, 255, .72); /* 文章卡 / 弹窗（原 60%） */
   --sg-panel: rgba(255, 255, 255, .94);      /* 阅读弹窗：满屏文字，需要接近实底 */
+  /* 个人刊物：阅读表面与玻璃辅助卡分工，明暗主题同一条 token 路径。 */
+  --sg-reading-surface: rgba(250, 253, 253, .94);
+  --sg-reading-border: color-mix(in srgb, var(--sg-accent) 17%, transparent);
+  --sg-shadow-reading: 0 8px 36px -16px rgb(10 24 26 / .16);
+  --sg-space-section: clamp(2rem, 4vw, 3.5rem);
   --sg-card-border: rgba(255, 255, 255, .40); /* 卡面描边：源站 border-white/40 */
   --sg-border: rgba(255, 255, 255, .55);    /* 结构线（表格 / 分页 / 输入框） */
   --sg-chip: rgba(255, 255, 255, .45);      /* 元信息胶囊底（原 30%） */
@@ -123,10 +128,16 @@
 
   --sg-polaroid: #ffffff;  /* 拍立得相纸边框，暗色也保持白 */
 
-  /* 首页歌词栏：两种主题都是深色条。底色由 slate-900/80 换成深青黑 —— 它压在封面图上，
-     色温必须和签名色一致，否则会在图上浮出一块「发蓝的板子」。 */
-  --sg-lyric-bg: rgba(10, 24, 26, .82);
-  --sg-lyric-border: rgba(255, 255, 255, .10);
+  /* 独立通栏歌词卡跟随昼夜：日间月白表面与青瓷字，夜间深青底与浅字。 */
+  --sg-lyric-bg: rgba(246, 252, 252, .92);
+  --sg-lyric-border: color-mix(in srgb, var(--sg-accent) 18%, transparent);
+  --sg-lyric-text: var(--sg-accent-deep);
+  --sg-lyric-wave-a: var(--sg-accent-deep);
+  --sg-lyric-wave-b: var(--sg-accent);
+  --sg-lyric-wave-c: var(--sg-accent-2);
+  --sg-lyric-icon: var(--sg-accent);
+  --sg-lyric-text-shadow: none;
+  --sg-lyric-shadow: 0 12px 30px -20px rgb(16 43 48 / .22);
 
   /* 图片上的浮层控件（轮播进度轨，2026-11-13 第三十二轮）。
      和歌词栏同理：压在封面图上的东西必须自带深底，不能跟随页面主题 ——
@@ -170,6 +181,9 @@ html.dark {
   --sg-card: rgba(26, 44, 48, .52);         /* 原 slate-800/50，改成深青灰半透 */
   --sg-card-strong: rgba(12, 26, 29, .76);
   --sg-panel: rgba(12, 26, 29, .96);
+  --sg-reading-surface: rgba(13, 28, 30, .96);
+  --sg-reading-border: color-mix(in srgb, var(--sg-accent-ink) 20%, transparent);
+  --sg-shadow-reading: 0 8px 36px -16px rgb(0 0 0 / .32);
   --sg-card-border: rgba(255, 255, 255, .10); /* 源站 dark:border-white/10 */
   --sg-border: rgba(226, 240, 240, .18);    /* 结构线，比卡面描边亮一档 */
   --sg-chip: rgba(12, 26, 29, .58);         /* 胶囊底 */
@@ -201,6 +215,14 @@ html.dark {
 
   /* 歌词栏暗色再压深一档 */
   --sg-lyric-bg: rgba(5, 12, 14, .92);
+  --sg-lyric-border: rgba(255, 255, 255, .10);
+  --sg-lyric-text: #fff;
+  --sg-lyric-wave-a: var(--sg-accent-soft);
+  --sg-lyric-wave-b: var(--sg-accent-pale);
+  --sg-lyric-wave-c: var(--sg-accent-2);
+  --sg-lyric-icon: var(--sg-accent-soft);
+  --sg-lyric-text-shadow: 0 0 8px color-mix(in srgb, var(--sg-accent) 80%, transparent);
+  --sg-lyric-shadow: 0 25px 50px -12px rgb(0 0 0 / .25);
 
   /* 图片浮层控件：暗色下不改值，它是「压在图片上」的独立层 */
   --sg-indicator-bg: rgba(8, 20, 22, .44);

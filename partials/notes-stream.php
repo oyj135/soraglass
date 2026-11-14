@@ -18,6 +18,8 @@ $sgHead = array_merge([
     'center'      => true,
     'placeholder' => '搜索碎语...',
 ], is_array($sgHead) ? $sgHead : []);
+/* 兼容已有 subtitle 字段，只移除指定的旧合并说明，不改后台内容。 */
+$sgHead['sub'] = trim(str_replace('杂谈与说说合并后的', '', (string) $sgHead['sub']));
 
 $sgHome = rtrim((string) $this->options->siteUrl, '/') . '/';
 

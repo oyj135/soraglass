@@ -30,11 +30,7 @@ $sgNotesLink = sg_page_url('notes');
 
   <div class="sg-stack">
     <?php
-    /* 主编区（2026-11-14 第三十六轮）：封面轮播从第二屏提到首屏当主视觉，
-       个人卡与播放器退到右侧副栏。
-       改之前是「个人卡 7 + 播放器 5」并排、轮播压在第二行只露 100px —— 四块等权、
-       整屏没有一张图，视线没有落点。改成「一张封面 + 两个副卡」，
-       右栏两卡靠 flex:1 均分左列高度，不写死像素。 */
+    /* 个人刊物：保留 7:5 主副栏，封面图片与阅读信息分区；右栏按内容自然高。 */
     ?>
     <div class="sg-grid sg-grid-12 sg-hero">
       <section class="sg-glass sg-post-carousel sg-col-7 sg-hero-cover" data-sg-carousel data-sg-interval="5000" data-sg-hover>
@@ -56,9 +52,8 @@ $sgNotesLink = sg_page_url('notes');
             <?php endif; ?>
           <?php endwhile; ?>
         <?php else : ?>
-          <article class="sg-post-slide is-active">
-            <img class="sg-slide-cover" src="<?php echo sg_e($sgCoverFallback); ?>" alt="">
-            <span class="sg-slide-veil"></span>
+          <article class="sg-post-slide is-active" data-sg-slide>
+            <div class="sg-slide-media"><img class="sg-slide-cover" src="<?php echo sg_e($sgCoverFallback); ?>" alt=""></div>
             <div class="sg-slide-body">
               <span class="sg-slide-chips"><span class="sg-chip--tag">空璃</span></span>
               <h2 class="sg-slide-title">还没有文章，去后台写下第一篇吧</h2>
@@ -82,7 +77,7 @@ $sgNotesLink = sg_page_url('notes');
        轮播上移后改成 5:4:3 三卡同排 —— 海报仍是最大的一块，碎语居中，
        昼夜收成最小的一个记号（切主题的入口另外还有左下浮动按钮与抽屉）。 */
     ?>
-    <div class="sg-grid sg-grid-12">
+    <div class="sg-grid sg-grid-12 sg-home-stories">
       <a class="sg-poster-wide sg-col-5" href="<?php echo sg_e($sgPoster['link'] !== '' ? $sgPoster['link'] : $sgHome); ?>" data-sg-hover data-sg-spotlight>
         <img src="<?php echo sg_e($sgPoster['cover']); ?>" alt="" loading="lazy" referrerpolicy="no-referrer">
         <span class="sg-veil"></span>

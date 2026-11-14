@@ -1162,20 +1162,32 @@ function sg_playlist_media(array $list): array
     return $list;
 }
 
+/** A deadline covers the complete cURL attempt; bounded calls never retry via PHP streams. */
+function sg_http_timeout_ms(int $timeout, ?float $deadline): int
+{
+    $milliseconds = max(1, $timeout) * 1000;
+    return $deadline === null ? $milliseconds
+        : min($milliseconds, max(0, (int) floor(($deadline - microtime(true)) * 1000)));
+}
+
 /**
- * 一个极简 GET：curl 优先，失败退 file_get_contents。
+ * 一个极简 GET：curl 优先；不带 deadline 的旧调用保留 file_get_contents 回退。
  *
  * 「失败」真的会发生：有些 PHP 构建没配 CA 包，curl 直接报
  * `errno 60 unable to get local issuer certificate`，而 file_get_contents
- * 走的是另一套 CA 配置、常常还能通 —— 所以 curl 拿不到内容时必须再试一次，
- * 否则站长会看到「接口没数据」，实际只是证书链没配。
+ * 走的是另一套 CA 配置、常常还能通。带 deadline 的 AI 请求失败直接结束，
+ * 避免 PHP 流按读取阶段重新计时、突破整体预算。
  *
  * 只允许 http/https（含重定向），避免配置里出现 file:// 之类的协议被 curl 跟着跑。
  *
  * @param array<int,string> $headers 形如 `Accept: application/json`
  */
-function sg_http_get(string $url, array $headers = [], int $timeout = 6): string
+function sg_http_get(string $url, array $headers = [], int $timeout = 6, ?float $deadline = null): string
 {
+    $timeoutMs = sg_http_timeout_ms($timeout, $deadline);
+    if ($timeoutMs === 0 || ($deadline !== null && !function_exists('curl_init'))) {
+        return '';
+    }
     $ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
     $headers = array_merge(['User-Agent: ' . $ua], $headers);
 
@@ -1183,8 +1195,8 @@ function sg_http_get(string $url, array $headers = [], int $timeout = 6): string
         $ch = curl_init($url);
         $opts = [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => $timeout,
-            CURLOPT_CONNECTTIMEOUT => 3,
+            CURLOPT_TIMEOUT_MS        => $timeoutMs,
+            CURLOPT_CONNECTTIMEOUT_MS => min(3000, $timeoutMs),
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_MAXREDIRS      => 3,
             CURLOPT_HTTPHEADER     => $headers,
@@ -1224,6 +1236,9 @@ function sg_http_get(string $url, array $headers = [], int $timeout = 6): string
         if (!$failed) {
             return (string) $body;
         }
+        if ($deadline !== null) {
+            return '';
+        }
     }
 
     $ctx = stream_context_create([
@@ -1245,8 +1260,12 @@ function sg_http_get(string $url, array $headers = [], int $timeout = 6): string
  * @param array<string,mixed> $payload
  * @param array<int,string>   $headers
  */
-function sg_http_post_json(string $url, array $payload, array $headers = [], int $timeout = 20): string
+function sg_http_post_json(string $url, array $payload, array $headers = [], int $timeout = 20, ?float $deadline = null): string
 {
+    $timeoutMs = sg_http_timeout_ms($timeout, $deadline);
+    if ($timeoutMs === 0 || ($deadline !== null && !function_exists('curl_init'))) {
+        return '';
+    }
     if (preg_match('#^https?://#i', $url) !== 1) {
         return '';
     }
@@ -1270,8 +1289,8 @@ function sg_http_post_json(string $url, array $payload, array $headers = [], int
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST           => true,
             CURLOPT_POSTFIELDS     => $body,
-            CURLOPT_TIMEOUT        => $timeout,
-            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_TIMEOUT_MS        => $timeoutMs,
+            CURLOPT_CONNECTTIMEOUT_MS => min(5000, $timeoutMs),
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_MAXREDIRS      => 2,
             CURLOPT_HTTPHEADER     => $headers,
@@ -1309,6 +1328,9 @@ function sg_http_post_json(string $url, array $payload, array $headers = [], int
         if (is_string($result) && $result !== '' && $status >= 400) {
             /* 4xx/5xx 的响应体常常就是错误说明，交给上层解析比丢一句「没响应」有用 */
             return $result;
+        }
+        if ($deadline !== null) {
+            return '';
         }
     }
 

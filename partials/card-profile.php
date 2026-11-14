@@ -32,7 +32,7 @@ $sgHome = rtrim((string) $this->options->siteUrl, '/') . '/';
   <div class="sg-socials">
     <?php foreach ($sgSocial as $item) : ?>
     <?php if (!is_array($item)) { continue; } ?>
-    <a class="sg-social" href="<?php echo sg_value($item, 'url', '#'); ?>" target="_blank" rel="noopener noreferrer" title="<?php echo sg_value($item, 'name', '链接'); ?>">
+    <a class="sg-social" href="<?php echo sg_value($item, 'url', '#'); ?>" target="_blank" rel="noopener noreferrer" title="<?php echo sg_value($item, 'name', '链接'); ?>" aria-label="<?php echo sg_value($item, 'name', '链接'); ?>">
       <?php echo sg_icon(sg_social_icon($item)); ?>
     </a>
     <?php endforeach; ?>

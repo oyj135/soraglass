@@ -2,6 +2,7 @@
  * 文章增强：目录高亮、代码高亮、公式渲染、图片灯箱。
  * highlight.js / katex 走动态 import，只会在真的有代码块 / 公式的页面下载。
  */
+import { reducedMotion } from './core';
 
 /**
  * 阅读进度中轴线（2026-11-14 第三十五轮）。
@@ -63,7 +64,9 @@ function initTOC(): void {
     link.textContent = head.textContent?.trim() ?? '';
     link.addEventListener('click', (event) => {
       event.preventDefault();
-      head.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      head.tabIndex = -1;
+      head.focus({ preventScroll: true });
+      head.scrollIntoView({ behavior: reducedMotion() ? 'instant' : 'smooth', block: 'start' });
       window.history.replaceState(null, '', `#${head.id}`);
     });
     item.appendChild(link);
@@ -72,13 +75,21 @@ function initTOC(): void {
   holder.appendChild(list);
 
   const items = Array.from(list.querySelectorAll('li'));
+  const activate = (id: string): void => {
+    items.forEach((item) => {
+      const link = item.querySelector('a');
+      const on = link?.hash === `#${id}`;
+      item.classList.toggle('is-active', on);
+      if (on) link?.setAttribute('aria-current', 'location');
+      else link?.removeAttribute('aria-current');
+    });
+  };
+  activate(heads[0].id);
   const observer = new IntersectionObserver((entries) => {
     const visible = entries.filter((entry) => entry.isIntersecting);
     if (!visible.length) return;
     const target = visible[0].target as HTMLElement;
-    items.forEach((item) => item.classList.remove('is-active'));
-    const active = items.find((item) => item.querySelector('a')?.hash === `#${target.id}`);
-    active?.classList.add('is-active');
+    activate(target.id);
   }, { rootMargin: '-88px 0px -70% 0px' });
 
   heads.forEach((head) => observer.observe(head));

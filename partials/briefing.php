@@ -6,7 +6,7 @@
  *   封面横幅（DAILY SIGNAL / 日期 / 大标题 / 导语 / 频道计数 / 展开按钮 / 期号翻页）
  *   └ 展开区（本期来信 + 往期查看 + 只看收藏 + 双栏目录 + 页脚说明）
  *
- * 数据只有一个来源：lib/ai.php 的 sg_ai_briefing()（模型每天从 RSS 候选里挑）。
+ * 数据只有一个来源：lib/ai.php 的 sg_ai_issues()（读取缓存，响应后由模型从 RSS 候选里挑）。
  * 没有 AI 期就不输出这一块 —— 静态「每日选刊 JSON」已在第二十二轮删除。
  *
  * 全部内容服务端渲染，JS 只做「切期 / 展开 / 收藏 / 弹窗」，不重建 DOM。
@@ -251,10 +251,6 @@ $sgBgTotal = $sgBgList ? count($sgBgList) : count($sgIssues);
 
   <p class="sg-briefing-status" role="status" aria-live="polite" data-sg-briefing-status></p>
 
-  <?php $sgAiDiag = sg_user_is_admin() ? sg_ai_diag() : ''; ?>
-  <?php if ($sgAiDiag !== '') : ?>
-  <p class="sg-briefing-diag" style="font-size:.75rem;color:var(--sg-faint);padding:0 1.25rem 1.25rem;margin:0"><?php echo sg_e($sgAiDiag); ?></p>
-  <?php endif; ?>
 </section>
 
 <dialog class="sg-reader" data-sg-briefing-dialog aria-labelledby="sg-reader-title">

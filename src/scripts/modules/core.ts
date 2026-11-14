@@ -87,6 +87,34 @@ function initTheme(): void {
   });
 }
 
+/** 所有现有检索入口共用清除行为；派发原 input/search 事件复用各页筛选。 */
+function initSearchControls(): void {
+  document.querySelectorAll<HTMLInputElement>('.sg-search-input[type="search"], [data-sg-playlist-search]').forEach((input) => {
+    const host = input.parentElement;
+    if (!host || host.querySelector('[data-sg-search-clear]')) return;
+    const clear = document.createElement('button');
+    clear.type = 'button';
+    clear.className = 'sg-search-clear';
+    clear.setAttribute('data-sg-search-clear', '');
+    clear.setAttribute('aria-label', '清除搜索');
+    clear.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>';
+    const sync = (): void => { clear.hidden = input.value.length === 0; };
+    sync();
+    host.classList.add('sg-search-field');
+    host.appendChild(clear);
+    input.addEventListener('input', sync);
+    input.addEventListener('search', sync);
+    clear.addEventListener('click', () => {
+      input.value = '';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('search', { bubbles: true }));
+      input.focus();
+    });
+    input.form?.addEventListener('reset', () => window.requestAnimationFrame(sync));
+    window.addEventListener('pageshow', sync);
+  });
+}
+
 function initNav(): void {
   const nav = document.querySelector<HTMLElement>('[data-sg-nav]');
   const sheet = document.querySelector<HTMLElement>('[data-sg-sheet]');
@@ -452,6 +480,7 @@ function initImageFallback(): void {
 
 export function initCore(): void {
   initTheme();
+  initSearchControls();
   initNav();
   initBackground();
   initSplash();

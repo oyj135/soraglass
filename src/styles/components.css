@@ -95,7 +95,7 @@ html.dark .sg-nav {
 .sg-nav-link.is-active { color: var(--sg-accent-ink); opacity: 1; }
 html.dark .sg-nav-link.is-active { color: var(--sg-accent-ink); }
 
- {
+.sg-nav-link.is-active::after {
   position: absolute;
   left: 50%;
   bottom: -.25rem;
@@ -104,7 +104,6 @@ html.dark .sg-nav-link.is-active { color: var(--sg-accent-ink); }
   border-radius: 50%;
   background: var(--sg-accent-ink);
   transform: translateX(-50%);
-  animation: sg-pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;
 }
 
 .sg-nav-actions { display: flex; align-items: center; gap: .5rem; }
@@ -426,8 +425,7 @@ html.dark .sg-social { background: rgba(51, 65, 85, .50); color: #cbd5e1; }
   --sg-spark: color-mix(in srgb, var(--sg-accent) 52%, transparent);
   /* 光点：亮色下白点等于没画，改用主色；暗色才用白（像星光） */
   --sg-spark: color-mix(in srgb, var(--sg-accent) 52%, transparent);
-  /* 顶部留 1.45rem：虹彩那片上探 21.8px（disc 的 -21%），
-     低于这个值会被卡片的 overflow:hidden 削平一条。 */
+  /* 顶部预留花瓣与微光的溢出空间，避免被卡片 overflow:hidden 裁切。 */
   padding: 1.45rem 1.75rem 1.1rem;
   overflow: hidden;
 }
@@ -439,9 +437,7 @@ html.dark .sg-player-card { --sg-spark: rgba(255, 255, 255, .55); }
 /* 卡内背景层（四层从下到上）：
    ① 主色光晕：--sg-cover-tint 由 player.ts 从封面采来（取不到就退回 accent），
       从唱片中心向外淡出；
-   ② 同心圆声波：圆心对到唱片（顶 padding 1.25rem + 52px 半径 ≈ 23%），
-      6% 的 tint 色 —— 波纹是「质感」不是「图案」，淡到得凑近看；
-   ③ 稀疏光点：三颗，散在唱片周围，暗色下是星光，亮卡上淡得刚好。
+   ② 稀疏光点：三颗，散在唱片周围，暗色下是星光，亮卡上淡得刚好。
    用 ::after 而不是 ::before —— 后者被 .sg-glass[data-sg-spotlight]::before 的
    指针聚光描边占着（首页这张卡正好带 data-sg-spotlight）。 */
 .sg-player-card::after {
@@ -453,9 +449,6 @@ html.dark .sg-player-card { --sg-spark: rgba(255, 255, 255, .55); }
     radial-gradient(2.5px 2.5px at 84% 13%, var(--sg-spark), transparent 100%),
     radial-gradient(2px 2px at 14% 17%, var(--sg-spark), transparent 100%),
     radial-gradient(1.5px 1.5px at 70% 29%, var(--sg-spark), transparent 100%),
-    repeating-radial-gradient(circle at 50% 23%,
-      transparent 0 30px,
-      color-mix(in srgb, var(--sg-cover-tint, var(--sg-accent)) 9%, transparent) 30.5px 32.5px),
     radial-gradient(125% 88% at 50% 24%,
       color-mix(in srgb, var(--sg-cover-tint, var(--sg-accent)) 26%, transparent) 0,
       transparent 64%);
@@ -493,106 +486,78 @@ html.dark .sg-player-card { --sg-spark: rgba(255, 255, 255, .55); }
 
 html.dark .sg-player-badge { color: var(--sg-accent-soft); }
 
-/* 唱片：封面静止，只有外圈两片环在转 —— 播放态反馈交给环，
-   封面转起来反而让人抓不住图在画什么。
-   ⚠️ 容器这里**不能**再写 overflow:hidden / border —— 外圈两片环要溢出到圆外，
-   裁切与白环都下放到 img 自己身上（border-box + border-radius:50%）。 */
+/* 两处唱片共用视频里的三瓣轮廓。容器与封面静止，薄片从封面背后溢出。 */
 .sg-player-disc {
   position: relative;
+  isolation: isolate;
   flex: none;
   width: 6.5rem;
   height: 6.5rem;
-  /* 虹彩强度：亮色要压得住浅底（浅底上低 alpha 等于透明），暗色收一档免得发艳 */
-  --sg-iris-a: .46;
+  --sg-disc-edge: 1px;
+  --sg-disc-speck: 1.5px;
 }
 
-html.dark .sg-player-disc { --sg-iris-a: .32; }
-
-/* 两片光环（华为播放页的那对「花瓣」）：乳白主体 + 虹彩细纹，四角半径全不相等，
-   交叠处形成月牙状缺口。
-   ⚠️ 层叠顺序的坑：伪元素一旦 position:absolute 就进入「定位元素」层，
-   会盖在所有普通流内容（包括 img）之上 —— 封面必须自己带 z-index，
-   顺序固定为 主体 0 < 封面 1 < 细纹 2 < 轴心 3。 */
+/* SVG 只定义平滑外轮廓，不挖空中心；封面压住两片填充面形成月牙。
+   三瓣相位错开 54°，两层分别略纵长、略横长，外缘探出约 10%，谷部收回圆边。
+   比近椭圆更有宽窄起伏，不再叠虹彩细纹或厚白圈。 */
 .sg-player-disc::before,
-.sg-player-disc::after {
+.sg-player-disc::after,
+.sg-music-disc::before,
+.sg-music-disc::after {
   content: '';
   position: absolute;
+  inset: -9%;
   pointer-events: none;
-  /* 旋转挂在伪元素上而不是容器上：封面保持静止，只有环在转（约 20°/秒，18s 一圈）。
-     初始角度用「负的 animation-delay」表达（-20° ≈ -1s、28° ≈ -1.56s）——
-     不能写 transform，那会被 keyframes 覆盖；paused 时也停在这个角度。 */
+  -webkit-mask: url('./music-petal.svg') center / 100% 100% no-repeat;
+  mask: url('./music-petal.svg') center / 100% 100% no-repeat;
   animation: sg-spin 18s linear infinite;
   animation-play-state: paused;
 }
 
-.sg-player-disc::before { z-index: 0; animation-delay: -1s; }
-.sg-player-disc::after { z-index: 2; animation-delay: -3.5s; }
-
-/* 乳白主体：实心花瓣被封面压住中心，只露 13% 宽边。
-   亮色是 accent 的墨晕，暗色是冷白 —— 白叠在浅玻璃上看不见，两套必须分开配。 */
-.sg-player-disc::before {
-  inset: -13%;
-  border-radius: 64% 36% 50% 50% / 58% 42% 62% 38%;
-  background: linear-gradient(150deg,
-      color-mix(in srgb, var(--sg-accent) 58%, transparent) 0,
-      color-mix(in srgb, var(--sg-accent) 32%, transparent) 55%,
-      color-mix(in srgb, var(--sg-accent) 12%, transparent) 100%);
-  opacity: .9;
-  transition: opacity .7s var(--sg-ease);
+.sg-player-disc::before,
+.sg-music-disc::before {
+  z-index: 0;
+  inset: -10% -7%;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--sg-music-petal-pearl) 38%, transparent),
+    color-mix(in srgb, var(--sg-music-petal-lilac) 60%, transparent));
 }
 
-/* 虹彩细纹层：圆锥渐变只在三段上色（粉 / 青 / 暖橙），其余透明。
-   mask 挖掉中心、外缘再渐隐，因此它也是一圈**有宽度的面**（比主体窄一点、再外扩一圈）——
-   两片形状不同、角度错开 48°，交叠处透明度叠加更实、未交叠处只剩单片，
-   那一弯月牙就是这样出来的。写成 1px 描边只会得到一条彩虹线，没有月牙。
-   它叠在封面之上（z-index 2），但中心被挖空，不会盖住画面。 */
-.sg-player-disc::after {
-  inset: -21%;
-  border-radius: 82% 18% 68% 32% / 24% 76% 30% 70%;
-  background: conic-gradient(from 40deg,
-      transparent 0,
-      rgba(255, 200, 224, var(--sg-iris-a)) 68deg,
-      rgba(172, 224, 240, var(--sg-iris-a)) 148deg,
-      rgba(255, 234, 198, var(--sg-iris-a)) 232deg,
-      transparent 308deg);
-  -webkit-mask-image: radial-gradient(closest-side,
-      transparent 74%, #000 77% 96%, transparent 98.5%);
-  mask-image: radial-gradient(closest-side,
-      transparent 74%, #000 77% 96%, transparent 98.5%);
-}
-
-/* 暗色：乳白主体换冷白；虹彩本来就亮，不用动 */
-html.dark .sg-player-disc::before { background: rgba(226, 240, 240, .84); }
-
-.sg-player-disc img {
-  display: block;
-  position: relative;      /* 参与层叠：必须压在 ::before 的花瓣面之上 */
+.sg-player-disc::after,
+.sg-music-disc::after {
   z-index: 1;
+  inset: -7% -10%;
+  animation-delay: -2.7s;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--sg-music-petal-pearl) 64%, transparent),
+    color-mix(in srgb, var(--sg-music-petal-lilac) 70%, transparent));
+}
+
+.sg-player-disc img,
+.sg-music-disc img {
+  display: block;
+  position: relative;
+  z-index: 2;
   box-sizing: border-box;
   width: 100%;
   height: 100%;
   object-fit: cover;
   border-radius: 50%;
-  border: 3px solid rgba(255, 255, 255, .92);
-  /* 封面本身不投影 —— 它的 box-shadow 会画在花瓣面之上，整圈环被压成脏灰色 */
+  border: var(--sg-disc-edge) solid color-mix(in srgb, var(--sg-music-petal-pearl) 70%, transparent);
+  animation: none;
   transition: opacity .38s var(--sg-ease);
 }
 
-/* 播放中：两片环转起来，乳白主体提亮一档。
-   ⚠️ 只动 opacity / animation-play-state，不动 background —— 在这里重写 background
-   会把上面按主题配好的渐变整个顶掉（特定性 (0,4,1) 压过 (0,2,1)）。 */
 .sg-player.is-playing .sg-player-disc::before,
-.sg-player.is-playing .sg-player-disc::after {
+.sg-player.is-playing .sg-player-disc::after,
+.sg-music.is-playing .sg-music-disc::before,
+.sg-music.is-playing .sg-music-disc::after {
   animation-play-state: running;
 }
 
-.sg-player.is-playing .sg-player-disc::before { opacity: 1; }
-
 /* 切歌时封面先透明、图片 load 后再淡入（player.ts 写这个类） */
-.sg-player-disc img.is-swap { opacity: 0; }
-
-/* 第三十九轮：轴心孔（`.sg-player-hole`）已下线 —— 演示视频里的封面是纯圆形图版，
-   中间没有黑胶轴心。模板里的节点也一并删了，留 CSS 只会变成一段永远不命中的死代码。 */
+.sg-player-disc img.is-swap,
+.sg-music-disc img.is-swap { opacity: 0; }
 
 /* 曲名与歌手沿中轴居中。站内正文就是宋体（Noto Serif SC），
    与华为那版衬线歌名天然同一路，不用另换字族。 */
@@ -861,8 +826,7 @@ html.dark .sg-player-controls .sg-player-play:hover {
 
 @media (min-width: 768px) { .sg-music-panel { padding: 2.25rem; } }
 
-/* 视频参考：静止圆封面 + 两片半透明宽面，18s 顺时针慢转。
-   仅作用于音乐页；首页小播放器保留原来的虹彩皮肤。 */
+/* 音乐页为共用花瓣留出舞台；首页采用同一轮廓的缩小版本。 */
 .sg-music-stage {
   position: relative;
   display: grid;
@@ -886,60 +850,14 @@ html.dark .sg-player-controls .sg-player-play:hover {
 }
 .sg-music.is-playing .sg-music-halo { opacity: .3; }
 
-/* 两片略长的花瓣从圆封面背后露出：不用 conic-gradient 或挖心蒙版。
-   层级必须是 before(0) < after(1) < img(2)，封面不参与旋转。 */
 .sg-music-disc {
   position: relative;
   isolation: isolate;
   width: min(17rem, 66%);
   aspect-ratio: 1;
+  --sg-disc-edge: 1.5px;
+  --sg-disc-speck: 3px;
 }
-.sg-music-disc::before,
-.sg-music-disc::after {
-  content: '';
-  position: absolute;
-  pointer-events: none;
-  animation: sg-spin 18s linear infinite;
-  animation-play-state: paused;
-  filter: blur(.6px);
-  background: linear-gradient(165deg,
-    color-mix(in srgb, var(--sg-music-petal-pearl) 64%, transparent) 0%,
-    color-mix(in srgb, var(--sg-music-petal-lilac) 50%, transparent) 58%,
-    color-mix(in srgb, var(--sg-music-petal-lilac) 66%, transparent) 100%);
-}
-.sg-music-disc::before {
-  z-index: 0;
-  inset: -11% -4%;
-  border-radius: 48% 52% 47% 53% / 47% 49% 51% 53%;
-  animation-delay: -1s;
-}
-.sg-music-disc::after {
-  z-index: 1;
-  inset: -10% -3%;
-  border-radius: 52% 48% 53% 47% / 49% 53% 47% 51%;
-  animation-delay: -3.5s;
-  background: linear-gradient(155deg,
-    color-mix(in srgb, var(--sg-music-petal-pearl) 48%, transparent) 0%,
-    color-mix(in srgb, var(--sg-music-petal-lilac) 38%, transparent) 56%,
-    color-mix(in srgb, var(--sg-music-petal-lilac) 56%, transparent) 100%);
-}
-.sg-music.is-playing .sg-music-disc::before,
-.sg-music.is-playing .sg-music-disc::after { animation-play-state: running; }
-
-.sg-music-disc img {
-  position: relative;
-  z-index: 2;
-  display: block;
-  box-sizing: border-box;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-  border: 3px solid color-mix(in srgb, var(--sg-music-petal-pearl) 74%, transparent);
-  animation: none;
-  transition: opacity .38s var(--sg-ease);
-}
-.sg-music-disc img.is-swap { opacity: 0; }
 
 /* 少量微光沿外环漂移；装饰不进入可访问树，也不接收点击。 */
 .sg-music-dust {
@@ -947,14 +865,14 @@ html.dark .sg-player-controls .sg-player-play:hover {
   inset: -18%;
   z-index: 3;
   pointer-events: none;
-  animation: sg-spin 27s linear infinite;
+  animation: sg-spin 18s linear infinite;
   animation-delay: -4s;
   animation-play-state: paused;
 }
 .sg-music-dust i {
   position: absolute;
-  width: 3px;
-  height: 3px;
+  width: var(--sg-disc-speck);
+  height: var(--sg-disc-speck);
   border-radius: 50%;
   background: var(--sg-music-petal-pearl);
   opacity: .18;
@@ -962,15 +880,17 @@ html.dark .sg-player-controls .sg-player-play:hover {
   animation-play-state: paused;
 }
 .sg-music-dust i:nth-child(1) { left: 22%; top: 8%; animation-delay: -1.2s; }
-.sg-music-dust i:nth-child(2) { left: 73%; top: 13%; width: 2px; height: 2px; animation-delay: -3s; }
+.sg-music-dust i:nth-child(2) { left: 73%; top: 13%; animation-delay: -3s; }
 .sg-music-dust i:nth-child(3) { left: 94%; top: 58%; animation-delay: -4.6s; }
-.sg-music-dust i:nth-child(4) { left: 63%; top: 96%; width: 2px; height: 2px; animation-delay: -2.2s; }
-.sg-music-dust i:nth-child(5) { left: 8%; top: 68%; width: 2px; height: 2px; animation-delay: -.6s; }
+.sg-music-dust i:nth-child(4) { left: 63%; top: 96%; animation-delay: -2.2s; }
+.sg-music-dust i:nth-child(5) { left: 8%; top: 68%; animation-delay: -.6s; }
+.sg-player.is-playing .sg-music-dust,
+.sg-player.is-playing .sg-music-dust i,
 .sg-music.is-playing .sg-music-dust,
 .sg-music.is-playing .sg-music-dust i { animation-play-state: running; }
 @keyframes sg-music-dust-pulse {
   0%, 100% { opacity: .12; }
-  50% { opacity: .48; }
+  50% { opacity: .28; }
 }
 
 /* 面板只留很轻的封面底色，去掉旧的密集声波和全卡光点。 */
@@ -991,6 +911,8 @@ html.dark .sg-player-controls .sg-player-play:hover {
 .sg-music-panel > * { position: relative; z-index: 1; }
 
 @media (prefers-reduced-motion: reduce) {
+  .sg-player-disc::before,
+  .sg-player-disc::after,
   .sg-music-disc::before,
   .sg-music-disc::after,
   .sg-music-dust,
@@ -1258,7 +1180,6 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
 
 /* 正在播放的三根跳动竖条 */
 .sg-song-wave { display: flex; align-items: flex-end; gap: 2px; height: 12px; flex-shrink: 0; }
- { display: block; width: 2px; height: 100%; border-radius: 999px; background: var(--sg-accent-ink); transform-origin: bottom; animation: sg-wave 1s ease-in-out infinite; }
 .sg-song-wave i:nth-child(2) { animation-delay: .2s; }
 .sg-song-wave i:nth-child(3) { animation-delay: .4s; }
 
@@ -1268,12 +1189,9 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
    特效总开关（sg-effects-off）不应该把唱片也停掉。 */
 @keyframes sg-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-.sg-music-note { padding: 0 1.25rem 1.25rem; font-size: .72rem; line-height: 1.7; color: var(--sg-faint); }
 
 /* ---------- 首页歌词栏（LyricBar） ---------- */
-/* 源站 components/LyricBar.tsx：7:5 行与 4:8 行之间一条深色通栏条，
-   左五根声波、中逐字歌词 + 闪烁光标、右音符图标。两种主题共用同一套深色底
-   （源站是 slate-900/80，暗色 slate-950/90），所以颜色只走 --sg-lyric-* 两个 token。 */
+/* 通栏歌词：左声波、中央歌词、右音符；全部色彩由昼夜 --sg-lyric-* token 驱动。 */
 .sg-lyric-bar {
   position: relative;
   display: flex;
@@ -1289,8 +1207,8 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
   background: var(--sg-lyric-bg);
   -webkit-backdrop-filter: blur(var(--sg-blur-nav));
   backdrop-filter: blur(var(--sg-blur-nav));
-  box-shadow: 0 25px 50px -12px rgb(0 0 0 / .25);
-  color: #fff;
+  box-shadow: var(--sg-lyric-shadow);
+  color: var(--sg-lyric-text);
   overflow: hidden;
   transition: background-color 1s, border-color 1s, box-shadow .5s;
 }
@@ -1319,11 +1237,11 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
 }
 
 /* 五根波形：原为 indigo/purple 交替，改成青瓷由浅到深的同一族（压在深色歌词条上必须是亮档） */
-.sg-lyric-wave i:nth-child(1) { background: var(--sg-accent-soft); }
-.sg-lyric-wave i:nth-child(2) { background: var(--sg-accent-pale); }
-.sg-lyric-wave i:nth-child(3) { background: var(--sg-accent-2); }
-.sg-lyric-wave i:nth-child(4) { background: var(--sg-accent-2); }
-.sg-lyric-wave i:nth-child(5) { background: var(--sg-accent-pale); }
+.sg-lyric-wave i:nth-child(1) { background: var(--sg-lyric-wave-a); }
+.sg-lyric-wave i:nth-child(2) { background: var(--sg-lyric-wave-b); }
+.sg-lyric-wave i:nth-child(3) { background: var(--sg-lyric-wave-c); }
+.sg-lyric-wave i:nth-child(4) { background: var(--sg-lyric-wave-c); }
+.sg-lyric-wave i:nth-child(5) { background: var(--sg-lyric-wave-b); }
 
 .sg-lyric-bar.is-playing .sg-lyric-wave i { animation: sg-lyric-wave 1s ease-in-out infinite; }
 .sg-lyric-bar.is-playing .sg-lyric-wave i:nth-child(1) { animation-delay: 0ms; }
@@ -1346,11 +1264,11 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
   font-size: 1.125rem;
   font-weight: 700;
   letter-spacing: .1em;
-  color: #fff;
+  color: var(--sg-lyric-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-shadow: 0 0 8px color-mix(in srgb, var(--sg-accent) 80%, transparent);
+  text-shadow: var(--sg-lyric-text-shadow);
 }
 
 /* 打字光标：源站是独立 span + cursorBlink；这里挂在文本节点后面，少一层 DOM */
@@ -1361,8 +1279,8 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
   height: 1.25rem;
   margin-left: .25rem;
   vertical-align: middle;
-  background: var(--sg-accent-soft);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--sg-accent) 80%, transparent);
+  background: var(--sg-lyric-wave-a);
+  box-shadow: var(--sg-lyric-text-shadow);
   animation: sg-lyric-caret .8s step-end infinite;
 }
 
@@ -1376,7 +1294,7 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
   flex: none;
   justify-content: flex-end;
   width: 4rem;
-  color: color-mix(in srgb, var(--sg-accent-soft) 50%, transparent);
+  color: var(--sg-lyric-icon);
   transition: opacity .5s, color 1s;
 }
 
@@ -1389,7 +1307,7 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
   50% { transform: none; }
 }
 
-.sg-lyric-bar:not(.is-playing) .sg-lyric-icon { opacity: .30; }
+.sg-lyric-bar:not(.is-playing) .sg-lyric-icon { opacity: .55; }
 
 @media (max-width: 639px) {
   .sg-lyric-bar { height: 4.5rem; padding: 1rem; gap: .75rem; }
@@ -1434,7 +1352,7 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
      封面靠 stretch 同步长高（.sg-hero 的 align-items: stretch 不变）。 */
   .sg-hero-side .sg-player-card {
     min-height: 19.1rem;
-    /* 虹彩外环上探 21.8px，再给虚边留余量；仅改桌面顶部。 */
+    /* 顶部预留花瓣与微光的溢出空间。 */
     padding: 1.5rem 1.75rem 1.1rem;
   }
   .sg-hero-side .sg-player-disc { width: 6.5rem; height: 6.5rem; }
@@ -1447,7 +1365,7 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
 /* 副栏之外的首页卡（<1024 单列时贴在整行上）：空间反而更宽裕，唱片放大一档 */
 @media (max-width: 1023.98px) {
   .sg-player-disc { width: 6.5rem; height: 6.5rem; }
-  /* 顶部同样要让开外环的 21.8px，1.35rem(21.6px) 差一点点，会削出白边痕迹 */
+  /* 单列布局同样留出花瓣与微光的空间。 */
   .sg-player-card { padding: 1.5rem 1.5rem 1.1rem; }
 }
 
@@ -2085,7 +2003,6 @@ html.dark .sg-i-moon { display: inline-flex; }
   border-bottom: 1px solid var(--sg-line);
 }
 
- { width: 4px; height: 4px; border-radius: 50%; background: var(--sg-accent-ink); }
 .sg-briefing-col:nth-child(2n) .sg-briefing-col-head i { background: var(--sg-accent-2); }
 .sg-briefing-col-head h3 { font-size: .75rem; font-weight: 500; letter-spacing: .18em; color: var(--sg-muted); }
 .sg-briefing-col-head span { margin-left: auto; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; color: var(--sg-faint); }
@@ -2125,7 +2042,6 @@ html.dark .sg-i-moon { display: inline-flex; }
 
 .sg-briefing-item-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; margin-top: .4rem; font-size: 9px; color: var(--sg-faint); }
 .sg-briefing-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--sg-accent-2); }
- { background: var(--sg-accent-ink); }
 
 .sg-briefing-item-arrow { flex-shrink: 0; margin-top: .15rem; color: var(--sg-faint); opacity: 0; transition: opacity var(--sg-dur-fast) linear, color var(--sg-dur-fast) linear; }
 .sg-briefing-item:hover .sg-briefing-item-arrow { opacity: 1; color: var(--sg-accent-ink); }
@@ -2411,7 +2327,6 @@ html.dark .sg-prose a { color: var(--sg-indigo-soft); }
 .sg-toc-list a { position: relative; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; padding-left: 1rem; font-size: .875rem; line-height: 1.5; color: var(--sg-muted); transition: color .3s; }
 .sg-toc-list a:hover { color: var(--sg-accent-ink); }
 .sg-toc-list li.is-active a { color: var(--sg-accent-ink); font-weight: 700; }
- { content: ''; position: absolute; left: -.5rem; top: .25rem; bottom: .25rem; width: 2px; border-radius: 999px; background: var(--sg-accent-ink); }
 .sg-toc-list .sg-toc-lv3 a { padding-left: 1.75rem; font-size: .8125rem; }
 
 /* 阅读进度中轴线（2026-11-14 第三十五轮）
@@ -2500,100 +2415,6 @@ html.dark .sg-page-head .sg-search { text-shadow: 0 1px 18px rgba(2, 6, 23, .55)
 .sg-filtered-out { display: none !important; }
 .sg-filter-empty { padding: 2.5rem 1rem; text-align: center; font-size: .9rem; color: var(--sg-muted); }
 
-/* ---------- 友链（对齐源站 FriendsBoard：3 列 + 渐变环头像 + ONLINE） ---------- */
-.sg-friend-grid {
-  display: grid;
-  gap: .875rem;
-  grid-template-columns: minmax(0, 1fr);
-}
-
-@media (min-width: 640px) { .sg-friend-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; } }
-@media (min-width: 1024px) { .sg-friend-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; } }
-
-.sg-friend {
-  display: flex;
-  align-items: flex-start;
-  gap: .9rem;
-  height: 100%;
-  padding: 1.1rem;
-  border-radius: var(--sg-radius-outer);
-  transition:
-    transform var(--sg-dur-card) var(--sg-ease),
-    box-shadow var(--sg-dur-card) var(--sg-ease),
-    border-color var(--sg-dur-fast) linear;
-}
-
-@media (min-width: 768px) { .sg-friend { padding: 1.35rem; gap: 1.1rem; } }
-
-.sg-friend:hover { border-color: color-mix(in srgb, var(--sg-accent) 35%, transparent); }
-
-/* 头像外圈：conic 渐变环 + 内圈留白，源站是 p-[2px] 的渐变底 */
-.sg-friend-avatar {
-  position: relative;
-  flex-shrink: 0;
-  width: 3rem;
-  height: 3rem;
-  padding: 2px;
-  border-radius: 50%;
-  background: linear-gradient(to top right, color-mix(in srgb, var(--sg-accent) 60%, transparent), color-mix(in srgb, var(--sg-accent-2) 60%, transparent));
-  box-shadow: 0 4px 12px -4px rgb(0 0 0 / .35);
-  transition: transform 1s var(--sg-ease);
-}
-
-@media (min-width: 768px) { .sg-friend-avatar { width: 3.75rem; height: 3.75rem; padding: 3px; } }
-
-.sg-friend:hover .sg-friend-avatar { transform: rotate(360deg); }
-
-.sg-friend-avatar img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-  background: #fff;
-}
-
-.sg-friend-main { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: .35rem; }
-
-.sg-friend-head { display: flex; flex-direction: column; gap: .2rem; }
-
-.sg-friend-name {
-  font-size: 1rem;
-  font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: color var(--sg-dur-fast) linear;
-}
-
-@media (min-width: 768px) { .sg-friend-name { font-size: 1.15rem; } }
-
-.sg-friend:hover .sg-friend-name { color: var(--sg-accent-ink); }
-
-.sg-friend-status {
-  display: inline-flex;
-  align-items: center;
-  gap: .3rem;
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, var(--sg-accent) 75%, transparent);
-}
-
-.sg-friend-status i { width: 5px; height: 5px; border-radius: 50%; background: var(--sg-green); animation: sg-pulse 2s cubic-bezier(.4, 0, .6, 1) infinite; }
-
-.sg-friend-desc {
-  font-size: .8rem;
-  line-height: 1.7;
-  color: var(--sg-muted);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-@media (min-width: 768px) { .sg-friend-desc { -webkit-line-clamp: 3; font-size: .84rem; } }
-
 /* ---------- 项目卡（第三十七轮重做） ----------
    改之前是五段式：@owner 等宽小字 → 44px emoji 色块 + 标题 → 描述 → 标签 → 指标。
    症结是「层级多、信息少」：身份行和图标块都在重复回答「这是什么项目」，
@@ -2601,9 +2422,8 @@ html.dark .sg-page-head .sg-search { text-shadow: 0 1px 18px rgba(2, 6, 23, .55)
    现在是四段：头像 + 项目名（同一行，名字是主角）→ 描述 → 语言 / 星数 → 标签 → 日期 + 源码。
 
    加厚靠三样不占版面的东西，而不是往里塞文案：
-     ① 顶部 2px 渐变细带，静置半亮、hover 从左往右长满；
-     ② 头像外面套一圈渐变描边（容器当环，img 缩 2px 进去）；
-     ③ 卡面右上角铺一层所用语言的色晕（7% 透明），三张卡并排时颜色各不相同。 */
+     ① 头像外面套一圈渐变描边（容器当环，img 缩 2px 进去）；
+     ② 卡面右上角铺一层所用语言的色晕（7% 透明），三张卡并排时颜色各不相同。 */
 .sg-project {
   position: relative;
   display: flex;
@@ -2639,25 +2459,6 @@ html.dark .sg-page-head .sg-search { text-shadow: 0 1px 18px rgba(2, 6, 23, .55)
   border-color: var(--sg-proj-border-hot);
   box-shadow: var(--sg-shadow-strong);
 }
-
-/* 顶部渐变细带：静置 46% 宽、半亮，hover / focus 时铺满整条边。
-   比整卡描边亮起更克制，也更像「档案卡」的索引条。 */
-.sg-project::after {
-  content: '';
-  position: absolute;
-  inset: 0 auto auto 0;
-  width: 46%;
-  height: 2px;
-  background: linear-gradient(90deg, var(--sg-accent), var(--sg-accent-2) 62%, transparent);
-  /* .45 实测在浅色卡面上几乎看不见（2px × 45% 的青瓷 = 一条灰），.7 才读得出来 */
-  opacity: .7;
-  pointer-events: none;
-  transition:
-    width var(--sg-dur-card) var(--sg-ease),
-    opacity var(--sg-dur-card) var(--sg-ease);
-}
-.sg-project:hover::after,
-.sg-project:focus-within::after { width: 100%; opacity: 1; }
 
 /* 身份行：头像 + 项目名 + 徽章。名字用 h3，和卡片的字号层级绑在一起 */
 .sg-project-top {

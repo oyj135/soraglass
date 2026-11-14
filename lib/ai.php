@@ -8,10 +8,8 @@
  *     模型只补一句摘要与推荐理由。这样即使模型胡言乱语，页面上也不会出现一个不存在的链接。
  *     第二十五轮起**不再支持「让模型自己联网搜」**：那需要按次计费的服务商搜索能力，
  *     且链接可信度还得再套一层白名单；只保留候选源模式，简单、免费、完全可控。
- *  2. **不阻塞页面。** 没有 Key / 超时 / 返回不是 JSON，一律不输出这块内容，
- *     只在管理员视角给一行诊断。
- *  3. **一天一份，落盘缓存。** 缓存键含主题、模型、日期，凌晨自然失效；
- *     管理员访问时带 `?sg_ai=refresh` 可强制重生成。
+ *  2. **页面只读缓存。** PHP-FPM 结束响应、释放会话后更新一个主题；外部请求不会卡住首页。
+ *  3. **一天一份，落盘缓存。** 凌晨先显示最近七天内的成功缓存，再后台更新；生成有并发锁与截止时间。
  *
  * 依赖：lib/fields.php 的 sg_http_get()、lib/config.php 的 sg_opt()/sg_user_is_admin()。
  */
@@ -161,7 +159,10 @@ function sg_ai_fail(string $message): void
     if (sg_ai_error() === '') {
         $GLOBALS['SG_AI_ERROR'] = $message;
         // 失败也落盘 5 分钟：否则每个访客都要先等一次超时
-        @file_put_contents(sg_ai_cache_file() . '.fail', $message);
+        $file = sg_ai_cache_file((string) ($GLOBALS['SG_AI_JOB_THEME'] ?? ''));
+        if ($file !== '') {
+            sg_ai_store_file($file . '.fail', $message);
+        }
     }
 }
 
@@ -183,8 +184,127 @@ function sg_ai_cache_prefix(string $theme = ''): string
 /** 当天的缓存文件路径（`soraglass-ai-<前缀>-<Ymd>.json`） */
 function sg_ai_cache_file(string $theme = ''): string
 {
-    return rtrim(sys_get_temp_dir(), '/\\') . DIRECTORY_SEPARATOR
-        . 'soraglass-ai-' . sg_ai_cache_prefix($theme) . '-' . date('Ymd') . '.json';
+    return sg_cache_file('soraglass-ai-' . sg_ai_cache_prefix($theme) . '-' . date('Ymd') . '.json');
+}
+
+/** Atomic cache writes keep readers from observing a partial JSON/XML file. */
+function sg_ai_store_file(string $file, string $body): bool
+{
+    if ($file === '') {
+        return false;
+    }
+    $temporary = $file . '.' . uniqid('', true) . '.tmp';
+    if (@file_put_contents($temporary, $body, LOCK_EX) === strlen($body) && @rename($temporary, $file)) {
+        return true;
+    }
+    @unlink($temporary);
+    return false;
+}
+
+/** Read today or a recent successful issue; also accept caches written by the previous version. */
+function sg_ai_read_cache(string $theme, bool $todayOnly = false): ?array
+{
+    $prefix = 'soraglass-ai-' . sg_ai_cache_prefix($theme) . '-';
+    $legacy = rtrim(sys_get_temp_dir(), '/\\') . DIRECTORY_SEPARATOR;
+    $files = [sg_ai_cache_file($theme), $legacy . $prefix . date('Ymd') . '.json'];
+    if (!$todayOnly) {
+        $files[] = sg_cache_file($prefix . 'latest.json');
+        for ($days = 1; $days <= 7; $days++) {
+            $name = $prefix . date('Ymd', time() - $days * 86400) . '.json';
+            $files[] = sg_cache_file($name);
+            $files[] = $legacy . $name;
+        }
+    }
+    foreach (array_unique(array_filter($files)) as $file) {
+        if (!@is_file($file)) {
+            continue;
+        }
+        $issue = json_decode((string) @file_get_contents($file), true);
+        if (!is_array($issue) || empty($issue['items'])) {
+            continue;
+        }
+        if (!$todayOnly) {
+            $date = strtotime(str_replace('.', '-', (string) ($issue['date'] ?? '')));
+            if ($date === false || $date < strtotime('-7 days midnight')) {
+                continue;
+            }
+        }
+        return $issue;
+    }
+    return null;
+}
+
+/** Reserve one worker without waiting; network work starts only after the response is complete. */
+function sg_ai_queue_update(string $theme, bool $force = false): void
+{
+    static $queued = false;
+    if ($queued) {
+        return;
+    }
+    $cacheFile = sg_ai_cache_file($theme);
+    if ($cacheFile === '') {
+        $GLOBALS['SG_AI_ERROR'] = '日报缓存目录不可写，暂不更新；请检查 PHP 缓存目录权限。';
+        return;
+    }
+    if (!$force && @is_file($cacheFile . '.fail') && time() - (int) @filemtime($cacheFile . '.fail') < 300) {
+        $GLOBALS['SG_AI_ERROR'] = (string) @file_get_contents($cacheFile . '.fail');
+        return;
+    }
+    if (!function_exists('fastcgi_finish_request') || !function_exists('curl_init')) {
+        $GLOBALS['SG_AI_ERROR'] = '日报后台更新需要 PHP-FPM 与 cURL；暂时显示已有缓存。';
+        return;
+    }
+    $lockFile = sg_cache_file('ai-update-' . md5(SG_ROOT) . '.lock');
+    $lock = $lockFile !== '' ? @fopen($lockFile, 'c') : false;
+    if ($lock === false) {
+        $GLOBALS['SG_AI_ERROR'] = '日报缓存锁不可写，暂不更新。';
+        return;
+    }
+    if (!flock($lock, LOCK_EX | LOCK_NB)) {
+        fclose($lock);
+        $GLOBALS['SG_AI_ERROR'] = '日报正在后台更新，稍后刷新可查看。';
+        return;
+    }
+    $queued = true;
+    $GLOBALS['SG_AI_ERROR'] = '日报正在后台更新，稍后刷新可查看。';
+    register_shutdown_function(static function () use ($lock, $theme, $force): void {
+        try {
+            // Typecho/plugins finish rendering before releasing their session and response.
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                session_write_close();
+            }
+            if (!fastcgi_finish_request()) {
+                return;
+            }
+            ignore_user_abort(true);
+            @set_time_limit(40);
+            $GLOBALS['SG_AI_ERROR'] = '';
+            $GLOBALS['SG_AI_JOB_THEME'] = $theme;
+            $GLOBALS['SG_AI_DEADLINE'] = microtime(true) + 35;
+            $GLOBALS['SG_AI_FEED_DEADLINE'] = microtime(true) + 6;
+            sg_ai_generate_issue($force, $theme);
+        } catch (\Throwable $error) {
+            sg_ai_fail('日报后台更新失败，稍后重试。');
+        } finally {
+            unset($GLOBALS['SG_AI_JOB_THEME'], $GLOBALS['SG_AI_DEADLINE'], $GLOBALS['SG_AI_FEED_DEADLINE']);
+            flock($lock, LOCK_UN);
+            fclose($lock);
+        }
+    });
+}
+
+/** Compatibility entry: never generate RSS/model data in the page's response path. */
+function sg_ai_issue(bool $force = false, string $theme = ''): ?array
+{
+    if (!sg_ai_enabled()) {
+        return null;
+    }
+    $theme = $theme !== '' ? $theme : sg_ai_cfg()['topic'];
+    $issue = sg_ai_read_cache($theme, true);
+    if ($force || $issue === null) {
+        sg_ai_queue_update($theme, $force);
+    }
+    return $issue ?? sg_ai_read_cache($theme);
 }
 
 /**
@@ -227,7 +347,16 @@ function sg_ai_feed_items(array $feeds, int $limit = 20): array
         if (preg_match('#^https?://#i', $feed) !== 1) {
             continue;
         }
-        $xml = sg_http_get($feed, ['Accept: application/rss+xml, application/atom+xml, application/xml, text/xml'], 8);
+        $feedFile = sg_cache_file('ai-feed-' . md5($feed) . '.xml');
+        $xml = $feedFile !== '' && @is_file($feedFile) && time() - (int) @filemtime($feedFile) < 600
+            ? (string) @file_get_contents($feedFile) : '';
+        if ($xml === '') {
+            $deadline = (float) ($GLOBALS['SG_AI_FEED_DEADLINE'] ?? (microtime(true) + 6));
+            $xml = sg_http_get($feed, ['Accept: application/rss+xml, application/atom+xml, application/xml, text/xml'], 2, $deadline);
+            if ($xml !== '' && stripos($xml, '<') !== false && $feedFile !== '') {
+                sg_ai_store_file($feedFile, $xml);
+            }
+        }
         if ($xml === '' || stripos($xml, '<') === false) {
             continue;
         }
@@ -389,6 +518,7 @@ function sg_ai_api_error(string $msg): string
 function sg_ai_request(string $system, string $user, array $cfg): string
 {
     $format = $cfg['format'];
+    $deadline = (float) ($GLOBALS['SG_AI_DEADLINE'] ?? (microtime(true) + 25));
 
     if ($format === 'anthropic') {
         $payload = [
@@ -401,7 +531,7 @@ function sg_ai_request(string $system, string $user, array $cfg): string
         $body = sg_http_post_json($cfg['endpoint'], $payload, [
             'x-api-key: ' . $cfg['key'],
             'anthropic-version: 2023-06-01',
-        ], 30);
+        ], 25, $deadline);
         if ($body === '') {
             sg_ai_fail('模型接口没有响应（检查接口地址 / Key / 服务器能否出网）');
             return '';
@@ -436,7 +566,7 @@ function sg_ai_request(string $system, string $user, array $cfg): string
             'contents'         => [['parts' => [['text' => $system . "\n\n" . $user]]]],
             'generationConfig' => ['temperature' => 0.4, 'responseMimeType' => 'application/json'],
         ];
-        $body = sg_http_post_json($endpoint, $payload, ['Content-Type: application/json'], 30);
+        $body = sg_http_post_json($endpoint, $payload, ['Content-Type: application/json'], 25, $deadline);
         if ($body === '') {
             sg_ai_fail('模型接口没有响应（检查接口地址 / Key / 服务器能否出网）');
             return '';
@@ -472,7 +602,7 @@ function sg_ai_request(string $system, string $user, array $cfg): string
     ];
     $body = sg_http_post_json($cfg['endpoint'], $payload, [
         'Authorization: Bearer ' . $cfg['key'],
-    ], 30);
+    ], 25, $deadline);
     if ($body === '') {
         sg_ai_fail('模型接口没有响应（检查接口地址 / Key / 服务器能否出网）');
         return '';
@@ -496,7 +626,7 @@ function sg_ai_request(string $system, string $user, array $cfg): string
  * 请求模型：给它候选，让它挑 N 条并写摘要。
  * 返回规范化后的选刊期号，失败返回 null。
  */
-function sg_ai_issue(bool $force = false, string $theme = ''): ?array
+function sg_ai_generate_issue(bool $force = false, string $theme = ''): ?array
 {
     if (!sg_ai_enabled()) {
         return null;
@@ -722,7 +852,12 @@ function sg_ai_issue(bool $force = false, string $theme = ''): ?array
         'items'   => $items,
     ];
 
-    @file_put_contents($cacheFile, json_encode($issue, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    $body = json_encode($issue, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if ($cacheFile === '' || !is_string($body) || !sg_ai_store_file($cacheFile, $body)) {
+        sg_ai_fail('日报缓存写入失败，请检查缓存目录权限。');
+        return null;
+    }
+    sg_ai_store_file(sg_cache_file('soraglass-ai-' . sg_ai_cache_prefix($theme) . '-latest.json'), $body);
     @unlink($cacheFile . '.fail');
     return $issue;
 }
