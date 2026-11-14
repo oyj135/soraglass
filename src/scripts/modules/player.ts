@@ -70,6 +70,53 @@ export function initPlayer(): void {
   const q = <T extends HTMLElement>(root: HTMLElement | null, sel: string): T | null =>
     root ? root.querySelector<T>(sel) : null;
 
+  /* 封面主色取色：写到卡片的 --sg-cover-tint，卡片背景的光晕与同心圆波纹都从这个变量取色。
+     用 fetch(cors) 拿 blob 再画进 canvas —— 这样 <img> 不用挂 crossorigin 属性，
+     就算接口不回 CORS 头，也只是取不到色（背景退回 --sg-accent），封面照常显示。
+     同一封面只采一次，Map 缓存。 */
+  const tintCache = new Map<string, string>();
+  const tintCard = (img: HTMLImageElement): void => {
+    const card = img.closest<HTMLElement>('.sg-player-card');
+    if (!card) return;
+    const src = img.currentSrc || img.src;
+    if (!src || src.startsWith('data:')) return;
+    const hit = tintCache.get(src);
+    if (hit) { card.style.setProperty('--sg-cover-tint', hit); return; }
+    fetch(src, { mode: 'cors' })
+      .then((res) => {
+        if (!res.ok) throw new Error(String(res.status));
+        return res.blob();
+      })
+      .then((blob) => {
+        const url = URL.createObjectURL(blob);
+        const probe = new Image();
+        probe.onload = () => {
+          try {
+            const cvs = document.createElement('canvas');
+            cvs.width = cvs.height = 12;
+            const ctx = cvs.getContext('2d');
+            if (!ctx) return;
+            ctx.drawImage(probe, 0, 0, 12, 12);
+            const data = ctx.getImageData(0, 0, 12, 12).data;
+            let r = 0, g = 0, b = 0;
+            for (let i = 0; i < data.length; i += 4) { r += data[i]; g += data[i + 1]; b += data[i + 2]; }
+            const n = data.length / 4;
+            /* 平均色天然发灰，向高饱和端拉 1.6 倍；再做 60–230 的截断，
+               免得全白/全黑的封面提出荧光色或一团黑。 */
+            const mid = (Math.max(r, g, b) / n + Math.min(r, g, b) / n) / 2;
+            const push = (v: number): number => Math.max(60, Math.min(230, mid + (v - mid) * 1.6));
+            const tint = `rgb(${Math.round(push(r / n))} ${Math.round(push(g / n))} ${Math.round(push(b / n))})`;
+            tintCache.set(src, tint);
+            card.style.setProperty('--sg-cover-tint', tint);
+          } finally {
+            URL.revokeObjectURL(url);
+          }
+        };
+        probe.src = url;
+      })
+      .catch(() => { /* CORS 拒了 / 超时 / 404 都静默，背景退回 --sg-accent */ });
+  };
+
   /**
    * 封面兜底。
    *
@@ -89,10 +136,12 @@ export function initPlayer(): void {
     /* 换歌时 apply() 会给 img 加 .is-swap（opacity: 0），图片 load 后再淡入。
        放在这里而不是 apply 里，是因为 src 可能走缓存、也可能 404 后回落本地图，
        两条路都是 load 收尾。 */
-    img.addEventListener('load', () => { img.classList.remove('is-swap'); });
+    img.addEventListener('load', () => { img.classList.remove('is-swap'); tintCard(img); });
     img.addEventListener('error', () => { img.classList.remove('is-swap'); revert(); });
     // 已经加载完且宽度为 0，说明在绑定监听之前就失败了
     if (img.complete && img.naturalWidth === 0) revert();
+    // 已经加载完成的（走缓存），立即取一次色 —— load 事件不会再发
+    if (img.complete && img.naturalWidth > 0) tintCard(img);
   };
 
   document
