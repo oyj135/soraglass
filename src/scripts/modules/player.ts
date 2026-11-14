@@ -86,7 +86,11 @@ export function initPlayer(): void {
       img.dataset.sgFallbackDone = '1';
       img.src = fallback;
     };
-    img.addEventListener('error', revert);
+    /* 换歌时 apply() 会给 img 加 .is-swap（opacity: 0），图片 load 后再淡入。
+       放在这里而不是 apply 里，是因为 src 可能走缓存、也可能 404 后回落本地图，
+       两条路都是 load 收尾。 */
+    img.addEventListener('load', () => { img.classList.remove('is-swap'); });
+    img.addEventListener('error', () => { img.classList.remove('is-swap'); revert(); });
     // 已经加载完且宽度为 0，说明在绑定监听之前就失败了
     if (img.complete && img.naturalWidth === 0) revert();
   };
@@ -154,14 +158,22 @@ export function initPlayer(): void {
   };
 
   const syncTime = (): void => {
+    const pct = Number.isFinite(audio.duration) && audio.duration > 0
+      ? Math.max(0, Math.min(1, audio.currentTime / audio.duration))
+      : 0;
     roots.forEach((root) => {
       const cur = q(root, '[data-sg-time-current]');
       const total = q(root, '[data-sg-time-total]');
       const bar = q<HTMLInputElement>(root, '[data-sg-progress]');
       if (cur) cur.textContent = fmtTime(audio.currentTime);
       if (total) total.textContent = fmtTime(audio.duration);
-      if (bar && audio.duration > 0 && document.activeElement !== bar) {
-        bar.value = String(Math.round((audio.currentTime / audio.duration) * 1000));
+      if (bar) {
+        /* 轨道本身就是进度条：已播放段靠 --sg-p 切开（见 components.css 的
+           input.sg-progress）。只写一个自定义属性，浏览器自己算渐变位置。 */
+        bar.style.setProperty('--sg-p', `${(pct * 100).toFixed(2)}%`);
+        if (audio.duration > 0 && document.activeElement !== bar) {
+          bar.value = String(Math.round(pct * 1000));
+        }
       }
     });
   };
@@ -334,8 +346,11 @@ export function initPlayer(): void {
       const img = q<HTMLImageElement>(root, '[data-sg-track-cover]');
       if (title) title.textContent = track.title ?? '未命名';
       if (artist) artist.textContent = track.artist ?? '空璃音乐盒';
-      if (img && cover) {
+      /* 封面交叉淡入：先置透明，load 后再淡回来（watchCover 收尾）。
+         src 没变时不动 —— 否则同一首重复 apply 会一直停在透明态。 */
+      if (img && cover && img.getAttribute('src') !== cover) {
         delete img.dataset.sgFallbackDone;   // 换歌要允许重新触发兜底
+        img.classList.add('is-swap');
         img.src = cover;
       }
       const bar = q<HTMLInputElement>(root, '[data-sg-progress]');
@@ -443,19 +458,24 @@ export function initPlayer(): void {
     },
   };
 
+  /* 模式按钮 2026-11-14 起首页卡也有（华为那一行左侧的胶囊）。
+     所以这里不再只认 [data-sg-music]，而是遍历所有播放器根节点 ——
+     首页与音乐页的模式图标/文案必须同步，否则同一个状态两处显示不一致。 */
   const paintMode = (): void => {
-    const btn = q(music, '[data-sg-mode]');
-    if (!btn) return;
     const meta = MODE_META[mode] ?? MODE_META.loop;
-    btn.dataset.mode = mode;
-    btn.setAttribute('aria-label', `播放模式：${meta.label}`);
-    btn.classList.toggle('is-active', mode !== 'loop');
-    const icon = q<HTMLElement>(music, '[data-sg-mode-icon]');
-    if (icon) {
-      icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${meta.icon}</svg>`;
-    }
-    const label = q<HTMLElement>(music, '[data-sg-mode-label]');
-    if (label) label.textContent = meta.label;
+    roots.forEach((root) => {
+      const btn = q(root, '[data-sg-mode]');
+      if (!btn) return;
+      btn.dataset.mode = mode;
+      btn.setAttribute('aria-label', `播放模式：${meta.label}`);
+      btn.classList.toggle('is-active', mode !== 'loop');
+      const icon = q<HTMLElement>(root, '[data-sg-mode-icon]');
+      if (icon) {
+        icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${meta.icon}</svg>`;
+      }
+      const label = q<HTMLElement>(root, '[data-sg-mode-label]');
+      if (label) label.textContent = meta.label;
+    });
   };
 
   apply(index);
@@ -510,29 +530,48 @@ export function initPlayer(): void {
     });
   });
 
-  // 音乐页：播放模式 / 音量 / 静音
-  q(music, '[data-sg-mode]')?.addEventListener('click', () => {
-    mode = mode === 'loop' ? 'single' : mode === 'single' ? 'random' : 'loop';
-    paintMode();
-    persist();
-    toast(mode === 'single' ? '单曲循环' : mode === 'random' ? '随机播放' : '列表循环');
+  // 播放模式：首页卡与音乐页的胶囊都绑（同一份 state，paintMode 负责两边一起刷）
+  roots.forEach((root) => {
+    q(root, '[data-sg-mode]')?.addEventListener('click', (event) => {
+      event.stopPropagation();   // 首页整卡可点跳转，按钮必须拦住
+      mode = mode === 'loop' ? 'single' : mode === 'single' ? 'random' : 'loop';
+      paintMode();
+      persist();
+      toast(mode === 'single' ? '单曲循环' : mode === 'random' ? '随机播放' : '列表循环');
+    });
   });
 
   const volumeBar = q<HTMLInputElement>(music, '[data-sg-volume]');
   if (volumeBar) {
     volumeBar.value = String(Math.round(volume * 100));
+    /* 音量条复用 .sg-progress 皮肤，轨道填充也读 --sg-p。
+       它跟播放进度不是一回事，所以自己写一份。 */
+    const paintVolume = (): void => {
+      volumeBar.style.setProperty('--sg-p', `${Math.max(0, Math.min(1, audio.volume)) * 100}%`);
+    };
+    paintVolume();
     volumeBar.addEventListener('input', () => {
       audio.volume = Math.max(0, Math.min(1, Number(volumeBar.value) / 100));
       audio.muted = false;
+      paintVolume();
       persist();
     });
   }
 
-  q(music, '[data-sg-mute]')?.addEventListener('click', () => {
-    audio.muted = !audio.muted;
-    const btn = q(music, '[data-sg-mute]');
-    btn?.classList.toggle('is-active', audio.muted);
-    btn?.setAttribute('aria-label', audio.muted ? '取消静音' : '静音');
+  roots.forEach((root) => {
+    q(root, '[data-sg-mute]')?.addEventListener('click', (event) => {
+      event.stopPropagation();
+      audio.muted = !audio.muted;
+      const btn = q(root, '[data-sg-mute]');
+      btn?.classList.toggle('is-active', audio.muted);
+      btn?.setAttribute('aria-label', audio.muted ? '取消静音' : '静音');
+      // 图标换 innerHTML：volume / volume-x 同族两枚，尺寸由 CSS 控
+      if (btn) {
+        btn.innerHTML = audio.muted
+          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="m23 9-6 6"/><path d="m17 9 6 6"/></svg>'
+          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>';
+      }
+    });
   });
 
   // 整张卡可点跳音乐页（按钮/进度条/链接上不跳）

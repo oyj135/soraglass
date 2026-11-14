@@ -2,24 +2,31 @@
 /**
  * 首页音乐卡（5 列）。
  *
- * 结构对齐源站 components/CloudPlayer.tsx：唱片封面 + CLOUD MUSIC 徽标 + 曲名/歌手
- * + 逐字歌词行 + 两侧时间夹一条进度条 + 上一首/播放/下一首。
- * 全局 <audio> 在 footer.php，这里只做 UI；点击卡片空白处跳音乐页，
- * 点按钮/进度条不跳（player.ts 里拦冒泡，对应源站的 safeXxx 系列）。
+ * 版式参考华为音乐播放页（2026-11-14 第三十八轮改）：纵向中轴居中 ——
+ * 圆盘唱片当主角、衬线歌名压在轴心、细轨进度配圆点、底部一行「胶囊 + 三键 + 圆钮」。
+ * 改之前是横向小卡（76px 唱片 + 左侧信息），在 5 列副栏里几乎读不出「正在播放」。
+ *
+ * 功能挂点一个都没动（player.ts 全按 data-sg-* 查找）：
+ *   data-sg-player / -track-title / -track-artist / -track-cover / -lyric /
+ *   -progress / -time-current / -time-total / -play / -prev / -next
+ * 新增两个与音乐页同款的挂点：data-sg-mode（随机/循环/单曲）与 data-sg-mute（静音）。
+ * player.ts 里这两处原来只绑在 [data-sg-music] 上，本轮改成遍历所有播放器根节点。
+ *
+ * 整卡仍可点跳音乐页；按钮与进度条由 player.ts 拦冒泡。
  */
 $sgMusicUrl = sg_page_url('music');
 ?>
 <div class="sg-player" data-sg-player data-href="<?php echo sg_e($sgMusicUrl); ?>">
-  <div class="sg-player-top">
-    <div class="sg-player-disc">
-      <img src="<?php echo sg_e(sg_theme_url('dist/img/cover-default.svg')); ?>" alt="" data-sg-track-cover data-sg-fallback="<?php echo sg_e(sg_theme_url('dist/img/cover-default.svg')); ?>">
-      <span class="sg-player-hole" aria-hidden="true"></span>
-    </div>
-    <div class="sg-player-info">
-      <span class="sg-player-badge">CLOUD MUSIC</span>
-      <div class="sg-player-title" data-sg-track-title>未播放</div>
-      <div class="sg-player-artist" data-sg-track-artist>空璃音乐盒</div>
-    </div>
+  <span class="sg-player-badge">CLOUD MUSIC</span>
+
+  <div class="sg-player-disc">
+    <img src="<?php echo sg_e(sg_theme_url('dist/img/cover-default.svg')); ?>" alt="" data-sg-track-cover data-sg-fallback="<?php echo sg_e(sg_theme_url('dist/img/cover-default.svg')); ?>">
+    <span class="sg-player-hole" aria-hidden="true"></span>
+  </div>
+
+  <div class="sg-player-info">
+    <div class="sg-player-title" data-sg-track-title>未播放</div>
+    <div class="sg-player-artist" data-sg-track-artist>空璃音乐盒</div>
   </div>
 
   <div class="sg-player-lyric" data-sg-lyric data-sg-typewriter>点击播放，开始今天的 BGM</div>
@@ -31,11 +38,20 @@ $sgMusicUrl = sg_page_url('music');
   </div>
 
   <div class="sg-player-controls">
-    <button type="button" data-sg-prev aria-label="上一首"><?php echo sg_icon('prev'); ?></button>
-    <button type="button" class="sg-player-play" data-sg-play aria-label="播放/暂停" aria-pressed="false">
-      <span class="sg-i-play"><?php echo sg_icon('play'); ?></span>
-      <span class="sg-i-pause"><?php echo sg_icon('pause'); ?></span>
+    <button class="sg-player-mode" type="button" data-sg-mode data-mode="loop" aria-label="播放模式：列表循环">
+      <span data-sg-mode-icon><?php echo sg_icon('repeat'); ?></span>
+      <span data-sg-mode-label>列表循环</span>
     </button>
-    <button type="button" data-sg-next aria-label="下一首"><?php echo sg_icon('next'); ?></button>
+
+    <span class="sg-player-transport">
+      <button type="button" data-sg-prev aria-label="上一首"><?php echo sg_icon('prev'); ?></button>
+      <button type="button" class="sg-player-play" data-sg-play aria-label="播放/暂停" aria-pressed="false">
+        <span class="sg-i-play"><?php echo sg_icon('play'); ?></span>
+        <span class="sg-i-pause"><?php echo sg_icon('pause'); ?></span>
+      </button>
+      <button type="button" data-sg-next aria-label="下一首"><?php echo sg_icon('next'); ?></button>
+    </span>
+
+    <button type="button" class="sg-player-mute" data-sg-mute aria-label="静音"><?php echo sg_icon('volume'); ?></button>
   </div>
 </div>

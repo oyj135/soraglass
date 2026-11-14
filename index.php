@@ -71,7 +71,7 @@ $sgNotesLink = sg_page_url('notes');
 
       <div class="sg-col-5 sg-hero-side">
         <section class="sg-glass sg-card-pad sg-profile" data-sg-hover data-sg-spotlight><?php $this->need('partials/card-profile.php'); ?></section>
-        <section class="sg-glass sg-card-pad sg-player-card" data-sg-hover data-sg-spotlight><?php $this->need('partials/player.php'); ?></section>
+        <section class="sg-glass sg-player-card" data-sg-hover data-sg-spotlight><?php $this->need('partials/player.php'); ?></section>
       </div>
     </div>
 

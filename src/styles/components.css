@@ -416,79 +416,150 @@ html.dark .sg-social { background: rgba(51, 65, 85, .50); color: #cbd5e1; }
 .sg-social svg { width: 1rem; height: 1rem; }
 
 /* ---------- 播放器（首页音乐卡 / 音乐页共用皮肤） ---------- */
+
+/* 首页音乐卡：版式参考华为音乐播放页。
+   纵向中轴、圆盘当主角 —— 卡片自己不再用 .sg-card-pad 的 2rem 内边距，
+   纵向空间全留给唱片（见文件末尾 .sg-hero-side 的覆盖规则）。 */
+.sg-player-card {
+  position: relative;
+  padding: 1rem 1.75rem 1.1rem;
+  overflow: hidden;
+}
+
+/* 卡内的辐向光晕：中心偏亮、四周略沉，把唱片从玻璃面上「托」起来。
+   用 ::after 而不是 ::before —— 后者被 .sg-glass[data-sg-spotlight]::before 的
+   指针聚光描边占着（首页这张卡正好带 data-sg-spotlight）。 */
+.sg-player-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(125% 88% at 50% 24%,
+      color-mix(in srgb, var(--sg-accent) 10%, transparent) 0,
+      transparent 64%);
+}
+
 .sg-player {
+  position: relative;
+  z-index: 1;               /* 压在 ::after 光晕之上 */
   display: flex;
   flex-direction: column;
-  gap: .85rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: .35rem;
   height: 100%;
   cursor: pointer;
 }
 
-.sg-player-top { display: flex; align-items: center; gap: 1rem; }
+/* 来源标签：华为播放页没有徽标，但「这条音频从哪来」不该丢 ——
+   做成唱片右上角的极小胶囊，绝对定位，不占纵向空间，也不跟着唱片旋转。 */
+.sg-player-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: .1rem .4rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sg-accent) 12%, transparent);
+  color: var(--sg-accent-deep);
+  font-size: 8.5px;
+  font-weight: 800;
+  line-height: 1.55;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
 
-/* 唱片：圆盘 + 白边 + 中孔，播放时匀速自转（源站 animate-[spin_6s]） */
+html.dark .sg-player-badge { color: var(--sg-accent-soft); }
+
+/* 唱片：白环 + 双段投影。旋转放在容器上（封面只负责淡入），
+   轴心是圆形、转起来看不出来，所以不必反向补偿。 */
 .sg-player-disc {
   position: relative;
-  flex-shrink: 0;
-  width: 4.75rem;
-  height: 4.75rem;
+  flex: none;
+  width: 6.5rem;
+  height: 6.5rem;
   border-radius: 50%;
   overflow: hidden;
-  border: 2px solid rgba(255, 255, 255, .55);
-  background: color-mix(in srgb, var(--sg-accent) 18%, transparent);
-  box-shadow: var(--sg-shadow);
+  border: 4px solid rgba(255, 255, 255, .92);
+  background: var(--sg-page);
+  box-shadow:
+    0 14px 26px -14px rgba(16, 44, 50, .55),
+    0 2px 6px -2px rgba(16, 44, 50, .2);
+  animation: sg-spin 22s linear infinite;
+  animation-play-state: paused;
+  will-change: transform;
+  transition: box-shadow var(--sg-dur-card) var(--sg-ease);
+}
+
+/* 播放中：唱片外圈阴影加深一档，视觉上「转起来了」 */
+.sg-player.is-playing .sg-player-disc {
+  animation-play-state: running;
+  box-shadow:
+    0 18px 32px -14px rgba(16, 44, 50, .6),
+    0 3px 8px -2px rgba(16, 44, 50, .24);
 }
 
 .sg-player-disc img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  animation: sg-spin 18s linear infinite;
-  animation-play-state: paused;
-  will-change: transform;
+  border-radius: 50%;
+  transition: opacity .38s var(--sg-ease);
 }
 
-.sg-player.is-playing .sg-player-disc img { animation-play-state: running; }
+/* 切歌时封面先透明、图片 load 后再淡入（player.ts 写这个类） */
+.sg-player-disc img.is-swap { opacity: 0; }
 
+/* 轴心：浅色实心圆盘，占封面 22%。华为的中心点约 20% */
 .sg-player-hole {
   position: absolute;
   inset: 0;
   margin: auto;
-  width: 1.15rem;
-  height: 1.15rem;
+  width: 22%;
+  height: 22%;
   border-radius: 50%;
-  background: rgba(255, 255, 255, .88);
-  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, .18);
+  background: rgba(255, 255, 255, .93);
+  box-shadow:
+    inset 0 0 0 1px rgba(16, 44, 50, .1),
+    0 1px 3px rgba(16, 44, 50, .14);
   pointer-events: none;
 }
 
-html.dark .sg-player-hole { background: rgba(15, 23, 42, .85); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25); }
+html.dark .sg-player-hole { background: rgba(235, 245, 246, .9); }
 
-.sg-player-info { flex: 1; min-width: 0; }
+/* 曲名与歌手沿中轴居中。站内正文就是宋体（Noto Serif SC），
+   与华为那版衬线歌名天然同一路，不用另换字族。 */
+.sg-player-info { width: 100%; min-width: 0; text-align: center; }
 
-.sg-player-badge {
-  display: inline-block;
-  margin-bottom: .35rem;
-  padding: .15rem .5rem;
-  border-radius: .3rem;
-  background: rgba(255, 255, 255, .50);
-  color: var(--sg-accent-ink);
-  font-size: 9px;
-  font-weight: 900;
-  letter-spacing: .16em;
-  text-transform: uppercase;
+.sg-player-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-html.dark .sg-player-badge { background: rgba(15, 23, 42, .50); color: var(--sg-accent-soft); }
-
-.sg-player-title { font-size: 1.15rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sg-player-artist { font-size: .8rem; font-weight: 500; color: var(--sg-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-/* 歌词行：定高，打字机效果不会把卡片顶开 */
-.sg-player-lyric {
-  min-height: 1.15rem;
+.sg-player-artist {
+  margin-top: .15rem;
   font-size: .75rem;
-  font-weight: 700;
+  font-weight: 500;
+  letter-spacing: .05em;
+  color: var(--sg-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 歌词行：定高，打字机不会把卡片顶开 */
+.sg-player-lyric {
+  width: 100%;
+  min-height: 1.05rem;
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  text-align: center;
   color: var(--sg-accent-ink);
   white-space: nowrap;
   overflow: hidden;
@@ -497,95 +568,148 @@ html.dark .sg-player-badge { background: rgba(15, 23, 42, .50); color: var(--sg-
 
 html.dark .sg-player-lyric { color: var(--sg-accent-soft); }
 
-/* 时间夹进度条：源站是 time / range / time 同一行 */
+/* 时间夹进度条：左时间 / 轨道 / 右时间同一行，等宽数字不跳宽 */
 .sg-player-progress {
+  width: 100%;
   display: flex;
   align-items: center;
-  gap: .6rem;
+  gap: .35rem;
   font-size: 11px;
   font-weight: 700;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
   color: var(--sg-muted);
 }
 
-.sg-player-progress > span { flex-shrink: 0; min-width: 2.5rem; text-align: center; }
+.sg-player-progress > span { flex: none; min-width: 2.25rem; text-align: center; }
 
+/* 轨道即进度：已播放段用 --sg-p 切分（player.ts 在 syncTime 里写百分比）。
+   6px 高、内阴影一档，比原来的 4px 平轨更像「凹槽」。 */
 input.sg-progress {
+  /* 轨道底色单独提成局部变量：亮色用分隔线色，暗色卡上要更亮一档，
+     否则 6px 的凹槽压在深色玻璃上等于没画。 */
+  --sg-track: var(--sg-line);
   -webkit-appearance: none;
   appearance: none;
   flex: 1;
   min-width: 0;
   width: 100%;
-  height: 4px;
+  height: 6px;
   border-radius: 999px;
-  background: rgba(148, 163, 184, .35);
+  background:
+    linear-gradient(90deg,
+      var(--sg-accent-ink) 0 var(--sg-p, 0%),
+      var(--sg-track) var(--sg-p, 0%) 100%);
+  box-shadow: inset 0 1px 2px rgba(16, 44, 50, .08);
   outline: none;
   cursor: pointer;
 }
 
+html.dark input.sg-progress { --sg-track: rgba(226, 240, 240, .22); }
+
 input.sg-progress::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  background: var(--sg-accent-ink);
-  box-shadow: 0 1px 4px rgb(0 0 0 / .25);
+  /* 滑块用卡面底色 + 一圈 accent-ink 描边：填充是 accent-ink 实色，
+     同色实心点会融进去（暗色下只剩投影轮廓，像空心环）；
+     卡底色则亮色是白点、暗色是深点，两种情况都和填充拉开最大反差。 */
+  background: var(--sg-page);
+  box-shadow:
+    0 0 0 1.5px var(--sg-accent-ink),
+    0 2px 5px rgba(16, 44, 50, .28);
   cursor: pointer;
-  transition: transform var(--sg-dur-fast) linear;
+  transition: transform var(--sg-dur-fast) var(--sg-ease);
 }
 
-input.sg-progress::-webkit-slider-thumb:hover { transform: scale(1.25); }
+input.sg-progress:hover::-webkit-slider-thumb { transform: scale(1.2); }
 
 input.sg-progress::-moz-range-thumb {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   border: 0;
   border-radius: 50%;
-  background: var(--sg-accent-ink);
+  background: var(--sg-page);
+  box-shadow:
+    0 0 0 1.5px var(--sg-accent-ink),
+    0 2px 5px rgba(16, 44, 50, .28);
   cursor: pointer;
 }
 
-.sg-player-controls { display: flex; align-items: center; justify-content: center; gap: 1.4rem; }
+/* 控制行：左胶囊（播放模式）/ 中间三键 / 右圆钮（静音）—— 华为的那一行排法 */
+.sg-player-controls {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .4rem;
+}
+
+.sg-player-transport { display: flex; align-items: center; gap: .55rem; }
 
 .sg-player-controls button {
   display: grid;
   place-items: center;
-  width: 2rem;
-  height: 2rem;
+  width: 2.1rem;
+  height: 2.1rem;
   padding: 0;
-  /* 与音乐页控制条同一套玻璃圆钮：描边 + 半透明底，不再是「只有图标浮着」 */
   border: 1px solid var(--sg-border);
   border-radius: 50%;
   background: var(--sg-chip);
   color: var(--sg-text);
-  opacity: .7;
-  transition: opacity var(--sg-dur-fast) linear, color var(--sg-dur-fast) linear, transform var(--sg-dur-fast) var(--sg-ease);
+  opacity: .85;
+  transition: opacity var(--sg-dur-fast) linear, color var(--sg-dur-fast) linear,
+              transform var(--sg-dur-fast) var(--sg-ease),
+              background-color var(--sg-dur-fast) linear;
 }
 
 .sg-player-controls button:hover { opacity: 1; color: var(--sg-accent-ink); transform: scale(1.08); }
-.sg-player-controls button svg { width: 1.2rem; height: 1.2rem; }
+.sg-player-controls button:active { transform: scale(.96); }
+.sg-player-controls button svg { width: 1.05rem; height: 1.05rem; }
 
-.sg-player-play {
-  width: 2.9rem !important;
-  height: 2.9rem !important;
-  border: 0 !important;
-  background: linear-gradient(135deg, var(--sg-indigo), var(--sg-accent-2)) !important;
-  color: #fff !important;
-  opacity: 1 !important;
-  box-shadow:
-    0 10px 22px -8px color-mix(in srgb, var(--sg-accent) 85%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, .3);
+/* 模式胶囊：比圆钮宽，图标 + 文字。它是华为那一行里唯一的「说明性」控件。
+   选择器带 .sg-player-controls 是为了压过上面那条通用的按钮规则（同权重时后者会赢）。 */
+.sg-player-controls .sg-player-mode {
+  width: auto;
+  grid-auto-flow: column;
+  gap: .35rem;
+  padding: 0 .75rem;
+  border-radius: 999px;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  white-space: nowrap;
 }
 
-.sg-player-play:hover {
-  color: #fff !important;
-  transform: scale(1.06) !important;
-  box-shadow:
-    0 14px 28px -10px var(--sg-accent),
-    inset 0 1px 0 rgba(255, 255, 255, .35);
+.sg-player-controls .sg-player-mode svg { width: .95rem; height: .95rem; }
+.sg-player-controls .sg-player-mode.is-active {
+  color: var(--sg-accent-ink);
+  border-color: color-mix(in srgb, var(--sg-accent) 35%, transparent);
 }
-.sg-player-play svg { width: 1.05rem; height: 1.05rem; }
+
+/* 主播放键：深青实心圆 + 白三角（华为那枚 64px 键的同构小号）。
+   原来的渐变 + 内高光去掉了 —— 华为这颗键是平的，靠尺寸和投影立主次。 */
+.sg-player-controls .sg-player-play {
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 0;
+  background: var(--sg-accent);
+  color: #fff;
+  opacity: 1;
+  box-shadow:
+    0 8px 18px -8px color-mix(in srgb, var(--sg-accent) 80%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, .24);
+}
+
+.sg-player-controls .sg-player-play:hover {
+  color: #fff;
+  transform: scale(1.05);
+  box-shadow: 0 12px 24px -10px var(--sg-accent);
+}
+
+.sg-player-controls .sg-player-play svg { width: 1rem; height: 1rem; }
 
 /* 播放/暂停两枚图标叠在同一格里切换。
    ⚠️ 这里曾经漏写：两个 <svg> 同时可见，线上表现成「播放按钮里还压着暂停条」。
@@ -595,6 +719,19 @@ input.sg-progress::-moz-range-thumb {
 .sg-player-play .sg-i-pause { display: none; }
 .sg-player.is-playing .sg-player-play .sg-i-play { display: none; }
 .sg-player.is-playing .sg-player-play .sg-i-pause { display: grid; }
+
+/* 暗色下 --sg-accent 仍是 #35616b（它要恒压白字），压在 #1e2f33 的卡面上
+   对比只有 1.9:1，那颗主键会「沉」进去。提亮到 accent-2（#55868f）才跳得出来。 */
+html.dark .sg-player-controls .sg-player-play { background: var(--sg-accent-2); }
+html.dark .sg-player-controls .sg-player-play:hover { box-shadow: 0 12px 24px -10px var(--sg-accent-2); }
+
+/* 静音键：按下（muted）走实心态，和主键区分开但不抢主键的位置 */
+.sg-player-controls .sg-player-mute.is-active {
+  background: color-mix(in srgb, var(--sg-accent) 18%, transparent);
+  border-color: color-mix(in srgb, var(--sg-accent) 32%, transparent);
+  color: var(--sg-accent-deep);
+  opacity: 1;
+}
 
 /* ---------- 音乐页（page-music.php） ---------- */
 .sg-music-page {
@@ -1033,13 +1170,34 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
   .sg-hero-side .sg-profile-name { font-size: 1.5rem; margin-bottom: .35rem; }
   .sg-hero-side .sg-profile-bio { overflow: hidden; -webkit-line-clamp: 2; }
   .sg-hero-side .sg-profile-foot { margin-top: .75rem; }
-  .sg-hero-side .sg-player-card { padding: 1.35rem 1.5rem; }
   .sg-hero-side .sg-stat-num { font-size: 1.375rem; }
+
+  /* 纵向版式要的纵向空间比横向版多 36px 左右：唱片 92 + 曲名 24 + 歌手 17 +
+     歌词 17 + 进度 22 + 控制 44。给卡片一个下限，右栏随之变高，
+     封面靠 stretch 同步长高（.sg-hero 的 align-items: stretch 不变）。 */
+  .sg-hero-side .sg-player-card {
+    min-height: 19.1rem;
+    padding: 1rem 1.75rem 1.1rem;
+  }
+  .sg-hero-side .sg-player-disc { width: 6.5rem; height: 6.5rem; }
 }
 
-/* 播放器在副栏里要撑满整卡：四段（唱片 / 歌词 / 进度 / 控制）space-between 分布，
+/* 播放器在副栏里要撑满整卡：五段（唱片 / 曲名歌手 / 歌词 / 进度 / 控制）space-between 分布，
    否则高度给足内容仍堆在顶上，下面空一大块。只作用于首页副栏，不影响音乐页。 */
 .sg-hero-side .sg-player { justify-content: space-between; }
+
+/* 副栏之外的首页卡（<1024 单列时贴在整行上）：空间反而更宽裕，唱片放大一档 */
+@media (max-width: 1023.98px) {
+  .sg-player-disc { width: 6.5rem; height: 6.5rem; }
+  .sg-player-card { padding: 1.35rem 1.5rem; }
+}
+
+/* 极窄屏（<400）：模式胶囊只留图标，否则「胶囊 + 三键 + 圆钮」挤成一条 */
+@media (max-width: 399.98px) {
+  .sg-player-controls .sg-player-mode { width: 2.1rem; padding: 0; }
+  .sg-player-controls .sg-player-mode span:last-child { display: none; }
+}
+
 
 /* ---------- 封面轮播（首页主编区 7 列） ---------- */
 .sg-post-carousel {
