@@ -73,26 +73,27 @@ $sgHead = [
     <section class="sg-glass sg-music-side" data-sg-music-side>
       <div class="sg-music-tabs">
         <div class="sg-mtab-group" role="tablist" aria-label="歌词与歌单">
-          <button class="sg-mtab is-active" type="button" role="tab" aria-selected="true" data-sg-music-tab="lyrics">歌词</button>
-          <button class="sg-mtab" type="button" role="tab" aria-selected="false" data-sg-music-tab="playlist">歌单</button>
+          <button id="sg-music-tab-lyrics" class="sg-mtab is-active" type="button" role="tab" aria-selected="true" aria-controls="sg-music-panel-lyrics" tabindex="0" data-sg-music-tab="lyrics">歌词</button>
+          <button id="sg-music-tab-playlist" class="sg-mtab" type="button" role="tab" aria-selected="false" aria-controls="sg-music-panel-playlist" tabindex="-1" data-sg-music-tab="playlist">歌单</button>
         </div>
       </div>
 
       <div class="sg-music-body">
-        <div class="sg-music-lyrics" data-sg-lyrics data-sg-music-panel="lyrics">
+        <div id="sg-music-panel-lyrics" class="sg-music-lyrics" role="tabpanel" aria-labelledby="sg-music-tab-lyrics" tabindex="0" data-sg-lyrics data-sg-music-panel="lyrics">
           <div class="sg-music-empty" data-sg-lyrics-empty>
             <?php echo sg_icon('disc'); ?>
             <p>正在等待旋律…</p>
           </div>
         </div>
 
-        <div class="sg-playlist" data-sg-music-panel="playlist" hidden>
+        <div id="sg-music-panel-playlist" class="sg-playlist" role="tabpanel" aria-labelledby="sg-music-tab-playlist" tabindex="0" data-sg-music-panel="playlist" hidden>
           <div class="sg-playlist-search">
             <?php echo sg_icon('search'); ?>
             <input type="search" placeholder="搜索音轨或歌手..." aria-label="搜索音轨" data-sg-playlist-search>
           </div>
 
           <div class="sg-playlist-list" data-sg-playlist>
+            <p class="sg-music-empty" role="status" aria-live="polite" data-sg-playlist-empty hidden>没有找到匹配的音轨。</p>
             <?php foreach ($sgTracks as $sgIndex => $sgTrack) : ?>
             <?php if (!is_array($sgTrack)) { continue; } ?>
             <button class="sg-song" type="button" data-sg-track="<?php echo (int) $sgIndex; ?>">

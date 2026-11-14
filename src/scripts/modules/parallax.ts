@@ -141,6 +141,12 @@ export function initParallax(): void {
     new ResizeObserver(() => measure()).observe(stage);
   }
 
+  /* 相纸宽度现在由原图比例决定：图没下载完时量到的是占位宽度，
+     每张图 decode 完补量一次，接回点才不会算错。 */
+  for (const img of Array.from(stage.querySelectorAll<HTMLImageElement>('.sg-px-frame img'))) {
+    if (!img.complete) img.addEventListener('load', measure, { once: true });
+  }
+
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) stop();
     else if (visible) start();

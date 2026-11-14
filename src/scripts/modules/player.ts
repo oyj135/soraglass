@@ -58,7 +58,74 @@ function parseLrc(raw: string): Array<{ time: number; text: string }> {
   return out.some((item) => item.time >= 0) ? out.sort((a, b) => a.time - b.time) : out;
 }
 
+/** 右侧搜索与标签独立于音频初始化：空歌单也必须能切到歌单面板。 */
+function setupMusicSide(): void {
+  const side = document.querySelector<HTMLElement>('[data-sg-music-side]');
+  if (!side) return;
+
+  const search = side.querySelector<HTMLInputElement>('[data-sg-playlist-search]');
+  const songs = Array.from(side.querySelectorAll<HTMLElement>('.sg-song[data-sg-track]'));
+  const empty = side.querySelector<HTMLElement>('[data-sg-playlist-empty]');
+  const filterSongs = (): void => {
+    const query = (search?.value ?? '').trim().toLowerCase();
+    let visible = 0;
+    songs.forEach((song) => {
+      const title = song.querySelector('.sg-song-title')?.textContent ?? '';
+      const artist = song.querySelector('.sg-song-artist')?.textContent ?? '';
+      song.hidden = query !== '' && !`${title} ${artist}`.toLowerCase().includes(query);
+      if (!song.hidden) visible += 1;
+    });
+    if (empty) empty.hidden = query === '' || visible > 0 || songs.length === 0;
+  };
+  search?.addEventListener('input', filterSongs);
+  search?.addEventListener('search', filterSongs); // 原生搜索框的清除按钮
+  filterSongs();
+
+  const tabs = Array.from(side.querySelectorAll<HTMLButtonElement>('[data-sg-music-tab]'));
+  const panels = Array.from(side.querySelectorAll<HTMLElement>('[data-sg-music-panel]'));
+  const tabGroup = side.querySelector<HTMLElement>('.sg-mtab-group');
+  const syncTabs = (): void => {
+    const active = tabs.find((tab) => tab.classList.contains('is-active'));
+    if (!tabGroup || !active || tabGroup.offsetWidth === 0) return;
+    tabGroup.style.setProperty('--sg-seg-x', `${active.offsetLeft}px`);
+    tabGroup.style.setProperty('--sg-seg-w', `${active.offsetWidth}px`);
+    tabGroup.setAttribute('data-sg-seg-ready', '');
+  };
+  const selectTab = (tab: HTMLButtonElement): void => {
+    const name = tab.dataset.sgMusicTab ?? '';
+    tabs.forEach((item) => {
+      const on = item === tab;
+      item.classList.toggle('is-active', on);
+      item.setAttribute('aria-selected', String(on));
+      item.tabIndex = on ? 0 : -1;
+    });
+    panels.forEach((panel) => { panel.hidden = panel.dataset.sgMusicPanel !== name; });
+    syncTabs();
+  };
+  tabs.forEach((tab, i) => {
+    tab.addEventListener('click', () => selectTab(tab));
+    tab.addEventListener('keydown', (event) => {
+      if (event.altKey || event.ctrlKey || event.metaKey) return;
+      let next = i;
+      switch (event.key) {
+        case 'ArrowLeft': next = (i - 1 + tabs.length) % tabs.length; break;
+        case 'ArrowRight': next = (i + 1) % tabs.length; break;
+        case 'Home': next = 0; break;
+        case 'End': next = tabs.length - 1; break;
+        default: return;
+      }
+      event.preventDefault();
+      selectTab(tabs[next]);
+      tabs[next].focus({ preventScroll: true });
+    });
+  });
+  const active = tabs.find((tab) => tab.classList.contains('is-active')) ?? tabs[0];
+  if (active) selectTab(active);
+  window.addEventListener('resize', syncTabs, { passive: true });
+}
+
 export function initPlayer(): void {
+  setupMusicSide();
   const audio = document.querySelector<HTMLAudioElement>('[data-sg-audio]');
   if (!audio) return;
 
@@ -70,52 +137,87 @@ export function initPlayer(): void {
   const q = <T extends HTMLElement>(root: HTMLElement | null, sel: string): T | null =>
     root ? root.querySelector<T>(sel) : null;
 
-  /* 封面主色取色：写到卡片的 --sg-cover-tint，卡片背景的光晕与同心圆波纹都从这个变量取色。
-     用 fetch(cors) 拿 blob 再画进 canvas —— 这样 <img> 不用挂 crossorigin 属性，
-     就算接口不回 CORS 头，也只是取不到色（背景退回 --sg-accent），封面照常显示。
-     同一封面只采一次，Map 缓存。 */
+  /* 取色不改变显示封面的 CORS 属性，也不阻塞显示；成功缓存、进行中的请求去重。
+     每张显示图片单独计版本，旧请求即使晚到，也只能缓存，不能回写新封面的卡片。 */
   const tintCache = new Map<string, string>();
+  const tintRequests = new Map<string, Promise<string | null>>();
+  const tintVersions = new WeakMap<HTMLImageElement, number>();
+  const clearCoverTint = (img: HTMLImageElement): void => {
+    tintVersions.set(img, (tintVersions.get(img) ?? 0) + 1);
+    img.closest<HTMLElement>('.sg-player-card, .sg-music-panel')?.style.removeProperty('--sg-cover-tint');
+  };
+  const sampleTint = async (src: string): Promise<string | null> => {
+    const controller = new AbortController();
+    const probe = new Image();
+    let url = '';
+    let timeout = 0;
+    // 截止时间覆盖 fetch、body 和 decode，不能只中止已结束的网络请求。
+    const deadline = new Promise<never>((_, reject) => {
+      timeout = window.setTimeout(() => {
+        controller.abort();
+        reject(new Error('封面取色超时'));
+      }, 8000);
+    });
+    const sample = async (): Promise<string | null> => {
+      const res = await fetch(src, { mode: 'cors', signal: controller.signal });
+      if (!res.ok || controller.signal.aborted) return null;
+      const blob = await res.blob();
+      if (controller.signal.aborted) return null;
+      url = URL.createObjectURL(blob);
+      probe.src = url;
+      await probe.decode();
+      if (controller.signal.aborted) return null;
+      const cvs = document.createElement('canvas');
+      cvs.width = cvs.height = 12;
+      const ctx = cvs.getContext('2d');
+      if (!ctx) return null;
+      ctx.drawImage(probe, 0, 0, 12, 12);
+      const data = ctx.getImageData(0, 0, 12, 12).data;
+      let r = 0, g = 0, b = 0;
+      for (let i = 0; i < data.length; i += 4) { r += data[i]; g += data[i + 1]; b += data[i + 2]; }
+      const n = data.length / 4;
+      // 保留原取色算法：饱和拉伸 1.6 倍、60–230 截断，不重新设计配色。
+      const mid = (Math.max(r, g, b) / n + Math.min(r, g, b) / n) / 2;
+      const push = (v: number): number => Math.max(60, Math.min(230, mid + (v - mid) * 1.6));
+      return `rgb(${Math.round(push(r / n))} ${Math.round(push(g / n))} ${Math.round(push(b / n))})`;
+    };
+    try {
+      return await Promise.race([sample(), deadline]);
+    } catch {
+      return null; // CORS / 网络 / 解码失败均交给卡片原有青瓷兜底。
+    } finally {
+      window.clearTimeout(timeout);
+      probe.removeAttribute('src');
+      if (url) URL.revokeObjectURL(url); // 失败、超时同样释放 Object URL。
+    }
+  };
+  const requestTint = (src: string): Promise<string | null> => {
+    const pending = tintRequests.get(src);
+    if (pending) return pending;
+    const request = sampleTint(src)
+      .then((tint) => {
+        if (tint) tintCache.set(src, tint);
+        return tint;
+      })
+      .finally(() => { tintRequests.delete(src); });
+    tintRequests.set(src, request);
+    return request;
+  };
   const tintCard = (img: HTMLImageElement): void => {
-    /* 首页卡与音乐页面板不是同一个容器：两处都要能拿到 --sg-cover-tint */
     const card = img.closest<HTMLElement>('.sg-player-card, .sg-music-panel');
     if (!card) return;
-    const src = img.currentSrc || img.src;
+    clearCoverTint(img);
+    const version = tintVersions.get(img);
+    // 当前模板没有 srcset；currentSrc 在刚换图时可能仍是上一张，必须读新 src。
+    const src = img.src;
     if (!src || src.startsWith('data:')) return;
     const hit = tintCache.get(src);
     if (hit) { card.style.setProperty('--sg-cover-tint', hit); return; }
-    fetch(src, { mode: 'cors' })
-      .then((res) => {
-        if (!res.ok) throw new Error(String(res.status));
-        return res.blob();
-      })
-      .then((blob) => {
-        const url = URL.createObjectURL(blob);
-        const probe = new Image();
-        probe.onload = () => {
-          try {
-            const cvs = document.createElement('canvas');
-            cvs.width = cvs.height = 12;
-            const ctx = cvs.getContext('2d');
-            if (!ctx) return;
-            ctx.drawImage(probe, 0, 0, 12, 12);
-            const data = ctx.getImageData(0, 0, 12, 12).data;
-            let r = 0, g = 0, b = 0;
-            for (let i = 0; i < data.length; i += 4) { r += data[i]; g += data[i + 1]; b += data[i + 2]; }
-            const n = data.length / 4;
-            /* 平均色天然发灰，向高饱和端拉 1.6 倍；再做 60–230 的截断，
-               免得全白/全黑的封面提出荧光色或一团黑。 */
-            const mid = (Math.max(r, g, b) / n + Math.min(r, g, b) / n) / 2;
-            const push = (v: number): number => Math.max(60, Math.min(230, mid + (v - mid) * 1.6));
-            const tint = `rgb(${Math.round(push(r / n))} ${Math.round(push(g / n))} ${Math.round(push(b / n))})`;
-            tintCache.set(src, tint);
-            card.style.setProperty('--sg-cover-tint', tint);
-          } finally {
-            URL.revokeObjectURL(url);
-          }
-        };
-        probe.src = url;
-      })
-      .catch(() => { /* CORS 拒了 / 超时 / 404 都静默，背景退回 --sg-accent */ });
+    void requestTint(src).then((tint) => {
+      if (tintVersions.get(img) !== version || img.src !== src || !img.isConnected) return;
+      if (tint) card.style.setProperty('--sg-cover-tint', tint);
+      else card.style.removeProperty('--sg-cover-tint');
+    });
   };
 
   /**
@@ -130,6 +232,7 @@ export function initPlayer(): void {
     const fallback = img.dataset.sgFallback ?? '';
     if (!fallback) return;
     const revert = (): void => {
+      clearCoverTint(img);
       if (img.dataset.sgFallbackDone === '1') return;
       img.dataset.sgFallbackDone = '1';
       img.src = fallback;
@@ -408,10 +511,12 @@ export function initPlayer(): void {
       if (artist) artist.textContent = track.artist ?? '空璃音乐盒';
       /* 封面交叉淡入：先置透明，load 后再淡回来（watchCover 收尾）。
          src 没变时不动 —— 否则同一首重复 apply 会一直停在透明态。 */
-      if (img && cover && img.getAttribute('src') !== cover) {
+      const nextCover = cover || img?.dataset.sgFallback || '';
+      if (img && nextCover && img.getAttribute('src') !== nextCover) {
+        clearCoverTint(img);                // 换图即清旧色、作废旧回调，不等新图 load。
         delete img.dataset.sgFallbackDone;   // 换歌要允许重新触发兜底
         img.classList.add('is-swap');
-        img.src = cover;
+        img.src = nextCover;
       }
       const bar = q<HTMLInputElement>(root, '[data-sg-progress]');
       if (bar) bar.value = '0';
@@ -602,6 +707,20 @@ export function initPlayer(): void {
     });
   });
 
+  /* 静音 UI 只读同一个 audio.muted；音量输入解除静音时也必须同步图标/高亮/ARIA。 */
+  const paintMute = (): void => {
+    roots.forEach((root) => {
+      const btn = q(root, '[data-sg-mute]');
+      if (!btn) return;
+      btn.classList.toggle('is-active', audio.muted);
+      btn.setAttribute('aria-label', audio.muted ? '取消静音' : '静音');
+      // volume / volume-x 沿用原图标，尺寸仍由既有 CSS 控制。
+      btn.innerHTML = audio.muted
+        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="m23 9-6 6"/><path d="m17 9 6 6"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>';
+    });
+  };
+
   const volumeBar = q<HTMLInputElement>(music, '[data-sg-volume]');
   if (volumeBar) {
     volumeBar.value = String(Math.round(volume * 100));
@@ -615,6 +734,7 @@ export function initPlayer(): void {
       audio.volume = Math.max(0, Math.min(1, Number(volumeBar.value) / 100));
       audio.muted = false;
       paintVolume();
+      paintMute();
       persist();
     });
   }
@@ -623,17 +743,10 @@ export function initPlayer(): void {
     q(root, '[data-sg-mute]')?.addEventListener('click', (event) => {
       event.stopPropagation();
       audio.muted = !audio.muted;
-      const btn = q(root, '[data-sg-mute]');
-      btn?.classList.toggle('is-active', audio.muted);
-      btn?.setAttribute('aria-label', audio.muted ? '取消静音' : '静音');
-      // 图标换 innerHTML：volume / volume-x 同族两枚，尺寸由 CSS 控
-      if (btn) {
-        btn.innerHTML = audio.muted
-          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="m23 9-6 6"/><path d="m17 9 6 6"/></svg>'
-          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>';
-      }
+      paintMute();
     });
   });
+  paintMute();
 
   // 整张卡可点跳音乐页（按钮/进度条/链接上不跳）
   roots.forEach((root) => {
@@ -654,50 +767,6 @@ export function initPlayer(): void {
       play();
     });
   });
-
-  // 歌单搜索
-  const search = q<HTMLInputElement>(music, '[data-sg-playlist-search]');
-  if (search) {
-    search.addEventListener('input', () => {
-      const query = search.value.trim().toLowerCase();
-      songEls.forEach((btn) => {
-        const text = (btn.textContent ?? '').toLowerCase();
-        btn.hidden = query !== '' && !text.includes(query);
-      });
-    });
-  }
-
-  // 歌词 / 歌单切换（选中态由 CSS 的滑动指示器表现，这里负责把刻度写进自定义属性）
-  const tabs = Array.from(document.querySelectorAll<HTMLElement>('[data-sg-music-tab]'));
-  const panels = Array.from(document.querySelectorAll<HTMLElement>('[data-sg-music-panel]'));
-  const tabGroup = document.querySelector<HTMLElement>('.sg-mtab-group');
-
-  const syncTabs = (): void => {
-    if (!tabGroup || !tabs.length) return;
-    const active = tabs.find((tab) => tab.classList.contains('is-active')) ?? tabs[0];
-    if (!active || tabGroup.offsetWidth === 0) return;
-    tabGroup.style.setProperty('--sg-seg-x', `${active.offsetLeft}px`);
-    tabGroup.style.setProperty('--sg-seg-w', `${active.offsetWidth}px`);
-    tabGroup.setAttribute('data-sg-seg-ready', '');
-  };
-
-  tabs.forEach((tab) => {
-    tab.addEventListener('click', () => {
-      const name = tab.dataset.sgMusicTab ?? '';
-      tabs.forEach((item) => {
-        const on = item === tab;
-        item.classList.toggle('is-active', on);
-        item.setAttribute('aria-selected', on ? 'true' : 'false');
-      });
-      panels.forEach((panel) => {
-        panel.hidden = panel.dataset.sgMusicPanel !== name;
-      });
-      syncTabs();
-    });
-  });
-
-  syncTabs();
-  window.addEventListener('resize', syncTabs, { passive: true });
 
   // 拖动进度条：按下时先暂停 timeupdate 回写，避免手指和滑块打架
   roots.forEach((root) => {

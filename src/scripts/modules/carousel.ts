@@ -1,21 +1,19 @@
 /**
- * 首页轮播（封面轮播 + 杂谈轮播）。
- * DOM 契约：容器 [data-sg-carousel]，子项 [data-sg-slide]，可选圆点容器 [data-sg-dots]，
- * 可选节奏 [data-sg-interval]（毫秒，缺省 6000）。
+ * 首页轮播（封面轮播 + 碎语轮播）。
+ * DOM 契约：[data-sg-carousel] / [data-sg-slide] / 可选 [data-sg-dots]，
+ * [data-sg-interval] 缺省 6000ms，首页主封面使用 5000ms。
  *
- * 切换方式对齐源站 framer-motion 的 `AnimatePresence mode="wait"`：
- * 先让当前这张淡出（0.8s），退场播完再让下一张淡入（0.8s），两张图不会同时可见。
- * 早期版本用 CSS 交叉淡入，观感是两层图糊在一起，和演示站不是一回事。
+ * 自动播放保留源站 wait 节奏：每段淡出 / 淡入 800ms。
+ * 第一阶段确认的桌面调整（>=1024px）：暂停 / 继续、悬停 / 焦点暂停、
+ * 手动切换每段 200ms、方向键 / Home / End；不新增触摸手势。
  */
 import { reducedMotion } from './core';
 
 const DEFAULT_INTERVAL = 6000;
-/** 与源站 transition={{ duration: 0.8 }} 对齐；CSS 里的 opacity 过渡必须同值 */
 const FADE = 800;
-/** 超过这个张数就不再逐张画圆点（2026-11-13 第三十二轮）。
- *  线上 15 篇封面曾渲染出 15 个 8×6px 的方块，横向吃掉卡片底部 232px，
- *  既看不清也点不准；改用「进度轨 + 当前/总数」。6 及以下仍走圆点，
- *  碎语卡（4 条）维持原样。 */
+/** 与 components.css 的桌面 .is-manual 过渡保持一致。 */
+const MANUAL_FADE = 200;
+/** <=6 张用圆点，更多用「进度轨 + 当前 / 总数」。 */
 const DOTS_MAX = 6;
 
 function setupCarousel(host: HTMLElement): void {
@@ -24,35 +22,48 @@ function setupCarousel(host: HTMLElement): void {
   const interval = Number(host.dataset.sgInterval ?? DEFAULT_INTERVAL) || DEFAULT_INTERVAL;
 
   if (slides.length < 2) {
-    // 只有一张时也要把 is-active 补上：CSS 里 .sg-post-slide / .sg-chatter-slide
-    // 默认 opacity:0，去掉轮播逻辑后会剩一张谁也看不见的空卡。
     slides[0]?.classList.add('is-active');
+    if (slides[0]) {
+      slides[0].inert = false;
+      slides[0].setAttribute('aria-hidden', 'false');
+    }
     if (dotsHost) dotsHost.hidden = true;
     return;
   }
 
+  const desktop = window.matchMedia('(min-width: 1024px)');
+  const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let index = slides.findIndex((slide) => slide.classList.contains('is-active'));
   if (index < 0) index = 0;
-
+  // 已显示索引与待切入目标分开：连点只改目标，不反复延长退场。
+  let requested = index;
   let pending = 0;
+  let timer = 0;
+  let hovered = desktop.matches && host.matches(':hover');
+  let focused = desktop.matches && host.contains(document.activeElement);
+  let userPaused = false;
+  // 「继续」仅豁免当前暂停按钮，不允许扩散到文章链接或其他指示器。
+  let resumeOnToggle = false;
 
   const dots: HTMLButtonElement[] = [];
   let progressFill: HTMLElement | null = null;
   let progressCount: HTMLElement | null = null;
   let progressBtn: HTMLButtonElement | null = null;
+  let toggle: HTMLButtonElement | null = null;
+
+  host.setAttribute('role', 'region');
+  host.setAttribute('aria-roledescription', '轮播');
+  if (!host.hasAttribute('aria-label')) {
+    host.setAttribute('aria-label', host.classList.contains('sg-chatter') ? '碎语轮播' : '最新文章轮播');
+  }
 
   if (dotsHost && slides.length > DOTS_MAX) {
-    /* 进度轨模式：一条 2px 轨道 + 「3/15」。整块是按钮，点一下看下一张，
-       命中区由 padding 撑到 24px 高（原来的圆点只有 8×6px）。 */
     dotsHost.classList.add('is-progress');
     progressBtn = document.createElement('button');
     progressBtn.type = 'button';
     progressBtn.className = 'sg-progress';
     progressBtn.innerHTML = '<span class="sg-progress-track"><i></i></span><span class="sg-progress-count"></span>';
-    progressBtn.addEventListener('click', () => {
-      show(index + 1);
-      restart();
-    });
+    progressBtn.addEventListener('click', () => manualMove(requested + 1));
     dotsHost.appendChild(progressBtn);
     progressFill = progressBtn.querySelector<HTMLElement>('i');
     progressCount = progressBtn.querySelector<HTMLElement>('.sg-progress-count');
@@ -61,89 +72,204 @@ function setupCarousel(host: HTMLElement): void {
       const dot = document.createElement('button');
       dot.type = 'button';
       dot.className = 'sg-dot';
-      dot.setAttribute('aria-label', `第 ${i + 1} 张`);
-      dot.addEventListener('click', () => {
-        show(i);
-        restart();
-      });
+      dot.setAttribute('aria-label', `第 ${i + 1} 张，共 ${slides.length} 张`);
+      dot.addEventListener('click', () => manualMove(i));
       dotsHost.appendChild(dot);
       dots.push(dot);
     });
   }
 
-  /** 只重画指示器（圆点 / 进度轨），不动幻灯片 —— show() 里要「跟手」 */
-  const paintIndicator = (): void => {
-    dots.forEach((dot, i) => dot.classList.toggle('is-active', i === index));
-    if (progressFill) {
-      progressFill.style.transform = `scaleX(${(index + 1) / slides.length})`;
-    }
-    if (progressCount) {
-      progressCount.textContent = `${index + 1}/${slides.length}`;
-    }
-    if (progressBtn) {
-      progressBtn.setAttribute('aria-label', `第 ${index + 1} 张，共 ${slides.length} 张，点击看下一张`);
-    }
-  };
+  if (dotsHost) {
+    toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'sg-carousel-toggle';
+    toggle.addEventListener('click', () => {
+      userPaused = !userPaused;
+      resumeOnToggle = !userPaused;
+      paintToggle();
+      restart();
+    });
+    toggle.addEventListener('mouseleave', (event) => {
+      if (event.relatedTarget instanceof Node && host.contains(event.relatedTarget)) {
+        resumeOnToggle = false;
+        restart();
+      }
+    });
+    dotsHost.appendChild(toggle);
+  }
 
+  const paintToggle = (): void => {
+    if (!toggle) return;
+    const hide = !desktop.matches || reducedMotion();
+    if (hide && document.activeElement === toggle) {
+      (dots[requested] ?? progressBtn)?.focus({ preventScroll: true });
+    }
+    toggle.hidden = hide;
+    toggle.setAttribute('aria-pressed', String(userPaused));
+    const label = userPaused ? '继续自动轮播' : '暂停自动轮播';
+    toggle.setAttribute('aria-label', label);
+    toggle.title = label;
+    const icon = userPaused ? '<path d="m9 5 10 7-10 7V5z"/>' : '<path d="M9 5v14M15 5v14"/>';
+    toggle.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icon}</svg>`;
+  };
+  const paintIndicator = (): void => {
+    dots.forEach((dot, i) => {
+      const on = i === requested;
+      dot.classList.toggle('is-active', on);
+      if (on) dot.setAttribute('aria-current', 'true');
+      else dot.removeAttribute('aria-current');
+    });
+    if (progressFill) progressFill.style.transform = `scaleX(${(requested + 1) / slides.length})`;
+    if (progressCount) progressCount.textContent = `${requested + 1}/${slides.length}`;
+    progressBtn?.setAttribute('aria-label', `第 ${requested + 1} 张，共 ${slides.length} 张，点击看下一张`);
+  };
+  const paintSlides = (visible: boolean): void => {
+    slides.forEach((slide, i) => {
+      const on = visible && i === index;
+      slide.classList.toggle('is-active', on);
+      slide.inert = !on;
+      slide.setAttribute('aria-hidden', String(!on));
+    });
+  };
   const paint = (): void => {
-    slides.forEach((slide, i) => slide.classList.toggle('is-active', i === index));
+    index = requested;
+    paintSlides(true);
     paintIndicator();
   };
+  const focusOutsideSlides = (target: number): void => {
+    if (!slides.some((slide) => slide.contains(document.activeElement))) return;
+    const control = dots[target] ?? progressBtn ?? (toggle?.hidden ? null : toggle);
+    if (control) control.focus({ preventScroll: true });
+    else {
+      if (!host.hasAttribute('tabindex')) host.tabIndex = -1;
+      host.focus({ preventScroll: true });
+    }
+  };
 
-  /** 直接切换（首屏、reduced-motion 走这里，不要留 0.8s 的空白） */
   function jump(next: number): void {
     window.clearTimeout(pending);
     pending = 0;
-    index = (next + slides.length) % slides.length;
+    const target = (next + slides.length) % slides.length;
+    if (target !== index) focusOutsideSlides(target);
+    requested = target;
     paint();
   }
 
-  /** 源站节奏：淡出 → 等退场播完 → 淡入下一张 */
-  function show(next: number): void {
+  function show(next: number, manual = false): void {
     const target = (next + slides.length) % slides.length;
-    if (target === index && pending === 0) return;
+    if (!pending && target === index) return;
+    requested = target;
+    paintIndicator();
+    const quick = manual && desktop.matches;
     if (reducedMotion()) {
       jump(target);
       return;
     }
-    window.clearTimeout(pending);
-    index = target;
-    slides.forEach((slide) => slide.classList.remove('is-active'));
-    // 指示器立刻跟手：源站 setCurrentIndex 也是即时生效，动的是图不是点
-    paintIndicator();
+    if (pending) {
+      // 连点 / 长按只更新最终目标，当前退场期限保持不变，避免持续空白。
+      if (quick && !host.classList.contains('is-manual')) {
+        host.classList.add('is-manual');
+        // 自动退场已启动 800ms CSS transition；改 duration 不会缩短它。
+        // 先明确结束旧 opacity 退场，再以 200ms 入场，不叠出两层图。
+        slides[index].getAnimations().forEach((animation) => {
+          if ('transitionProperty' in animation && animation.transitionProperty === 'opacity') animation.finish();
+        });
+        window.clearTimeout(pending);
+        pending = 0;
+        paint();
+      }
+      return;
+    }
+    host.classList.toggle('is-manual', quick);
+    focusOutsideSlides(target);
+    paintSlides(false);
     pending = window.setTimeout(() => {
       pending = 0;
       paint();
-    }, FADE);
+    }, quick ? MANUAL_FADE : FADE);
   }
 
-  jump(index);
-
-  let timer = 0;
-
-  const stop = (): void => {
-    if (timer) {
-      window.clearInterval(timer);
-      timer = 0;
-    }
-  };
+  function stop(): void {
+    window.clearTimeout(timer);
+    timer = 0;
+  }
 
   function restart(): void {
     stop();
-    if (reducedMotion()) return;
-    timer = window.setInterval(() => {
-      if (document.hidden) return;
-      show(index + 1);
+    const hoverPause = hovered && !(resumeOnToggle && toggle?.matches(':hover'));
+    const focusPause = focused && !(resumeOnToggle && document.activeElement === toggle);
+    if (document.hidden || userPaused || (desktop.matches && (hoverPause || focusPause)) || reducedMotion()) return;
+    timer = window.setTimeout(() => {
+      timer = 0;
+      show(requested + 1);
+      restart();
     }, interval);
   }
 
-  // 源站没有「鼠标悬停就暂停」：鼠标停在卡上照样按节奏换。
-  // 只在标签页切到后台时停表，避免看不见的动画白跑。
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) stop();
-    else restart();
+  function manualMove(next: number): void {
+    resumeOnToggle = false;
+    show(next, true);
+    restart();
+  }
+
+  host.addEventListener('mouseenter', () => {
+    if (!desktop.matches) return;
+    hovered = true;
+    resumeOnToggle = false;
+    restart();
+  });
+  host.addEventListener('mouseleave', () => {
+    hovered = false;
+    if (!focused) resumeOnToggle = false;
+    restart();
+  });
+  host.addEventListener('focusin', (event) => {
+    if (!desktop.matches) return;
+    focused = true;
+    if (event.target !== toggle || !(event.relatedTarget instanceof Node) || !host.contains(event.relatedTarget)) {
+      resumeOnToggle = false;
+    }
+    restart();
+  });
+  host.addEventListener('focusout', (event) => {
+    if (event.relatedTarget instanceof Node && host.contains(event.relatedTarget)) return;
+    focused = false;
+    if (!hovered) resumeOnToggle = false;
+    restart();
+  });
+  host.addEventListener('keydown', (event) => {
+    if (!desktop.matches || event.altKey || event.ctrlKey || event.metaKey) return;
+    const target = event.target;
+    if (target instanceof HTMLElement && target.closest('input, textarea, select, [contenteditable]')) return;
+    let next = requested;
+    switch (event.key) {
+      case 'ArrowLeft': next = requested - 1; break;
+      case 'ArrowRight': next = requested + 1; break;
+      case 'Home': next = 0; break;
+      case 'End': next = slides.length - 1; break;
+      default: return;
+    }
+    event.preventDefault();
+    manualMove(next);
+  });
+  document.addEventListener('visibilitychange', restart);
+  desktop.addEventListener('change', () => {
+    hovered = desktop.matches && host.matches(':hover');
+    focused = desktop.matches && host.contains(document.activeElement);
+    resumeOnToggle = false;
+    if (!desktop.matches) host.classList.remove('is-manual');
+    if (pending) jump(requested);
+    paintToggle();
+    restart();
+  });
+  motion.addEventListener('change', () => {
+    if (reducedMotion()) jump(requested);
+    paintToggle();
+    restart();
   });
 
+  jump(index);
+  paintToggle();
   restart();
 }
 

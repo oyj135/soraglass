@@ -58,11 +58,13 @@ if ($sgOpenId !== '') {
 
   <?php
   /**
-   * 视差相册（第四十三轮）：一条通栏的横向照片墙。
+   * 视差相册墙（第四十四轮）：一条通栏的横向照片墙，不带任何底色。
    *
-   * 每张相纸带一个 --px-depth（纵深 0.42–1.2）：滚动时横向位移 ∝ 纵深，
-   * 越「近」的照片走得越快，叠在慢的上面就是视差；此外还有极慢的自漂移，
-   * 鼠标在带子里移动时再叠一层轻微跟手 —— 驱动见 modules/parallax.ts。
+   * 照片用原图、按「共同高度」缩放 —— 高度取带子的 22%–58%（张数越多越小），
+   * 宽度随各自比例走，所以横竖混排都是完整的一张，不会被裁成缩略图。每张相纸
+   * 带一个 --px-depth（纵深 0.35–1.25）：滚动时横向位移 ∝ 纵深，越「近」的照片
+   * 走得越快，叠在慢的上面就是视差；此外还有极慢的自漂移，鼠标在带子里移动时
+   * 再叠一层轻微跟手 —— 驱动见 modules/parallax.ts。
    *
    * 位置 / 尺寸 / 倾角 / 纵深全部由下标算出的确定性哈希决定（不用随机数），
    * 同一张照片每次刷新都在同一格，不会「跳一下」。
@@ -109,8 +111,8 @@ if ($sgOpenId !== '') {
       $sgPrints = $sgSampled;
   }
   $sgPrintCount = count($sgPrints);
-  /* 张数越少、单张越大：3 张时铺到 28% 宽，12 张收到 16% 上下 */
-  $sgBaseW = round(max(16.5, min(28.0, 43.0 - $sgPrintCount * 2.25)), 2);
+  /* 张数越多、单张越小：3 张时高度到带子的 46–58%，12 张收到 24–36% */
+  $sgBaseH = round(max(30.0, min(54.0, 60.0 - $sgPrintCount * 2.6)), 2);
   ?>
   <div class="sg-gallery-list" data-sg-gallery-list>
     <?php if ($sgPrints) : ?>
@@ -119,12 +121,14 @@ if ($sgOpenId !== '') {
         <?php foreach ($sgPrints as $sgK => $sgPrint) : ?>
         <?php
           $sgLabel = $sgPrint['caption'] !== '' ? $sgPrint['caption'] : $sgPrint['name'];
-          $sgThumb = $sgPrint['thumb'] !== '' ? $sgPrint['thumb'] : $sgPrint['url'];
+          /* 一律用原图：缩略图放大会糊，相纸里要塞整张照片 */
+          $sgSrc = $sgPrint['url'];
           /* 均匀铺开 + 轻微抖动，避免一眼看出等距网格 */
           $sgLeft  = round(-6 + ($sgK + 0.5) * (112 / max(1, $sgPrintCount)) + ($sgHash($sgK, 1.7) - 0.5) * 2.6, 2);
           /* 中心线用黄金比铺开：3 张也不会两张挤在同一高度 */
-          $sgTop   = round(30 + fmod($sgK * 0.6180339 + 0.13, 1) * 40, 2);
-          $sgWidth = round($sgBaseW * (0.9 + $sgHash($sgK, 3.3) * 0.36), 2);
+          $sgTop   = round(36 + fmod($sgK * 0.6180339 + 0.13, 1) * 28, 2);
+          /* 共同高度：照片看起来一样高，宽度随各自比例走，整张不裁切 */
+          $sgHeight = round($sgBaseH + ($sgHash($sgK, 3.3) - 0.5) * 12, 2);
           $sgRot   = round(-3.2 + $sgHash($sgK, 5.9) * 6.4, 2);
           $sgDepth = round(0.35 + $sgHash($sgK, 7.7) * 0.9, 2);
           $sgZ     = 1 + (int) round($sgHash($sgK, 2.3) * 8);
@@ -136,9 +140,9 @@ if ($sgOpenId !== '') {
            data-caption="<?php echo sg_e($sgPrint['caption']); ?>"
            data-album-name="<?php echo sg_e($sgPrint['name']); ?>"
            data-keywords="<?php echo sg_e($sgLabel . ' ' . $sgPrint['name'] . ' ' . $sgPrint['date']); ?>"
-           style="--px-x:<?php echo $sgLeft; ?>%;--px-y:<?php echo $sgTop; ?>%;--px-w:<?php echo $sgWidth; ?>%;--px-rot:<?php echo $sgRot; ?>deg;--px-depth:<?php echo $sgDepth; ?>;--px-z:<?php echo $sgZ; ?>">
+           style="--px-x:<?php echo $sgLeft; ?>%;--px-y:<?php echo $sgTop; ?>%;--px-h:<?php echo $sgHeight; ?>%;--px-rot:<?php echo $sgRot; ?>deg;--px-depth:<?php echo $sgDepth; ?>;--px-z:<?php echo $sgZ; ?>">
           <span class="sg-px-frame">
-            <img src="<?php echo sg_e($sgThumb); ?>" alt="<?php echo sg_e($sgLabel); ?>" loading="lazy" referrerpolicy="no-referrer">
+            <img src="<?php echo sg_e($sgSrc); ?>" alt="<?php echo sg_e($sgLabel); ?>" loading="lazy" referrerpolicy="no-referrer">
             <span class="sg-px-cap">
               <b><?php echo sg_e($sgLabel); ?></b>
               <span class="sg-px-date"><?php echo sg_e($sgPrint['date']); ?></span>

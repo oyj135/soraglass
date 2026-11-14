@@ -24,7 +24,7 @@ $sgMusicUrl = sg_page_url('music');
   </div>
 
   <div class="sg-player-info">
-    <div class="sg-player-title" data-sg-track-title>未播放</div>
+    <a class="sg-player-title" href="<?php echo sg_e($sgMusicUrl); ?>" data-sg-track-title>未播放</a>
     <div class="sg-player-artist" data-sg-track-artist>空璃音乐盒</div>
   </div>
 
