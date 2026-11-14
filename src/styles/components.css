@@ -1374,6 +1374,12 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
      的 min-height（同权重时后者会赢，clamp 就白写了）。 */
   .sg-hero .sg-hero-cover { min-height: clamp(21rem, 46vh, 27rem); }
 
+  /* 封顶解耦（2026-11-14 第二阶段）：hero 行是 stretch 等高，行高实际由右栏
+     「个人卡 + 播放卡」决定（1344px 视口实测约 550px = 34.4rem）。max-height
+     让封面停在这一档，音乐卡以后再加内容不再把封面一起拉高；超出部分表现为
+     右侧副卡自然下探。数值按当前右栏实测高度取值，回归时两侧保持一致。 */
+  .sg-hero .sg-hero-cover { max-height: 34.5rem; }
+
   /* 封面成了主角，字号跟着放一档。原来是按 4 列小轮播定的 1.5rem，
      在 7 列的宽度上标题缩在左下角，与"主视觉"的身份不匹配。
      只放大标题与内边距，描述仍限三行 —— 再长会盖住封面本身。 */
@@ -1491,31 +1497,9 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
 /* 杂谈卡圆点比封面卡低一档：源站是 posts bottom-4 / chatter bottom-5 */
 .sg-chatter .sg-dots { bottom: 1.25rem; }
 
-/* 第一阶段桌面控件：不改圆点/进度轨原样式，不向窄屏加入新操作。 */
-.sg-dots .sg-carousel-toggle { display: none; }
+/* 桌面手动切换用短过渡；圆点 / 进度轨保持原样，不向窄屏加入新操作。 */
 @media (min-width: 1024px) {
   [data-sg-carousel].is-manual [data-sg-slide] { transition-duration: .2s; }
-  .sg-dots .sg-carousel-toggle {
-    display: inline-grid;
-    place-items: center;
-    flex-shrink: 0;
-    width: 1.75rem;
-    height: 1.75rem;
-    padding: 0;
-    border: 1px solid var(--sg-indicator-track);
-    border-radius: var(--sg-radius-inner);
-    background: var(--sg-indicator-bg);
-    color: var(--sg-accent-pale);
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
-    cursor: pointer;
-    transition: background-color var(--sg-dur-fast) linear;
-  }
-  .sg-dots .sg-carousel-toggle[hidden] { display: none; }
-  .sg-dots .sg-carousel-toggle:hover,
-  .sg-dots .sg-carousel-toggle[aria-pressed="true"] { background: var(--sg-indicator-bg-hot); }
-  .sg-dots .sg-carousel-toggle[aria-pressed="true"] { color: var(--sg-accent-soft); }
-  .sg-dots .sg-carousel-toggle svg { width: 1rem; height: 1rem; pointer-events: none; }
 }
 
 .sg-dot {

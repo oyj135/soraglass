@@ -4,8 +4,8 @@
  * [data-sg-interval] 缺省 6000ms，首页主封面使用 5000ms。
  *
  * 自动播放保留源站 wait 节奏：每段淡出 / 淡入 800ms。
- * 第一阶段确认的桌面调整（>=1024px）：暂停 / 继续、悬停 / 焦点暂停、
- * 手动切换每段 200ms、方向键 / Home / End；不新增触摸手势。
+ * 桌面调整（>=1024px）：悬停 / 焦点临时暂停、手动切换每段 200ms、
+ * 方向键 / Home / End；不新增触摸手势，也不提供暂停按钮。
  */
 import { reducedMotion } from './core';
 
@@ -41,15 +41,11 @@ function setupCarousel(host: HTMLElement): void {
   let timer = 0;
   let hovered = desktop.matches && host.matches(':hover');
   let focused = desktop.matches && host.contains(document.activeElement);
-  let userPaused = false;
-  // 「继续」仅豁免当前暂停按钮，不允许扩散到文章链接或其他指示器。
-  let resumeOnToggle = false;
 
   const dots: HTMLButtonElement[] = [];
   let progressFill: HTMLElement | null = null;
   let progressCount: HTMLElement | null = null;
   let progressBtn: HTMLButtonElement | null = null;
-  let toggle: HTMLButtonElement | null = null;
 
   host.setAttribute('role', 'region');
   host.setAttribute('aria-roledescription', '轮播');
@@ -79,39 +75,6 @@ function setupCarousel(host: HTMLElement): void {
     });
   }
 
-  if (dotsHost) {
-    toggle = document.createElement('button');
-    toggle.type = 'button';
-    toggle.className = 'sg-carousel-toggle';
-    toggle.addEventListener('click', () => {
-      userPaused = !userPaused;
-      resumeOnToggle = !userPaused;
-      paintToggle();
-      restart();
-    });
-    toggle.addEventListener('mouseleave', (event) => {
-      if (event.relatedTarget instanceof Node && host.contains(event.relatedTarget)) {
-        resumeOnToggle = false;
-        restart();
-      }
-    });
-    dotsHost.appendChild(toggle);
-  }
-
-  const paintToggle = (): void => {
-    if (!toggle) return;
-    const hide = !desktop.matches || reducedMotion();
-    if (hide && document.activeElement === toggle) {
-      (dots[requested] ?? progressBtn)?.focus({ preventScroll: true });
-    }
-    toggle.hidden = hide;
-    toggle.setAttribute('aria-pressed', String(userPaused));
-    const label = userPaused ? '继续自动轮播' : '暂停自动轮播';
-    toggle.setAttribute('aria-label', label);
-    toggle.title = label;
-    const icon = userPaused ? '<path d="m9 5 10 7-10 7V5z"/>' : '<path d="M9 5v14M15 5v14"/>';
-    toggle.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icon}</svg>`;
-  };
   const paintIndicator = (): void => {
     dots.forEach((dot, i) => {
       const on = i === requested;
@@ -138,7 +101,7 @@ function setupCarousel(host: HTMLElement): void {
   };
   const focusOutsideSlides = (target: number): void => {
     if (!slides.some((slide) => slide.contains(document.activeElement))) return;
-    const control = dots[target] ?? progressBtn ?? (toggle?.hidden ? null : toggle);
+    const control = dots[target] ?? progressBtn;
     if (control) control.focus({ preventScroll: true });
     else {
       if (!host.hasAttribute('tabindex')) host.tabIndex = -1;
@@ -196,9 +159,8 @@ function setupCarousel(host: HTMLElement): void {
 
   function restart(): void {
     stop();
-    const hoverPause = hovered && !(resumeOnToggle && toggle?.matches(':hover'));
-    const focusPause = focused && !(resumeOnToggle && document.activeElement === toggle);
-    if (document.hidden || userPaused || (desktop.matches && (hoverPause || focusPause)) || reducedMotion()) return;
+    // 桌面悬停 / 焦点进入时临时停表；后台标签页与减少动态效果同样不自动播放。
+    if (document.hidden || (desktop.matches && (hovered || focused)) || reducedMotion()) return;
     timer = window.setTimeout(() => {
       timer = 0;
       show(requested + 1);
@@ -207,7 +169,6 @@ function setupCarousel(host: HTMLElement): void {
   }
 
   function manualMove(next: number): void {
-    resumeOnToggle = false;
     show(next, true);
     restart();
   }
@@ -215,26 +176,20 @@ function setupCarousel(host: HTMLElement): void {
   host.addEventListener('mouseenter', () => {
     if (!desktop.matches) return;
     hovered = true;
-    resumeOnToggle = false;
     restart();
   });
   host.addEventListener('mouseleave', () => {
     hovered = false;
-    if (!focused) resumeOnToggle = false;
     restart();
   });
-  host.addEventListener('focusin', (event) => {
+  host.addEventListener('focusin', () => {
     if (!desktop.matches) return;
     focused = true;
-    if (event.target !== toggle || !(event.relatedTarget instanceof Node) || !host.contains(event.relatedTarget)) {
-      resumeOnToggle = false;
-    }
     restart();
   });
   host.addEventListener('focusout', (event) => {
     if (event.relatedTarget instanceof Node && host.contains(event.relatedTarget)) return;
     focused = false;
-    if (!hovered) resumeOnToggle = false;
     restart();
   });
   host.addEventListener('keydown', (event) => {
@@ -256,20 +211,16 @@ function setupCarousel(host: HTMLElement): void {
   desktop.addEventListener('change', () => {
     hovered = desktop.matches && host.matches(':hover');
     focused = desktop.matches && host.contains(document.activeElement);
-    resumeOnToggle = false;
     if (!desktop.matches) host.classList.remove('is-manual');
     if (pending) jump(requested);
-    paintToggle();
     restart();
   });
   motion.addEventListener('change', () => {
     if (reducedMotion()) jump(requested);
-    paintToggle();
     restart();
   });
 
   jump(index);
-  paintToggle();
   restart();
 }
 

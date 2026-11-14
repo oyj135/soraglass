@@ -76,6 +76,14 @@ if (!$sgNotesDone) {
 
 /* 高亮：「碎语」相关页面（notes / 兼容旧页 / 旧页被访问时）统一高亮这一条 */
 $sgActiveKey = in_array($sgActive, array_merge(['notes'], $sgMergedSlugs), true) ? $sgNotesEntry['slug'] : $sgActive;
+
+/* 入口区分（2026-11-14 第二阶段）：评审指出「归档」和「知识档案」对新访客
+   区别不直观。按 slug 挂 title 提示，悬停可见；不动页面标题、不加设置、不改 slug。
+   未列出的 slug 不受影响。 */
+$sgNavHints = [
+    'archives' => '按时间翻阅全部文章',
+    'timeline' => '按主题整理的知识条目',
+];
 ?>
 <header class="sg-nav" data-sg-nav>
   <div class="sg-nav-inner">
@@ -83,7 +91,7 @@ $sgActiveKey = in_array($sgActive, array_merge(['notes'], $sgMergedSlugs), true)
     <nav class="sg-nav-links" aria-label="主导航">
       <a class="sg-nav-link<?php echo $sgActive === 'index' ? ' is-active' : ''; ?>"<?php echo $sgActive === 'index' ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgHome); ?>">首页<?php if ($sgActive === 'index') : ?><span class="sg-nav-dot"></span><?php endif; ?></a>
       <?php foreach ($sgNavItems as $sgPage) : ?>
-      <a class="sg-nav-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>"<?php echo $sgActiveKey === $sgPage['slug'] ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgPage['url']); ?>"><?php echo sg_e($sgPage['title']); ?><?php if ($sgActiveKey === $sgPage['slug']) : ?><span class="sg-nav-dot"></span><?php endif; ?></a>
+      <a class="sg-nav-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>"<?php echo $sgActiveKey === $sgPage['slug'] ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgPage['url']); ?>"<?php echo isset($sgNavHints[$sgPage['slug']]) ? ' title="' . sg_e($sgNavHints[$sgPage['slug']]) . '"' : ''; ?>><?php echo sg_e($sgPage['title']); ?><?php if ($sgActiveKey === $sgPage['slug']) : ?><span class="sg-nav-dot"></span><?php endif; ?></a>
       <?php endforeach; ?>
     </nav>
   </div>
@@ -98,7 +106,7 @@ $sgActiveKey = in_array($sgActive, array_merge(['notes'], $sgMergedSlugs), true)
   <div class="sg-sheet-panel">
     <a class="sg-sheet-link<?php echo $sgActive === 'index' ? ' is-active' : ''; ?>"<?php echo $sgActive === 'index' ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgHome); ?>">首页</a>
     <?php foreach ($sgNavItems as $sgPage) : ?>
-    <a class="sg-sheet-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>"<?php echo $sgActiveKey === $sgPage['slug'] ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgPage['url']); ?>"><?php echo sg_e($sgPage['title']); ?></a>
+    <a class="sg-sheet-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>"<?php echo $sgActiveKey === $sgPage['slug'] ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgPage['url']); ?>"<?php echo isset($sgNavHints[$sgPage['slug']]) ? ' title="' . sg_e($sgNavHints[$sgPage['slug']]) . '"' : ''; ?>><?php echo sg_e($sgPage['title']); ?></a>
     <?php endforeach; ?>
     <hr class="sg-divider">
     <button class="sg-sheet-link" type="button" data-sg-theme-toggle><?php echo sg_icon('sun', 'sg-i-sun'); ?><?php echo sg_icon('moon', 'sg-i-moon'); ?> 切换昼夜</button>
