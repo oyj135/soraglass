@@ -3,6 +3,13 @@
  * 容器：w-[95%] md:w-[90%] max-w-6xl mx-auto mt-24 md:mt-28
  */
 
+/* 页面级横向裁切（2026-11-14 第四十三轮）：
+   光影画廊的通栏照片墙用 100vw 出血，而 100vw 把滚动条也算进去了，
+   不裁掉就会多出十几像素的横向滚动条。这里用 clip 而不是 hidden ——
+   hidden 会把 body 变成滚动容器，粘性导航跟着失效；clip 只裁不建容器。 */
+html,
+body { overflow-x: clip; }
+
 /* 跳到正文（2026-11-13 第三十二轮）：键盘用户的第一个 Tab 落点。
    平时用 transform 移出视口而不是 display:none —— 后者会让元素不可聚焦，
    跳过链接就彻底失效了。z-index 必须高于 .sg-nav(50) 与 .sg-sheet(60)。 */

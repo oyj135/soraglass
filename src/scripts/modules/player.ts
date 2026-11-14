@@ -76,7 +76,8 @@ export function initPlayer(): void {
      同一封面只采一次，Map 缓存。 */
   const tintCache = new Map<string, string>();
   const tintCard = (img: HTMLImageElement): void => {
-    const card = img.closest<HTMLElement>('.sg-player-card');
+    /* 首页卡与音乐页面板不是同一个容器：两处都要能拿到 --sg-cover-tint */
+    const card = img.closest<HTMLElement>('.sg-player-card, .sg-music-panel');
     if (!card) return;
     const src = img.currentSrc || img.src;
     if (!src || src.startsWith('data:')) return;
@@ -380,6 +381,16 @@ export function initPlayer(): void {
     });
   };
 
+  /* 切歌＝环的角度归零。伪元素上的 CSS 动画不会因为换图而重来，
+     短暂挂一个 .is-ring-reset（animation:none）再摘掉，逼浏览器从头开始转。 */
+  const resetRings = (): void => {
+    roots.forEach((root) => {
+      root.classList.add('is-ring-reset');
+      void root.offsetWidth;              // 强制回流，让上面的 none 真正生效
+      root.classList.remove('is-ring-reset');
+    });
+  };
+
   const apply = (next: number): void => {
     index = (next + tracks.length) % tracks.length;
     const track = tracks[index];
@@ -414,6 +425,7 @@ export function initPlayer(): void {
     // 歌词可能是 URL（Meting 的 type=lrc），拿回来之前先显示歌名，别让歌词栏空着
     applyLyrics(String(track.lrc ?? ''), String(track.lyric ?? '') || String(track.title ?? ''));
     markTrack();
+    resetRings();
   };
 
   const setPlaying = (on: boolean): void => {

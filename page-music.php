@@ -33,7 +33,6 @@ $sgHead = [
         <span class="sg-music-halo" aria-hidden="true"></span>
         <div class="sg-music-disc">
           <img src="<?php echo sg_e(sg_media((string) ($sgFirst['cover'] ?? ''), sg_theme_url('dist/img/cover-default.svg'))); ?>" alt="" data-sg-track-cover data-sg-fallback="<?php echo sg_e(sg_theme_url('dist/img/cover-default.svg')); ?>">
-          <span class="sg-player-hole" aria-hidden="true"></span>
         </div>
       </div>
 

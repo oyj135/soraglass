@@ -8,6 +8,7 @@ import { initBriefingBg } from './modules/briefing-bg';
 import { initFilters } from './modules/filter';
 import { initArchive } from './modules/archive';
 import { initGallery } from './modules/gallery';
+import { initParallax } from './modules/parallax';
 import { initArticle } from './modules/article';
 import { initNotes } from './modules/notes';
 
@@ -40,6 +41,7 @@ function boot(): void {
   safe('filter', initFilters);
   safe('archive', initArchive);
   safe('gallery', initGallery);
+  safe('parallax', initParallax);
   safe('article', initArticle);
   safe('notes', initNotes);
 }

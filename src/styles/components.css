@@ -591,23 +591,8 @@ html.dark .sg-player-disc::before { background: rgba(226, 240, 240, .84); }
 /* 切歌时封面先透明、图片 load 后再淡入（player.ts 写这个类） */
 .sg-player-disc img.is-swap { opacity: 0; }
 
-/* 轴心：浅色实心圆盘，占封面 22%。华为的中心点约 20% */
-.sg-player-hole {
-  position: absolute;
-  inset: 0;
-  z-index: 3;              /* 压在 ::after 描边之上（同为定位元素时伪元素排在子元素后面） */
-  margin: auto;
-  width: 22%;
-  height: 22%;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, .93);
-  box-shadow:
-    inset 0 0 0 1px rgba(16, 44, 50, .1),
-    0 1px 3px rgba(16, 44, 50, .14);
-  pointer-events: none;
-}
-
-html.dark .sg-player-hole { background: rgba(235, 245, 246, .9); }
+/* 第三十九轮：轴心孔（`.sg-player-hole`）已下线 —— 演示视频里的封面是纯圆形图版，
+   中间没有黑胶轴心。模板里的节点也一并删了，留 CSS 只会变成一段永远不命中的死代码。 */
 
 /* 曲名与歌手沿中轴居中。站内正文就是宋体（Noto Serif SC），
    与华为那版衬线歌名天然同一路，不用另换字族。 */
@@ -873,7 +858,8 @@ html.dark .sg-player-controls .sg-player-play:hover {
 
 @media (min-width: 768px) { .sg-music-panel { padding: 2.25rem; } }
 
-/* 大唱片：撑满上半区的圆盘，中心孔 + 外圈光晕 */
+/* 大唱片（第三十九轮）：和首页那颗同一套语言 —— 封面静止、外层两片错位光环在转。
+   面板背景另有一层：封面主色渐晕 + 同心圆声波 + 稀疏光点（见 .sg-music-panel::after）。 */
 .sg-music-stage {
   position: relative;
   display: grid;
@@ -883,44 +869,146 @@ html.dark .sg-player-controls .sg-player-play:hover {
   padding: .5rem 0;
 }
 
+/* 光晕只做「底光」，真正的形状交给两片环 */
 .sg-music-halo {
   position: absolute;
-  width: 72%;
+  width: 78%;
   aspect-ratio: 1;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--sg-accent) 28%, transparent);
-  filter: blur(32px);
-  opacity: .25;
+  background: color-mix(in srgb, var(--sg-cover-tint, var(--sg-accent)) 34%, transparent);
+  filter: blur(34px);
+  opacity: .28;
   transition: opacity 1s var(--sg-ease), transform 1s var(--sg-ease);
 }
 
 .sg-music.is-playing .sg-music-halo { opacity: .9; transform: scale(1.05); }
 
+/* ⚠️ 容器不能 overflow:hidden —— 两片环要溢出到圆外；裁切与白边下放到 img。
+   环的旋转、半径组、层叠顺序与首页 `.sg-player-disc` 完全一致，只把尺寸放大。 */
 .sg-music-disc {
   position: relative;
-  width: min(15rem, 62%);
+  width: min(17rem, 66%);
   aspect-ratio: 1;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 5px solid rgba(255, 255, 255, .70);
-  box-shadow: 0 18px 45px -20px rgb(0 0 0 / .65);
+  --sg-iris-a: .46;          /* 虹彩强度，与首页那颗同一套取值 */
   transition: transform .7s var(--sg-ease);
 }
 
-html.dark .sg-music-disc { border-color: rgba(71, 85, 105, .80); }
+html.dark .sg-music-disc { --sg-iris-a: .32; }
+
+.sg-music-disc::before,
+.sg-music-disc::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  /* 18s 一圈、linear、顺时针（与首页一致：约 20°/秒） */
+  animation: sg-spin 18s linear infinite;
+  animation-play-state: paused;
+}
+
+.sg-music-disc::before { z-index: 0; animation-delay: -1s; }
+.sg-music-disc::after { z-index: 2; animation-delay: -3.5s; }
+
+/* 乳白主体：实心花瓣被封面压住中心，只露一圈窄边 */
+.sg-music-disc::before {
+  inset: -16%;
+  border-radius: 64% 36% 50% 50% / 58% 42% 62% 38%;
+  background: linear-gradient(150deg,
+      color-mix(in srgb, var(--sg-accent) 62%, transparent) 0,
+      color-mix(in srgb, var(--sg-accent) 36%, transparent) 55%,
+      color-mix(in srgb, var(--sg-accent) 14%, transparent) 100%);
+  opacity: .92;
+  /* 演示视频里这团光是柔边，不是硬边的圆 —— 大唱片尺寸下 1.5px 的模糊刚好 */
+  filter: blur(1.5px);
+  transition: opacity .7s var(--sg-ease);
+}
+
+/* 虹彩细纹：圆锥渐变三段上色 + mask 挖心，与主体错开 48°，交叠处才出月牙 */
+.sg-music-disc::after {
+  inset: -24%;
+  border-radius: 82% 18% 68% 32% / 24% 76% 30% 70%;
+  background: conic-gradient(from 40deg,
+      transparent 0,
+      rgba(255, 200, 224, var(--sg-iris-a)) 68deg,
+      rgba(172, 224, 240, var(--sg-iris-a)) 148deg,
+      rgba(255, 234, 198, var(--sg-iris-a)) 232deg,
+      transparent 308deg);
+  -webkit-mask-image: radial-gradient(closest-side,
+      transparent 74%, #000 77% 96%, transparent 98.5%);
+  mask-image: radial-gradient(closest-side,
+      transparent 74%, #000 77% 96%, transparent 98.5%);
+}
+
+html.dark .sg-music-disc::before {
+  /* 暗底上不能给实心乳白，会糊成一块白饼干；半透明偏冷的奶白才像「光」 */
+  background: linear-gradient(150deg,
+      rgba(214, 233, 240, .30) 0,
+      rgba(196, 220, 232, .20) 55%,
+      rgba(180, 206, 220, .10) 100%);
+}
+
+html.dark .sg-music-disc::after { --sg-iris-a: .55; }
+
+.sg-music.is-playing .sg-music-disc::before,
+.sg-music.is-playing .sg-music-disc::after { animation-play-state: running; }
+
+.sg-music.is-playing .sg-music-disc::before { opacity: 1; }
 
 .sg-music-disc img {
+  position: relative;      /* 参与层叠：封面压在主体环之上、细纹之下 */
+  z-index: 1;
+  box-sizing: border-box;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  animation: sg-spin 20s linear infinite;
-  animation-play-state: paused;
-  will-change: transform;
+  border-radius: 50%;
+  border: 6px solid rgba(255, 255, 255, .78);
+  /* 封面不转：旋转是「播放中」的信号，交给外环；图转起来反而看不清封面 */
+  animation: none;
+  transition: opacity .38s var(--sg-ease);
 }
 
-.sg-music.is-playing .sg-music-disc img { animation-play-state: running; }
+html.dark .sg-music-disc img { border-color: rgba(203, 213, 225, .22); }
 
-.sg-music-disc .sg-player-hole { width: 2.5rem; height: 2.5rem; }
+.sg-music-disc img.is-swap { opacity: 0; }
+
+/* 面板背景（第三十九轮）：从唱片中心向外淡的封面主色 + 同心圆声波 + 三颗光点。
+   圆心对齐唱片（stage 在左栏正中，约 50% / 34%）。
+   ⚠️ --sg-spark 原本只定义在 .sg-player-card 上；这里不补一份，
+   `radial-gradient(…, var(--sg-spark), …)` 会因变量无效导致整条 background 被丢弃（computed 变 none）。 */
+.sg-music-panel {
+  position: relative;
+  overflow: hidden;
+  --sg-spark: color-mix(in srgb, var(--sg-accent) 58%, transparent);
+}
+
+html.dark .sg-music-panel { --sg-spark: rgba(255, 255, 255, .55); }
+
+.sg-music-panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(2.5px 2.5px at 82% 12%, var(--sg-spark), transparent 100%),
+    radial-gradient(2px 2px at 12% 20%, var(--sg-spark), transparent 100%),
+    radial-gradient(1.5px 1.5px at 74% 32%, var(--sg-spark), transparent 100%),
+    repeating-radial-gradient(circle at 50% 34%,
+      transparent 0 34px,
+      color-mix(in srgb, var(--sg-cover-tint, var(--sg-accent)) 8%, transparent) 34.5px 36.5px),
+    radial-gradient(120% 85% at 50% 32%,
+      color-mix(in srgb, var(--sg-cover-tint, var(--sg-accent)) 24%, transparent) 0,
+      transparent 66%);
+}
+
+/* 面板内所有内容压在背景层之上 */
+.sg-music-panel > * { position: relative; z-index: 1; }
+
+/* 换歌要把环的角度归零（player.ts 会短暂加这个类，逼一次回流） */
+.is-ring-reset .sg-player-disc::before,
+.is-ring-reset .sg-player-disc::after,
+.is-ring-reset .sg-music-disc::before,
+.is-ring-reset .sg-music-disc::after { animation: none; }
 
 .sg-music-meta { text-align: center; padding-inline: .5rem; }
 .sg-music-meta h2 { font-size: 1.5rem; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1054,21 +1142,32 @@ html.dark .sg-music-disc { border-color: rgba(71, 85, 105, .80); }
 
 .sg-lyric-line {
   display: block;
-  padding: .35rem .5rem;
+  padding: .55rem 1rem;
   border-radius: var(--sg-radius-inner);
   text-align: center;
-  font-size: .95rem;
-  font-weight: 800;
-  line-height: 1.6;
+  font-size: 1rem;
+  font-weight: 700;
+  /* 行距 2 + 上下留白：录屏里歌词是「疏」的，当前行才显得突出 */
+  line-height: 2;
   color: var(--sg-text);
-  opacity: .25;
+  opacity: .32;
   cursor: pointer;
   transition: opacity var(--sg-dur-card) var(--sg-ease), color var(--sg-dur-card) var(--sg-ease), transform var(--sg-dur-card) var(--sg-ease);
 }
 
-.sg-lyric-line:hover { opacity: .5; }
-.sg-lyric-line.is-active { opacity: 1; color: var(--sg-accent-ink); transform: scale(1.04); }
-html.dark .sg-lyric-line.is-active { color: var(--sg-accent-soft); }
+.sg-lyric-line:hover { opacity: .55; }
+
+/* 当前行靠字重 + 缩放 + 阴影区分；颜色跟着底色走：
+   亮色要用深青（白字在浅卡上等于消失），暗色才用近白 */
+.sg-lyric-line.is-active {
+  opacity: 1;
+  color: var(--sg-accent-deep);
+  font-weight: 700;
+  transform: scale(1.06);
+  text-shadow: 0 6px 22px color-mix(in srgb, var(--sg-accent) 45%, transparent);
+}
+
+html.dark .sg-lyric-line.is-active { color: #f1f5ff; }
 
 .sg-music-empty {
   display: grid;
@@ -3862,86 +3961,17 @@ html:not(.dark) .sg-heat-cell[data-level="4"] { background: #35616b; }
 html.dark .sg-archive-tag { color: var(--sg-accent-soft); }
 
 /* ---------- 光影画廊（page-photowall.php） ---------- */
-.sg-gallery-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 1rem; }
-
-.sg-gallery { display: grid; gap: 1.75rem; grid-template-columns: minmax(0, 1fr); }
-@media (min-width: 640px) { .sg-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (min-width: 1100px) { .sg-gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-
-/* [hidden] 是 UA 规则，作者写的 display:grid / display:flex 会盖掉它。
-   列表 ↔ 详情靠 hidden 切换，必须在这里显式声明，否则「切了没反应」。 */
-.sg-gallery[hidden],
+/* [hidden] 是 UA 规则，作者写的 display 会盖掉它：列表 ↔ 详情靠 hidden 切换，
+   必须在这里显式声明，否则「切了没反应」。 */
 .sg-gallery-detail[hidden] { display: none; }
 
-/* 2026-11-12 第九轮：卡片底色去掉（原来挂了 .sg-glass）。
-   相册列表是一墙照片，玻璃卡把照片框成了「应用卡片」，厚重且抢画面；
-   去掉底、边框、阴影与内边距，只留三张拍立得 + 元信息，hover 也只上浮不投影
-   （没有卡面还投影会像悬空的黑块）。 */
-.sg-album-card {
-  display: flex;
-  flex-direction: column;
-  gap: .9rem;
-  padding: 0;
-  background: none;
-  border: 0;
-  box-shadow: none;
-  transition: transform var(--sg-dur-card) var(--sg-ease);
-}
-.sg-album-card:hover { transform: translateY(-4px) scale(var(--sg-lift)); }
-.sg-album-card:hover .sg-album-meta h2 { color: var(--sg-indigo-deep); }
-html.dark .sg-album-card:hover .sg-album-meta h2 { color: var(--sg-indigo-soft); }
+/* 2026-11-14 第四十三轮：拍立得三层栈（.sg-album-card / .sg-polaroid-stack / .sg-album-meta）
+   随列表改版一起下线 —— 列表现在是通栏视差相纸墙（见文件末尾「第四十三轮」块），
+   相册入口收成了月份胶囊 .sg-px-month。 */
 
-.sg-album-open { display: block; width: 100%; border: 0; padding: 0; background: none; }
-
-/* 拍立得三层栈：同一张舞台叠三张，靠 rotate + translate + opacity 造景深 */
-.sg-polaroid-stack { position: relative; display: block; aspect-ratio: 4 / 3; }
-
-.sg-polaroid {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: 74%;
-  height: 86%;
-  object-fit: cover;
-  border: 6px solid var(--sg-polaroid);
-  border-radius: 4px;
-  box-shadow: 0 10px 24px -12px rgb(0 0 0 / .55);
-  transition: transform var(--sg-dur-card) var(--sg-ease), opacity var(--sg-dur-card) var(--sg-ease);
-}
-
-.sg-polaroid:nth-child(1) { transform: rotate(-6deg) translate(-9%, 3%); opacity: .6; }
-.sg-polaroid:nth-child(2) { transform: rotate(-3deg) translate(-4%, 1%); opacity: .8; }
-.sg-polaroid:nth-child(3) { transform: rotate(0deg) translate(0, 0); opacity: 1; }
-
-.sg-album-card:hover .sg-polaroid:nth-child(1) { transform: rotate(-10deg) translate(-15%, 4%); opacity: .85; }
-.sg-album-card:hover .sg-polaroid:nth-child(2) { transform: rotate(-4deg) translate(-8%, 2%); opacity: .95; }
-.sg-album-card:hover .sg-polaroid:nth-child(3) { transform: rotate(0deg) translate(4%, -1%) scale(1.02); }
-
-.sg-album-meta { display: flex; flex-direction: column; gap: .3rem; padding: 0 .25rem .25rem; }
-.sg-album-meta h2 { font-size: 1.15rem; }
-.sg-album-meta span { font-size: .72rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .06em; color: var(--sg-faint); }
-.sg-album-meta p { font-size: .84rem; line-height: 1.7; color: var(--sg-muted); }
-
-/* 搜索结果分组标题（源站：一条 6px 圆角竖条 + 标题 + 数量） */
-.sg-gallery-group {
-  display: flex;
-  align-items: center;
-  gap: .55rem;
-  margin: 0 0 1.1rem;
-  font-size: 1.05rem;
-  font-weight: 800;
-  letter-spacing: -.01em;
-}
-
- { width: 6px; height: 1.5rem; border-radius: 999px; background: var(--sg-accent-ink); }
-.sg-gallery-group i.is-purple { background: var(--sg-purple); }
-.sg-gallery-group b { font-weight: 800; color: var(--sg-muted); }
-
-.sg-gallery-group[hidden] { display: none; }
-
-.sg-gallery-found { margin-bottom: 2rem; opacity: 1; transition: opacity var(--sg-dur-card) var(--sg-ease); }
-.sg-gallery-found[hidden] { display: none; }
-.sg-gallery-found-photos[hidden] { display: none; }
+/* 搜索结果分组（.sg-gallery-group / .sg-gallery-found*）同轮下线：
+   墙上的搜索改成「不匹配的相纸退到背景里」（.sg-px-print.sg-filtered-out），
+   不再另开一组「匹配的单张照片 / 相关相册」。 */
 
 /* 详情页头：上行「返回 + · + 日期」，下行「大标题 + 简介 + 张数」 */
 .sg-gallery-detail-head {
@@ -4254,7 +4284,6 @@ html.dark .sg-about-title h1 {
   .sg-chatter:hover,
   .sg-post-carousel:hover,
   .sg-archive-card:hover,
-  .sg-album-card:hover,
   .sg-briefing:hover,
   .sg-glass[data-sg-hover]:hover,
   .sg-glass[data-sg-hover]:focus-within,
@@ -4266,8 +4295,259 @@ html.dark .sg-about-title h1 {
   .sg-poster-wide:hover img,
   .sg-chatter:hover img,
   .sg-about:hover .sg-about-banner > img,
-  .sg-archive-card:hover .sg-archive-cover img,
-  .sg-album-card:hover .sg-polaroid {
+  .sg-archive-card:hover .sg-archive-cover img {
     transform: none !important;
   }
+}
+
+/* =========================================================================
+   光影画廊 · 视差相册（第四十三轮）
+   一条通栏的横向照片墙：相纸散落在暖色天光里，滚动时按 --px-depth 横向漂移，
+   越「近」（depth 越大）的照片走得越快，叠在慢的上面就是视差；
+   此外还有极慢的自漂移与鼠标跟手 —— 全部由 modules/parallax.ts 驱动。
+   位置/尺寸/倾角/纵深都由模板写进 style，这里只负责长相。
+   ========================================================================= */
+.sg-px {
+  --sg-px-h: clamp(17rem, 58vh, 32rem);
+
+  position: relative;
+  left: 50%;
+  isolation: isolate;
+  width: 100vw;
+  height: var(--sg-px-h);
+  margin-left: -50vw;
+  margin-block: .25rem 1.5rem;
+  overflow: hidden;
+  background:
+    radial-gradient(56% 86% at 14% 6%, rgba(255, 226, 199, .96) 0%, rgba(255, 226, 199, 0) 62%),
+    radial-gradient(60% 92% at 88% 92%, rgba(246, 168, 184, .92) 0%, rgba(246, 168, 184, 0) 68%),
+    linear-gradient(148deg, #fde6d3 0%, #f9d8d5 42%, #f6cfd8 68%, #f2d2c7 100%);
+  /* 上下各留 11% 的柔和过渡：暖光带不是一张贴死的卡片，而是「漫」进页面背景里 */
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 10%, #000 90%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 10%, #000 90%, transparent 100%);
+}
+
+html.dark .sg-px {
+  background:
+    radial-gradient(56% 86% at 14% 6%, rgba(228, 148, 108, .34) 0%, rgba(228, 148, 108, 0) 64%),
+    radial-gradient(60% 92% at 88% 92%, rgba(206, 116, 140, .3) 0%, rgba(206, 116, 140, 0) 70%),
+    linear-gradient(148deg, #241f26 0%, #2b2229 44%, #281f28 70%, #1f1d24 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), inset 0 -1px 0 rgba(0, 0, 0, .35);
+}
+
+/* 四角压暗，把视线收到中间那条照片带上 */
+.sg-px::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: radial-gradient(126% 86% at 50% 46%, transparent 56%, rgba(84, 44, 40, .12) 100%);
+}
+
+.sg-px-stage {
+  position: relative;
+  height: 100%;
+}
+
+.sg-px-print {
+  position: absolute;
+  left: var(--px-x, 0%);
+  top: var(--px-y, 6%);
+  display: block;
+  width: var(--px-w, 20%);
+  color: inherit;
+  text-decoration: none;
+  transform-origin: 50% 60%;
+  /* 位移由 JS 写进 transform；opacity 只给搜索命中用 */
+  will-change: transform;
+  transition: opacity .45s var(--sg-ease);
+}
+
+/* z-index 走自定义属性：内联写在 --px-z 上，hover 才能用样式表里的值盖过去 */
+.sg-px-print { z-index: var(--px-z, 1); }
+
+.sg-px-frame {
+  position: relative;
+  display: block;
+  padding: .35rem;
+  border-radius: .2rem;
+  background: var(--sg-polaroid, #fffdfa);
+  /* translateY(-50%)：--px-y 给的是「照片中心线」，长短不一的照片才对得齐 */
+  transform: translateY(-50%) rotate(var(--px-rot, 0deg));
+  transition: transform .55s var(--sg-ease), box-shadow .55s var(--sg-ease);
+  box-shadow:
+    0 24px 46px -28px rgba(74, 40, 38, .58),
+    0 3px 10px -6px rgba(74, 40, 38, .3);
+}
+
+.sg-px-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 22rem;
+  object-fit: cover;
+  border-radius: .06rem;
+  background: rgba(20, 30, 34, .06);
+}
+
+/* 图注叠在照片底部（平时藏起来，hover 才浮出，保持「照片墙」的干净） */
+.sg-px-cap {
+  position: absolute;
+  right: .35rem;
+  bottom: .35rem;
+  left: .35rem;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: 1.7rem .5rem .45rem;
+  border-radius: 0 0 .06rem .06rem;
+  background: linear-gradient(180deg, transparent, rgba(16, 24, 28, .8));
+  color: #f2f7f8;
+  font-size: .68rem;
+  opacity: 0;
+  transform: translateY(.4rem);
+  transition: opacity .4s var(--sg-ease), transform .4s var(--sg-ease);
+  pointer-events: none;
+}
+
+.sg-px-cap b {
+  overflow: hidden;
+  font-size: .76rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sg-px-date {
+  flex: none;
+  font-family: ui-monospace, monospace;
+  letter-spacing: .02em;
+  opacity: .78;
+}
+
+.sg-px-print:hover,
+.sg-px-print:focus-visible { z-index: 40; }
+
+.sg-px-print:hover .sg-px-frame,
+.sg-px-print:focus-visible .sg-px-frame {
+  transform: translateY(-50%) rotate(calc(var(--px-rot, 0deg) * .3)) scale(1.045);
+  box-shadow:
+    0 34px 66px -30px rgba(74, 40, 38, .6),
+    0 4px 14px -6px rgba(74, 40, 38, .32);
+}
+
+.sg-px-print:hover .sg-px-cap,
+.sg-px-print:focus-visible .sg-px-cap {
+  opacity: 1;
+  transform: none;
+}
+
+.sg-px-print:focus-visible { outline: 2px solid var(--sg-accent); outline-offset: 8px; }
+
+/* 搜索命中：不匹配的相纸退到背景里，但仍然可见（不跳版） */
+.sg-px-print.sg-filtered-out {
+  opacity: .1;
+  filter: saturate(.3);
+}
+
+.sg-px-month.sg-filtered-out {
+  opacity: .35;
+  filter: saturate(.4);
+}
+
+/* 「滚动 · 让照片浮起来」——挂在月份胶囊那一排的右端，写得像展览前言的小字 */
+.sg-px-hint {
+  display: inline-flex;
+  gap: .6rem;
+  align-items: center;
+  margin-left: auto;
+  font-family: ui-monospace, monospace;
+  font-size: .66rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: rgba(92, 56, 50, .5);
+  pointer-events: none;
+}
+
+.sg-px-hint::before {
+  content: "";
+  width: 1.85rem;
+  height: 1px;
+  background: currentColor;
+  opacity: .55;
+}
+
+html.dark .sg-px-hint { color: rgba(240, 226, 226, .5); }
+
+.sg-gallery-list > .sg-px-months { margin-top: 0; }
+
+.sg-px-months {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem;
+}
+
+.sg-px-month {
+  display: inline-flex;
+  gap: .65rem;
+  align-items: center;
+  padding: .45rem .95rem .45rem .45rem;
+  border: 1px solid rgba(255, 255, 255, .65);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .72);
+  color: #22333b;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: transform .35s var(--sg-ease), background-color .35s linear;
+}
+
+html.dark .sg-px-month {
+  border-color: rgba(255, 255, 255, .1);
+  background: rgba(30, 42, 50, .66);
+  color: var(--sg-fg);
+}
+
+.sg-px-month:hover { transform: translateY(-2px); }
+
+.sg-px-month img {
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.sg-px-month-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  text-align: left;
+}
+
+.sg-px-month-text b { font-size: .85rem; font-weight: 600; }
+.sg-px-month-text span {
+  font-family: ui-monospace, monospace;
+  font-size: .7rem;
+  opacity: .62;
+}
+
+/* 窄屏：带子压低、相纸放大（不再隔一张藏一张，免得留下空洞） */
+@media (max-width: 900px) {
+  .sg-px { --sg-px-h: clamp(15rem, 46vh, 24rem); }
+
+  .sg-px-print { width: calc(var(--px-w) * 1.45); }
+
+  .sg-px-frame { padding: .26rem; }
+  .sg-px-cap { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sg-px-frame,
+  .sg-px-cap,
+  .sg-px-month { transition: none; }
+
+  .sg-px-print { transform: none; }
 }

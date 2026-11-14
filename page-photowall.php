@@ -4,9 +4,9 @@
  *
  * @package custom
  *
- * 结构与源站 app/photowall/PhotoWallClient.tsx 一致：
- * 「光影画廊」标题 + 副标题 + 搜索 →（搜索时）匹配的单张照片 + 相关相册 → 三层层叠拍立得
- * → 点开专辑 → 详情页标题区（返回 / 日期 / 标题 / 简介 / 张数）+ CSS 多列瀑布流 → 灯箱。
+ * 结构与源站 app/photowall/PhotoWallClient.tsx 的意图一致，形态改成「视差相纸墙」：
+ * 「光影画廊」标题 + 副标题 + 搜索 → 一条通栏的横向照片墙（相纸错落叠放、随滚动视差漂移）
+ * → 月份胶囊点开专辑 → 详情页标题区（返回 / 日期 / 标题 / 简介 / 张数）+ CSS 多列瀑布流 → 灯箱。
  *
  * Typecho 没有二级路由，列表与详情都用同一份 albums 数据渲染，
  * 由 gallery.ts 通过 ?album=<id> + history.pushState 切换，后退键可回列表。
@@ -23,23 +23,6 @@ foreach ($sgAlbums as $sgCountAlbum) {
         $sgPhotoTotal += count($sgCountAlbum['photos']);
     }
 }
-
-/**
- * 取相册里第 N 张图，越界时回落到封面、再回落到占位图。
- * 拍立得三层需要三张，缺图时不能让中间层空着。
- */
-$sgPick = static function (array $album, int $index, string $fallback): string
-{
-    $photos = is_array($album['photos'] ?? null) ? array_values($album['photos']) : [];
-    if (isset($photos[$index]) && is_array($photos[$index])) {
-        $url = trim((string) ($photos[$index]['thumb'] ?? $photos[$index]['url'] ?? ''));
-        if ($url !== '') {
-            return sg_media($url, $fallback);
-        }
-    }
-    $cover = trim((string) ($album['coverThumb'] ?? $album['cover'] ?? ''));
-    return $cover !== '' ? sg_media($cover, $fallback) : $fallback;
-};
 
 $sgHead = [
     'title'       => (string) $this->title,
@@ -73,91 +56,126 @@ if ($sgOpenId !== '') {
 <main id="sg-main" class="sg-main sg-main--wide sg-main--pad" data-sg-page="photowall" data-sg-gallery data-sg-grid>
   <?php sg_page_head($sgHead + ['hidden' => $sgOpenId !== '']); ?>
 
-  <!-- 搜索结果区：默认隐藏，输入关键词后由 gallery.ts 打开 -->
-  <section class="sg-gallery-found" data-sg-gallery-found hidden>
-    <h3 class="sg-gallery-group" data-sg-gallery-photos-head hidden>
-      <i class="is-indigo" aria-hidden="true"></i>匹配的单张照片 (<b data-sg-gallery-photos-count>0</b>)
-    </h3>
-    <div class="sg-gallery-masonry sg-gallery-found-photos" data-sg-gallery-photos>
-      <?php foreach ($sgAlbums as $sgIndex => $sgAlbum) : ?>
-      <?php
-        if (!is_array($sgAlbum) || !is_array($sgAlbum['photos'] ?? null)) {
-            continue;
-        }
-        $sgAlbumTitle = sg_value($sgAlbum, 'title', '未命名专辑');
-        $sgAlbumId = (string) ($sgAlbum['id'] ?? ('album-' . $sgIndex));
-        foreach (array_values($sgAlbum['photos']) as $sgPhoto) {
-            if (!is_array($sgPhoto)) {
-                continue;
-            }
-            $sgUrl = trim((string) ($sgPhoto['url'] ?? ''));
-            if ($sgUrl === '') {
-                continue;
-            }
-            $sgThumb = trim((string) ($sgPhoto['thumb'] ?? $sgUrl));
-            $sgCap = trim((string) ($sgPhoto['caption'] ?? ''));
-      ?>
-      <a class="sg-photo" href="<?php echo sg_e(sg_media($sgUrl)); ?>"
-         data-sg-photo
-         data-search-photo
-         data-caption="<?php echo sg_e($sgCap); ?>"
-         data-album-name="<?php echo sg_e($sgAlbumTitle); ?>">
-        <img src="<?php echo sg_e(sg_media($sgThumb)); ?>" alt="<?php echo sg_e($sgCap !== '' ? $sgCap : $sgAlbumTitle); ?>" loading="lazy" referrerpolicy="no-referrer">
-        <?php if ($sgCap !== '') : ?><span class="sg-photo-cap"><?php echo sg_e($sgCap); ?></span><?php endif; ?>
-      </a>
-      <?php } ?>
-      <?php endforeach; ?>
-    </div>
-  </section>
+  <?php
+  /**
+   * 视差相册（第四十三轮）：一条通栏的横向照片墙。
+   *
+   * 每张相纸带一个 --px-depth（纵深 0.42–1.2）：滚动时横向位移 ∝ 纵深，
+   * 越「近」的照片走得越快，叠在慢的上面就是视差；此外还有极慢的自漂移，
+   * 鼠标在带子里移动时再叠一层轻微跟手 —— 驱动见 modules/parallax.ts。
+   *
+   * 位置 / 尺寸 / 倾角 / 纵深全部由下标算出的确定性哈希决定（不用随机数），
+   * 同一张照片每次刷新都在同一格，不会「跳一下」。
+   */
+  $sgHash = static function (int $i, float $salt): float {
+      $v = sin(($i + 1) * 12.9898 + $salt) * 43758.5453;
+      return $v - floor($v);
+  };
 
-  <h3 class="sg-gallery-group" data-sg-gallery-albums-head hidden>
-    <i class="is-purple" aria-hidden="true"></i>相关相册 (<b data-sg-gallery-albums-count>0</b>)
-  </h3>
-
-  <div class="sg-gallery" data-sg-gallery-list>
-    <?php foreach ($sgAlbums as $sgIndex => $sgAlbum) : ?>
-    <?php
-      if (!is_array($sgAlbum)) {
+  $sgFlats = [];
+  foreach ($sgAlbums as $sgIndex => $sgAlbum) {
+      if (!is_array($sgAlbum) || !is_array($sgAlbum['photos'] ?? null)) {
           continue;
       }
-      $sgId     = (string) ($sgAlbum['id'] ?? ('album-' . $sgIndex));
-      $sgTitle  = sg_value($sgAlbum, 'title', '未命名专辑');
-      $sgDesc   = sg_value($sgAlbum, 'description', '');
-      $sgDate   = sg_value($sgAlbum, 'date', '');
-      $sgPhotos = is_array($sgAlbum['photos'] ?? null) ? array_values($sgAlbum['photos']) : [];
-      $sgCover  = sg_value($sgAlbum, 'coverThumb', sg_value($sgAlbum, 'cover', ''));
-
-      // 占位图 id 固定（1015 + 序号），同一相册每次刷新都是同一张，不会闪
-      $sgFallback = sg_placeholder(1015 + (int) $sgIndex, 800, 600);
-      $sgLayerBack  = $sgPick($sgAlbum, 2, $sgFallback);
-      $sgLayerMid   = $sgPick($sgAlbum, 1, $sgFallback);
-      $sgLayerFront = $sgCover !== '' ? sg_media($sgCover, $sgFallback) : $sgPick($sgAlbum, 0, $sgFallback);
-
-      // 搜索命中：专辑名 + 描述 + 全部图注
-      $sgCaptions = [];
-      foreach ($sgPhotos as $sgOne) {
-          if (is_array($sgOne) && trim((string) ($sgOne['caption'] ?? '')) !== '') {
-              $sgCaptions[] = (string) $sgOne['caption'];
+      $sgAlbumId    = (string) ($sgAlbum['id'] ?? ('album-' . $sgIndex));
+      $sgAlbumTitle = sg_value($sgAlbum, 'title', '未命名相册');
+      $sgAlbumDate  = sg_value($sgAlbum, 'date', '');
+      foreach (array_values($sgAlbum['photos']) as $sgPhoto) {
+          if (!is_array($sgPhoto)) {
+              continue;
           }
+          $sgRaw = trim((string) ($sgPhoto['url'] ?? ''));
+          if ($sgRaw === '') {
+              continue;
+          }
+          $sgFlats[] = [
+              'album'   => $sgAlbumId,
+              'name'    => $sgAlbumTitle,
+              'date'    => $sgAlbumDate,
+              'url'     => sg_media($sgRaw),
+              'thumb'   => sg_media((string) ($sgPhoto['thumb'] ?? '')),
+              'caption' => trim((string) ($sgPhoto['caption'] ?? '')),
+          ];
       }
-      $sgKeywords = $sgTitle . ' ' . $sgDesc . ' ' . implode(' ', $sgCaptions);
-    ?>
-    <article class="sg-album-card" data-sg-album="<?php echo sg_e($sgId); ?>" data-keywords="<?php echo sg_e($sgKeywords); ?>">
-      <button class="sg-album-open" type="button" data-sg-album-open="<?php echo sg_e($sgId); ?>" aria-label="打开专辑：<?php echo sg_e($sgTitle); ?>">
-        <span class="sg-polaroid-stack">
-          <img class="sg-polaroid" src="<?php echo sg_e($sgLayerBack); ?>" alt="" loading="lazy" referrerpolicy="no-referrer">
-          <img class="sg-polaroid" src="<?php echo sg_e($sgLayerMid); ?>" alt="" loading="lazy" referrerpolicy="no-referrer">
-          <img class="sg-polaroid" src="<?php echo sg_e($sgLayerFront); ?>" alt="<?php echo sg_e($sgTitle); ?>" loading="lazy" referrerpolicy="no-referrer">
+  }
+  /* 一屏最多 12 张：再多就等距抽样，密度不炸、首尾都留得住 */
+  $sgPrints = $sgFlats;
+  if (count($sgPrints) > 12) {
+      $sgSampled = [];
+      $sgStep    = count($sgPrints) / 12;
+      for ($sgI = 0; $sgI < 12; $sgI++) {
+          $sgSampled[] = $sgPrints[(int) floor($sgI * $sgStep)];
+      }
+      $sgPrints = $sgSampled;
+  }
+  $sgPrintCount = count($sgPrints);
+  /* 张数越少、单张越大：3 张时铺到 28% 宽，12 张收到 16% 上下 */
+  $sgBaseW = round(max(16.5, min(28.0, 43.0 - $sgPrintCount * 2.25)), 2);
+  ?>
+  <div class="sg-gallery-list" data-sg-gallery-list>
+    <?php if ($sgPrints) : ?>
+    <section class="sg-px" data-sg-px aria-label="光影画廊 · 视差相册">
+      <div class="sg-px-stage" data-sg-px-stage data-sg-photo-group>
+        <?php foreach ($sgPrints as $sgK => $sgPrint) : ?>
+        <?php
+          $sgLabel = $sgPrint['caption'] !== '' ? $sgPrint['caption'] : $sgPrint['name'];
+          $sgThumb = $sgPrint['thumb'] !== '' ? $sgPrint['thumb'] : $sgPrint['url'];
+          /* 均匀铺开 + 轻微抖动，避免一眼看出等距网格 */
+          $sgLeft  = round(-6 + ($sgK + 0.5) * (112 / max(1, $sgPrintCount)) + ($sgHash($sgK, 1.7) - 0.5) * 2.6, 2);
+          /* 中心线用黄金比铺开：3 张也不会两张挤在同一高度 */
+          $sgTop   = round(30 + fmod($sgK * 0.6180339 + 0.13, 1) * 40, 2);
+          $sgWidth = round($sgBaseW * (0.9 + $sgHash($sgK, 3.3) * 0.36), 2);
+          $sgRot   = round(-3.2 + $sgHash($sgK, 5.9) * 6.4, 2);
+          $sgDepth = round(0.35 + $sgHash($sgK, 7.7) * 0.9, 2);
+          $sgZ     = 1 + (int) round($sgHash($sgK, 2.3) * 8);
+        ?>
+        <a class="sg-px-print"
+           href="<?php echo sg_e($sgPrint['url']); ?>"
+           data-sg-photo
+           data-search-photo
+           data-caption="<?php echo sg_e($sgPrint['caption']); ?>"
+           data-album-name="<?php echo sg_e($sgPrint['name']); ?>"
+           data-keywords="<?php echo sg_e($sgLabel . ' ' . $sgPrint['name'] . ' ' . $sgPrint['date']); ?>"
+           style="--px-x:<?php echo $sgLeft; ?>%;--px-y:<?php echo $sgTop; ?>%;--px-w:<?php echo $sgWidth; ?>%;--px-rot:<?php echo $sgRot; ?>deg;--px-depth:<?php echo $sgDepth; ?>;--px-z:<?php echo $sgZ; ?>">
+          <span class="sg-px-frame">
+            <img src="<?php echo sg_e($sgThumb); ?>" alt="<?php echo sg_e($sgLabel); ?>" loading="lazy" referrerpolicy="no-referrer">
+            <span class="sg-px-cap">
+              <b><?php echo sg_e($sgLabel); ?></b>
+              <span class="sg-px-date"><?php echo sg_e($sgPrint['date']); ?></span>
+            </span>
+          </span>
+        </a>
+        <?php endforeach; ?>
+      </div>
+    </section>
+    <?php endif; ?>
+
+    <?php if ($sgAlbums) : ?>
+    <nav class="sg-px-months" aria-label="按月份查看相册">
+      <?php foreach ($sgAlbums as $sgIndex => $sgAlbum) : ?>
+      <?php
+        if (!is_array($sgAlbum)) {
+            continue;
+        }
+        $sgId    = (string) ($sgAlbum['id'] ?? ('album-' . $sgIndex));
+        $sgTitle = sg_value($sgAlbum, 'title', '未命名相册');
+        $sgDate  = sg_value($sgAlbum, 'date', '');
+        $sgCover = sg_value($sgAlbum, 'coverThumb', sg_value($sgAlbum, 'cover', ''));
+        $sgNum   = is_array($sgAlbum['photos'] ?? null) ? count($sgAlbum['photos']) : 0;
+      ?>
+      <button class="sg-px-month" type="button" data-sg-album="<?php echo sg_e($sgId); ?>" data-sg-album-open="<?php echo sg_e($sgId); ?>" data-keywords="<?php echo sg_e($sgTitle . ' ' . $sgDate); ?>">
+        <?php if ($sgCover !== '') : ?>
+        <img src="<?php echo sg_e(sg_media($sgCover)); ?>" alt="" loading="lazy" referrerpolicy="no-referrer">
+        <?php endif; ?>
+        <span class="sg-px-month-text">
+          <b><?php echo sg_e($sgTitle); ?></b>
+          <span><?php echo sg_e($sgDate); ?><?php echo $sgDate !== '' ? ' · ' : ''; ?><?php echo (int) $sgNum; ?> 张</span>
         </span>
       </button>
-
-      <div class="sg-album-meta">
-        <h2><?php echo sg_e($sgTitle); ?></h2>
-        <span><?php echo sg_e($sgDate); ?><?php echo $sgDate !== '' ? ' · ' : ''; ?><?php echo count($sgPhotos); ?> 张照片</span>
-        <?php if ($sgDesc !== '') : ?><p><?php echo sg_e($sgDesc); ?></p><?php endif; ?>
-      </div>
-    </article>
-    <?php endforeach; ?>
+      <?php endforeach; ?>
+      <span class="sg-px-hint" aria-hidden="true">滚动 · 让照片浮起来</span>
+    </nav>
+    <?php endif; ?>
   </div>
 
   <p class="sg-filter-empty" data-sg-gallery-empty hidden>在泰拉大陆的任何角落都没找到相关的记忆，换个词试试。</p>
@@ -166,7 +184,7 @@ if ($sgOpenId !== '') {
   <div class="sg-glass sg-notfound">
     <span class="sg-notfound-code">空</span>
     <h1>还没有相册</h1>
-    <p>照片在阿里云 OSS 的话，把相册清单 JSON 传上 OSS，再把链接填到「设置外观 → 相册清单」；用站内附件的话，到后台「撰写 → 附件」传图，会自动按年月成册。</p>
+    <p>到「设置外观 → 主题设置 → 相册图片（OSS 链接）」里一行贴一张图片地址，会自动按年月分册。</p>
   </div>
   <?php endif; ?>
 
