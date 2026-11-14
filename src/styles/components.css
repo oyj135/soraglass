@@ -422,7 +422,9 @@ html.dark .sg-social { background: rgba(51, 65, 85, .50); color: #cbd5e1; }
    纵向空间全留给唱片（见文件末尾 .sg-hero-side 的覆盖规则）。 */
 .sg-player-card {
   position: relative;
-  padding: 1rem 1.75rem 1.1rem;
+  /* 顶部留 1.25rem：外圈那道花瓣环上探 19.8px（disc 的 -19%），
+     低于这个值时会被卡片的 overflow:hidden 削平一条。 */
+  padding: 1.25rem 1.75rem 1.1rem;
   overflow: hidden;
 }
 
@@ -472,40 +474,88 @@ html.dark .sg-social { background: rgba(51, 65, 85, .50); color: #cbd5e1; }
 html.dark .sg-player-badge { color: var(--sg-accent-soft); }
 
 /* 唱片：白环 + 双段投影。旋转放在容器上（封面只负责淡入），
-   轴心是圆形、转起来看不出来，所以不必反向补偿。 */
+   轴心是圆形、转起来看不出来，所以不必反向补偿。
+   ⚠️ 容器这里**不能**再写 overflow:hidden / border —— 外圈两层有机环要溢出到圆外，
+   裁切与白环都下放到 img 自己身上（border-box + border-radius:50%）。 */
 .sg-player-disc {
   position: relative;
   flex: none;
   width: 6.5rem;
   height: 6.5rem;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 4px solid rgba(255, 255, 255, .92);
-  background: var(--sg-page);
-  box-shadow:
-    0 14px 26px -14px rgba(16, 44, 50, .55),
-    0 2px 6px -2px rgba(16, 44, 50, .2);
   animation: sg-spin 22s linear infinite;
   animation-play-state: paused;
   will-change: transform;
-  transition: box-shadow var(--sg-dur-card) var(--sg-ease);
 }
 
-/* 播放中：唱片外圈阴影加深一档，视觉上「转起来了」 */
-.sg-player.is-playing .sg-player-disc {
-  animation-play-state: running;
-  box-shadow:
-    0 18px 32px -14px rgba(16, 44, 50, .6),
-    0 3px 8px -2px rgba(16, 44, 50, .24);
+/* 有机环（华为播放页那圈「花瓣」）：外层细描边 + 内层实心面。
+   ⚠️ 内层必须是**面**不是描边 —— 图 3 里那圈白是因为「一片半透明花瓣被圆形封面
+   压住中心、只露出外沿」，宽度占封面直径的 5% 左右，是一条宽带；
+   写成 1px 描边在浅色壁纸上等于没有（第一版就是这么翻车的）。
+   层级天然成立：::before 排在 img 之前 = 在封面之下，::after 排在其后 = 在封面之上。
+   四角半径故意写得不相等（58/42/46/54），缺口落在左下 —— 正圆靠这个破掉。 */
+.sg-player-disc::before,
+.sg-player-disc::after {
+  content: '';
+  position: absolute;
+  border-radius: 60% 40% 52% 48% / 55% 45% 58% 42%;
+  /* ⚠️ 层叠顺序的坑：::before 一旦 position:absolute 就进入「定位元素」层，
+     会盖在所有普通流内容（包括 img）之上 —— 花瓣面因此整片糊在封面上，
+     外圈那点白边其实是它压着卡片背景的残影。所以封面必须自己带 z-index。
+     顺序定为：花瓣面 0 < 封面 1 < 细描边 2 < 轴心 3。 */
+  pointer-events: none;
 }
+
+.sg-player-disc::before { z-index: 0; }
+.sg-player-disc::after { z-index: 2; }
+
+/* 内层：实心花瓣，压住的中心被封面盖掉，露出来的就是那圈宽白边。
+   用斜向渐变而不是纯色：左上最亮、右下渐隐，才不像「贴了一张白色剪纸」。
+   宽度占封面直径 12%（原来 11% 太窄，缩到肉眼只当成投影）。 */
+.sg-player-disc::before {
+  inset: -13%;
+  background: linear-gradient(150deg,
+      color-mix(in srgb, var(--sg-accent) 46%, transparent) 0,
+      color-mix(in srgb, var(--sg-accent) 24%, transparent) 55%,
+      color-mix(in srgb, var(--sg-accent) 10%, transparent) 100%);
+  transform: rotate(-20deg);
+  opacity: .9;
+  transition: opacity .7s var(--sg-ease);
+}
+
+/* 外层：再外扩一圈的细描边，给「形状外还有形状」的第二层 */
+.sg-player-disc::after {
+  inset: -19%;
+  border: 1.5px solid color-mix(in srgb, var(--sg-accent) 30%, transparent);
+  border-radius: 42% 58% 50% 50% / 45% 58% 42% 55%;
+  transform: rotate(28deg);
+}
+
+/* 暗色壁纸本来就深，白面要收得比亮色狠，否则花瓣会比唱片还抢眼 */
+html.dark .sg-player-disc::before {
+  background: rgba(226, 240, 240, .72);
+}
+
+html.dark .sg-player-disc::after { border-color: rgba(226, 240, 240, .2); }
 
 .sg-player-disc img {
+  display: block;
+  position: relative;      /* 参与层叠：必须压在 ::before 的花瓣面之上 */
+  z-index: 1;
+  box-sizing: border-box;
   width: 100%;
   height: 100%;
   object-fit: cover;
   border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, .92);
+  /* 封面本身不投影 —— 它的 box-shadow 会画在花瓣面之上，整圈环被压成脏灰色 */
   transition: opacity .38s var(--sg-ease);
 }
+
+/* 播放中：整圈花瓣提亮一档，比「阴影加深」更能读出「转起来了」。
+   ⚠️ 只动 opacity，不动 background —— 一旦在这里重写 background，
+   就会把上面按主题配好的渐变整个顶掉（早先暗色下环发灰就是这条 30% 的锅）。 */
+.sg-player.is-playing .sg-player-disc { animation-play-state: running; }
+.sg-player.is-playing .sg-player-disc::before { opacity: 1; }
 
 /* 切歌时封面先透明、图片 load 后再淡入（player.ts 写这个类） */
 .sg-player-disc img.is-swap { opacity: 0; }
@@ -514,6 +564,7 @@ html.dark .sg-player-badge { color: var(--sg-accent-soft); }
 .sg-player-hole {
   position: absolute;
   inset: 0;
+  z-index: 3;              /* 压在 ::after 描边之上（同为定位元素时伪元素排在子元素后面） */
   margin: auto;
   width: 22%;
   height: 22%;
@@ -649,25 +700,34 @@ input.sg-progress::-moz-range-thumb {
 
 .sg-player-transport { display: flex; align-items: center; gap: .55rem; }
 
+/* 前后键与静音键是**裸图标**：没有圆底、没有描边。
+   华为那一排里只有播放键和一枚说明性胶囊有实体，其余都是浮在版面上的线；
+   给每个键都套圆底，反而把主键的分量压平了。 */
 .sg-player-controls button {
   display: grid;
   place-items: center;
   width: 2.1rem;
   height: 2.1rem;
   padding: 0;
-  border: 1px solid var(--sg-border);
+  border: 0;
   border-radius: 50%;
-  background: var(--sg-chip);
+  background: transparent;
   color: var(--sg-text);
-  opacity: .85;
+  opacity: .8;
   transition: opacity var(--sg-dur-fast) linear, color var(--sg-dur-fast) linear,
               transform var(--sg-dur-fast) var(--sg-ease),
               background-color var(--sg-dur-fast) linear;
 }
 
-.sg-player-controls button:hover { opacity: 1; color: var(--sg-accent-ink); transform: scale(1.08); }
+.sg-player-controls button:hover {
+  opacity: 1;
+  color: var(--sg-accent-ink);
+  background: color-mix(in srgb, var(--sg-accent) 13%, transparent);
+  transform: scale(1.08);
+}
+
 .sg-player-controls button:active { transform: scale(.96); }
-.sg-player-controls button svg { width: 1.05rem; height: 1.05rem; }
+.sg-player-controls button svg { width: 1.15rem; height: 1.15rem; }
 
 /* 模式胶囊：比圆钮宽，图标 + 文字。它是华为那一行里唯一的「说明性」控件。
    选择器带 .sg-player-controls 是为了压过上面那条通用的按钮规则（同权重时后者会赢）。 */
@@ -676,7 +736,10 @@ input.sg-progress::-moz-range-thumb {
   grid-auto-flow: column;
   gap: .35rem;
   padding: 0 .75rem;
+  border: 1px solid var(--sg-border);
+  background: var(--sg-chip);
   border-radius: 999px;
+  opacity: .92;
   font-size: .68rem;
   font-weight: 700;
   letter-spacing: .02em;
@@ -687,25 +750,36 @@ input.sg-progress::-moz-range-thumb {
 .sg-player-controls .sg-player-mode.is-active {
   color: var(--sg-accent-ink);
   border-color: color-mix(in srgb, var(--sg-accent) 35%, transparent);
+  opacity: 1;
 }
 
-/* 主播放键：深青实心圆 + 白三角（华为那枚 64px 键的同构小号）。
-   原来的渐变 + 内高光去掉了 —— 华为这颗键是平的，靠尺寸和投影立主次。 */
+/* 主播放键：华为那枚「不规则的蛋」—— 宽略大于高，四个角的半径全不相等
+   （左上收得最紧、右下最松），像被捏过的软胶，而不是一个标准圆。
+   原来这里是正圆，和同一行的其它键同一个形状语言，主次只能靠尺寸硬撑。 */
 .sg-player-controls .sg-player-play {
-  width: 2.75rem;
+  width: 3rem;
   height: 2.75rem;
   border: 0;
+  border-radius: 58% 42% 46% 54% / 48% 56% 42% 58%;
   background: var(--sg-accent);
   color: #fff;
   opacity: 1;
   box-shadow:
     0 8px 18px -8px color-mix(in srgb, var(--sg-accent) 80%, transparent),
     inset 0 1px 0 rgba(255, 255, 255, .24);
+  /* 半径本身参与过渡：hover 时四角对调，轮廓像水面那样「流」一下 ——
+     有机形状最廉价也最有效的动效，不额外开 transform 图层。 */
+  transition:
+    border-radius .62s var(--sg-ease),
+    transform var(--sg-dur-fast) var(--sg-ease),
+    box-shadow var(--sg-dur-fast) var(--sg-ease);
 }
 
 .sg-player-controls .sg-player-play:hover {
   color: #fff;
-  transform: scale(1.05);
+  background: var(--sg-accent);
+  border-radius: 44% 56% 54% 46% / 56% 44% 58% 42%;
+  transform: scale(1.04) rotate(-2deg);
   box-shadow: 0 12px 24px -10px var(--sg-accent);
 }
 
@@ -721,14 +795,20 @@ input.sg-progress::-moz-range-thumb {
 .sg-player.is-playing .sg-player-play .sg-i-pause { display: grid; }
 
 /* 暗色下 --sg-accent 仍是 #35616b（它要恒压白字），压在 #1e2f33 的卡面上
-   对比只有 1.9:1，那颗主键会「沉」进去。提亮到 accent-2（#55868f）才跳得出来。 */
+   对比只有 1.9:1，那颗主键会「沉」进去。提亮到 accent-2（#55868f）才跳得出来。
+   ⚠️ hover 那条必须把 background 重新写一遍：上面普通态的选择器带 :hover 时
+   特定性更高（0,4,0 > 0,3,1），不补就会被亮色那条 --sg-accent 抢回去，
+   暗色下鼠标一移上去主键反而变暗。 */
 html.dark .sg-player-controls .sg-player-play { background: var(--sg-accent-2); }
-html.dark .sg-player-controls .sg-player-play:hover { box-shadow: 0 12px 24px -10px var(--sg-accent-2); }
+html.dark .sg-player-controls .sg-player-play:hover {
+  background: var(--sg-accent-2);
+  box-shadow: 0 12px 24px -10px var(--sg-accent-2);
+}
 
-/* 静音键：按下（muted）走实心态，和主键区分开但不抢主键的位置 */
+/* 静音键：按下（muted）走实心态，和主键区分开但不抢主键的位置。
+   裸图标没有描边了，所以这里只有底与色，不再写 border-color。 */
 .sg-player-controls .sg-player-mute.is-active {
   background: color-mix(in srgb, var(--sg-accent) 18%, transparent);
-  border-color: color-mix(in srgb, var(--sg-accent) 32%, transparent);
   color: var(--sg-accent-deep);
   opacity: 1;
 }
