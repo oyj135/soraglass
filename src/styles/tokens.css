@@ -127,6 +127,8 @@
   --sg-music-petal-lilac: #a58bd9;
 
   --sg-polaroid: #ffffff;  /* 拍立得相纸边框，暗色也保持白 */
+  --sg-album-paper: #fff;
+  --sg-album-shadow: 0 10px 24px rgb(16 37 48 / .14);
 
   /* 独立通栏歌词卡跟随昼夜：日间月白表面与青瓷字，夜间深青底与浅字。 */
   --sg-lyric-bg: rgba(246, 252, 252, .92);
@@ -184,6 +186,7 @@ html.dark {
   --sg-reading-surface: rgba(13, 28, 30, .96);
   --sg-reading-border: color-mix(in srgb, var(--sg-accent-ink) 20%, transparent);
   --sg-shadow-reading: 0 8px 36px -16px rgb(0 0 0 / .32);
+  --sg-album-paper: #e2e8f0;
   --sg-card-border: rgba(255, 255, 255, .10); /* 源站 dark:border-white/10 */
   --sg-border: rgba(226, 240, 240, .18);    /* 结构线，比卡面描边亮一档 */
   --sg-chip: rgba(12, 26, 29, .58);         /* 胶囊底 */

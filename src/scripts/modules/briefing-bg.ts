@@ -1,3 +1,4 @@
+import { pageOn, pageTimeout, pageInterval, pageFrame, onPageDispose, pageSignal } from './lifecycle';
 /**
  * AI 日报卡片的背景轮播。
  *
@@ -67,7 +68,7 @@ export function initBriefingBg(): void {
     window.clearTimeout(timer);
     if (covers.length < 2) return;
     const delay = Date.now() < holdUntil ? Math.max(600, holdUntil - Date.now()) : interval;
-    timer = window.setTimeout(() => {
+    timer = pageTimeout(() => {
       if (canPlay()) paint(index + 1);
       tick();
     }, delay);
@@ -93,6 +94,7 @@ export function initBriefingBg(): void {
     tick();
   });
   themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  onPageDispose(() => themeObserver.disconnect());
 
   card.addEventListener('mouseenter', () => {
     hovering = true;
@@ -102,7 +104,7 @@ export function initBriefingBg(): void {
     tick();
   });
 
-  document.addEventListener('visibilitychange', () => {
+  pageOn(document, 'visibilitychange', () => {
     if (!document.hidden) tick();
   });
 
@@ -115,6 +117,7 @@ export function initBriefingBg(): void {
       { rootMargin: '120px' },
     );
     observer.observe(card);
+    onPageDispose(() => observer.disconnect());
   }
 
   paint(index, true);

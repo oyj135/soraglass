@@ -28,3 +28,19 @@
 @media(max-width:600px){.sg-curated-grid{column-count:1}.sg-curated-album{margin-bottom:2rem}.sg-curated-heading{font-size:10px}.sg-curated-meta h2{font-size:1.15rem}[data-sg-gallery] .sg-gallery-masonry{columns:1}}
 @media(prefers-reduced-motion:reduce){.sg-curated-album{transition:none}}
 .sg-gallery-more{display:block;margin:24px auto;padding:10px 20px;border:1px solid var(--sg-line);border-radius:6px;background:transparent;color:var(--sg-text);font:13px var(--font-sans);cursor:pointer}.sg-gallery-more:hover{border-color:var(--sg-accent)}.sg-gallery-more:focus-visible{outline:2px solid var(--sg-accent);outline-offset:4px}.sg-gallery-more:disabled{opacity:.55;cursor:wait}.sg-gallery-status{color:var(--sg-muted);font:13px/1.8 var(--font-sans);padding-block:12px}
+/* Source album gesture: two offset prints fan out behind a natural-ratio cover. */
+.sg-curated-image{overflow:visible;padding:18px 0 26px}
+.sg-album-stack{position:relative;display:inline-grid;max-width:88%;min-width:0;isolation:isolate}
+.sg-album-front,.sg-album-paper{border:6px solid var(--sg-album-paper);border-radius:4px;box-shadow:var(--sg-album-shadow)}
+.sg-album-front{position:relative;z-index:2;overflow:hidden;transition:transform .5s ease}
+.sg-album-front>img{border-radius:0}
+.sg-album-paper{position:absolute;inset:0;overflow:hidden;pointer-events:none;transition:transform .5s ease}
+.sg-album-paper img{width:100%;height:100%;max-height:none;object-fit:cover;filter:grayscale(.6)}
+.sg-album-paper--0{transform:rotate(-3deg) translate(-8px,-4px);opacity:.8;z-index:1}
+.sg-album-paper--1{transform:rotate(6deg) translate(16px,8px);opacity:.6;z-index:0}
+.sg-album-open{position:absolute;inset:auto 0 0;padding:28px 12px 12px;background:linear-gradient(transparent,#000b);color:#fff;font:12px/1.6 var(--font-sans);opacity:0;transition:opacity .4s ease}
+.sg-curated-meta{justify-content:center;align-items:center;text-align:center;padding-top:10px}.sg-curated-meta p{margin-inline:auto}.sg-curated-count{display:none}
+@media(hover:hover) and (prefers-reduced-motion:no-preference){.sg-curated-album:hover .sg-album-front,.sg-curated-album:focus-visible .sg-album-front{transform:translateY(-8px) scale(1.03)}.sg-curated-album:hover .sg-album-paper--0,.sg-curated-album:focus-visible .sg-album-paper--0{transform:rotate(-6deg) translate(-18px,-4px)}.sg-curated-album:hover .sg-album-paper--1,.sg-curated-album:focus-visible .sg-album-paper--1{transform:rotate(12deg) translate(24px,8px)}}
+.sg-curated-album:hover .sg-album-open,.sg-curated-album:focus-visible .sg-album-open{opacity:1}
+@media(prefers-reduced-motion:reduce){.sg-album-front,.sg-album-paper,.sg-album-open{transition:none}}
+@media(max-width:600px){.sg-album-front,.sg-album-paper{border-width:5px}.sg-album-stack{max-width:86%}.sg-album-paper--1{transform:rotate(5deg) translate(12px,6px)}}

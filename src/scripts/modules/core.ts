@@ -1,3 +1,4 @@
+import { pageOn, pageTimeout, pageInterval, pageFrame, onPageDispose, pageSignal } from './lifecycle';
 /**
  * 全局核心：运行时配置、提示条、昼夜切换、导航抽屉、背景栈、开屏。
  * 这里不做 SPA 化，Typecho 保持整页导航，只做观感补偿。
@@ -51,7 +52,7 @@ export function toast(message: string): void {
   el.textContent = message;
   el.classList.add('is-visible');
   window.clearTimeout(toastTimer);
-  toastTimer = window.setTimeout(() => el.classList.remove('is-visible'), 2200);
+  toastTimer = pageTimeout(() => el.classList.remove('is-visible'), 2200);
 }
 
 const isDark = (): boolean => document.documentElement.classList.contains('dark');
@@ -83,7 +84,7 @@ export function toggleTheme(): void {
 function initTheme(): void {
   syncThemeCopy();
   document.querySelectorAll<HTMLElement>('[data-sg-theme-toggle]').forEach((btn) => {
-    btn.addEventListener('click', toggleTheme);
+    pageOn(btn, 'click', toggleTheme);
   });
 }
 
@@ -102,16 +103,16 @@ function initSearchControls(): void {
     sync();
     host.classList.add('sg-search-field');
     host.appendChild(clear);
-    input.addEventListener('input', sync);
-    input.addEventListener('search', sync);
-    clear.addEventListener('click', () => {
+    pageOn(input, 'input', sync);
+    pageOn(input, 'search', sync);
+    pageOn(clear, 'click', () => {
       input.value = '';
       input.dispatchEvent(new Event('input', { bubbles: true }));
       input.dispatchEvent(new Event('search', { bubbles: true }));
       input.focus();
     });
-    input.form?.addEventListener('reset', () => window.requestAnimationFrame(sync));
-    window.addEventListener('pageshow', sync);
+    input.form && pageOn(input.form, 'reset', () => pageFrame(sync));
+    pageOn(window, 'pageshow', sync);
   });
 }
 
@@ -131,16 +132,16 @@ function initNav(): void {
   };
 
   document.querySelectorAll<HTMLElement>('[data-sg-sheet-open]').forEach((btn) => {
-    btn.addEventListener('click', () => setSheet(!sheet?.classList.contains('is-open')));
+    pageOn(btn, 'click', () => setSheet(!sheet?.classList.contains('is-open')));
   });
 
-  sheet?.addEventListener('click', (event) => {
+  sheet && pageOn(sheet, 'click', (event) => {
     if (event.target === sheet) {
       setSheet(false);
     }
   });
 
-  document.addEventListener('keydown', (event) => {
+  pageOn(document, 'keydown', (event) => {
     if (event.key === 'Escape') {
       setSheet(false);
     }
@@ -149,10 +150,10 @@ function initNav(): void {
   if (!nav) return;
   let last = window.scrollY;
   let ticking = false;
-  window.addEventListener('scroll', () => {
+  pageOn(window, 'scroll', () => {
     if (ticking) return;
     ticking = true;
-    window.requestAnimationFrame(() => {
+    pageFrame(() => {
       const y = window.scrollY;
       nav.classList.toggle('is-hidden', y > last && y > 120);
       last = y;
@@ -213,7 +214,7 @@ function initSegments(): void {
     };
 
     buttons.forEach((btn) => {
-      btn.addEventListener('click', () => activate(btn.dataset.sgSegBtn ?? '', true));
+      pageOn(btn, 'click', () => activate(btn.dataset.sgSegBtn ?? '', true));
     });
 
     // 支持 ?tab=activity 直达，和源站一致
@@ -232,7 +233,7 @@ function initSegments(): void {
     if (document.fonts?.ready) {
       void document.fonts.ready.then(syncIndicator);
     }
-    window.addEventListener('resize', syncIndicator, { passive: true });
+    pageOn(window, 'resize', syncIndicator, { passive: true });
   });
 }
 
@@ -244,7 +245,7 @@ function initSpotlight(): void {
   if (reducedMotion() || window.matchMedia('(hover: none)').matches) return;
 
   document.querySelectorAll<HTMLElement>('[data-sg-spotlight]').forEach((el) => {
-    el.addEventListener('pointermove', (event) => {
+    pageOn(el, 'pointermove', (event) => {
       const rect = el.getBoundingClientRect();
       el.style.setProperty('--sg-mx', `${event.clientX - rect.left}px`);
       el.style.setProperty('--sg-my', `${event.clientY - rect.top}px`);
@@ -252,15 +253,25 @@ function initSpotlight(): void {
   });
 }
 
-/**
- * 壁纸：单张 + 呼吸光晕。
- *
- * 2026-11-13 第二十轮：多帧轮播整块删掉（后台配置也一起下线）。
- * 壁纸永远压在最底层，每 9 秒换一张只会打断阅读；帧仍由 header.php 服务端
- * 输出一张（相对路径要过 sg_bg_url()），这里只负责给渐变光晕上色。
- */
+/** 日间/夜间独立壁纸组；隐藏或减少动效时暂停轮播。 */
 function initBackground(): void {
   const cfg = config();
+  const wall = document.querySelector<HTMLElement>('[data-sg-bg]');
+  if (wall) {
+    const delay = Number(wall.dataset.interval || 9000); let timer = 0, dark = isDark();
+    const start = (): void => {
+      clearTimeout(timer); if (document.hidden || reducedMotion() || delay <= 0) return;
+      const group = wall.querySelector<HTMLElement>(`[data-bg-mode="${isDark() ? 'dark' : 'light'}"]`);
+      const frames = group ? [...group.querySelectorAll<HTMLElement>('.sg-bg-frame')] : [];
+      if (frames.length < 2) return;
+      timer = pageTimeout(() => { const index = (frames.findIndex(frame => frame.classList.contains('is-active')) + 1) % frames.length; frames.forEach((frame, n) => frame.classList.toggle('is-active', n === index)); start(); }, Math.max(3000, delay));
+    };
+    const observer = new MutationObserver(() => { if (dark !== isDark()) { dark = isDark(); start(); } });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] }); onPageDispose(() => observer.disconnect());
+    pageOn(document, 'visibilitychange', start); pageOn(matchMedia('(prefers-reduced-motion: reduce)'), 'change', start);
+    wall.querySelectorAll<HTMLImageElement>('img').forEach(img => img.addEventListener('error', () => { if (!img.dataset.fallback) { img.dataset.fallback = '1'; img.src = cfg.themeUrl + 'dist/img/bg-1.svg'; } }));
+    start();
+  }
 
   const gradient = document.querySelector<HTMLElement>('[data-sg-gradient]');
   if (gradient && cfg.themeColors.length >= 2) {
@@ -292,7 +303,7 @@ function initSplash(): void {
     if (done) return;
     done = true;
     const wait = Math.max(0, SPLASH_MIN - (performance.now() - started));
-    window.setTimeout(() => {
+    pageTimeout(() => {
       root.classList.add('sg-ready');
       root.classList.remove('sg-splash-pending');
       try {
@@ -304,19 +315,19 @@ function initSplash(): void {
   };
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', reveal, { once: true });
+    pageOn(document, 'DOMContentLoaded', reveal, { once: true });
   } else {
     reveal();
   }
 
   // 兜底：DOM 卡住也在 2.5s 内揭开，绝不让遮罩成为墙
-  window.setTimeout(() => {
+  pageTimeout(() => {
     root.classList.add('sg-ready');
     root.classList.remove('sg-splash-pending');
   }, 2500);
 
   // 前进/后退命中 bfcache 时直接恢复可见
-  window.addEventListener('pageshow', (event) => {
+  pageOn(window, 'pageshow', (event) => {
     if (event.persisted) {
       root.classList.add('sg-ready');
       root.classList.remove('sg-splash-pending');
@@ -345,22 +356,22 @@ function initHeat(): void {
       done = true;
     };
 
-    window.requestAnimationFrame(toEnd);
+    pageFrame(toEnd);
 
     if (typeof ResizeObserver !== 'undefined') {
       const ro = new ResizeObserver(() => {
         toEnd();
         if (done) ro.disconnect();
       });
-      ro.observe(el);
+      ro.observe(el); onPageDispose(() => ro.disconnect());
     }
 
     document.querySelectorAll<HTMLElement>('[data-sg-seg-btn]').forEach((btn) => {
-      btn.addEventListener('click', () => window.setTimeout(toEnd, 80));
+      pageOn(btn, 'click', () => pageTimeout(toEnd, 80));
     });
 
     // 兜底：不支持 ResizeObserver 的老浏览器，滚动容器一旦能滚就补一次
-    el.addEventListener('scroll', () => { done = true; }, { passive: true, once: true });
+    pageOn(el, 'scroll', () => { done = true; }, { passive: true, once: true });
   });
 }
 
@@ -412,7 +423,7 @@ function initImageFallback(): void {
           // 刚换掉的那几秒还在超时窗口里，别立刻又打一枪；图本来就在视口内时
           // IO 不会再回调，所以这里用定时器补齐，不能只靠「再次进入视口」。
           const wait = Math.max(0, 4000 - (Date.now() - Number(img.dataset.sgRescueAt ?? '0')));
-          window.setTimeout(() => {
+          pageTimeout(() => {
             if (img.dataset.sgRetry === '1') return;
             img.dataset.sgRetry = '1';
             // 游离 Image 先探路：成功再写回，失败就安静地留着占位图（不会破图）
@@ -428,6 +439,7 @@ function initImageFallback(): void {
    * 换占位图 + 记住原地址。
    * retryable=false 用于「已经明确 error」的图：地址本身坏了，不用再试。
    */
+  onPageDispose(() => observer?.disconnect());
   const rescue = (img: HTMLImageElement, retryable = true): void => {
     const src = img.getAttribute('src') ?? '';
     if (src === '' || src === placeholder) return;
@@ -464,7 +476,7 @@ function initImageFallback(): void {
   });
 
   // ② 之后才失败的图（含灯箱、歌词封面等动态插入的节点）
-  document.addEventListener('error', (event) => {
+  pageOn(document, 'error', (event) => {
     const target = event.target;
     if (!(target instanceof HTMLImageElement)) return;
     if (target.hasAttribute('data-sg-fallback')) return;
@@ -472,8 +484,8 @@ function initImageFallback(): void {
   }, true);
 
   // ③ 两级止损：常规 6s，卡死 12s
-  window.setTimeout(() => sweep(false), RESCUE_MS);
-  window.setTimeout(() => {
+  pageTimeout(() => sweep(false), RESCUE_MS);
+  pageTimeout(() => {
     if (document.readyState !== 'complete') sweep(true);
   }, DEADLINE_MS);
 }

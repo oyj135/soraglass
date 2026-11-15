@@ -13,6 +13,7 @@ require_once __DIR__ . '/lib/fields.php';
 require_once __DIR__ . '/lib/gallery.php';
 require_once __DIR__ . '/lib/github.php';
 require_once __DIR__ . '/lib/ai.php';
+require_once __DIR__ . '/lib/ai-daily.php';
 require_once __DIR__ . '/lib/icons.php';
 
 /**
@@ -150,7 +151,7 @@ function sg_admin_upload_tools(string $field): string
   var BAD = '#d63638';
 
   function boot() {
-    var input = document.querySelector('input[name="' + field + '"]');
+    var input = document.querySelector('input[name="' + field + '"],textarea[name="' + field + '"]');
     if (!input || input.getAttribute('data-sg-upload-ready')) { return; }
     input.setAttribute('data-sg-upload-ready', '1');
 
@@ -159,6 +160,7 @@ function sg_admin_upload_tools(string $field): string
 
     var pick = document.createElement('input');
     pick.type = 'file';
+    pick.multiple = input.tagName === 'TEXTAREA';
     pick.accept = 'image/png,image/jpeg,image/webp,image/gif';
     pick.style.display = 'none';
 
@@ -185,20 +187,23 @@ function sg_admin_upload_tools(string $field): string
       prev.onerror = function () { prev.style.display = 'none'; };
     }
 
-    paint(input.value.trim());
+    function firstImage() { return input.value.trim().split(String.fromCharCode(10))[0].trim(); }
+    paint(firstImage());
 
     btn.addEventListener('click', function () { pick.click(); });
-    input.addEventListener('input', function () { paint(input.value.trim()); });
+    input.addEventListener('input', function () { paint(firstImage()); });
 
-    pick.addEventListener('change', function () {
-      var file = pick.files && pick.files[0];
+    pick.addEventListener('change', async function () {
+      var selected = Array.from(pick.files || []);
+      for (var selectedFile of selected) {
+      var file = selectedFile;
       if (!file) { return; }
       var data = new FormData();
       data.append('file', file);
       tip.style.color = OK;
       tip.textContent = '上传中…';
       btn.disabled = true;
-      fetch(endpoint, {
+      await fetch(endpoint, {
         method: 'POST',
         body: data,
         credentials: 'same-origin',
@@ -224,8 +229,8 @@ function sg_admin_upload_tools(string $field): string
         .then(function (json) {
           var url = Array.isArray(json) ? json[0] : '';
           if (typeof url !== 'string' || url === '') { throw new Error('服务端没有返回图片地址'); }
-          input.value = url;
-          paint(url);
+          input.value = input.tagName === 'TEXTAREA' ? [input.value.trim(), url].filter(Boolean).join(String.fromCharCode(10)) : url;
+          paint(firstImage());
           tip.style.color = OK;
           tip.textContent = '已上传，记得点最下方「保存设置」生效';
         })
@@ -234,7 +239,9 @@ function sg_admin_upload_tools(string $field): string
           tip.textContent = '上传失败：' + (err && err.message ? err.message : '请改用地址手填')
             + '（可上传的类型与大小上限见「设置 → 基本设置 → 附件」）';
         })
-        .then(function () { btn.disabled = false; pick.value = ''; });
+      }
+      btn.disabled = false;
+      pick.value = '';
     });
 
     wrap.appendChild(btn);
@@ -425,6 +432,7 @@ HTML;
  */
 function themeConfig($form): void
 {
+    sg_gallery_plugin(); // Upgrade native attachment hooks without resetting cloud settings.
     /* ---------------- 身份与导航 ---------------- */
     $form->addInput(new Text('sgAuthorName', null, '博主', _t('博主昵称'), _t('显示在首页个人卡片')));
     $form->addInput(new Text('sgAvatarUrl', null, '', _t('头像地址'), _t('留空使用主题内置 SVG 头像')));
@@ -432,10 +440,7 @@ function themeConfig($form): void
     $form->addInput(new Text('sgNavSuffix', null, 'の', _t('导航分隔符'), _t('例：の')));
     $form->addInput(new Text('sgNavAfter', null, '空璃', _t('导航后缀'), _t('例：空璃')));
 
-    /* ---------------- 背景与氛围 ----------------
-       2026-11-13 第二十轮：多张轮播下线，只留一张壁纸。
-       轮播的价值主要来自「几张图换着看」，但主题的网格与卡片本来就压在壁纸上，
-       每 9 秒换一次会打断阅读；单图 + 遮罩 / 模糊已经够用。 */
+    /* 背景：共享回退图、日间组、夜间组与可暂停轮播。 */
     $form->addInput(new Text('sgBg', null, '', _t('背景壁纸（全站最底层）'), _t(
         '<b>显示位置</b>：全站每个页面最底层的背景 —— 首页、文章页、独立页、归档 / 分类 / 标签页都会铺满这一层。<br>'
         . '<b>怎么填</b>：直接贴图片地址 —— <code>https://…</code> 外链（推荐，OSS / CDN 都行）、'
@@ -444,6 +449,10 @@ function themeConfig($form): void
         . '<b>单页覆盖</b>：在文章或独立页的自定义字段里加 <code>sgBg</code> 填一张图，只换这一页的背景。'
     )));
     $veilOptions = ['soft' => _t('淡（透出壁纸）'), 'mid' => _t('中（默认）'), 'strong' => _t('浓（文字最清楚）')];
+    foreach (['sgBgLight' => '日间', 'sgBgDark' => '夜间'] as $sgBgKey => $sgBgMode) {
+        $form->addInput(new Textarea($sgBgKey, null, '', _t('背景壁纸 · ' . $sgBgMode . '（一行一张，可轮播）'), _t('分别设置' . $sgBgMode . '模式的全站壁纸；最多 12 张，一行一个图片地址。留空沿用上方共享壁纸或内置渐变。单页 sgBg 字段仍覆盖两种模式。') . sg_admin_upload_tools($sgBgKey)));
+    }
+    $form->addInput(new Text('sgBgInterval', null, '9', _t('背景壁纸 · 轮播间隔（秒）'), _t('默认 9 秒，3–120 秒；0 停止轮播。单张图保持静止，标签页隐藏或系统要求减少动效时暂停。')));
     $form->addInput(new Select('sgBgVeil', $veilOptions, 'mid', _t('背景遮罩（壁纸与内容之间）'), _t(
         '<b>显示位置</b>：压在壁纸之上、全部内容之下的那层蒙版，全站生效。<br>'
         . '<b>怎么选</b>：照片类壁纸建议「中」或「浓」；深色照片选「浓」能明显提升正文对比度；纯渐变壁纸选「淡」即可。'
@@ -496,14 +505,10 @@ function themeConfig($form): void
         '选一个预设即可：<b>接口地址与模型名留空就用该服务商的默认值</b>，要换模型/中转站时在下面两栏覆盖。<br>'
         . 'OpenAI / DeepSeek / 智谱 / Kimi / 通义 / 豆包 / MiniMax 走同一套 <code>chat/completions</code> 协议；'
         . 'Claude 与 Gemini 由主题自动切换成各自的请求格式。<br>'
-        . '<b>留空 Key 或主题即关闭 AI 日报</b>，首页这一块不输出。'
+        . '<b>留空 Key 即关闭 AI 日报</b>；默认由模型每天自动生成 3–5 个主题。'
     )));
-    $form->addInput(new Textarea('sgAiTopics', null, '', _t('AI 日报 · 主题（一行一个）'), _t(
-        '每个主题生成一份日报，<b>首页的 ‹ 1/3 › 翻的就是主题</b>，不是日期。<br>'
-        . '建议 2–6 个；只填一行就没有翻页。例：<br>'
-        . '<code>AI 与大模型</code><br><code>前端与 Typecho 生态</code><br><code>开源工具与自托管</code><br>'
-        . '<b>全部留空即关闭 AI 日报</b>。'
-    )));
+    $form->addInput(new Select('sgAiTopicMode', ['auto' => _t('AI 每日自动生成 3–5 个主题'), 'manual' => _t('使用手填主题')], 'auto', _t('AI 日报 · 主题来源'), _t('自动模式每天批量生成一次主题与选刊，首页读取缓存；失败保留最近成功结果。可用宝塔计划任务每日调用主题 ai-daily.php，无访问时也生成。')));
+    $form->addInput(new Textarea('sgAiTopics', null, '', _t('AI 日报 · 主题 / 兴趣参考（一行一个）'), _t('自动模式可留空，也可填写兴趣供模型参考；手动模式每行一个主题，最多 6 个。首页箭头切换同一天的主题，“往期查看”按真实日期分组。')));
     $form->addInput(new Text('sgAiEndpoint', null, '', _t('AI 日报 · 接口地址'), _t(
         '留空即用所选服务商的默认地址。<br>'
         . '要覆盖时填完整路径，例如 <code>https://api.deepseek.com/v1/chat/completions</code>；'
@@ -514,13 +519,13 @@ function themeConfig($form): void
     $form->addInput(new Text('sgAiKey', null, '', _t('AI 日报 · API Key'), _t('只存在 options 表、只在服务端请求头里用，不会出现在页面里。留空则关闭 AI 日报')));
     $form->addInput(new Text('sgAiModel', null, '', _t('AI 日报 · 模型'), _t('留空用服务商默认模型。要指定就填该服务商的模型名，例如 <code>gpt-4o-mini</code>、<code>deepseek-chat</code>、<code>glm-4-flash</code>、<code>claude-3-5-sonnet-latest</code>、<code>gemini-1.5-flash</code>')));
     $form->addInput(new Text('sgAiCount', null, '6', _t('AI 日报 · 每日条数'), _t('模型最多挑几条，1–12，默认 6')));
-    $form->addInput(new Textarea('sgAiFeedsAi', null, '', _t('AI 日报 · AI 动态源（RSS）'), _t(
-        '这一栏喂给日报的<b>「AI 动态」</b>栏目，一行一个 RSS / Atom 地址。<br>'
+    $form->addInput(new Textarea('sgAiFeedsAi', null, '', _t('AI 日报 · 模型与应用源（RSS）'), _t(
+        '这一栏喂给日报的<b>「模型与应用」</b>栏目，一行一个 RSS / Atom 地址。<br>'
         . '例：<code>https://www.ruanyifeng.com/blog/atom.xml</code>、<code>https://hnrss.org/frontpage</code>。<br>'
         . '标题与链接都回原文，模型只写摘要与理由，不会编造。'
     )));
-    $form->addInput(new Textarea('sgAiFeedsPaper', null, '', _t('AI 日报 · 科技前沿源（RSS）'), _t(
-        '这一栏喂给<b>「科技前沿」</b>栏目（论文、评测、研究进展），一行一个地址。<br>'
+    $form->addInput(new Textarea('sgAiFeedsPaper', null, '', _t('AI 日报 · 研究与探索源（RSS）'), _t(
+        '这一栏喂给<b>「研究与探索」</b>栏目（论文、评测、研究进展），一行一个地址。<br>'
         . '例：<code>https://export.arxiv.org/rss/cs.AI</code>、<code>https://blog.google/technology/ai/rss/</code>。<br>'
         . '两组都留空就没有候选，首页这一块不会输出；只配一组时另一栏自动隐藏。<br>'
         . '<b>缓存</b>：每个主题一天一份；首页先显示最近成功的缓存，凌晨由 PHP-FPM 在页面响应后逐个更新主题，外部源失败不会阻塞页面。'

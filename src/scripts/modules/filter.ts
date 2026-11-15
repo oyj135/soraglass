@@ -1,3 +1,4 @@
+import { pageOn, pageTimeout, pageInterval, pageFrame, onPageDispose, pageSignal } from './lifecycle';
 /**
  * 页内即时筛选：在已渲染的卡片上按关键词过滤，不发起请求。
  * DOM 契约：[data-sg-filter-grid] 容器 + 子项 [data-sg-filter-item data-keywords="..."]。
@@ -40,7 +41,7 @@ export function initFilters(): void {
 
     input.addEventListener('input', () => {
       window.clearTimeout(timer);
-      timer = window.setTimeout(apply, DEBOUNCE);
+      timer = pageTimeout(apply, DEBOUNCE);
     });
 
     input.addEventListener('keydown', (event) => {

@@ -1,7 +1,8 @@
+import { pageOn, pageTimeout, pageInterval, pageFrame, onPageDispose, pageSignal } from './lifecycle';
 /** Public paged albums and on-demand photos; all mutations stay in the admin API. */
 import { initLightbox } from './article';
 interface Photo { id: string; album: string; url: string; thumb: string; caption: string; date: string; preview: boolean; width: number; height: number }
-interface Album { id: string; title: string; description: string; date: string; count: number; cover: string; coverThumb: string; featured: boolean; photos: Photo[] }
+interface Album { id: string; title: string; description: string; date: string; count: number; cover: string; coverThumb: string; stack?: string[]; featured: boolean; photos: Photo[] }
 interface AlbumPage { albums: Album[]; total: number; page: number; pages: number; openAlbum?: Album }
 interface PhotoPage { photos: Photo[]; total: number; page: number; pages: number }
 
@@ -14,6 +15,7 @@ export function initGallery(): void {
   const empty = root.querySelector<HTMLElement>('[data-sg-gallery-empty]'), status = root.querySelector<HTMLElement>('[data-gallery-status]');
   const found = root.querySelector<HTMLElement>('[data-sg-gallery-found]'), results = root.querySelector<HTMLElement>('[data-sg-gallery-photos]');
   const moreAlbums = root.querySelector<HTMLButtonElement>('[data-gallery-albums-more]'), moreSearch = root.querySelector<HTMLButtonElement>('[data-gallery-search-more]');
+  const pageAbort = pageSignal(); onPageDispose(() => { routeVersion++; searchVersion++; searchController?.abort(); });
   const initial = JSON.parse(root.querySelector('[data-gallery-catalog]')?.textContent || '{"albums":[],"page":1,"pages":1,"total":0}') as AlbumPage;
   const known = new Map(initial.albums.map(a => [a.id, a]));
   if (initial.openAlbum) known.set(initial.openAlbum.id, initial.openAlbum);
@@ -29,9 +31,10 @@ export function initGallery(): void {
     Object.entries(values).forEach(([k, v]) => url.searchParams.set(k, String(v)));
     const controller = new AbortController(), abort = (): void => controller.abort();
     signal?.addEventListener('abort', abort, { once: true }); if (signal?.aborted) abort();
-    const timer = window.setTimeout(abort, 20000);
+    pageAbort.addEventListener('abort', abort, {once:true}); if (pageAbort.aborted) abort();
+    const timer = pageTimeout(abort, 20000);
     try { const response = await fetch(url, { signal: controller.signal, credentials: 'omit' }); const data = await response.json() as { ok: boolean; data: T; error?: string }; if (!response.ok || !data.ok) throw new Error(data.error || '读取失败，请重试。'); return data.data; }
-    finally { clearTimeout(timer); signal?.removeEventListener('abort', abort); }
+    finally { clearTimeout(timer); signal?.removeEventListener('abort', abort); pageAbort.removeEventListener('abort', abort); }
   }
   function image(src: string, original: string, alt: string, width = 0, height = 0): HTMLImageElement {
     const img = node('img'); img.src = src || original; img.alt = alt; img.loading = 'lazy'; img.decoding = 'async';
@@ -44,7 +47,11 @@ export function initGallery(): void {
   function albumCard(a: Album): HTMLAnchorElement {
     known.set(a.id, a); const card = node('a', '', 'sg-curated-album'); card.href = '?album=' + encodeURIComponent(a.id); card.dataset.sgAlbum = a.id;
     const cover = node('div', '', 'sg-curated-image'), photo = a.photos[0];
-    cover.append(a.coverThumb ? image(a.coverThumb, a.cover, a.title, photo?.width, photo?.height) : node('span', '原文件收藏', 'sg-curated-no-preview'));
+    if (a.coverThumb) {
+      const stack = node('div', '', 'sg-album-stack');
+      for (const n of [1, 0]) { const paper = node('span', '', `sg-album-paper sg-album-paper--${n}`); paper.setAttribute('aria-hidden', 'true'); paper.append(image(a.stack?.[n] || a.coverThumb, a.cover, '')); stack.append(paper); }
+      const front = node('div', '', 'sg-album-front'); front.append(image(a.coverThumb, a.cover, a.title, photo?.width, photo?.height), node('span', `${a.count} 张照片 · 打开相册`, 'sg-album-open')); stack.append(front); cover.append(stack);
+    } else cover.append(node('span', '原文件收藏', 'sg-curated-no-preview'));
     const meta = node('div', '', 'sg-curated-meta'), text = node('div');
     if (a.featured) text.append(node('span', '精选相册', 'sg-curated-featured'));
     text.append(node('span', a.date || '时间未标记', 'sg-curated-date'), node('h2', a.title)); if (a.description) text.append(node('p', a.description));
@@ -136,10 +143,10 @@ export function initGallery(): void {
     try { const data = await read<PhotoPage>('gallery-search', { page: searchPage + 1, q: query }); if (version !== searchVersion) return; results?.append(...data.photos.map(p => photoCard(p, known.get(p.album), true))); searchPage = data.page; searchPages = data.pages; moreSearch!.hidden = searchPage >= searchPages; }
     catch (e) { message(e instanceof Error ? e.message : '读取失败'); } finally { moreSearch!.disabled = false; }
   });
-  let timer = 0; const schedule = (): void => { clearTimeout(timer); timer = window.setTimeout(() => { void search(); }, 200); };
+  let timer = 0; const schedule = (): void => { clearTimeout(timer); timer = pageTimeout(() => { void search(); }, 200); };
   input?.addEventListener('input', e => { if (!(e as InputEvent).isComposing) schedule(); }); input?.addEventListener('compositionend', schedule);
   input?.addEventListener('keydown', e => { if (e.isComposing) return; if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); if (e.key === 'Escape') input.value = ''; clearTimeout(timer); void search(); } });
-  window.addEventListener('popstate', () => { void route(new URL(location.href).searchParams.get('album') || '', false, true); });
+  pageOn(window, 'popstate', () => { void route(new URL(location.href).searchParams.get('album') || '', false, true); });
   root.querySelectorAll<HTMLImageElement>('img').forEach(img => {
     const a = img.closest<HTMLElement>('[data-sg-album]'), original = a ? known.get(a.dataset.sgAlbum!)?.cover : img.closest<HTMLAnchorElement>('[data-sg-photo]')?.href;
     let retried = false; img.addEventListener('error', () => { if (!retried && original && img.src !== original) { retried = true; img.src = original; } else { img.hidden = true; img.parentElement?.append(node('span', '暂无法预览', 'sg-curated-no-preview')); } });

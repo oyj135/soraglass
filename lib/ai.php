@@ -8,7 +8,7 @@
  *     模型只补一句摘要与推荐理由。这样即使模型胡言乱语，页面上也不会出现一个不存在的链接。
  *     第二十五轮起**不再支持「让模型自己联网搜」**：那需要按次计费的服务商搜索能力，
  *     且链接可信度还得再套一层白名单；只保留候选源模式，简单、免费、完全可控。
- *  2. **页面只读缓存。** PHP-FPM 结束响应、释放会话后更新一个主题；外部请求不会卡住首页。
+ *  2. **页面只读缓存。** PHP-FPM 结束响应、释放会话后批量生成当天主题；外部请求不会卡住首页。
  *  3. **一天一份，落盘缓存。** 凌晨先显示最近七天内的成功缓存，再后台更新；生成有并发锁与截止时间。
  *
  * 依赖：lib/fields.php 的 sg_http_get()、lib/config.php 的 sg_opt()/sg_user_is_admin()。
@@ -110,7 +110,7 @@ function sg_ai_cfg(): array
     }
     $topics = array_slice($topics, 0, 6);
 
-    /* 两栏各自一组 RSS：AI 动态 / 科技前沿。
+    /* 两栏各自一组 RSS：模型与应用 / 研究与探索。
        `sgAiFeeds` 是第三轮之前的单列表，老站留空新字段时沿用它。 */
     $split = static function (string $key) {
         return array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', (string) sg_opt($key, '')) ?: [])));
@@ -130,20 +130,21 @@ function sg_ai_cfg(): array
         'endpoint'   => $endpoint,
         'key'        => trim((string) sg_opt('sgAiKey', '')),
         'model'      => $model,
+        'topicMode'  => (string) sg_opt('sgAiTopicMode', 'auto'),
         'topics'     => $topics,
         'topic'      => (string) ($topics[0] ?? ''),
-        'count'      => max(2, min(12, (int) sg_opt('sgAiCount', '6'))),
+        'count'      => max(1, min(12, (int) sg_opt('sgAiCount', '6'))),
         'feedsAi'    => $feedsAi,
         'feedsPaper' => $feedsPaper,
         'feeds'      => array_values(array_unique(array_merge($feedsAi, $feedsPaper))),
     ];
 }
 
-/** 是否具备生成条件（只有填了 Key 与主题才算开启） */
+/** 自动模式无需手填主题；两种模式均须 Key 与有效候选源配置。 */
 function sg_ai_enabled(): bool
 {
     $cfg = sg_ai_cfg();
-    return $cfg['key'] !== '' && $cfg['topic'] !== '' && $cfg['endpoint'] !== ''
+    return $cfg['key'] !== '' && ($cfg['topicMode'] !== 'manual' || $cfg['topic'] !== '') && $cfg['endpoint'] !== ''
         && ($cfg['feedsAi'] || $cfg['feedsPaper']);
 }
 
@@ -159,7 +160,7 @@ function sg_ai_fail(string $message): void
     if (sg_ai_error() === '') {
         $GLOBALS['SG_AI_ERROR'] = $message;
         // 失败也落盘 5 分钟：否则每个访客都要先等一次超时
-        $file = sg_ai_cache_file((string) ($GLOBALS['SG_AI_JOB_THEME'] ?? ''));
+        $file = sg_ai_cfg()['topicMode'] !== 'manual' ? sg_ai_daily_file() : sg_ai_cache_file((string) ($GLOBALS['SG_AI_JOB_THEME'] ?? ''));
         if ($file !== '') {
             sg_ai_store_file($file . '.fail', $message);
         }
@@ -241,7 +242,7 @@ function sg_ai_queue_update(string $theme, bool $force = false): void
     if ($queued) {
         return;
     }
-    $cacheFile = sg_ai_cache_file($theme);
+    $cacheFile = sg_ai_cfg()['topicMode'] !== 'manual' ? sg_ai_daily_file() : sg_ai_cache_file($theme);
     if ($cacheFile === '') {
         $GLOBALS['SG_AI_ERROR'] = '日报缓存目录不可写，暂不更新；请检查 PHP 缓存目录权限。';
         return;
@@ -282,7 +283,7 @@ function sg_ai_queue_update(string $theme, bool $force = false): void
             $GLOBALS['SG_AI_JOB_THEME'] = $theme;
             $GLOBALS['SG_AI_DEADLINE'] = microtime(true) + 35;
             $GLOBALS['SG_AI_FEED_DEADLINE'] = microtime(true) + 6;
-            sg_ai_generate_issue($force, $theme);
+            if (sg_ai_cfg()['topicMode'] !== 'manual') { sg_ai_generate_daily($force); } else { sg_ai_generate_issue($force, $theme); }
         } catch (\Throwable $error) {
             sg_ai_fail('日报后台更新失败，稍后重试。');
         } finally {
@@ -299,6 +300,7 @@ function sg_ai_issue(bool $force = false, string $theme = ''): ?array
     if (!sg_ai_enabled()) {
         return null;
     }
+    if (sg_ai_cfg()['topicMode'] !== 'manual') { $today = sg_ai_read_daily(true); if ($force || !$today) { sg_ai_queue_update('', $force); } return ($today ?: sg_ai_read_daily())[0] ?? null; }
     $theme = $theme !== '' ? $theme : sg_ai_cfg()['topic'];
     $issue = sg_ai_read_cache($theme, true);
     if ($force || $issue === null) {
@@ -314,22 +316,26 @@ function sg_ai_issue(bool $force = false, string $theme = ''): ?array
  */
 function sg_ai_archive(int $limit = 6): array
 {
-    /* 第三轮起「翻页」改成切主题，往期日期不再需要；保留空实现，避免老模板调用时报错。 */
-    return [];
+    return array_values(array_filter(sg_ai_history($limit), static fn($i) => $i['date'] < date('Y.m.d')));
 }
 
 /** 首页用：今天这一期 + 往期（新 → 旧） */
-function sg_ai_issues(): array
+function sg_ai_issues(int $days = 7): array
 {
     $cfg = sg_ai_cfg();
     $list = [];
-    foreach ($cfg['topics'] as $theme) {
+    if (!sg_ai_enabled()) { return []; }
+    if ($cfg['topicMode'] !== 'manual') {
+        $list = sg_ai_read_daily(true); if (!$list) { sg_ai_queue_update(''); $list = sg_ai_read_daily(); }
+    } else foreach ($cfg['topics'] as $theme) {
         $issue = sg_ai_issue(false, $theme);
         if (is_array($issue) && !empty($issue['items'])) {
             $list[] = $issue;
         }
     }
-    return $list;
+    $seen = []; $result = [];
+    foreach (array_merge($list, sg_ai_history($days)) as $issue) { $key = $issue['date'] . '|' . ($issue['theme'] ?? ''); if (!isset($seen[$key])) { $seen[$key] = true; $result[] = $issue; } }
+    usort($result, static fn($a, $b) => strcmp($b['date'], $a['date'])); return $result;
 }
 
 /**
@@ -523,7 +529,7 @@ function sg_ai_request(string $system, string $user, array $cfg): string
     if ($format === 'anthropic') {
         $payload = [
             'model'       => $cfg['model'],
-            'max_tokens'  => 2048,
+            'max_tokens'  => $cfg['maxTokens'] ?? 2048,
             'temperature' => 0.4,
             'system'      => $system,
             'messages'    => [['role' => 'user', 'content' => $user]],
@@ -652,12 +658,12 @@ function sg_ai_generate_issue(bool $force = false, string $theme = ''): ?array
         return null;
     }
 
-    /* 两栏各抓各的源：AI 动态 / 科技前沿。哪一栏没配就整栏不出现。 */
+    /* 两栏各抓各的源：模型与应用 / 研究与探索。哪一栏没配就整栏不出现。 */
     $aiPool = $cfg['feedsAi'] ? sg_ai_feed_items($cfg['feedsAi'], 20) : [];
     $paperPool = $cfg['feedsPaper'] ? sg_ai_feed_items($cfg['feedsPaper'], 20) : [];
 
     if (!$aiPool && !$paperPool) {
-        sg_ai_fail('没有候选条目：在「AI 日报 · AI 动态源」或「科技前沿源」里填至少一个能访问的 RSS/Atom');
+        sg_ai_fail('没有候选条目：在「AI 日报 · 模型与应用源」或「研究与探索源」里填至少一个能访问的 RSS/Atom');
         return null;
     }
 
@@ -669,7 +675,7 @@ function sg_ai_generate_issue(bool $force = false, string $theme = ''): ?array
         $candidates[] = $item + ['ch' => 'paper'];
     }
 
-    /* 每栏要几条：总数对半分，多出来的一条给 AI 动态；某栏源为空时另一栏吃满 */
+    /* 每栏要几条：总数对半分，多出来的一条给 模型与应用；某栏源为空时另一栏吃满 */
     $total = max(2, (int) $cfg['count']);
     if (!$paperPool) {
         $want = ['ai' => min($total, count($aiPool)), 'paper' => 0];
@@ -687,7 +693,7 @@ function sg_ai_generate_issue(bool $force = false, string $theme = ''): ?array
     foreach ($candidates as $i => $item) {
         $indexed[] = [
             'i'       => $i + 1,
-            'lane'    => $item['ch'] === 'paper' ? '科技前沿' : 'AI 动态',
+            'lane'    => $item['ch'] === 'paper' ? '研究与探索' : '模型与应用',
             'title'   => $item['title'],
             'summary' => $item['summary'],
             'source'  => $item['source'],
@@ -700,7 +706,7 @@ function sg_ai_generate_issue(bool $force = false, string $theme = ''): ?array
 
     $user = "今天的主题：{$theme}\n"
         . '请挑出 ' . ($want['ai'] + $want['paper']) . ' 条：'
-        . "其中「AI 动态」{$want['ai']} 条（候选里 lane=AI 动态）、「科技前沿」{$want['paper']} 条（lane=科技前沿），按重要性排序。\n"
+        . "其中「模型与应用」{$want['ai']} 条（候选里 lane=模型与应用）、「研究与探索」{$want['paper']} 条（lane=研究与探索），按重要性排序。\n"
         . "输出 JSON，结构固定：\n"
         . '{"title":"10-20 字的当日标题","desc":"30-60 字导语，概括今天这批内容的共同点",'
         . '"notice":"一句给读者的提示","items":[{'
@@ -727,130 +733,8 @@ function sg_ai_generate_issue(bool $force = false, string $theme = ''): ?array
         return null;
     }
 
-    $items = [];
-    $used = [];
-    foreach ((array) $picked['items'] as $row) {
-        if (!is_array($row)) {
-            continue;
-        }
-        $index = (int) ($row['i'] ?? 0);
-        if ($index < 1 || !isset($candidates[$index - 1]) || isset($used[$index])) {
-            continue;
-        }
-        $used[$index] = true;
-        $base = $candidates[$index - 1];
-
-        $summary = trim((string) ($row['summary'] ?? ''));
-        $note = trim((string) ($row['note'] ?? $row['why'] ?? ''));
-        $titleZh = trim((string) ($row['titleZh'] ?? ''));
-
-        $points = [];
-        $rawPoints = $row['points'] ?? [];
-        if (is_string($rawPoints)) {
-            $rawPoints = preg_split('/[\r\n;；]+/', $rawPoints) ?: [];
-        }
-        foreach ((array) $rawPoints as $point) {
-            $point = trim((string) $point);
-            if ($point !== '') {
-                $points[] = $point;
-            }
-        }
-
-        $tags = [];
-        foreach ((array) ($row['tags'] ?? []) as $tag) {
-            $tag = trim((string) $tag);
-            if ($tag !== '') {
-                $tags[] = $tag;
-            }
-        }
-
-        $minutes = (int) ($row['minutes'] ?? 0);
-
-        $items[] = [
-            'id'         => md5((string) $base['url']),
-            'channel'    => $base['ch'],
-            'title'      => (string) $base['title'],
-            'titleZh'    => $titleZh !== '' ? mb_substr($titleZh, 0, 40) : '',
-            'summary'    => $summary !== '' ? $summary : (string) $base['summary'],
-            'source'     => (string) $base['source'],
-            'sourceDate' => (string) $base['date'],
-            'url'        => (string) $base['url'],
-            'note'       => $note,
-            'points'     => array_slice($points, 0, 4),
-            'tags'       => array_slice($tags, 0, 3),
-            'minutes'    => max(1, min(9, $minutes ?: 1)),
-        ];
-    }
-
-    if (!$items) {
-        sg_ai_fail('模型挑选的条目都对不上候选序号');
-        return null;
-    }
-
-    /* 模型可能少给某一栏，这里按池子顺序补齐，保证两栏都有内容（池子为空的那栏除外） */
-    $fill = static function (array $items, array $candidates, array $used, string $lane, int $need): array {
-        foreach ($candidates as $i => $base) {
-            if ($need <= 0) {
-                break;
-            }
-            if ($base['ch'] !== $lane || isset($used[$i + 1])) {
-                continue;
-            }
-            $items[] = [
-                'id'         => md5((string) $base['url']),
-                'channel'    => $lane,
-                'title'      => (string) $base['title'],
-                'titleZh'    => '',
-                'summary'    => (string) $base['summary'],
-                'source'     => (string) $base['source'],
-                'sourceDate' => (string) $base['date'],
-                'url'        => (string) $base['url'],
-                'note'       => '',
-                'points'     => [],
-                'tags'       => [],
-                'minutes'    => 2,
-            ];
-            $used[$i + 1] = true;
-            $need--;
-        }
-        return [$items, $used];
-    };
-
-    $have = ['ai' => 0, 'paper' => 0];
-    foreach ($items as $item) {
-        $have[$item['channel']] = ($have[$item['channel']] ?? 0) + 1;
-    }
-    [$items, $used] = $fill($items, $candidates, $used, 'ai', $want['ai'] - $have['ai']);
-    [$items, $used] = $fill($items, $candidates, $used, 'paper', $want['paper'] - $have['paper']);
-
-    /* 模型给多了（比如把两栏都塞进 AI 动态）就按栏目上限截断，保证总数可控 */
-    $limitPer = ['ai' => $want['ai'], 'paper' => $want['paper']];
-    $kept = [];
-    $keptCount = ['ai' => 0, 'paper' => 0];
-    foreach ($items as $item) {
-        $ch = (string) $item['channel'];
-        if (!isset($limitPer[$ch]) || $keptCount[$ch] >= $limitPer[$ch]) {
-            continue;
-        }
-        $keptCount[$ch]++;
-        $kept[] = $item;
-    }
-    if ($kept) {
-        $items = $kept;
-    }
-
-    $issue = [
-        'date'    => date('Y.m.d'),
-        'weekday' => sg_ai_weekday(),
-        'theme'   => $theme,
-        'label'   => 'AI 日报',
-        'kicker'  => 'AI CURATED',
-        'title'   => trim((string) ($picked['title'] ?? '')) ?: $theme,
-        'desc'    => trim((string) ($picked['desc'] ?? '')),
-        'cover'   => sg_ai_cover(),
-        'notice'  => trim((string) ($picked['notice'] ?? '')) ?: '本期由模型从候选源中挑选，标题与链接均来自原文。',
-        'items'   => $items,
-    ];
+    $issue = sg_ai_normalize_selection($picked, $candidates, $want, $theme);
+    if (!$issue) { return null; }
 
     $body = json_encode($issue, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     if ($cacheFile === '' || !is_string($body) || !sg_ai_store_file($cacheFile, $body)) {
@@ -947,4 +831,136 @@ function sg_ai_diag(): string
             . '，主题「' . (string) ($issue['theme'] ?? $cfg['topic']) . '」，共 ' . count($cfg['topics']) . ' 个主题）';
     }
     return 'AI 日报未生成：' . sg_ai_error();
+}
+
+/** Normalize model-selected indices against trusted feed candidates. */
+function sg_ai_normalize_selection(array $picked, array $candidates, array $want, string $theme): ?array
+{
+    $text = static fn($value): string => is_string($value) ? trim($value) : '';
+    $items = [];
+    $used = [];
+    foreach ((array) $picked['items'] as $row) {
+        if (!is_array($row)) {
+            continue;
+        }
+        $index = filter_var($row['i'] ?? null, FILTER_VALIDATE_INT) ?: 0;
+        if ($index < 1 || !isset($candidates[$index - 1]) || isset($used[$index])) {
+            continue;
+        }
+        $used[$index] = true;
+        $base = $candidates[$index - 1];
+
+        $summary = $text($row['summary'] ?? '');
+        $note = $text($row['note'] ?? $row['why'] ?? '');
+        $titleZh = $text($row['titleZh'] ?? '');
+
+        $points = [];
+        $rawPoints = $row['points'] ?? [];
+        if (is_string($rawPoints)) {
+            $rawPoints = preg_split('/[\r\n;；]+/', $rawPoints) ?: [];
+        }
+        foreach ((array) $rawPoints as $point) {
+            $point = $text($point);
+            if ($point !== '') {
+                $points[] = $point;
+            }
+        }
+
+        $tags = [];
+        foreach ((array) ($row['tags'] ?? []) as $tag) {
+            $tag = $text($tag);
+            if ($tag !== '') {
+                $tags[] = $tag;
+            }
+        }
+
+        $minutes = filter_var($row['minutes'] ?? null, FILTER_VALIDATE_INT) ?: 1;
+
+        $items[] = [
+            'id'         => md5((string) $base['url']),
+            'channel'    => $base['ch'],
+            'title'      => (string) $base['title'],
+            'titleZh'    => $titleZh !== '' ? mb_substr($titleZh, 0, 40) : '',
+            'summary'    => $summary !== '' ? $summary : (string) $base['summary'],
+            'source'     => (string) $base['source'],
+            'sourceDate' => (string) $base['date'],
+            'url'        => (string) $base['url'],
+            'note'       => $note,
+            'points'     => array_slice($points, 0, 4),
+            'tags'       => array_slice($tags, 0, 3),
+            'minutes'    => max(1, min(9, $minutes ?: 1)),
+        ];
+    }
+
+    if (!$items) {
+        sg_ai_fail('模型挑选的条目都对不上候选序号');
+        return null;
+    }
+
+    /* 模型可能少给某一栏，这里按池子顺序补齐，保证两栏都有内容（池子为空的那栏除外） */
+    $fill = static function (array $items, array $candidates, array $used, string $lane, int $need): array {
+        foreach ($candidates as $i => $base) {
+            if ($need <= 0) {
+                break;
+            }
+            if ($base['ch'] !== $lane || isset($used[$i + 1])) {
+                continue;
+            }
+            $items[] = [
+                'id'         => md5((string) $base['url']),
+                'channel'    => $lane,
+                'title'      => (string) $base['title'],
+                'titleZh'    => '',
+                'summary'    => (string) $base['summary'],
+                'source'     => (string) $base['source'],
+                'sourceDate' => (string) $base['date'],
+                'url'        => (string) $base['url'],
+                'note'       => '',
+                'points'     => [],
+                'tags'       => [],
+                'minutes'    => 2,
+            ];
+            $used[$i + 1] = true;
+            $need--;
+        }
+        return [$items, $used];
+    };
+
+    $have = ['ai' => 0, 'paper' => 0];
+    foreach ($items as $item) {
+        $have[$item['channel']] = ($have[$item['channel']] ?? 0) + 1;
+    }
+    [$items, $used] = $fill($items, $candidates, $used, 'ai', $want['ai'] - $have['ai']);
+    [$items, $used] = $fill($items, $candidates, $used, 'paper', $want['paper'] - $have['paper']);
+
+    /* 模型给多了（比如把两栏都塞进 模型与应用）就按栏目上限截断，保证总数可控 */
+    $limitPer = ['ai' => $want['ai'], 'paper' => $want['paper']];
+    $kept = [];
+    $keptCount = ['ai' => 0, 'paper' => 0];
+    foreach ($items as $item) {
+        $ch = (string) $item['channel'];
+        if (!isset($limitPer[$ch]) || $keptCount[$ch] >= $limitPer[$ch]) {
+            continue;
+        }
+        $keptCount[$ch]++;
+        $kept[] = $item;
+    }
+    if ($kept) {
+        $items = $kept;
+    }
+
+    $issue = [
+        'date'    => date('Y.m.d'),
+        'weekday' => sg_ai_weekday(),
+        'theme'   => $theme,
+        'label'   => 'AI 日报',
+        'kicker'  => 'AI CURATED',
+        'title'   => $text($picked['title'] ?? '') ?: $theme,
+        'desc'    => $text($picked['desc'] ?? ''),
+        'cover'   => sg_ai_cover(),
+        'notice'  => $text($picked['notice'] ?? '') ?: '本期由模型从候选源中挑选，标题与链接均来自原文。',
+        'items'   => $items,
+    ];
+
+    return $issue;
 }

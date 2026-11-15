@@ -1,3 +1,4 @@
+import { pageOn, pageTimeout, pageInterval, pageFrame, onPageDispose, pageSignal } from './lifecycle';
 /**
  * 知识档案（page-timeline.php）：关键词 × 标签双条件筛选。
  *
@@ -62,7 +63,7 @@ export function initArchive(): void {
     let timer = 0;
     input.addEventListener('input', () => {
       window.clearTimeout(timer);
-      timer = window.setTimeout(apply, DEBOUNCE);
+      timer = pageTimeout(apply, DEBOUNCE);
     });
     input.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {

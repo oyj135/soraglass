@@ -1,3 +1,4 @@
+import { pageOn, pageTimeout, pageInterval, pageFrame, onPageDispose, pageSignal } from './lifecycle';
 /**
  * 碎语时间轴：搜索 / 标签筛选 / 正倒序 / 长文展开。
  *
@@ -93,7 +94,7 @@ export function initNotes(): void {
   let timer = 0;
   input?.addEventListener('input', () => {
     window.clearTimeout(timer);
-    timer = window.setTimeout(apply, DEBOUNCE);
+    timer = pageTimeout(apply, DEBOUNCE);
   });
 
   input?.addEventListener('keydown', (event) => {

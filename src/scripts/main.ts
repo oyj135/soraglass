@@ -11,6 +11,7 @@ import { initGallery } from './modules/gallery';
 import { initParallax } from './modules/parallax';
 import { initArticle } from './modules/article';
 import { initNotes } from './modules/notes';
+import { initNavigation } from './modules/navigation';
 
 /**
  * 单独兜住每个模块的异常。
@@ -27,10 +28,9 @@ function safe(name: string, run: () => void): void {
   }
 }
 
-function boot(): void {
+function mountPage(): void {
   // 全局骨架先跑，保证首屏与交互不依赖下面任何可选模块
   safe('core', initCore);
-  safe('effects', initEffects);
 
   // 各模块自己判断 DOM 是否存在，缺失就空跑，不需要按页面分发
   safe('carousel', initCarousels);
@@ -44,6 +44,9 @@ function boot(): void {
   safe('parallax', initParallax);
   safe('article', initArticle);
   safe('notes', initNotes);
+}
+function boot(): void {
+  mountPage(); safe('effects', initEffects); initNavigation(mountPage);
 }
 
 if (document.readyState === 'loading') {

@@ -1,3 +1,4 @@
+import { pageOn, pageTimeout, pageInterval, pageFrame, onPageDispose, pageSignal } from './lifecycle';
 /**
  * 文章增强：目录高亮、代码高亮、公式渲染、图片灯箱。
  * highlight.js / katex 走动态 import，只会在真的有代码块 / 公式的页面下载。
@@ -18,6 +19,7 @@ function initReadline(): void {
   host.setAttribute('aria-hidden', 'true');
   host.appendChild(document.createElement('i'));
   document.body.appendChild(host);
+  onPageDispose(() => host.remove());
 
   let raf = 0;
   const paint = (): void => {
@@ -34,12 +36,12 @@ function initReadline(): void {
     host.style.setProperty('--sg-read-p', p.toFixed(4));
   };
   const schedule = (): void => {
-    if (!raf) raf = window.requestAnimationFrame(paint);
+    if (!raf) raf = pageFrame(paint);
   };
 
   paint();
-  window.addEventListener('scroll', schedule, { passive: true });
-  window.addEventListener('resize', schedule, { passive: true });
+  pageOn(window, 'scroll', schedule, { passive: true });
+  pageOn(window, 'resize', schedule, { passive: true });
 }
 
 function initTOC(): void {
@@ -93,6 +95,7 @@ function initTOC(): void {
   }, { rootMargin: '-88px 0px -70% 0px' });
 
   heads.forEach((head) => observer.observe(head));
+  onPageDispose(() => observer.disconnect());
 }
 
 async function initHighlight(): Promise<void> {
@@ -241,9 +244,10 @@ export function initLightbox(): void {
         step(1);
       });
 
-      document.addEventListener('keydown', onKey);
+      pageOn(document, 'keydown', onKey);
       document.documentElement.classList.add('sg-lock');
       document.body.appendChild(box);
+      onPageDispose(close);
     });
   });
 }

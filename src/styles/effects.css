@@ -54,6 +54,10 @@ html.sg-splash-pending .sg-splash { animation: sg-splash-auto .45s ease 1.2s for
 }
 
 .sg-bg-frame.is-active { opacity: 1; }
+.sg-bg-mode{position:absolute;inset:0}.sg-bg-mode[data-bg-mode="dark"]{display:none}html.dark .sg-bg-mode[data-bg-mode="light"]{display:none}html.dark .sg-bg-mode[data-bg-mode="dark"]{display:block}
+html.sg-navigating::after{content:"";position:fixed;inset:0 auto auto 0;width:100%;height:2px;background:var(--sg-accent);z-index:10000;animation:sg-navigation-progress 1s ease-in-out infinite;transform-origin:left}
+@keyframes sg-navigation-progress{from{transform:scaleX(.15)}to{transform:scaleX(.9)}}
+@media(prefers-reduced-motion:reduce){.sg-bg-frame{transition:none}html.sg-navigating::after{animation:none}}
 
 .sg-bg-frame img {
   position: absolute;

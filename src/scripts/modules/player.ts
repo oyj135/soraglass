@@ -9,10 +9,12 @@
  *   控制    [data-sg-play] [data-sg-prev] [data-sg-next] [data-sg-mode] [data-sg-volume] [data-sg-mute]
  *   歌单    [data-sg-track="<index>"] [data-sg-playlist-search]
  *
- * Typecho 是整页刷新，状态写 localStorage，切页后接着放（浏览器拦截自动播放时
- * 等第一次 pointerdown 再续播）。
+ * 站内导航保留音频节点，重新绑定页面控件；完整刷新仍用 localStorage 续播。
  */
 import { config, readStore, writeStore, toast } from './core';
+import { navigate } from './navigation';
+import { pageOn } from './lifecycle';
+let mountPlayer: (() => void) | null = null;
 
 const STATE_KEY = 'sg-player';
 
@@ -121,17 +123,18 @@ function setupMusicSide(): void {
   });
   const active = tabs.find((tab) => tab.classList.contains('is-active')) ?? tabs[0];
   if (active) selectTab(active);
-  window.addEventListener('resize', syncTabs, { passive: true });
+  pageOn(window, 'resize', syncTabs, { passive: true });
 }
 
 export function initPlayer(): void {
   setupMusicSide();
+  if (mountPlayer) { mountPlayer(); return; }
   const audio = document.querySelector<HTMLAudioElement>('[data-sg-audio]');
   if (!audio) return;
 
-  const roots = Array.from(document.querySelectorAll<HTMLElement>('[data-sg-player], [data-sg-music]'));
-  const home = document.querySelector<HTMLElement>('[data-sg-player]');
-  const music = document.querySelector<HTMLElement>('[data-sg-music]');
+  let roots = Array.from(document.querySelectorAll<HTMLElement>('[data-sg-player], [data-sg-music]'));
+  let home = document.querySelector<HTMLElement>('[data-sg-player]');
+  let music = document.querySelector<HTMLElement>('[data-sg-music]');
   const tracks = config().playlist.filter((track) => typeof track.url === 'string' && track.url !== '');
 
   const q = <T extends HTMLElement>(root: HTMLElement | null, sel: string): T | null =>
@@ -255,10 +258,10 @@ export function initPlayer(): void {
   /* 首页有两处歌词：音乐卡里的小字 [data-sg-lyric]，和 7:5 行下方的歌词栏
      [data-sg-lyric-text]（源站 CloudPlayer + LyricBar 也是两份）。一份文本喂两处，
      两边的打字进度才不会一前一后。 */
-  const lyricTargets = Array.from(
+  let lyricTargets = Array.from(
     document.querySelectorAll<HTMLElement>('[data-sg-lyric], [data-sg-lyric-text]'),
   );
-  const lyricBar = document.querySelector<HTMLElement>('[data-sg-lyric-bar]');
+  let lyricBar = document.querySelector<HTMLElement>('[data-sg-lyric-bar]');
   const typeTimers: number[] = [];
   /* 歌词地址（Meting type=lrc 返回的是纯文本 URL）按次缓存；
      applySeq 用来判断「异步拿回歌词时是不是已经切歌了」。 */
@@ -290,16 +293,16 @@ export function initPlayer(): void {
   /* 歌词面板在右侧那块卡片里，是 [data-sg-music] 的**兄弟节点**，不在它的子树里。
      以前这里写成 q(music, '[data-sg-lyrics]')，永远拿到 null，右侧歌词区就一直停在
      「正在等待旋律…」——功能其实一次都没跑起来过。全文档查一次即可（只有一份）。 */
-  const lyricBox = document.querySelector<HTMLElement>('[data-sg-lyrics]');
-  const lyricEmpty = document.querySelector<HTMLElement>('[data-sg-lyrics-empty]');
+  let lyricBox = document.querySelector<HTMLElement>('[data-sg-lyrics]');
+  let lyricEmpty = document.querySelector<HTMLElement>('[data-sg-lyrics-empty]');
   let lines: Array<{ time: number; text: string; el: HTMLElement | null }> = [];
   let activeLine = -1;
   /* 没有歌词面板时（首页只有一个歌词栏），buildLyrics 不再建 DOM，
      但「当前这一句」仍要留着给 paintLyric 用。 */
   let currentLyricText = '';
 
-  const trackEls = Array.from(document.querySelectorAll<HTMLElement>('[data-sg-track]'));
-  const songEls = Array.from(document.querySelectorAll<HTMLElement>('.sg-song[data-sg-track]'));
+  let trackEls = Array.from(document.querySelectorAll<HTMLElement>('[data-sg-track]'));
+  let songEls = Array.from(document.querySelectorAll<HTMLElement>('.sg-song[data-sg-track]'));
   const persist = (): void => {
     writeStore(STATE_KEY, {
       index,
@@ -494,13 +497,12 @@ export function initPlayer(): void {
     });
   };
 
-  const apply = (next: number): void => {
+  const apply = (next: number, preserveAudio = false): void => {
     index = (next + tracks.length) % tracks.length;
     const track = tracks[index];
     if (!track?.url) return;
 
-    audio.src = track.url;
-    audio.load();
+    if (!preserveAudio) { audio.src = track.url; audio.load(); }
 
     const cover = track.cover || '';
     roots.forEach((root) => {
@@ -681,6 +683,7 @@ export function initPlayer(): void {
     roots.forEach((root) => { root.classList.toggle('is-error', Boolean(audio.error)); });
   });
 
+  const bindControls = (): void => {
   roots.forEach((root) => {
     q(root, '[data-sg-play]')?.addEventListener('click', (event) => {
       event.stopPropagation();
@@ -723,7 +726,7 @@ export function initPlayer(): void {
 
   const volumeBar = q<HTMLInputElement>(music, '[data-sg-volume]');
   if (volumeBar) {
-    volumeBar.value = String(Math.round(volume * 100));
+    volumeBar.value = String(Math.round(audio.volume * 100));
     /* 音量条复用 .sg-progress 皮肤，轨道填充也读 --sg-p。
        它跟播放进度不是一回事，所以自己写一份。 */
     const paintVolume = (): void => {
@@ -755,7 +758,7 @@ export function initPlayer(): void {
     root.addEventListener('click', (event) => {
       const target = event.target as HTMLElement | null;
       if (target?.closest('button, input, a, label')) return;
-      window.location.href = href;
+      void navigate(href);
     });
   });
 
@@ -783,6 +786,18 @@ export function initPlayer(): void {
     bar.addEventListener('change', () => { seeking = false; seek(); persist(); });
     bar.addEventListener('click', (event) => event.stopPropagation());
   });
+  };
+  bindControls();
+  mountPlayer = (): void => {
+    roots = Array.from(document.querySelectorAll<HTMLElement>('[data-sg-player], [data-sg-music]'));
+    home = document.querySelector<HTMLElement>('[data-sg-player]'); music = document.querySelector<HTMLElement>('[data-sg-music]');
+    lyricTargets = Array.from(document.querySelectorAll<HTMLElement>('[data-sg-lyric], [data-sg-lyric-text]'));
+    lyricBar = document.querySelector<HTMLElement>('[data-sg-lyric-bar]'); lyricBox = document.querySelector<HTMLElement>('[data-sg-lyrics]'); lyricEmpty = document.querySelector<HTMLElement>('[data-sg-lyrics-empty]');
+    trackEls = Array.from(document.querySelectorAll<HTMLElement>('[data-sg-track]')); songEls = Array.from(document.querySelectorAll<HTMLElement>('.sg-song[data-sg-track]'));
+    document.querySelectorAll<HTMLImageElement>('[data-sg-track-cover], [data-sg-cover]').forEach(watchCover);
+    bindControls(); apply(index, true); setPlaying(!audio.paused); paintMode(); syncTime();
+  };
 
   window.setInterval(() => { if (!audio.paused) persist(); }, 5000);
+  window.addEventListener('pagehide', persist);
 }

@@ -1,3 +1,4 @@
+import { pageOn, pageTimeout, pageInterval, pageFrame, onPageDispose, pageSignal } from './lifecycle';
 /**
  * 首页轮播（封面轮播 + 碎语轮播）。
  * DOM 契约：[data-sg-carousel] / [data-sg-slide] / 可选 [data-sg-dots]，
@@ -146,7 +147,7 @@ function setupCarousel(host: HTMLElement): void {
     host.classList.toggle('is-manual', quick);
     focusOutsideSlides(target);
     paintSlides(false);
-    pending = window.setTimeout(() => {
+    pending = pageTimeout(() => {
       pending = 0;
       paint();
     }, quick ? MANUAL_FADE : FADE);
@@ -161,7 +162,7 @@ function setupCarousel(host: HTMLElement): void {
     stop();
     // 桌面悬停 / 焦点进入时临时停表；后台标签页与减少动态效果同样不自动播放。
     if (document.hidden || (desktop.matches && (hovered || focused)) || reducedMotion()) return;
-    timer = window.setTimeout(() => {
+    timer = pageTimeout(() => {
       timer = 0;
       show(requested + 1);
       restart();
@@ -207,15 +208,15 @@ function setupCarousel(host: HTMLElement): void {
     event.preventDefault();
     manualMove(next);
   });
-  document.addEventListener('visibilitychange', restart);
-  desktop.addEventListener('change', () => {
+  pageOn(document, 'visibilitychange', restart);
+  pageOn(desktop, 'change', () => {
     hovered = desktop.matches && host.matches(':hover');
     focused = desktop.matches && host.contains(document.activeElement);
     if (!desktop.matches) host.classList.remove('is-manual');
     if (pending) jump(requested);
     restart();
   });
-  motion.addEventListener('change', () => {
+  pageOn(motion, 'change', () => {
     if (reducedMotion()) jump(requested);
     restart();
   });

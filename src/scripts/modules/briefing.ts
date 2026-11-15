@@ -1,3 +1,4 @@
+import { pageOn, pageTimeout, pageInterval, pageFrame, onPageDispose, pageSignal } from './lifecycle';
 /**
  * 每日选刊：期号切换 + 展开目录 + 收藏过滤 + 条目阅读弹窗。
  *
@@ -74,6 +75,8 @@ export function initBriefing(): void {
   const read = loadSet(READ_KEY);
   const saved = loadSet(SAVED_KEY);
   let current = 0;
+  let available = issues.map((item, index) => item.dataset.date === issues[0]?.dataset.date ? index : -1).filter(index => index >= 0);
+  const move = (step: number): number => available[(available.indexOf(current) + step + available.length) % available.length];
   let savedOnly = false;
 
   const announce = (message: string): void => {
@@ -98,7 +101,7 @@ export function initBriefing(): void {
         body.hidden = true;
       } else {
         /* 收起时等过渡走完再 hidden，否则内容会瞬间消失 */
-        closeTimer = window.setTimeout(() => {
+        closeTimer = pageTimeout(() => {
           if (!root.classList.contains('is-open')) body.hidden = true;
         }, 430);
       }
@@ -149,7 +152,7 @@ export function initBriefing(): void {
     if (elTitle) elTitle.textContent = data.title ?? '';
     if (elDesc) elDesc.textContent = data.desc ?? '';
     if (elNotice) elNotice.textContent = data.notice ?? '';
-    if (elIndex) elIndex.textContent = `${current + 1}/${issues.length}`;
+    if (elIndex) elIndex.textContent = `${available.indexOf(current) + 1}/${available.length}`;
 
     let channels: Array<{ name: string; count: number }> = [];
     try {
@@ -178,7 +181,9 @@ export function initBriefing(): void {
       const weekday = data.weekday ? ` · ${data.weekday}` : '';
       elSubline.textContent = `${data.date ?? ''}${weekday} · ${total} 则选刊`;
     }
-    if (elHeadline) elHeadline.textContent = current === 0 ? '本期来信' : '往期来信';
+    if (elHeadline) elHeadline.textContent = data.date === issues[0]?.dataset.date ? '本期来信' : '往期来信';
+    const picker = root.querySelector<HTMLSelectElement>('[data-sg-briefing-select]'); if (picker) picker.value = data.date || '';
+    root.querySelectorAll<HTMLButtonElement>('[data-sg-briefing-prev],[data-sg-briefing-next]').forEach(b => { b.disabled = available.length < 2; });
 
     applySavedFilter();
   };
@@ -186,23 +191,21 @@ export function initBriefing(): void {
   const select = root.querySelector<HTMLSelectElement>('[data-sg-briefing-select]');
   if (select) {
     select.addEventListener('change', () => {
-      paintIssue(Number(select.value));
-      announce(`已切换到第 ${Number(select.value) + 1} 期`);
+      available = issues.map((issue, i) => issue.dataset.date === select.value ? i : -1).filter(i => i >= 0);
+      if (available.length) paintIssue(available[0]); startAuto(); announce(`已切换到 ${select.value}`);
     });
-    select.value = '0';
+    select.value = issues[0]?.dataset.date || '';
   }
 
   /* issues 由服务端按「新 → 旧」渲染，下标越大越早。
      › 往更早翻（下标 +1）、‹ 往更新翻（下标 -1）。
      第三轮把三个方向整体写反了（› 反而回到最近一期），这里统一纠正。 */
   root.querySelector('[data-sg-briefing-prev]')?.addEventListener('click', () => {
-    paintIssue(current - 1);
-    if (select) select.value = String(current);
+    paintIssue(move(-1));
     startAuto();
   });
   root.querySelector('[data-sg-briefing-next]')?.addEventListener('click', () => {
-    paintIssue(current + 1);
-    if (select) select.value = String(current);
+    paintIssue(move(1));
     startAuto();
   });
 
@@ -217,18 +220,18 @@ export function initBriefing(): void {
 
   const startAuto = (): void => {
     stopAuto();
-    if (issues.length < 2 || hovered) return;
+    if (available.length < 2 || hovered || issues[current]?.dataset.date !== issues[0]?.dataset.date) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    timer = window.setInterval(() => {
+    timer = pageInterval(() => {
       if (hovered || root.classList.contains('is-open') || document.hidden) return;
-      paintIssue(current + 1, 'auto');
+      paintIssue(move(1), 'auto');
     }, AUTO_MS);
   };
 
 
   root.addEventListener('pointerenter', () => { hovered = true; });
   root.addEventListener('pointerleave', () => { hovered = false; });
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) startAuto(); });
+  pageOn(document, 'visibilitychange', () => { if (!document.hidden) startAuto(); });
 
   /* ---------------- 往期面板 ---------------- */
   const archiveToggle = root.querySelector<HTMLButtonElement>('[data-sg-briefing-archive-toggle]');

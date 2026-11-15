@@ -29,7 +29,7 @@ if (!is_array($sgAiIssue) || empty($sgAiIssue['items'])) {
         if ($sgAiWhy === '') {
             $sgAiWhy = sg_ai_enabled()
                 ? '这一期还没生成（可能正在请求模型），刷新一次试试。'
-                : '还没配置：填「AI 日报 · 主题」与「API Key」才会开启。';
+                : '还没配置：填写模型、API Key 与 RSS 源后即可自动生成主题。';
         }
         echo '<div class="sg-briefing-diag" data-sg-briefing-diag>'
             . '<b>AI 日报没有输出</b>：' . sg_e($sgAiWhy)
@@ -39,13 +39,14 @@ if (!is_array($sgAiIssue) || empty($sgAiIssue['items'])) {
 }
 
 $sgChannels = [
-    ['id' => 'ai', 'name' => 'AI 动态'],
-    ['id' => 'paper', 'name' => '科技前沿'],
+    ['id' => 'ai', 'name' => '模型与应用'],
+    ['id' => 'paper', 'name' => '研究与探索'],
 ];
 
-/* 每一期 = 一个主题（后台「AI 日报 · 主题」一行一个），‹ 1/N › 翻主题 */
-$sgTotal = count($sgIssues);
+/* 箭头只翻所选日期的主题，历史日期由「往期查看」切换。 */
 $sgFirst = $sgIssues[0];
+$sgTotal = count(array_filter($sgIssues, static fn($issue) => $issue['date'] === $sgFirst['date']));
+$sgDates = array_values(array_unique(array_column($sgIssues, 'date')));
 
 /** 某一期里真正有条目的栏目（空栏目直接不渲染，避免大片「这一栏还没有条目」） */
 $sgIssueChannels = static function (array $issue) use ($sgChannels): array {
@@ -157,15 +158,15 @@ $sgBgTotal = $sgBgList ? count($sgBgList) : count($sgIssues);
       </div>
 
       <div class="sg-briefing-archive" data-sg-briefing-archive hidden>
-        <?php if ($sgTotal > 1) : ?>
+        <?php if (count($sgDates) > 1) : ?>
         <label class="sg-briefing-archive-label" for="sg-briefing-select">翻阅日期</label>
         <select id="sg-briefing-select" data-sg-briefing-select aria-label="选择选刊日期">
-          <?php foreach ($sgIssues as $sgIndex => $sgIssue) : ?>
-          <option value="<?php echo (int) $sgIndex; ?>"><?php echo sg_e($sgIssue['date']); ?><?php echo $sgIndex === 0 ? ' · 最新' : ''; ?></option>
+          <?php foreach ($sgDates as $sgIndex => $sgDate) : ?>
+          <option value="<?php echo sg_e($sgDate); ?>"><?php echo sg_e($sgDate); ?><?php echo $sgIndex === 0 ? ' · 最新' : ''; ?></option>
           <?php endforeach; ?>
         </select>
         <?php else : ?>
-        <span class="sg-briefing-archive-label">只有一期，暂时没得翻。</span>
+        <span class="sg-briefing-archive-label">目前只有一个生成日期。</span>
         <?php endif; ?>
       </div>
 

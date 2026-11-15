@@ -87,6 +87,14 @@ function sg_bg_url(string $value): string
  * @param int    $limit 最多保留几张，避免一屏几百张图把首页拖死
  * @return string[] 已经过 sg_bg_url() 归一化、去重后的地址列表
  */
+function sg_wallpapers(string $override = ''): array
+{
+    $fallback = sg_bg_url(trim((string) sg_opt('sgBg', ''))) ?: sg_theme_url('dist/img/bg-1.svg');
+    $own = sg_bg_url($override);
+    return ['light' => $own ? [$own] : (sg_bg_list((string) sg_opt('sgBgLight', '')) ?: [$fallback]),
+        'dark' => $own ? [$own] : (sg_bg_list((string) sg_opt('sgBgDark', '')) ?: [$fallback])];
+}
+
 function sg_bg_list(string $value, int $limit = 12): array
 {
     $value = trim($value);

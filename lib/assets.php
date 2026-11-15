@@ -36,7 +36,7 @@ function sg_asset(string $entry = 'src/scripts/main.ts'): string
     $item = $manifest[$entry];
     $html = '';
     foreach ($item['css'] ?? [] as $css) {
-        $html .= '<link rel="stylesheet" href="' . sg_e(sg_theme_url('dist/' . $css)) . '">' . "\n";
+        $html .= '<link rel="stylesheet" data-sg-style href="' . sg_e(sg_theme_url('dist/' . $css)) . '">' . "\n";
     }
     if (!empty($item['file'])) {
         $html .= '<script type="module" src="' . sg_e(sg_theme_url('dist/' . $item['file'])) . '"></script>';
@@ -122,7 +122,7 @@ function sg_runtime_config(): string
     }
     $config = [
         'themeUrl' => sg_theme_url(''),
-        // 单张壁纸（第二十轮轮播下线）：前端已不再消费这个字段，保留只是为了不破坏旧缓存
+        // 兼容旧配置；当前壁纸组由 header.php 的 data-bg-mode 输出。
         'bgImages' => array_values(array_filter([sg_bg_url((string) sg_opt('sgBg', ''))])) ?: [sg_theme_url('dist/img/bg-1.svg')],
         'themeColors' => sg_theme_colors(),
         'danmaku' => $danmaku,
@@ -138,5 +138,6 @@ function sg_runtime_config(): string
         'placeholder' => sg_theme_url('dist/img/ph-1.svg'),
         'nav' => [],
     ];
-    return '<script>window.SG=' . json_encode($config, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) . ';</script>';
+    $json = json_encode($config, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG);
+    return '<script type="application/json" data-sg-config>' . $json . '</script><script>window.SG=JSON.parse(document.querySelector("[data-sg-config]").textContent);</script>';
 }

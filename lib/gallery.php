@@ -6,6 +6,7 @@ function sg_gallery_plugin(): bool
     $file = \Widget\Options::alloc()->pluginDir('SoraglassGallery') . '/Plugin.php';
     if (!is_file($file)) { return false; }
     require_once $file;
+    if (class_exists('TypechoPlugin\\SoraglassGallery\\Attachments')) { \TypechoPlugin\SoraglassGallery\Attachments::upgrade(); }
     return true;
 }
 
