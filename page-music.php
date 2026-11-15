@@ -6,8 +6,8 @@
  *
  * 结构对齐源站 app/music/MusicClient.tsx：左侧唱片 + 曲名 + 进度 + 控制，
  * 右侧「歌词 / 歌单」分段面板（歌词滚动高亮、歌单搜索）。
- * 数据统一来自 sg_playlist()：后台「歌单」留空 → dist/data/playlist.json，
- * 填 JSON → 直接用，填 Meting 接口地址 → 服务端取回。配置说明维护在使用手册。
+ * 数据统一来自 sg_playlist()：后台只填写 Meting 歌单接口地址。
+ * 常驻音频与首页共用，配置说明维护在使用手册。
  */
 if (!defined('SG_ROOT')) {
     require_once __DIR__ . '/functions.php';
@@ -28,18 +28,17 @@ $sgHead = [
   <div class="sg-music-page">
     <!-- 左：唱片与传输控制 -->
     <section class="sg-glass sg-music-panel sg-music" data-sg-music>
+      <div class="sg-player-top"><i class="sg-player-state-dot" aria-hidden="true"></i><span data-sg-playback-status>等待播放</span></div>
       <div class="sg-music-stage">
-        <span class="sg-music-halo" aria-hidden="true"></span>
-        <div class="sg-music-disc">
-          <img src="<?php echo sg_e(sg_media((string) ($sgFirst['cover'] ?? ''), sg_theme_url('dist/img/cover-default.svg'))); ?>" alt="" data-sg-track-cover data-sg-fallback="<?php echo sg_e(sg_theme_url('dist/img/cover-default.svg')); ?>">
-          <span class="sg-music-dust" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
-        </div>
+        <?php $sgPlayerCover = (string) ($sgFirst['cover'] ?? ''); require __DIR__ . '/partials/player-art.php'; ?>
       </div>
 
       <div class="sg-music-meta">
         <h2 data-sg-track-title><?php echo sg_value($sgFirst, 'title', '还没有歌'); ?></h2>
         <p data-sg-track-artist><?php echo sg_value($sgFirst, 'artist', '空璃音乐盒'); ?></p>
       </div>
+
+      <canvas class="sg-player-wave" data-sg-wave aria-hidden="true"></canvas>
 
       <div class="sg-player-progress">
         <span data-sg-time-current>00:00</span>
@@ -62,11 +61,9 @@ $sgHead = [
           <button type="button" data-sg-next aria-label="下一首"><?php echo sg_icon('next'); ?></button>
         </div>
 
-        <div class="sg-music-volume">
-          <button type="button" class="sg-music-mute" data-sg-mute aria-label="静音"><?php echo sg_icon('volume'); ?></button>
-          <input class="sg-progress" type="range" min="0" max="100" value="80" data-sg-volume aria-label="音量">
-        </div>
+        <button type="button" class="sg-music-mute" data-sg-mute aria-label="静音"><?php echo sg_icon('volume'); ?></button>
       </div>
+      <div class="sg-music-volume-row"><label for="sg-music-volume">音量</label><input id="sg-music-volume" class="sg-progress" type="range" min="0" max="100" value="80" data-sg-volume><output for="sg-music-volume" data-sg-volume-value>80%</output></div>
     </section>
 
     <!-- 右：歌词 / 歌单 -->
@@ -109,7 +106,7 @@ $sgHead = [
           </div>
 
           <?php if (!$sgTracks) : ?>
-          <p class="sg-music-empty" style="padding:2rem 0">歌单还是空的。到后台「设置外观 → 歌单」填一段 JSON，或直接填一条 Meting 接口地址，主题会自己去取。</p>
+          <p class="sg-music-empty" style="padding:2rem 0"><?php echo sg_user_is_admin() ? '歌单暂不可用。请到「设置外观 → Meting 歌单接口地址」检查接口设置。' : '歌单暂未准备好，稍后再来听听吧。'; ?></p>
           <?php endif; ?>
         </div>
       </div>

@@ -425,7 +425,7 @@ html.dark .sg-social { background: rgba(51, 65, 85, .50); color: #cbd5e1; }
   --sg-spark: color-mix(in srgb, var(--sg-accent) 52%, transparent);
   /* 光点：亮色下白点等于没画，改用主色；暗色才用白（像星光） */
   --sg-spark: color-mix(in srgb, var(--sg-accent) 52%, transparent);
-  /* 顶部预留花瓣与微光的溢出空间，避免被卡片 overflow:hidden 裁切。 */
+  /* 内边距与原首页布局保持一致；相册封面在卡片内部排列。 */
   padding: 1.45rem 1.75rem 1.1rem;
   overflow: hidden;
 }
@@ -465,99 +465,6 @@ html.dark .sg-player-card { --sg-spark: rgba(255, 255, 255, .55); }
   height: 100%;
   cursor: pointer;
 }
-
-/* 来源标签：华为播放页没有徽标，但「这条音频从哪来」不该丢 ——
-   做成唱片右上角的极小胶囊，绝对定位，不占纵向空间，也不跟着唱片旋转。 */
-.sg-player-badge {
-  position: absolute;
-  top: 0;
-  right: 0;
-  padding: .1rem .4rem;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--sg-accent) 12%, transparent);
-  color: var(--sg-accent-deep);
-  font-size: 8.5px;
-  font-weight: 800;
-  line-height: 1.55;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-html.dark .sg-player-badge { color: var(--sg-accent-soft); }
-
-/* 两处唱片共用视频里的三瓣轮廓。容器与封面静止，薄片从封面背后溢出。 */
-.sg-player-disc {
-  position: relative;
-  isolation: isolate;
-  flex: none;
-  width: 6.5rem;
-  height: 6.5rem;
-  --sg-disc-edge: 1px;
-  --sg-disc-speck: 1.5px;
-}
-
-/* SVG 只定义平滑外轮廓，不挖空中心；封面压住两片填充面形成月牙。
-   三瓣相位错开 54°，两层分别略纵长、略横长，外缘探出约 10%，谷部收回圆边。
-   比近椭圆更有宽窄起伏，不再叠虹彩细纹或厚白圈。 */
-.sg-player-disc::before,
-.sg-player-disc::after,
-.sg-music-disc::before,
-.sg-music-disc::after {
-  content: '';
-  position: absolute;
-  inset: -9%;
-  pointer-events: none;
-  -webkit-mask: url('./music-petal.svg') center / 100% 100% no-repeat;
-  mask: url('./music-petal.svg') center / 100% 100% no-repeat;
-  animation: sg-spin 18s linear infinite;
-  animation-play-state: paused;
-}
-
-.sg-player-disc::before,
-.sg-music-disc::before {
-  z-index: 0;
-  inset: -10% -7%;
-  background: linear-gradient(180deg,
-    color-mix(in srgb, var(--sg-music-petal-pearl) 38%, transparent),
-    color-mix(in srgb, var(--sg-music-petal-lilac) 60%, transparent));
-}
-
-.sg-player-disc::after,
-.sg-music-disc::after {
-  z-index: 1;
-  inset: -7% -10%;
-  animation-delay: -2.7s;
-  background: linear-gradient(180deg,
-    color-mix(in srgb, var(--sg-music-petal-pearl) 64%, transparent),
-    color-mix(in srgb, var(--sg-music-petal-lilac) 70%, transparent));
-}
-
-.sg-player-disc img,
-.sg-music-disc img {
-  display: block;
-  position: relative;
-  z-index: 2;
-  box-sizing: border-box;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-  border: var(--sg-disc-edge) solid color-mix(in srgb, var(--sg-music-petal-pearl) 70%, transparent);
-  animation: none;
-  transition: opacity .38s var(--sg-ease);
-}
-
-.sg-player.is-playing .sg-player-disc::before,
-.sg-player.is-playing .sg-player-disc::after,
-.sg-music.is-playing .sg-music-disc::before,
-.sg-music.is-playing .sg-music-disc::after {
-  animation-play-state: running;
-}
-
-/* 切歌时封面先透明、图片 load 后再淡入（player.ts 写这个类） */
-.sg-player-disc img.is-swap,
-.sg-music-disc img.is-swap { opacity: 0; }
 
 /* 曲名与歌手沿中轴居中。站内正文就是宋体（Noto Serif SC），
    与华为那版衬线歌名天然同一路，不用另换字族。 */
@@ -826,73 +733,6 @@ html.dark .sg-player-controls .sg-player-play:hover {
 
 @media (min-width: 768px) { .sg-music-panel { padding: 2.25rem; } }
 
-/* 音乐页为共用花瓣留出舞台；首页采用同一轮廓的缩小版本。 */
-.sg-music-stage {
-  position: relative;
-  display: grid;
-  place-items: center;
-  flex: 1;
-  min-height: 12rem;
-  padding: 1.75rem 0;
-}
-
-/* 底光不抢外环轮廓，颜色仍由封面取色驱动。 */
-.sg-music-halo {
-  position: absolute;
-  width: 74%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  pointer-events: none;
-  background: color-mix(in srgb, var(--sg-cover-tint, var(--sg-accent)) 26%, transparent);
-  filter: blur(34px);
-  opacity: .16;
-  transition: opacity 1s var(--sg-ease);
-}
-.sg-music.is-playing .sg-music-halo { opacity: .3; }
-
-.sg-music-disc {
-  position: relative;
-  isolation: isolate;
-  width: min(17rem, 66%);
-  aspect-ratio: 1;
-  --sg-disc-edge: 1.5px;
-  --sg-disc-speck: 3px;
-}
-
-/* 少量微光沿外环漂移；装饰不进入可访问树，也不接收点击。 */
-.sg-music-dust {
-  position: absolute;
-  inset: -18%;
-  z-index: 3;
-  pointer-events: none;
-  animation: sg-spin 18s linear infinite;
-  animation-delay: -4s;
-  animation-play-state: paused;
-}
-.sg-music-dust i {
-  position: absolute;
-  width: var(--sg-disc-speck);
-  height: var(--sg-disc-speck);
-  border-radius: 50%;
-  background: var(--sg-music-petal-pearl);
-  opacity: .18;
-  animation: sg-music-dust-pulse 5.6s ease-in-out infinite;
-  animation-play-state: paused;
-}
-.sg-music-dust i:nth-child(1) { left: 22%; top: 8%; animation-delay: -1.2s; }
-.sg-music-dust i:nth-child(2) { left: 73%; top: 13%; animation-delay: -3s; }
-.sg-music-dust i:nth-child(3) { left: 94%; top: 58%; animation-delay: -4.6s; }
-.sg-music-dust i:nth-child(4) { left: 63%; top: 96%; animation-delay: -2.2s; }
-.sg-music-dust i:nth-child(5) { left: 8%; top: 68%; animation-delay: -.6s; }
-.sg-player.is-playing .sg-music-dust,
-.sg-player.is-playing .sg-music-dust i,
-.sg-music.is-playing .sg-music-dust,
-.sg-music.is-playing .sg-music-dust i { animation-play-state: running; }
-@keyframes sg-music-dust-pulse {
-  0%, 100% { opacity: .12; }
-  50% { opacity: .28; }
-}
-
 /* 面板只留很轻的封面底色，去掉旧的密集声波和全卡光点。 */
 .sg-music-panel {
   position: relative;
@@ -909,23 +749,6 @@ html.dark .sg-player-controls .sg-player-play:hover {
     transparent 68%);
 }
 .sg-music-panel > * { position: relative; z-index: 1; }
-
-@media (prefers-reduced-motion: reduce) {
-  .sg-player-disc::before,
-  .sg-player-disc::after,
-  .sg-music-disc::before,
-  .sg-music-disc::after,
-  .sg-music-dust,
-  .sg-music-dust i { animation: none; transform: none; }
-  .sg-music-halo { transition: none; }
-}
-
-/* 换歌要把环的角度归零（player.ts 会短暂加这个类，逼一次回流） */
-.is-ring-reset .sg-player-disc::before,
-.is-ring-reset .sg-player-disc::after,
-.is-ring-reset .sg-music-disc::before,
-.is-ring-reset .sg-music-disc::after,
-.is-ring-reset .sg-music-dust { animation: none; }
 
 .sg-music-meta { text-align: center; padding-inline: .5rem; }
 .sg-music-meta h2 { font-size: 1.5rem; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1352,10 +1175,9 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
      封面靠 stretch 同步长高（.sg-hero 的 align-items: stretch 不变）。 */
   .sg-hero-side .sg-player-card {
     min-height: 19.1rem;
-    /* 顶部预留花瓣与微光的溢出空间。 */
+    /* 首页副栏采用同一组卡片内边距。 */
     padding: 1.5rem 1.75rem 1.1rem;
   }
-  .sg-hero-side .sg-player-disc { width: 6.5rem; height: 6.5rem; }
 }
 
 /* 播放器在副栏里要撑满整卡：五段（唱片 / 曲名歌手 / 歌词 / 进度 / 控制）space-between 分布，
@@ -1364,8 +1186,7 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
 
 /* 副栏之外的首页卡（<1024 单列时贴在整行上）：空间反而更宽裕，唱片放大一档 */
 @media (max-width: 1023.98px) {
-  .sg-player-disc { width: 6.5rem; height: 6.5rem; }
-  /* 单列布局同样留出花瓣与微光的空间。 */
+  /* 单列布局沿用原内边距。 */
   .sg-player-card { padding: 1.5rem 1.5rem 1.1rem; }
 }
 

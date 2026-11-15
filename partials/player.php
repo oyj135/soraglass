@@ -2,9 +2,8 @@
 /**
  * 首页音乐卡（5 列）。
  *
- * 版式参考华为音乐播放页（2026-11-14 第三十八轮改）：纵向中轴居中 ——
- * 圆盘唱片当主角、衬线歌名压在轴心、细轨进度配圆点、底部一行「胶囊 + 三键 + 圆钮」。
- * 改之前是横向小卡（76px 唱片 + 左侧信息），在 5 列副栏里几乎读不出「正在播放」。
+ * 用户确认的 A 款：方形专辑封面、右侧旋转 CD 和下方彩色音浪。
+ * 与音乐页共享封面结构、传输控件和常驻音频，保持原首页位置。
  *
  * 功能挂点一个都没动（player.ts 全按 data-sg-* 查找）：
  *   data-sg-player / -track-title / -track-artist / -track-cover / -lyric /
@@ -17,12 +16,8 @@
 $sgMusicUrl = sg_page_url('music');
 ?>
 <div class="sg-player" data-sg-player data-href="<?php echo sg_e($sgMusicUrl); ?>">
-  <span class="sg-player-badge">CLOUD MUSIC</span>
-
-  <div class="sg-player-disc">
-    <img src="<?php echo sg_e(sg_theme_url('dist/img/cover-default.svg')); ?>" alt="" data-sg-track-cover data-sg-fallback="<?php echo sg_e(sg_theme_url('dist/img/cover-default.svg')); ?>">
-    <span class="sg-music-dust" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
-  </div>
+  <div class="sg-player-top"><i class="sg-player-state-dot" aria-hidden="true"></i><span data-sg-playback-status>等待播放</span></div>
+  <?php $sgPlayerCover = ''; require __DIR__ . '/player-art.php'; ?>
 
   <div class="sg-player-info">
     <a class="sg-player-title" href="<?php echo sg_e($sgMusicUrl); ?>" data-sg-track-title>未播放</a>
@@ -30,6 +25,8 @@ $sgMusicUrl = sg_page_url('music');
   </div>
 
   <div class="sg-player-lyric" data-sg-lyric data-sg-typewriter>点击播放，开始今天的 BGM</div>
+
+  <canvas class="sg-player-wave" data-sg-wave aria-hidden="true"></canvas>
 
   <div class="sg-player-progress">
     <span data-sg-time-current>00:00</span>

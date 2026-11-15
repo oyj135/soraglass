@@ -22,7 +22,7 @@ require_once __DIR__ . '/lib/icons.php';
  * 为什么挂在 description 上而不是 addItem(Layout)：Typecho 1.3 的
  * Element::render() 会把 description 原样输出（允许 HTML），这是唯一
  * 不依赖 Layout 构造签名、也不依赖后台能否加载外部资源的路子。
- * 脚本自己去页面里找 7 个 JSON 文本域，逐个插入按钮，找不到就什么都不做。
+ * 脚本只为 JSON 文本域插入按钮；Meting 歌单接口不参与格式化。
  *
  * 解析失败时不动原值，只把输入框描红并在旁边说明 —— 避免「点了格式化，
  * 数据被清空」这种最糟的结果。
@@ -33,7 +33,6 @@ function sg_admin_json_tools(): string
         'sgSocial',
         'sgFriends',
         'sgProjects',
-        'sgPlaylist',
         'sgPoster',
     ], JSON_UNESCAPED_SLASHES);
 
@@ -545,18 +544,13 @@ function themeConfig($form): void
         . '顺序就是展示顺序；已经删除或改名的仓库会被静默跳过。'
     ) . sg_admin_github_picker('sgGithubRepos', 'oyj135')));
     $form->addInput(new Text('sgGithubLimit', null, '12', _t('仓库上限（个）'), _t('只在「仓库清单」留空（自动模式）时生效，默认 12；想全量显示填 0。手填的清单不受此限')));
-    $form->addInput(new Textarea('sgPlaylist', null, '', _t('歌单'), _t(
-        '主题只有这一处歌单配置，三种写法任选其一：<br>'
-        . '<b>①留空</b>：用主题自带的 CC-BY 纯音乐（<code>dist/data/playlist.json</code>）。<br>'
-        . '<b>②填 JSON 数组</b>：自己挑的曲目，字段 <code>title / artist / cover / url / lrc</code>；'
-        . '自带音源放 <code>public/audio/</code> 时 url 写 <code>dist/audio/xxx.mp3</code>。<br>'
-        . '<b>③填 Meting 接口地址</b>：整条 URL 原样透传，例如 '
+    $form->addInput(new Text('sgPlaylist', null, '', _t('Meting 歌单接口地址'), _t(
+        '填写一条完整的 Meting 接口地址，例如 '
         . '<code>https://api.injahow.cn/meting/?server=netease&amp;type=playlist&amp;id=2619366284</code>，'
-        . '主题把返回的 JSON 当歌单用，音频地址与歌词都来自接口。<br>'
-        . '<b>生效时机</b>：前台缓存 10 分钟；以管理员身份登录时每次刷新都会重新取，改完即可见。'
-        . '音乐页底部会显示「当前数据源 + 条数」，可据此确认命中哪一条。'
+        . '歌曲、封面和歌词由接口提供；留空不展示歌单。<br>'
+        . '保存新地址后使用新接口。相同地址缓存 1 小时；管理员需要重新拉取时，在音乐页地址后加 <code>?sg-refresh=1</code>。'
     )));
-    $form->addInput(new Text('sgPlaylistLimit', null, '50', _t('歌单上限（条）'), _t('只对 Meting 远程歌单生效：一个热门歌单常有几百首，全量塞进页面会让单页体积超过 500 KB。填 0 表示不截断；手填的 JSON 歌单不受此限')));
+    $form->addInput(new Text('sgPlaylistLimit', null, '50', _t('歌单上限（条）'), _t('最多展示的曲目数量，默认 50；填 0 不限制。较大的歌单会增加页面加载时间。')));
     $form->addInput(new Text('sgIcp', null, '', _t('备案号'), _t('显示位置：页脚第一行「系统已稳定运行」的右侧。填阿里云备案下来的完整号（例：湘ICP备2023030699号）；留空则整段不输出，不留空位')));
     $form->addInput(new Text('sgUptimeSince', null, '', _t('建站日期'), _t('显示位置：页脚第一行「系统已稳定运行：N 天 N 小时」。格式 2024-01-01（也可写 2024/01/01）。不满一年显示天数，满一年显示「1 年 12 天 12 小时」；留空则自动取最早一篇已发布文章的时间')));
     $form->addInput(new Text('sgPageSize', null, '200', _t('每页条数上限'), _t('对齐源站「无分页」：模板不输出分页条，列表一次取完。填 0 则沿用「设置 → 阅读」的每页文章数目')));

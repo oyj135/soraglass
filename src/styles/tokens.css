@@ -122,9 +122,9 @@
   --sg-thumb-zoom: 1.06;   /* 卡内图片缩放 */
 
   --sg-ring: #ffffff;      /* 关于页头像白描边 */
-  /* 音乐页视频参考的淡紫/奶白花瓣，仅供大唱片使用。 */
-  --sg-music-petal-pearl: #ded3f2;
-  --sg-music-petal-lilac: #a58bd9;
+  /* 用户确认的 CD 播放器音浪，从青绿渐变到淡紫。 */
+  --sg-wave-a: #53b8c8;
+  --sg-wave-b: #be78ae;
 
   --sg-polaroid: #ffffff;  /* 拍立得相纸边框，暗色也保持白 */
   --sg-album-paper: #fff;

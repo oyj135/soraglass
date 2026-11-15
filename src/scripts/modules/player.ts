@@ -13,7 +13,8 @@
  */
 import { config, readStore, writeStore, toast } from './core';
 import { navigate } from './navigation';
-import { pageOn } from './lifecycle';
+import { pageOn, onPageDispose } from './lifecycle';
+import { createPlayerVisuals } from './player-visuals';
 let mountPlayer: (() => void) | null = null;
 
 const STATE_KEY = 'sg-player';
@@ -145,6 +146,9 @@ export function initPlayer(): void {
   const tintCache = new Map<string, string>();
   const tintRequests = new Map<string, Promise<string | null>>();
   const tintVersions = new WeakMap<HTMLImageElement, number>();
+  const recordCover = (img: HTMLImageElement): void => {
+    img.closest<HTMLElement>('[data-sg-album-art]')?.style.setProperty('--sg-record-cover', `url(${JSON.stringify(img.src)})`);
+  };
   const clearCoverTint = (img: HTMLImageElement): void => {
     tintVersions.set(img, (tintVersions.get(img) ?? 0) + 1);
     img.closest<HTMLElement>('.sg-player-card, .sg-music-panel')?.style.removeProperty('--sg-cover-tint');
@@ -239,16 +243,18 @@ export function initPlayer(): void {
       if (img.dataset.sgFallbackDone === '1') return;
       img.dataset.sgFallbackDone = '1';
       img.src = fallback;
+      recordCover(img);
     };
     /* 换歌时 apply() 会给 img 加 .is-swap（opacity: 0），图片 load 后再淡入。
        放在这里而不是 apply 里，是因为 src 可能走缓存、也可能 404 后回落本地图，
        两条路都是 load 收尾。 */
-    img.addEventListener('load', () => { img.classList.remove('is-swap'); tintCard(img); });
+    img.addEventListener('load', () => { img.classList.remove('is-swap'); recordCover(img); tintCard(img); });
     img.addEventListener('error', () => { img.classList.remove('is-swap'); revert(); });
     // 已经加载完且宽度为 0，说明在绑定监听之前就失败了
     if (img.complete && img.naturalWidth === 0) revert();
     // 已经加载完成的（走缓存），立即取一次色 —— load 事件不会再发
     if (img.complete && img.naturalWidth > 0) tintCard(img);
+    recordCover(img);
   };
 
   document
@@ -273,10 +279,11 @@ export function initPlayer(): void {
       const title = q(root, '[data-sg-track-title]');
       if (title) title.textContent = '歌单为空';
     });
-    lyricTargets.forEach((el) => { el.textContent = '到后台「歌单 JSON」或「Meting」里加几首'; });
+    lyricTargets.forEach((el) => { el.textContent = '歌单暂未准备好'; });
+    roots.forEach((root) => { const status = q(root, '[data-sg-playback-status]'); if (status) status.textContent = '暂无曲目'; });
     roots.forEach((root) => {
       root.querySelectorAll<HTMLButtonElement>('button').forEach((btn) => {
-        btn.addEventListener('click', () => toast('还没有配置音频，先到后台填歌单'));
+        btn.disabled = true;
       });
     });
     return;
@@ -289,6 +296,8 @@ export function initPlayer(): void {
 
   audio.volume = volume;
   audio.preload = 'metadata';
+  const visuals = createPlayerVisuals(audio);
+  onPageDispose(visuals.unmount);
 
   /* 歌词面板在右侧那块卡片里，是 [data-sg-music] 的**兄弟节点**，不在它的子树里。
      以前这里写成 q(music, '[data-sg-lyrics]')，永远拿到 null，右侧歌词区就一直停在
@@ -324,6 +333,7 @@ export function initPlayer(): void {
       if (cur) cur.textContent = fmtTime(audio.currentTime);
       if (total) total.textContent = fmtTime(audio.duration);
       if (bar) {
+        bar.setAttribute('aria-valuetext', `${fmtTime(audio.currentTime)}，共 ${fmtTime(audio.duration)}`);
         /* 轨道本身就是进度条：已播放段靠 --sg-p 切开（见 components.css 的
            input.sg-progress）。只写一个自定义属性，浏览器自己算渐变位置。 */
         bar.style.setProperty('--sg-p', `${(pct * 100).toFixed(2)}%`);
@@ -487,22 +497,12 @@ export function initPlayer(): void {
     });
   };
 
-  /* 切歌＝环的角度归零。伪元素上的 CSS 动画不会因为换图而重来，
-     短暂挂一个 .is-ring-reset（animation:none）再摘掉，逼浏览器从头开始转。 */
-  const resetRings = (): void => {
-    roots.forEach((root) => {
-      root.classList.add('is-ring-reset');
-      void root.offsetWidth;              // 强制回流，让上面的 none 真正生效
-      root.classList.remove('is-ring-reset');
-    });
-  };
-
   const apply = (next: number, preserveAudio = false): void => {
     index = (next + tracks.length) % tracks.length;
     const track = tracks[index];
     if (!track?.url) return;
 
-    if (!preserveAudio) { audio.src = track.url; audio.load(); }
+    if (!preserveAudio) { audio.src = track.url; audio.load(); visuals.track(); }
 
     const cover = track.cover || '';
     roots.forEach((root) => {
@@ -519,6 +519,7 @@ export function initPlayer(): void {
         delete img.dataset.sgFallbackDone;   // 换歌要允许重新触发兜底
         img.classList.add('is-swap');
         img.src = nextCover;
+        recordCover(img);
       }
       const bar = q<HTMLInputElement>(root, '[data-sg-progress]');
       if (bar) bar.value = '0';
@@ -532,7 +533,6 @@ export function initPlayer(): void {
     // 歌词可能是 URL（Meting 的 type=lrc），拿回来之前先显示歌名，别让歌词栏空着
     applyLyrics(String(track.lrc ?? ''), String(track.lyric ?? '') || String(track.title ?? ''));
     markTrack();
-    resetRings();
   };
 
   const setPlaying = (on: boolean): void => {
@@ -540,7 +540,14 @@ export function initPlayer(): void {
     home?.classList.toggle('is-playing', on);
     // 歌词栏的声波 / 音符动画只认这一个开关（源站 isPlaying 驱动 safeWave 与 animate-bounce）
     lyricBar?.classList.toggle('is-playing', on);
-    roots.forEach((root) => q(root, '[data-sg-play]')?.setAttribute('aria-pressed', on ? 'true' : 'false'));
+    roots.forEach((root) => {
+      const playButton = q(root, '[data-sg-play]');
+      playButton?.setAttribute('aria-pressed', on ? 'true' : 'false');
+      playButton?.setAttribute('aria-label', on ? '暂停' : '播放');
+      const status = q(root, '[data-sg-playback-status]');
+      if (status) status.textContent = on ? '正在播放' : '已暂停';
+    });
+    visuals.sync();
     if (on) syncLyricLine();
   };
 
@@ -567,6 +574,7 @@ export function initPlayer(): void {
   };
 
   const play = (quiet = false): void => {
+    visuals.resume();
     const attempt = audio.play();
     if (!attempt || typeof attempt.then !== 'function') return;
     void attempt.catch((error: unknown) => {
@@ -585,7 +593,7 @@ export function initPlayer(): void {
         return;
       }
       errorStreak = 0;
-      toast('歌单里的音频都打不开，检查后台「歌单 JSON」里的地址');
+      toast('歌单里的音频暂时无法播放，请检查 Meting 接口返回的音源');
     });
   };
 
@@ -665,11 +673,19 @@ export function initPlayer(): void {
     play(true);
   }
 
-  audio.addEventListener('play', () => { errorStreak = 0; armed = false; setPlaying(true); persist(); });
+  audio.addEventListener('play', () => { errorStreak = 0; armed = false; roots.forEach(root => root.classList.remove('is-blocked','is-error')); setPlaying(true); persist(); });
   audio.addEventListener('pause', () => { setPlaying(false); persist(); });
   audio.addEventListener('timeupdate', () => { syncTime(); syncLyricLine(); });
   audio.addEventListener('loadedmetadata', syncTime);
   audio.addEventListener('durationchange', syncTime);
+  audio.addEventListener('playing', () => {
+    roots.forEach(root => { const status = q(root,'[data-sg-playback-status]'); if (status) status.textContent = '正在播放'; });
+    visuals.sync();
+  });
+  audio.addEventListener('waiting', () => {
+    if (audio.paused) return;
+    roots.forEach(root => { const status = q(root,'[data-sg-playback-status]'); if (status) status.textContent = '音频缓冲中'; });
+  });
   audio.addEventListener('ended', () => {
     if (mode === 'single') {
       audio.currentTime = 0;
@@ -680,7 +696,10 @@ export function initPlayer(): void {
   });
   // 具体错误文案统一由 play() 的 catch 给出，这里只做标记，避免两条 toast 叠在一起
   audio.addEventListener('error', () => {
-    roots.forEach((root) => { root.classList.toggle('is-error', Boolean(audio.error)); });
+    roots.forEach((root) => {
+      root.classList.toggle('is-error', Boolean(audio.error));
+      const status = q(root,'[data-sg-playback-status]'); if (status) status.textContent = '音频暂不可用';
+    });
   });
 
   const bindControls = (): void => {
@@ -731,6 +750,8 @@ export function initPlayer(): void {
        它跟播放进度不是一回事，所以自己写一份。 */
     const paintVolume = (): void => {
       volumeBar.style.setProperty('--sg-p', `${Math.max(0, Math.min(1, audio.volume)) * 100}%`);
+      const value = q(music, '[data-sg-volume-value]');
+      if (value) value.textContent = `${Math.round(audio.volume * 100)}%`;
     };
     paintVolume();
     volumeBar.addEventListener('input', () => {
@@ -796,6 +817,7 @@ export function initPlayer(): void {
     trackEls = Array.from(document.querySelectorAll<HTMLElement>('[data-sg-track]')); songEls = Array.from(document.querySelectorAll<HTMLElement>('.sg-song[data-sg-track]'));
     document.querySelectorAll<HTMLImageElement>('[data-sg-track-cover], [data-sg-cover]').forEach(watchCover);
     bindControls(); apply(index, true); setPlaying(!audio.paused); paintMode(); syncTime();
+    visuals.mount(); onPageDispose(visuals.unmount);
   };
 
   window.setInterval(() => { if (!audio.paused) persist(); }, 5000);

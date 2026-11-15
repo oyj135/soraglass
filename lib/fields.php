@@ -486,66 +486,25 @@ function sg_home_poster($archive = null): array
 }
 
 /**
- * 歌单数据源 —— 只有一套配置：后台「歌单」文本域 `sgPlaylist`。
- *
- * 填什么就是什么，三种写法：
- *   ①留空                    → `dist/data/playlist.json`（主题自带的 CC-BY 音频）
- *   ②以 `[` 开头的 JSON 数组 → 直接当歌单用（自己挑的曲目）
- *   ③以 http(s) 开头的地址   → 当作 Meting 兼容接口整条请求
- *     例：`https://api.injahow.cn/meting/?server=netease&type=playlist&id=2619366284`
- *
- * 之所以收成一层：以前「后台 JSON / Meting 四件套 / 网易云 ID」并列，
- * 谁生效取决于留空顺序，站长改完不知道卡在哪 —— 歌单不更新多半就是这么来的。
- * 现在只有一个输入框，命中结果由 `sg_playlist_source()` 显示在音乐页。
+ * One configurable source: a complete Meting-compatible HTTP(S) endpoint.
+ * Keep the sgPlaylist option key so existing endpoint settings survive upgrades.
  */
 function sg_playlist(): array
 {
     $raw = trim((string) sg_opt('sgPlaylist', ''));
 
-    /* 旧版「Meting API 地址 + 平台 + 类型 + ID」四件套的兼容：
-       这四个字段已经下线，但老站的 options 里可能还留着值。直接把它们拼成一条
-       地址继续用，免得升级主题后歌单突然变回自带音频。站长把完整地址填进
-       「歌单」后，这一支自然失效。 */
+    unset($GLOBALS['SG_PLAYLIST_ERROR']);
     if ($raw === '') {
-        $legacyApi = trim((string) sg_opt('sgMetingApi', ''));
-        $legacyId = trim((string) sg_opt('sgMetingId', ''));
-        if ($legacyApi !== '' && $legacyId !== '' && preg_match('#^https?://#i', $legacyApi)) {
-            $raw = rtrim($legacyApi, '/') . '/?' . http_build_query([
-                'server' => trim((string) sg_opt('sgMetingServer', 'netease')) ?: 'netease',
-                'type'   => trim((string) sg_opt('sgMetingType', 'playlist')) ?: 'playlist',
-                'id'     => $legacyId,
-            ]);
-            $GLOBALS['SG_PLAYLIST_LEGACY'] = true;
-        }
+        $GLOBALS['SG_PLAYLIST_SOURCE'] = '未配置 Meting 接口';
+        return [];
     }
-
-    /* ③ 远程接口：整条 URL 透传 */
-    if ($raw !== '' && preg_match('#^https?://#i', $raw)) {
-        $remote = sg_meting_playlist($raw);
-        if ($remote) {
-            $GLOBALS['SG_PLAYLIST_SOURCE'] = 'Meting · ' . sg_meting_label($raw)
-                . (!empty($GLOBALS['SG_PLAYLIST_LEGACY']) ? '（旧版设置，建议把完整地址填进「歌单」）' : '');
-            return sg_playlist_cap($remote);
-        }
+    if (!preg_match('#^https?://#i', $raw) || filter_var($raw, FILTER_VALIDATE_URL) === false) {
+        $GLOBALS['SG_PLAYLIST_SOURCE'] = 'Meting 接口地址无效';
+        $GLOBALS['SG_PLAYLIST_ERROR'] = '请填写完整的 http(s) Meting 接口地址。';
+        return [];
     }
-
-    /* ② 手填 JSON */
-    if ($raw !== '' && !preg_match('#^https?://#i', $raw)) {
-        $list = json_decode($raw, true);
-        $list = is_array($list) ? array_values(array_filter($list, static fn($item) => is_array($item))) : [];
-        if ($list) {
-            $GLOBALS['SG_PLAYLIST_SOURCE'] = '后台「歌单 JSON」';
-            return sg_playlist_media($list);
-        }
-        $GLOBALS['SG_PLAYLIST_ERROR'] = '「歌单」里填的内容既不是 JSON 也不是 http(s) 地址，已回退到主题自带音频。';
-    }
-
-    /* ① 随包音频 */
-    $GLOBALS['SG_PLAYLIST_SOURCE'] = '主题自带音频（dist/data/playlist.json）';
-    $fallback = sg_json('sgPlaylist', 'playlist', []);
-    $fallback = array_values(array_filter($fallback, static fn($item) => is_array($item)));
-
-    return $fallback ? sg_playlist_media($fallback) : [];
+    $GLOBALS['SG_PLAYLIST_SOURCE'] = 'Meting · ' . sg_meting_label($raw);
+    return sg_playlist_cap(sg_playlist_media(sg_meting_playlist($raw)));
 }
 
 /**
@@ -553,7 +512,7 @@ function sg_playlist(): array
  */
 function sg_playlist_source(): string
 {
-    return (string) ($GLOBALS['SG_PLAYLIST_SOURCE'] ?? '主题自带音频（dist/data/playlist.json）');
+    return (string) ($GLOBALS['SG_PLAYLIST_SOURCE'] ?? '未配置 Meting 接口');
 }
 
 /**
@@ -603,8 +562,7 @@ function sg_meting_label(string $url): string
  *
  * 一个热门网易云歌单动辄几百首：整份塞进 `window.SG.playlist` 与歌单列表，
  * 单页 HTML 会膨胀到 500 KB 以上，而且每一首都带一张懒加载封面。
- * 这里按后台「歌单上限」截断（默认 50，填 0 不截断），手工填的歌单 JSON 不受影响
- * —— 那份是站长自己挑过的。
+ * 这里按后台「歌单上限」截断（默认 50，填 0 不截断）。
  *
  * @param array<int,array<string,mixed>> $list
  * @return array<int,array<string,mixed>>
@@ -1118,9 +1076,8 @@ function sg_http_post_json(string $url, array $payload, array $headers = [], int
  * `lrc` 有两副面孔：有的是歌词正文（含 [mm:ss]），有的是纯文本地址（`type=lrc`）。
  * 后者原样交给前端按需 fetch —— 该接口带 `Access-Control-Allow-Origin: *`。
  *
- * 缓存 10 分钟。**登录状态下的管理员不加缓存**：站长在后台换歌单、改配置后刷新页面
- * 就该看到新内容 —— 之前固定缓存 3 小时，改完以为「没生效」，是「歌单不更新」的元凶。
- * 前台访客仍然吃缓存，避免每次访问都打外网。
+ * 同地址缓存 1 小时；管理员主动 sg-refresh=1 时绕缓存。
+ * 更换接口地址使用独立缓存，网络失败可回退该接口的旧缓存。
  */
 function sg_meting_playlist(string $endpoint): array
 {
