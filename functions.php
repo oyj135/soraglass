@@ -10,6 +10,7 @@ if (!defined('SG_ROOT')) {
 require_once __DIR__ . '/lib/config.php';
 require_once __DIR__ . '/lib/assets.php';
 require_once __DIR__ . '/lib/fields.php';
+require_once __DIR__ . '/lib/gallery.php';
 require_once __DIR__ . '/lib/github.php';
 require_once __DIR__ . '/lib/ai.php';
 require_once __DIR__ . '/lib/icons.php';
@@ -551,21 +552,6 @@ function themeConfig($form): void
         . '音乐页底部会显示「当前数据源 + 条数」，可据此确认命中哪一条。'
     )));
     $form->addInput(new Text('sgPlaylistLimit', null, '50', _t('歌单上限（条）'), _t('只对 Meting 远程歌单生效：一个热门歌单常有几百首，全量塞进页面会让单页体积超过 500 KB。填 0 表示不截断；手填的 JSON 歌单不受此限')));
-    $form->addInput(new Textarea('sgOssPhotos', null, '', _t('相册图片（OSS 链接，一行一张）'), _t(
-        '<b>显示位置</b>：「光影画廊」页与首页宽幅卡（选「光影画廊」时）。<br>'
-        . '<b>怎么填</b>：把 OSS 上的图片链接一行一个贴进来即可，<b>不用写 JSON、也不用建清单文件</b>。'
-        . '需要给某张写说明，就在链接后面加 <code>|</code> 再写文字，例如：<br>'
-        . '<code>https://xxx.oss-cn-hangzhou.aliyuncs.com/photo/2026/11/a.jpg | 雨停的那条街</code><br>'
-        . '<b>自动成册</b>：按链接里的年月分组 —— 路径含 <code>2026/11</code> 或 <code>2026-11</code> 就归到「2026 年 11 月」，'
-        . '认不出年月的归到「未归类」。相册按时间倒序，封面取该组第一张。<br>'
-        . '<b>留空</b>：退回扫描站内 <code>usr/uploads/年/月/</code>（后台上传的附件）。'
-    )));
-    $form->addInput(new Text('sgOssSuffix', null, 'x-oss-process=image/resize,w_1200/format,webp/quality,q_82', _t('OSS 缩略参数'), _t(
-        '填在列表与画廊里的小图后面，省流量；点开大图仍然是原图。<br>'
-        . '默认 <code>x-oss-process=image/resize,w_1200/format,webp/quality,q_82</code>（宽 1200、转 webp、质量 82）；'
-        . '留空则原图直出；链接里已经带 <code>x-oss-process</code> 的不会重复拼。<br>'
-        . '注意：<code>format,webp</code> 需要 Bucket 所在区域支持图片处理；万一图片裂开，把这一段删掉即可。'
-    )));
     $form->addInput(new Text('sgIcp', null, '', _t('备案号'), _t('显示位置：页脚第一行「系统已稳定运行」的右侧。填阿里云备案下来的完整号（例：湘ICP备2023030699号）；留空则整段不输出，不留空位')));
     $form->addInput(new Text('sgUptimeSince', null, '', _t('建站日期'), _t('显示位置：页脚第一行「系统已稳定运行：N 天 N 小时」。格式 2024-01-01（也可写 2024/01/01）。不满一年显示天数，满一年显示「1 年 12 天 12 小时」；留空则自动取最早一篇已发布文章的时间')));
     $form->addInput(new Text('sgPageSize', null, '200', _t('每页条数上限'), _t('对齐源站「无分页」：模板不输出分页条，列表一次取完。填 0 则沿用「设置 → 阅读」的每页文章数目')));
