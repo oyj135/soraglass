@@ -223,10 +223,7 @@ function sg_stats(): array
         }
     };
 
-    $photos = 0;
-    foreach (sg_albums() as $album) {
-        $photos += is_array($album['photos'] ?? null) ? count($album['photos']) : 0;
-    }
+    $photos = sg_gallery_catalog()['photoTotal'];
 
     return [
         'posts'  => (string) $count('post'),

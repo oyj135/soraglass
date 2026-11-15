@@ -145,8 +145,8 @@ async function initMath(): Promise<void> {
  * 瀑布流 / 网格）里的照片自动串成一组，支持左右键与两侧按钮翻页。
  * 相册详情页因此不需要额外写一套弹层逻辑。
  */
-function initLightbox(): void {
-  const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-sg-photo]'));
+export function initLightbox(): void {
+  const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-sg-photo]')).filter(link => !link.dataset.sgLightboxReady);
   if (!links.length) return;
 
   const groupOf = (link: HTMLAnchorElement): HTMLAnchorElement[] => {
@@ -156,6 +156,7 @@ function initLightbox(): void {
   };
 
   links.forEach((link) => {
+    link.dataset.sgLightboxReady = '1';
     link.addEventListener('click', (event) => {
       event.preventDefault();
       const group = groupOf(link);
