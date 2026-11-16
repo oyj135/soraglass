@@ -1150,28 +1150,29 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
      stretch 与它齐平，不会出现音乐卡下探、左侧留白一截的错位。
      宽屏下的最小高度写在 editorial.css。 */
 
-  /* 封面成了主角，字号跟着放一档。原来是按 4 列小轮播定的 1.5rem，
-     在 7 列的宽度上标题缩在左下角，与"主视觉"的身份不匹配。
-     只放大标题与内边距，描述仍限三行 —— 再长会盖住封面本身。 */
-  .sg-hero-cover .sg-slide-body { padding: 1.75rem 2rem; }
-  .sg-hero-cover .sg-slide-title { font-size: 1.875rem; line-height: 1.3; }
-  .sg-hero-cover .sg-slide-desc { font-size: .9375rem; max-width: 44ch; }
+  /* 2026-11-16 明显缩小档：封面标题/内边距收一档，与缩小后的卡高协调。 */
+  .sg-hero-cover .sg-slide-body { padding: 1.5rem 1.75rem; }
+  .sg-hero-cover .sg-slide-title { font-size: 1.6rem; line-height: 1.3; }
+  .sg-hero-cover .sg-slide-desc { font-size: .875rem; max-width: 44ch; }
 
-  /* 副卡窄了一档，内边距、字号、行距同步收，否则还是按 7 列的尺度在排 */
-  .sg-hero-side .sg-profile { padding: 1.5rem 1.75rem; gap: 1rem; }
-  .sg-hero-side .sg-profile-name { font-size: 1.5rem; margin-bottom: .35rem; }
+  /* 副卡同步收一档：内边距、字号、头像都缩，右栏整体变矮，封面随之变矮 */
+  .sg-hero-side .sg-profile { padding: 1.15rem 1.5rem; gap: .75rem; }
+  .sg-hero-side .sg-profile-name { font-size: 1.3rem; margin-bottom: .25rem; }
   .sg-hero-side .sg-profile-bio { overflow: hidden; -webkit-line-clamp: 2; }
-  .sg-hero-side .sg-profile-foot { margin-top: .75rem; }
-  .sg-hero-side .sg-stat-num { font-size: 1.375rem; }
+  .sg-hero-side .sg-profile-foot { margin-top: .5rem; }
+  .sg-hero-side .sg-stat-num { font-size: 1.15rem; }
+  /* 头像从 6rem 收到 4.75rem，是右栏高度下降的主要来源之一 */
+  .sg-hero-side .sg-avatar-ring { width: 4.75rem; height: 4.75rem; }
 
-  /* 纵向版式要的纵向空间比横向版多 36px 左右：唱片 92 + 曲名 24 + 歌手 17 +
-     歌词 17 + 进度 22 + 控制 44。给卡片一个下限，右栏随之变高，
-     封面靠 stretch 同步长高（.sg-hero 的 align-items: stretch 不变）。 */
+  /* 音乐卡 19.1→15rem。唱片是原撑高主因：player-art.css 里 .sg-player .sg-album-art
+     max-width:13rem 是全站值，这里只在首页副栏作用域覆盖到 9.5rem，不改音乐页。
+     内部各段（歌词/波形/进度/控制）本就是 flex space-between，卡矮了会自然收紧。 */
   .sg-hero-side .sg-player-card {
-    min-height: 19.1rem;
-    /* 首页副栏采用同一组卡片内边距。 */
-    padding: 1.5rem 1.75rem 1.1rem;
+    min-height: 15rem;
+    padding: 1.15rem 1.5rem .9rem;
   }
+  .sg-hero-side .sg-player .sg-album-art { max-width: 9.5rem; margin-top: .35rem; margin-bottom: .1rem; }
+  .sg-hero-side .sg-player-wave { height: 24px; }
 }
 
 /* 播放器在副栏里要撑满整卡：五段（唱片 / 曲名歌手 / 歌词 / 进度 / 控制）space-between 分布，
@@ -3547,6 +3548,43 @@ html:not(.dark) .sg-heat-cell[data-level="4"] { background: #35616b; }
 
 .sg-archive-tags { margin-bottom: .25rem; }
 .sg-archive-tags .sg-filter-btn { cursor: pointer; }
+
+/* 知识档案标签对齐参考图（2026-11-16）：半透明玻璃大胶囊 + 衬线字 + 较大 gap。
+   作用域锁在 .sg-archive-toolbar，只影响「全部档案 / Leetcode / 题解…」这一排筛选条，
+   不动卡片正文里的 .sg-archive-tag 小标签，也不动其它页面的 .sg-filter-btn。
+   选择器两级 specificity 压过 editorial.css 的 .sg-filter-btn{font-family:sans}。 */
+.sg-archive-toolbar .sg-archive-tags { gap: .6rem; row-gap: .6rem; margin-bottom: .25rem; }
+.sg-archive-toolbar .sg-archive-tags .sg-filter-btn {
+  padding: .45rem 1rem;
+  min-height: 2.3rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sg-card-strong) 78%, transparent);
+  border: 1px solid var(--sg-border);
+  color: var(--sg-text);
+  font-family: var(--font-serif);
+  font-size: .9375rem;
+  font-weight: 500;
+  letter-spacing: .01em;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  transition: background-color .3s, color .3s, border-color .3s;
+}
+.sg-archive-toolbar .sg-archive-tags .sg-filter-btn:hover {
+  color: var(--sg-text);
+  background: color-mix(in srgb, var(--sg-card-strong) 94%, transparent);
+  border-color: var(--sg-accent-soft);
+}
+/* 选中态：蓝紫实底 + 白字，参考图的「全部档案」高亮。两级类 + .is-active 压过全局深青规则。 */
+.sg-archive-toolbar .sg-archive-tags .sg-filter-btn.is-active,
+html.dark .sg-archive-toolbar .sg-archive-tags .sg-filter-btn.is-active {
+  background: var(--sg-filter-active);
+  border-color: var(--sg-filter-active);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 2px 12px color-mix(in srgb, var(--sg-filter-active) 40%, transparent);
+}
+.sg-archive-toolbar .sg-archive-tags .sg-filter-count { opacity: .68; margin-left: .3rem; font-weight: 400; }
+.sg-archive-toolbar .sg-archive-tags .sg-filter-btn.is-active .sg-filter-count { opacity: .9; }
 
 .sg-archive-list {
   display: grid;

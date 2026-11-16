@@ -65,14 +65,8 @@ export function initArchive(): void {
 
   tagButtons.forEach((btn) => {
     btn.setAttribute('aria-pressed', btn.classList.contains('is-active') ? 'true' : 'false');
-    // 鼠标悬浮即可选择（2026-11-16）：仅鼠标/笔的 hover，触屏没有真实 hover，
-    // pointerType 为 touch 时不在这里切换，交给下面的 click 兜底，避免滚动误触。
-    btn.addEventListener('pointerenter', (event) => {
-      if (event.pointerType === 'mouse' || event.pointerType === 'pen') selectTag(btn);
-    });
-    // 键盘 Tab 聚焦也能选中，保持无障碍可达。
-    btn.addEventListener('focus', () => selectTag(btn));
-    // 触屏点击仍可用；鼠标点击同一标签是 no-op（selectTag 内已去重）。
+    // 点击才选中（2026-11-16 改回）：悬浮划过不再切换筛选，避免鼠标移动误触。
+    // button 元素天然支持 Enter/Space 触发 click，键盘无障碍不受影响。
     btn.addEventListener('click', () => selectTag(btn));
   });
 

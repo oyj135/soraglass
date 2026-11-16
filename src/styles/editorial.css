@@ -42,22 +42,25 @@ html.dark .sg-search-input {
 
 /* 封面有独立的图片区和文字区，长标题不再压在图上。 */
 .sg-main[data-sg-page="index"] > .sg-stack { gap: 2rem; }
+/* 2026-11-16 明显缩小档：封面 min-height 桌面 32→26rem、移动 26.25→22rem。
+   封面实际高度由右栏（个人卡+播放卡）经 grid stretch 决定，这里下调的是下限；
+   右栏两卡的压缩见 components.css 的主编区段，两处一起改才真正变矮。 */
 .sg-hero .sg-hero-cover {
-  min-height: 26.25rem;
+  min-height: 22rem;
   background: var(--sg-reading-surface);
   border-color: var(--sg-reading-border);
   box-shadow: var(--sg-shadow-reading);
 }
 @media (min-width: 1024px) {
-  .sg-hero .sg-hero-cover { min-height: 32rem; }
+  .sg-hero .sg-hero-cover { min-height: 26rem; }
 }
 .sg-hero-cover .sg-post-slide { display: grid; grid-template-rows: minmax(0, 1fr) auto; }
 .sg-slide-media { position: relative; display: block; min-height: 0; overflow: hidden; }
 .sg-hero-cover .sg-slide-cover { position: relative; display: block; inset: auto; }
 .sg-hero-cover .sg-slide-body {
   height: auto;
-  min-height: 14.25rem;
-  padding: 1.5rem 1.5rem 3.5rem;
+  min-height: 11rem;
+  padding: 1.25rem 1.5rem 3rem;
   color: var(--sg-text);
   justify-content: flex-start;
   transition: color var(--sg-dur-fast);
@@ -85,8 +88,8 @@ html.dark .sg-search-input {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
   overflow: hidden;
-  margin-bottom: .65rem;
-  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  margin-bottom: .5rem;
+  font-size: clamp(1.35rem, 2.1vw, 1.75rem);
   line-height: 1.4;
   letter-spacing: -.015em;
   overflow-wrap: anywhere;
@@ -96,11 +99,11 @@ html.dark .sg-search-input {
   max-width: none;
   margin-bottom: 0;
   color: var(--sg-muted);
-  font-size: .9375rem;
-  line-height: 1.75;
+  font-size: .875rem;
+  line-height: 1.7;
   -webkit-line-clamp: 2;
 }
-.sg-hero-cover .sg-dots { right: 1.5rem; bottom: 1.25rem; }
+.sg-hero-cover .sg-dots { right: 1.5rem; bottom: 1rem; }
 .sg-hero-cover .sg-dot { background: color-mix(in srgb, var(--sg-accent-ink) 28%, transparent); }
 .sg-hero-cover .sg-dot:is(:hover, .is-active) { background: var(--sg-accent-ink); }
 .sg-hero-cover .sg-slide-body:is(:hover, :focus-visible) .sg-slide-title { color: var(--sg-accent-ink); }
@@ -738,6 +741,20 @@ html.sg-readmode [data-sg-readmode-toggle] { color: var(--sg-accent-ink); border
 
 /* ---------- P1-11 导航「更多」下拉 ---------- */
 .sg-nav-more { position: relative; display: inline-flex; }
+
+/* 悬浮桥接（2026-11-16）：菜单定位在 top: calc(100% + .6rem)，按钮与菜单间
+   留了 0.6rem 空隙。没有这层透明桥，鼠标从按钮移向「友链/关于」时会穿过空隙、
+   脱离 .sg-nav-more 的 hover，菜单立刻收起 —— 看起来就像「只能点击展开」。
+   ::after 填满这段空隙并覆盖到菜单宽度，hover 连续，悬浮即可展开并选择；
+   不拦截指针、不影响点击/键盘兜底。 */
+.sg-nav-more::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: max(100%, 9rem);
+  height: .6rem;
+}
 
 .sg-nav-more-btn {
   display: inline-flex;

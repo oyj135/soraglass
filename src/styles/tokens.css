@@ -92,6 +92,7 @@
 
   --sg-purple: #9333ea;   /* 仅剩「分类彩标」在用（.is-purple），不参与主视觉 */
   --sg-pink: #db2777;     /* 同上；简报小圆点也用 */
+  --sg-filter-active: #5457c9; /* 知识档案标签选中：蓝紫实底压白字（参考图对齐），仅此一处 */
   --sg-green: #22c55e;    /* 状态绿：页脚「已稳定运行」的点，属语义色，不随签名色改 */
 
   --sg-glow-a: rgba(255, 255, 255, .40);
@@ -206,6 +207,7 @@ html.dark {
   --sg-ring-b: var(--sg-accent-soft);
   --sg-accent-deep: #a8d8db;                /* 暗色下 deep = 更强对比（不是更深） */
   --sg-accent-soft: #6fb0b6;                /* 压一档，用于弱化态，避免全站同一亮度没层次 */
+  --sg-filter-active: #6d70e0;             /* 暗色下蓝紫提亮一档，白字仍达 4.5:1 */
   --sg-scroll-thumb: color-mix(in srgb, var(--sg-accent-soft) 34%, transparent);
   --sg-scroll-thumb-hot: var(--sg-accent-soft);
 
