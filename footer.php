@@ -39,8 +39,20 @@ if ($sgName === '') {
 <?php $this->need('partials/toolbox.php'); ?>
 <?php $this->need('partials/rightside.php'); ?>
 
+<?php /* 右缘小猫滚动进度（2026-11-16 第三轮，对齐 Fomalhaut nekoScroll）：
+   竖绳高度 = 滚动进度 × 0.9 × 视口高，小猫挂绳尾；点绳/点猫回顶部；≤768px 隐藏。 */ ?>
+<div class="sg-neko-rope" data-sg-neko-rope aria-hidden="true"></div>
+<div class="sg-neko" data-sg-neko aria-hidden="true">
+  <img src="<?php echo sg_e(sg_theme_url('dist/img/neko.svg')); ?>" alt="" width="64" height="64">
+  <span class="sg-neko-msg" data-sg-neko-msg></span>
+</div>
+
 <audio data-sg-audio preload="metadata"></audio>
 <div class="sg-toast" data-sg-toast role="status" aria-live="polite"></div>
+<?php /* 访客统计（2026-11-16 第三轮，对齐 Fomalhaut 的 busuanzi 方案）：
+   异步加载计数镜像，回写 #busuanzi_value_site_uv / site_pv / page_pv；
+   加载失败时占位「—」保留，不阻塞页面也不伪造数字。 */ ?>
+<script async src="https://events.vercount.one/js"></script>
 <?php $this->footer(); ?>
 </body>
 </html>

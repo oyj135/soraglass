@@ -49,16 +49,20 @@ html.dark .sg-nav.is-front { background: transparent; border-bottom-color: trans
 .sg-front-img--dark { display: none; }
 html.dark .sg-front-img--light { display: none; }
 html.dark .sg-front-img--dark { display: block; }
-/* 遮罩：压暗图片保证白字可读，底部渐变过渡到正文底色 */
+/* 遮罩：压暗图片保证白字可读，底部渐变过渡到正文底色。
+   z 必须高于图片：图片是 z:auto 的定位元素，负 z 的遮罩会画到图片下面（2026-11-16 修复）。 */
 .sg-front-veil {
-  z-index: -1;
+  z-index: 1;
   background:
     linear-gradient(to bottom, rgba(6, 20, 24, .28) 0%, rgba(6, 20, 24, .34) 60%, rgba(6, 20, 24, .66) 100%),
     linear-gradient(to right, rgba(6, 20, 24, .18), rgba(6, 20, 24, .18));
 }
-/* 暗色壁纸本身已足够深，遮罩减到最轻，避免整屏糊成纯黑看不见图与标题 */
+/* 夜间首屏压暗（2026-11-16 第三轮）：用户反馈暗色下首屏太亮——
+   暗色壁纸未必真暗（可与日间同图），遮罩不再减到最轻，整体压到接近正文夜色。 */
 html.dark .sg-front-veil {
-  background: linear-gradient(to bottom, rgba(4, 12, 14, .12) 0%, rgba(4, 12, 14, .18) 65%, rgba(4, 12, 14, .55) 100%);
+  background:
+    linear-gradient(to bottom, rgba(3, 10, 12, .48) 0%, rgba(3, 10, 12, .55) 60%, rgba(3, 10, 12, .82) 100%),
+    linear-gradient(to right, rgba(3, 10, 12, .22), rgba(3, 10, 12, .22));
 }
 .sg-front-inner {
   position: relative;
@@ -79,10 +83,22 @@ html.dark .sg-front-veil {
 .sg-front-title-mark { display: inline-block; margin-left: .35em; font-size: .6em; opacity: .9; }
 .sg-front-sub {
   margin: 0;
+  min-height: 1.8em; /* 打字机清空文本时首屏不跳动 */
   font-size: clamp(.95rem, 2.4vw, 1.25rem);
   line-height: 1.8;
   opacity: .92;
 }
+.sg-front-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: .18em;
+  vertical-align: -.12em;
+  background: #fff;
+  animation: sg-front-caret 1s steps(2, start) infinite;
+}
+@keyframes sg-front-caret { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .sg-front-caret { animation: none; } }
 .sg-front-social { display: flex; flex-wrap: wrap; justify-content: center; gap: .85rem; margin-top: 1.75rem; }
 .sg-front-social-link {
   display: inline-flex;
@@ -147,17 +163,26 @@ html.dark .sg-front-veil {
 .sg-home-section-title { display: inline-flex; align-items: center; gap: .5rem; margin: 0; font-size: 1.25rem; font-weight: 700; }
 .sg-home-section-title svg { width: 1.15rem; height: 1.15rem; color: var(--sg-accent-ink); }
 
-/* 首页文章栅格：宽屏三栏小卡（对齐参考站 multicard），中屏两栏、窄屏单栏。
+/* 首页文章栅格：断点与卡尺寸对齐参考站 multicard.styl（≥1069 三栏 / 572–1068 两栏 / <572 单栏；
+   封面 200px + 信息区 150px，三栏档标题 19px 单行、元信息 13px）。
    卡片形态仍用已定稿的 .sg-feature-card（凸三角封面 + 引号摘要 + 图片区 hover 1.08）。 */
 .sg-home-grid { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr); align-items: stretch; }
-@media (min-width: 620px) { .sg-home-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (min-width: 1280px) {
+@media (min-width: 572px) { .sg-home-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1069px) {
   .sg-home-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  /* 三栏档标题单行、信息区更紧凑（参考站 ≥1069px 的行为） */
-  .sg-home-grid .sg-feature-title { -webkit-line-clamp: 1; font-size: 1.1rem; }
-  .sg-home-grid .sg-feature-body { min-height: 8.25rem; padding: .85rem 1rem 1rem; gap: .45rem; }
-  .sg-home-grid .sg-feature-quote { font-size: .9rem; margin: 0 1rem 1.4rem; }
+  .sg-home-grid .sg-feature-title { -webkit-line-clamp: 1; font-size: 1.1875rem; }
+  .sg-home-grid .sg-feature-body { min-height: 9.375rem; padding: .5rem 1.25rem .625rem; gap: .4rem; }
+  .sg-home-grid .sg-feature-meta,
+  .sg-home-grid .sg-feature-tags { font-size: .8125rem; }
+  .sg-home-grid .sg-feature-quote { font-size: .95rem; margin: 0 1.25rem 1.5rem; }
 }
+
+/* 相册 / 碎语各占整行（2026-11-16 第三轮）：行高自行控制，相册略高于碎语。 */
+.sg-home-stories { display: flex; flex-direction: column; gap: 1.25rem; margin-top: 0; }
+.sg-home-stories .sg-poster-wide { min-height: 12rem; }
+@media (min-width: 768px) { .sg-home-stories .sg-poster-wide { min-height: 16rem; } }
+.sg-home-stories .sg-chatter { min-height: 11rem; }
+@media (min-width: 768px) { .sg-home-stories .sg-chatter { min-height: 12.5rem; } }
 
 /* ---------- 右侧卡片公共外壳（对齐文章页 .sg-side-card 的玻璃材质） ---------- */
 .sg-hcard {
@@ -232,3 +257,8 @@ a.sg-hinfo-kpi-item:hover { background: var(--sg-line); }
 .sg-hinfo-bar-track { flex: 1; width: 100%; max-width: 1.4rem; display: flex; align-items: flex-end; }
 .sg-hinfo-bar-track i { display: block; width: 100%; border-radius: .3rem .3rem .15rem .15rem; background: linear-gradient(to top, var(--sg-accent), var(--sg-accent-soft)); }
 .sg-hinfo-bar-y { font-family: var(--font-sans); font-size: .6rem; color: var(--sg-faint); }
+/* 访客位（对齐 Fomalhaut .wi-visit）：两位大数字 + 标签，busuanzi 回写前显示 — */
+.sg-hinfo-visit { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; margin-top: .85rem; padding-top: .8rem; border-top: 1px solid var(--sg-line); }
+.sg-hinfo-visit-item { display: flex; flex-direction: column; align-items: center; gap: .25rem; padding: .55rem .2rem; border-radius: .6rem; background: var(--sg-chip); }
+.sg-hinfo-visit-num { font-size: 1.35rem; font-weight: 700; line-height: 1.1; color: var(--sg-accent-ink); font-variant-numeric: tabular-nums; }
+.sg-hinfo-visit-label { font-family: var(--font-sans); font-size: .66rem; color: var(--sg-muted); }

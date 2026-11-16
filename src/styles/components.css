@@ -317,6 +317,58 @@ html.sg-lock, html.sg-lock body { overflow: hidden; }
 }
 @keyframes sg-pace-gradient { 0% { background-position: 0 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
 
+/* ---------- 右缘小猫滚动进度（对齐 Fomalhaut nekoScroll：竖绳 + 绳尾小猫 + 时间气泡） ----------
+   放在右侧按钮组（right 1.5rem，宽约 2.5rem）左侧，互不遮挡；z 低于按钮组。 */
+.sg-neko-rope {
+  position: fixed;
+  top: 0;
+  right: 76px;
+  width: 6px;
+  height: 0;
+  z-index: 80;
+  border-radius: 2em;
+  background-color: color-mix(in srgb, var(--sg-accent-deep) 72%, transparent);
+  background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, .16) 0 5px, transparent 5px 10px);
+  cursor: pointer;
+}
+.sg-neko {
+  position: fixed;
+  top: -100px;
+  right: 79px;
+  width: 64px;
+  height: 64px;
+  transform: translateX(50%);
+  z-index: 85;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .3s var(--sg-ease);
+  filter: drop-shadow(0 3px 6px rgba(10, 26, 24, .28));
+}
+.sg-neko.is-on { opacity: 1; }
+.sg-neko img { display: block; width: 100%; height: 100%; }
+.sg-neko-msg {
+  position: absolute;
+  top: 50%;
+  right: calc(100% + .35rem);
+  transform: translateY(-50%) scale(.85);
+  padding: .3rem .6rem;
+  border-radius: .6rem;
+  border: 1px solid var(--sg-line);
+  background: var(--sg-card-strong);
+  color: var(--sg-accent-ink);
+  font-family: var(--font-sans);
+  font-size: .72rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  box-shadow: var(--sg-shadow-soft);
+  opacity: 0;
+  transition: opacity .25s var(--sg-ease), transform .25s var(--sg-ease);
+}
+.sg-neko.is-hover .sg-neko-msg,
+.sg-neko.is-bottom .sg-neko-msg { opacity: 1; transform: translateY(-50%) scale(1); }
+@media (max-width: 768px) { .sg-neko, .sg-neko-rope { display: none; } }
+@media (prefers-reduced-motion: reduce) { .sg-neko, .sg-neko-msg { transition: none; } }
+
 /* ---------- 搜索 ---------- */
 .sg-search {
   position: relative;
@@ -1230,8 +1282,6 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
   padding: 0;
   transition: transform var(--sg-dur-card) var(--sg-ease), box-shadow var(--sg-dur-card) var(--sg-ease);
 }
-.sg-post-carousel:hover { transform: scale(var(--sg-lift-sm)); box-shadow: var(--sg-shadow-strong); }
-
 /* 0.8s 与 carousel.ts 的 FADE 常量一致：退场播完才挂 is-active，两张图不会同时可见 */
 .sg-post-slide { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity .8s; }
 .sg-post-slide.is-active { opacity: 1; pointer-events: auto; }
@@ -1279,8 +1329,6 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
 }
 
 .sg-slide-title { font-size: 1.5rem; font-weight: 700; line-height: 1.35; margin-bottom: .5rem; transition: transform .3s; }
-.sg-post-slide:hover .sg-slide-title { transform: translateY(-4px); }
-
 .sg-slide-desc {
   font-size: .875rem;
   color: #d1d5db;
@@ -1385,8 +1433,6 @@ button.sg-progress:hover { background: var(--sg-indicator-bg-hot); }
     box-shadow var(--sg-dur-card) var(--sg-ease);
 }
 
-.sg-poster-wide:hover { transform: scale(var(--sg-lift-sm)); box-shadow: var(--sg-shadow-strong); }
-
 .sg-poster-wide img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .9; transition: transform var(--sg-dur-card) var(--sg-ease); }
 .sg-poster-wide:hover img { transform: scale(var(--sg-thumb-zoom)); }
 .sg-poster-wide .sg-veil { position: absolute; inset: 0; background: rgba(0, 0, 0, .30); transition: background-color .5s; }
@@ -1426,7 +1472,6 @@ html.dark .sg-poster-wide .sg-veil { background: rgba(0, 0, 0, .50); }
     transform var(--sg-dur-card) var(--sg-ease),
     box-shadow var(--sg-dur-card) var(--sg-ease);
 }
-.sg-chatter:hover { transform: scale(var(--sg-lift-sm)); box-shadow: var(--sg-shadow-strong); }
 .sg-chatter img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .80; transition: transform var(--sg-dur-card) var(--sg-ease); }
 .sg-chatter:hover img { transform: scale(var(--sg-thumb-zoom)); }
 .sg-chatter .sg-veil { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0, 0, 0, .80), rgba(0, 0, 0, .40) 55%, rgba(0, 0, 0, .10)); }
@@ -1502,40 +1547,6 @@ html.dark .sg-poster-wide .sg-veil { background: rgba(0, 0, 0, .50); }
 
 .sg-chatter-link:hover { color: #c7d2fe; transform: translateX(3px); }
 .sg-chatter-link svg { width: 14px; height: 14px; }
-
-/* ---------- 昼夜切换卡 ---------- */
-.sg-theme-block {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 7.5rem;
-  padding: 1.5rem;
-  text-align: center;
-  border: 1px solid var(--sg-border);
-  transition: transform var(--sg-dur-card) var(--sg-ease), background-color 1s, border-color 1s;
-}
-
-.sg-theme-block:hover { transform: scale(var(--sg-lift)); }
-
-.sg-theme-orb {
-  position: relative;
-  width: 5rem;
-  height: 5rem;
-  margin-bottom: .75rem;
-  border-radius: 50%;
-  overflow: hidden;
-  box-shadow: inset 0 2px 8px rgba(0, 0, 0, .15);
-}
-
-.sg-theme-orb span { position: absolute; inset: 0; display: grid; place-items: center; font-size: 1.625rem; transition: transform .7s, opacity .7s; }
-.sg-orb-light { background: linear-gradient(to top right, #e9dcc0, #f7f3e8); }
-.sg-orb-dark { background: linear-gradient(to top right, #17434a, #1a2c30); }
-html.dark .sg-orb-light { transform: translateY(-100%); opacity: 0; }
-html:not(.dark) .sg-orb-dark { transform: translateY(100%); opacity: 0; }
-
-.sg-theme-title { font-size: 1.125rem; font-weight: 700; }
-.sg-theme-sub { margin-top: .25rem; font-size: .8rem; color: var(--sg-muted); }
 
 /* 昼夜图标：同一按钮内放日月两枚 SVG，由 html.dark 切换显隐 */
 .sg-i-moon { display: none; }
@@ -2054,7 +2065,7 @@ html.dark .sg-i-moon { display: inline-flex; }
   width: 100%;
   min-height: 20rem;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   overflow: hidden;
   background: linear-gradient(135deg, var(--sg-accent-deep), #16343a);
 }
@@ -2078,13 +2089,14 @@ html.dark .sg-i-moon { display: inline-flex; }
   width: 100%;
   max-width: 46rem;
   margin-inline: auto;
-  padding: 3.5rem 1.5rem 4.5rem;
+  padding: 3.5rem 1.5rem 5.5rem;
   color: var(--sg-hero-ink);
+  text-align: center;
 }
-@media (min-width: 768px) { .sg-post-hero-inner { padding: 4.5rem 3rem 5.5rem; } }
+@media (min-width: 768px) { .sg-post-hero-inner { padding: 4.5rem 3rem 7rem; } }
 
 .sg-post-hero-title {
-  margin: 0 0 1.5rem;
+  margin: 0 0 1.25rem;
   font-size: clamp(1.75rem, 4vw, 2.75rem);
   font-weight: 700;
   line-height: 1.35;
@@ -2093,50 +2105,52 @@ html.dark .sg-i-moon { display: inline-flex; }
   overflow-wrap: anywhere;
   text-shadow: 0 2px 18px rgba(0, 0, 0, .45);
 }
-.sg-meta--hero,
-.sg-meta--hero-tags { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .6rem; }
-.sg-meta--hero-tags { margin-top: .85rem; }
 
-.sg-meta--hero .sg-meta-chip,
-.sg-meta--hero-tags .sg-meta-chip {
-  padding: .34rem .7rem;
-  border: 1px solid var(--sg-hero-chip-line);
-  border-radius: 999px;
-  background: var(--sg-hero-chip-bg);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  color: var(--sg-hero-ink);
-  font-size: .75rem;
-  font-weight: 500;
-  letter-spacing: 0;
-  line-height: 1.4;
+/* 双行元信息（对齐 Fomalhaut post-meta：纯文本 + 图标 + 竖线，不再用胶囊） */
+.sg-post-hero-meta { display: flex; flex-direction: column; align-items: center; gap: .55rem; }
+.sg-post-meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: .35rem .6rem;
+  font-family: var(--font-sans);
+  font-size: .8125rem;
+  line-height: 1.5;
+  color: var(--sg-hero-ink-soft);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, .4);
 }
-.sg-meta--hero .sg-meta-chip svg,
-.sg-meta--hero-tags .sg-meta-chip svg { width: .9rem; height: .9rem; opacity: 1; }
-.sg-meta-chip--pin svg { color: var(--sg-hero-ic-update); }
-.sg-meta-chip--date svg { color: var(--sg-hero-ic-date); }
-.sg-meta-chip--updated svg { color: var(--sg-hero-ic-update); }
-.sg-meta-chip--cate svg { color: var(--sg-hero-ic-cate); }
-.sg-meta-chip--stat svg { color: var(--sg-hero-ic-stat); }
-/* 竖线分隔：只在相邻两项之间出现，窄屏自动让位 */
-.sg-meta-sep { width: 1px; height: .85rem; background: var(--sg-hero-sep); flex: none; }
-@media (max-width: 571.98px) { .sg-meta-sep { display: none; } }
-/* 压在头图上的标签胶囊沿用 is-pink，但要覆盖亮色档的前景色 */
-.sg-meta--hero-tags .sg-meta-chip.is-pink { color: var(--sg-hero-ink-soft); }
-.sg-meta--hero-tags .sg-tag-link { color: inherit; text-decoration: none; }
+.sg-post-meta-item { display: inline-flex; align-items: center; gap: .35rem; }
+.sg-post-meta-item svg { width: .9rem; height: .9rem; flex: none; }
+.sg-post-meta-pin { color: var(--sg-hero-ic-update); }
+.sg-post-meta-cate { color: inherit; text-decoration: none; border-bottom: 1px dashed transparent; transition: color .25s, border-color .25s; }
+.sg-post-meta-cate:hover { color: var(--sg-hero-ink); border-bottom-color: currentColor; }
+.sg-post-meta-sep { opacity: .45; }
+@media (max-width: 571.98px) { .sg-post-meta-sep { display: none; } }
 
-/* 波浪过渡：用 mask 把实底阅读色裁成双波峰，盖在封面底缘，接住正文卡 */
-.sg-post-hero-wave {
+/* 四层白色海浪（2026-11-16 第三轮，逐参数对齐 Fomalhaut gentle-wave）：
+   同一条 path 叠四层，透明度递减 + 错相位横移，最下一层实底接住正文阅读面；
+   夜间隐藏（源站 [data-theme=dark] 同做法），减少动效时静止。 */
+.sg-post-hero-waves {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -1px;
-  height: 3.25rem;
+  bottom: -11px;
   z-index: 0;
-  background: var(--sg-reading-surface);
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 100' preserveAspectRatio='none'%3E%3Cpath d='M0,52 C240,96 480,8 720,44 C960,80 1200,16 1440,52 L1440,100 L0,100 Z'/%3E%3C/svg%3E") center bottom / 100% 100% no-repeat;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 100' preserveAspectRatio='none'%3E%3Cpath d='M0,52 C240,96 480,8 720,44 C960,80 1200,16 1440,52 L1440,100 L0,100 Z'/%3E%3C/svg%3E") center bottom / 100% 100% no-repeat;
+  height: 5rem;
+  pointer-events: none;
 }
+@media (max-width: 768px) { .sg-post-hero-waves { height: 40px; } }
+.sg-waves-svg { display: block; width: 100%; height: 100%; }
+.sg-waves-parallax > use { animation: sg-wave-move 25s cubic-bezier(.55, .5, .45, .5) infinite; }
+.sg-waves-parallax > use:nth-child(1) { fill: color-mix(in srgb, var(--sg-reading-surface) 74%, transparent); animation-delay: -2s; animation-duration: 7s; }
+.sg-waves-parallax > use:nth-child(2) { fill: color-mix(in srgb, var(--sg-reading-surface) 51%, transparent); animation-delay: -3s; animation-duration: 10s; }
+.sg-waves-parallax > use:nth-child(3) { fill: color-mix(in srgb, var(--sg-reading-surface) 21%, transparent); animation-delay: -4s; animation-duration: 13s; }
+.sg-waves-parallax > use:nth-child(4) { fill: var(--sg-reading-surface); animation-delay: -5s; animation-duration: 20s; }
+@keyframes sg-wave-move { 0% { transform: translate3d(-90px, 0, 0); } 100% { transform: translate3d(85px, 0, 0); } }
+html.dark .sg-post-hero-waves { display: none; }
+@media (prefers-reduced-motion: reduce) { .sg-waves-parallax > use { animation: none; } }
+
 html.dark .sg-post-hero-scrim {
   background: linear-gradient(to top, rgba(4, 16, 18, .92) 0%, rgba(6, 22, 25, .66) 42%, rgba(8, 28, 31, .3) 100%);
 }
@@ -2359,14 +2373,12 @@ html.dark .sg-filter-btn.is-active {
 }
 
 .sg-project:hover {
-  transform: translateY(-4px) scale(var(--sg-lift));
   border-color: var(--sg-proj-border-hot);
   box-shadow: var(--sg-shadow-strong);
 }
 
 /* 键盘可达：Tab 到整卡链接时给同样的反馈，不然只有鼠标能用 */
 .sg-project:focus-within {
-  transform: translateY(-4px) scale(var(--sg-lift));
   border-color: var(--sg-proj-border-hot);
   box-shadow: var(--sg-shadow-strong);
 }
@@ -2575,7 +2587,6 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
     transform var(--sg-dur-card) var(--sg-ease),
     box-shadow var(--sg-dur-card) var(--sg-ease);
 }
-.sg-note:hover { transform: translateY(-4px) scale(var(--sg-lift)); box-shadow: var(--sg-shadow-strong); }
 .sg-note time { font-size: 11px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .05em; color: var(--sg-faint); }
 .sg-note h3 { font-size: 1.1rem; }
 .sg-note p { font-size: .9rem; line-height: 1.8; color: var(--sg-muted); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
@@ -3004,8 +3015,6 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
     transform var(--sg-dur-card) var(--sg-ease),
     box-shadow var(--sg-dur-card) var(--sg-ease);
 }
-.sg-post-card:hover { transform: translateY(-4px) scale(var(--sg-lift)); box-shadow: var(--sg-shadow-strong); }
-
 .sg-thumb { display: block; overflow: hidden; aspect-ratio: 16 / 9; background: rgba(148, 163, 184, .15); }
 .sg-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform var(--sg-dur-card) var(--sg-ease); }
 .sg-post-card:hover .sg-thumb img { transform: scale(var(--sg-thumb-zoom)); }
@@ -3366,8 +3375,6 @@ html.dark .sg-footer-rule { border-top-color: rgba(226, 232, 240, .18); }
     transform var(--sg-dur-card) var(--sg-ease),
     box-shadow var(--sg-dur-card) var(--sg-ease);
 }
-.sg-term-card:hover { transform: translateY(-4px) scale(var(--sg-lift)); box-shadow: var(--sg-shadow-strong); }
-
 .sg-term-card-top { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
 .sg-term-card-name { font-size: 1.1rem; font-weight: 700; }
 .sg-term-card-arrow { display: flex; color: var(--sg-muted); transition: transform .3s, color .3s; }
@@ -3932,8 +3939,6 @@ html.dark .sg-archive-toolbar .sg-archive-tags .sg-filter-btn.is-active {
     transform var(--sg-dur-card) var(--sg-ease),
     box-shadow var(--sg-dur-card) var(--sg-ease);
 }
-.sg-archive-card:hover { transform: translateY(-4px) scale(var(--sg-lift)); box-shadow: var(--sg-shadow-strong); }
-
 .sg-archive-cover { display: block; aspect-ratio: 16 / 9; overflow: hidden; background: rgba(148, 163, 184, .15); }
 .sg-archive-cover img { width: 100%; height: 100%; object-fit: cover; transition: transform var(--sg-dur-card) var(--sg-ease); }
 .sg-archive-card:hover .sg-archive-cover img { transform: scale(var(--sg-thumb-zoom)); }
@@ -4055,53 +4060,10 @@ html.dark .sg-archive-tag { color: var(--sg-accent-soft); }
    给个下限，至少还看得出是相片卡。正常图片有自己的比例，不受影响。 */
 .sg-gallery-masonry .sg-photo img { height: auto; min-height: 8rem; }
 
-/* ---------- 首页卡片统一手感（2026-11-12 第二轮） ----------
-   上一轮把缩放定在 1.5%，实测几乎看不出来，用户反馈「还是没效果」。
-   这里给所有挂了 data-sg-hover 的卡片一份显式契约：
-   上浮 6px + 放大 2% + 阴影加深 + 封面再放大 6%，320ms 同一条缓动。
-   只动 transform / box-shadow，不参与布局，所以不会挤动相邻卡片。 */
-.sg-glass[data-sg-hover],
-.sg-poster-wide[data-sg-hover],
-.sg-briefing,
-.sg-theme-block {
-  transition:
-    transform var(--sg-dur-card) var(--sg-ease),
-    box-shadow var(--sg-dur-card) var(--sg-ease),
-    background-color 1s,
-    border-color 1s;
-}
-
-.sg-glass[data-sg-hover]:hover,
-.sg-briefing:hover,
-.sg-theme-block:hover {
-  transform: translateY(var(--sg-nudge)) scale(var(--sg-lift));
-  box-shadow: var(--sg-shadow-strong);
-}
-
-.sg-poster-wide[data-sg-hover]:hover {
-  transform: translateY(var(--sg-nudge-sm)) scale(var(--sg-lift-sm));
-  box-shadow: var(--sg-shadow-strong);
-}
-
-/* 轮播类卡片：放大比例收一点，避免整块盖住邻居 */
-.sg-post-carousel[data-sg-hover]:hover,
-.sg-chatter[data-sg-hover]:hover {
-  transform: translateY(var(--sg-nudge-sm)) scale(var(--sg-lift-sm));
-}
-
-/* 键盘可达：Tab 到卡片里的链接时也给同样的反馈 */
-.sg-glass[data-sg-hover]:focus-within,
-.sg-poster-wide[data-sg-hover]:focus-visible {
-  transform: translateY(var(--sg-nudge-sm)) scale(var(--sg-lift-sm));
-  box-shadow: var(--sg-shadow-strong);
-}
-
-/* 按下时回收一点，给出「按到了」的确认感 */
-.sg-glass[data-sg-hover]:active,
-.sg-poster-wide[data-sg-hover]:active {
-  transform: translateY(-1px) scale(.995);
-  transition-duration: .1s;
-}
+/* ---------- 首页卡片手感（2026-11-16 第三轮收敛） ----------
+   用户反馈「部分卡片悬浮还是有动画」：卡片本体的上浮/缩放全部移除，
+   只保留封面图区域内的放大（第二轮明确要的）与按下时的轻微回收。
+   昼夜配色过渡由 .sg-glass 基础 transition 负责，这里不再叠加。 */
 
 /* 海报左上角的小标签：源站没有，但能让「这张卡是什么」一眼可读 */
 .sg-poster-kicker {
@@ -4224,7 +4186,6 @@ html.dark .sg-about-title h1 {
 .sg-friend,
 .sg-project,
 .sg-poster-wide,
-.sg-theme-block,
 .sg-slide-body,
 .sg-chatter-body {
   -webkit-tap-highlight-color: transparent;
@@ -4235,8 +4196,7 @@ html.dark .sg-about-title h1 {
 .sg-poster-wide:active { transform: scale(.99); transition-duration: .08s; }
 .sg-note:active,
 .sg-friend:active,
-.sg-project:active,
-.sg-theme-block:active { transform: translateY(-1px) scale(.99); transition-duration: .08s; }
+.sg-project:active { transform: translateY(-1px) scale(.99); transition-duration: .08s; }
 .sg-slide-body:active,
 .sg-chatter-body:active { transform: scale(.985); transition: transform .08s; }
 
@@ -4264,21 +4224,6 @@ html.dark .sg-about-title h1 {
 
   /* 缩到 .01ms 仍会「跳一下」，这里直接把位移与缩放全部取消。
      指针聚光边是纯透明度变化，保留不影响前庭敏感。 */
-  .sg-post-card:hover,
-  .sg-term-card:hover,
-  .sg-note:hover,
-  .sg-project:hover,
-  .sg-project:focus-within,
-  .sg-friend:hover,
-  .sg-theme-block:hover,
-  .sg-poster-wide:hover,
-  .sg-chatter:hover,
-  .sg-post-carousel:hover,
-  .sg-archive-card:hover,
-  .sg-briefing:hover,
-  .sg-glass[data-sg-hover]:hover,
-  .sg-glass[data-sg-hover]:focus-within,
-  .sg-poster-wide[data-sg-hover]:hover,
   .sg-post-card:hover .sg-thumb img,
   .sg-photo:hover img,
   .sg-post-slide:hover .sg-slide-cover,
@@ -4483,8 +4428,6 @@ html.dark .sg-px-month {
   background: rgba(30, 42, 50, .66);
   color: var(--sg-fg);
 }
-
-.sg-px-month:hover { transform: translateY(-2px); }
 
 .sg-px-month img {
   width: 2.1rem;

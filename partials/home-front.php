@@ -24,7 +24,7 @@ $sgFrontSocial = sg_json('sgSocial', 'social', []);
   </div>
   <div class="sg-front-inner">
     <h1 class="sg-front-title"><?php echo sg_e($sgFrontName); ?><span class="sg-front-title-mark">· <?php echo sg_e($sgFrontAfter); ?></span></h1>
-    <?php if ($sgFrontSub !== '') : ?><p class="sg-front-sub"><?php echo sg_e($sgFrontSub); ?></p><?php endif; ?>
+    <?php if ($sgFrontSub !== '') : ?><p class="sg-front-sub" data-sg-typewriter="<?php echo sg_e($sgFrontSub); ?>"><?php echo sg_e($sgFrontSub); ?></p><?php endif; ?>
     <?php if ($sgFrontSocial) : ?>
     <div class="sg-front-social">
       <?php foreach ($sgFrontSocial as $sgFrontItem) : ?>

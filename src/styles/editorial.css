@@ -41,7 +41,7 @@ html.dark .sg-search-input {
 .sg-search-clear:hover { color: var(--sg-accent-ink); background: var(--sg-chip); }
 
 /* 封面有独立的图片区和文字区，长标题不再压在图上。 */
-.sg-main[data-sg-page="index"] > .sg-stack { gap: 2rem; }
+.sg-main[data-sg-page="index"] > .sg-stack { gap: 1.25rem; }
 /* 2026-11-16 再缩一档：封面 min-height 桌面 26→21rem、移动 22→18rem。
    封面实际高度由右栏（个人卡+播放卡）经 grid stretch 决定，这里下调的是下限；
    右栏两卡的压缩见 components.css 的主编区段，两处一起改才真正变矮。 */
@@ -107,9 +107,7 @@ html.dark .sg-search-input {
 .sg-hero-cover .sg-dot { background: color-mix(in srgb, var(--sg-accent-ink) 28%, transparent); }
 .sg-hero-cover .sg-dot:is(:hover, .is-active) { background: var(--sg-accent-ink); }
 .sg-hero-cover .sg-slide-body:is(:hover, :focus-visible) .sg-slide-title { color: var(--sg-accent-ink); }
-.sg-hero-cover .sg-post-slide:hover .sg-slide-title,
 .sg-hero-cover .sg-slide-body:active { transform: none; }
-.sg-hero-cover[data-sg-hover]:is(:hover, :focus-within, :active) { transform: none; box-shadow: var(--sg-shadow-reading); }
 .sg-hero-cover .sg-post-slide:hover .sg-slide-cover { transform: scale(1.025); }
 .sg-hero-cover .sg-slide-body:focus-visible { outline-offset: -4px; }
 
@@ -118,13 +116,8 @@ html.dark .sg-search-input {
 .sg-hero-side .sg-profile-foot { padding-top: 1rem; border-top: 1px solid var(--sg-line); }
 .sg-hero-side .sg-stat-num { font-size: 1.25rem; }
 .sg-hero-side .sg-stat-label { font-size: .6875rem; letter-spacing: 0; }
-.sg-hero-side .sg-profile[data-sg-hover]:is(:hover, :focus-within, :active),
-.sg-hero-side .sg-player-card[data-sg-hover]:is(:hover, :focus-within, :active) { transform: none; }
-.sg-home-stories { margin-top: .75rem; }
+.sg-home-stories { margin-top: 0; }
 .sg-main[data-sg-page="index"] .sg-briefing { margin-top: var(--sg-space-section); }
-.sg-main[data-sg-page="index"] .sg-briefing:hover { transform: none; }
-.sg-home-stories .sg-poster-wide[data-sg-hover]:is(:hover, :focus-visible, :active),
-.sg-home-stories .sg-chatter[data-sg-hover]:is(:hover, :focus-within, :active) { transform: none; }
 
 /* 实底阅读面：原生归档与文章共用，边框 / 阴影均从 token 派生。 */
 .sg-reading-surface,
@@ -226,7 +219,6 @@ html.dark .sg-search-input {
 html.dark .sg-nav { background: var(--sg-card); border-bottom-color: var(--sg-reading-border); }
 .sg-filter-btn { min-height: 2.25rem; font-family: var(--font-sans); font-weight: 500; }
 .sg-project-meta { line-height: 1.8; }
-.sg-project:is(:hover, :focus-within), .sg-friend:hover { transform: translateY(-2px); }
 .sg-project:active, .sg-friend:active { transform: translateY(-1px); }
 .sg-social[title] { position: relative; }
 .sg-social[title]::after {
@@ -295,25 +287,8 @@ html.dark .sg-nav { background: var(--sg-card); border-bottom-color: var(--sg-re
 /* ---------- 文章元信息 ---------- */
 .sg-article.sg-reading-surface .sg-meta { gap: .5rem .75rem; }
 .sg-article.sg-reading-surface .sg-meta-chip svg { width: .8125rem; height: .8125rem; }
-/* 头图里的元信息压在深青遮罩上：旧规则 .sg-article.sg-reading-surface .sg-meta-chip 的
-   color:var(--sg-muted) 特异性更高，亮色下会把白字压成深灰看不见。这里用同等上下文 + 更多类
-   把 hero 内的胶囊锁定为浅字 + 分色图标，正文区（.sg-article-body）的元信息不受影响。 */
-.sg-article.sg-reading-surface .sg-meta--hero .sg-meta-chip,
-.sg-article.sg-reading-surface .sg-meta--hero-tags .sg-meta-chip {
-  padding: .34rem .7rem;
-  border: 1px solid var(--sg-hero-chip-line);
-  background: var(--sg-hero-chip-bg);
-  color: var(--sg-hero-ink);
-  font-size: .75rem;
-  font-weight: 500;
-}
-.sg-article.sg-reading-surface .sg-meta--hero-tags .sg-meta-chip.is-pink { color: var(--sg-hero-ink-soft); }
-.sg-article.sg-reading-surface .sg-meta--hero-tags .sg-tag-link { color: inherit; }
-.sg-article.sg-reading-surface .sg-meta--hero .sg-meta-chip--pin svg { color: var(--sg-hero-ic-update); }
-.sg-article.sg-reading-surface .sg-meta--hero .sg-meta-chip--date svg { color: var(--sg-hero-ic-date); }
-.sg-article.sg-reading-surface .sg-meta--hero .sg-meta-chip--updated svg { color: var(--sg-hero-ic-update); }
-.sg-article.sg-reading-surface .sg-meta--hero .sg-meta-chip--cate svg { color: var(--sg-hero-ic-cate); }
-.sg-article.sg-reading-surface .sg-meta--hero .sg-meta-chip--stat svg { color: var(--sg-hero-ic-stat); }
+/* 标签从头图移到正文末尾（2026-11-16 第三轮，对齐源站 post 底部 tag 区） */
+.sg-article-tags { margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--sg-line); }
 
 /* ---------- 上下篇：参考 Fomalhaut 的图文横幅 ---------- */
 .sg-post-nav {
@@ -497,8 +472,11 @@ html.dark .sg-nav { background: var(--sg-card); border-bottom-color: var(--sg-re
   border-top: 1px solid var(--sg-line);
 }
 
-/* ---------- 侧栏粘性组与目录 ---------- */
-.sg-aside-sticky {
+/* ---------- 侧栏整列吸顶与目录（2026-11-16 第三轮） ----------
+   作者卡 + 公告 + 目录同属一根吸顶列：下滑时作者卡不再滑走；
+   不设 max-height / overflow，公告与目录全文展示。
+   列比视口还高时 article.ts 把 top 改成底对齐，保证目录尾部够得着。 */
+.sg-aside-pin {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -507,12 +485,9 @@ html.dark .sg-nav { background: var(--sg-card); border-bottom-color: var(--sg-re
 @media (min-width: 1024px) {
   .sg-aside { align-self: stretch; }
 
-  .sg-aside-sticky {
+  .sg-aside-pin {
     position: sticky;
-    top: 7rem;
-    max-height: calc(100vh - 8rem);
-    overflow: auto;
-    overscroll-behavior: contain;
+    top: 5.5rem;
   }
 
   .sg-toc {

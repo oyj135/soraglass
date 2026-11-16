@@ -57,7 +57,7 @@ if ($sgView !== '') {
     </div>
   </article>
   <aside class="sg-aside">
-    <div class="sg-aside-sticky">
+    <div class="sg-aside-pin" data-sg-aside-pin>
       <?php $this->need('sidebar.php'); ?>
       <?php $this->need('partials/toc.php'); ?>
     </div>

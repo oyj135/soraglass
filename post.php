@@ -51,8 +51,8 @@ try {
     $sgUpdatedAgo = '';
 }
 /* 头图元信息（参考 Fomalhaut post-info 的信息完整度）：
-   发表于 / 更新于走相对时间；字数与阅读时长复用正文统计；阅读量是可选自定义字段 views，
-   没装计数插件时不显示，绝不伪造数字。 */
+   发表于 / 更新于走相对时间；字数与阅读时长复用正文统计；阅读量优先自定义字段 views，
+   没有时交给页脚 busuanzi 镜像回写 #busuanzi_value_page_pv，加载失败保留占位「—」。 */
 $sgPostedAgo = sg_time_ago((int) $this->created);
 $sgViews = sg_field($this, 'views', '');
 $sgSticky = (int) $this->sticky > 0;
@@ -62,46 +62,59 @@ $sgNext = sg_adjacent_post($this, 'next');
 ?>
 <main id="sg-main" class="sg-main sg-article-layout" data-sg-page="post" data-sg-origin="<?php echo $sgIsNote ? 'note' : 'article'; ?>">
   <article class="sg-glass sg-article sg-reading-surface">
-    <?php /* 参考 Fomalhaut：标题 + 元信息压在封面 Banner 上，底部波浪过渡到正文。
-           颜色用青瓷 token + 深青遮罩，保持 Soraglass 材质，不照搬源站蓝。 */ ?>
+    <?php /* 参考 Fomalhaut post-info（2026-11-16 第三轮重排）：标题居中压封面，
+           元信息分两行——第一行 发表于/更新于/分类，第二行 字数总计/阅读时长/阅读量；
+           底部四层白色海浪过渡到正文（夜间隐藏，同源站）。标签移到正文末尾。 */ ?>
     <header class="sg-post-hero">
       <img class="sg-post-hero-cover" src="<?php echo sg_e(sg_cover($this)); ?>" alt="" aria-hidden="true">
       <span class="sg-post-hero-scrim" aria-hidden="true"></span>
       <div class="sg-post-hero-inner">
         <h1 class="sg-post-hero-title"><?php echo sg_e($sgArticleTitle !== '' ? $sgArticleTitle : '未命名文章'); ?></h1>
-        <div class="sg-meta sg-meta--hero">
-          <?php if ($sgSticky) : ?>
-          <span class="sg-meta-chip sg-meta-chip--pin" title="置顶"><?php echo sg_icon('bookmark'); ?>置顶</span>
-          <span class="sg-meta-sep" aria-hidden="true"></span>
-          <?php endif; ?>
-          <time class="sg-meta-chip sg-meta-chip--date" datetime="<?php $this->date('c'); ?>" title="<?php $this->date('Y-m-d H:i'); ?>"><?php echo sg_icon('calendar'); ?>发表于 <?php echo sg_e($sgPostedAgo !== '' ? $sgPostedAgo : $this->date('Y-m-d')); ?></time>
-          <?php if ($sgUpdated !== '') : ?>
-          <span class="sg-meta-sep" aria-hidden="true"></span>
-          <span class="sg-meta-chip sg-meta-chip--updated" title="更新于 <?php echo sg_e($sgUpdated); ?>"><?php echo sg_icon('history'); ?>更新于 <?php echo sg_e($sgUpdatedAgo !== '' ? $sgUpdatedAgo : $sgUpdated); ?></span>
-          <?php endif; ?>
-          <?php foreach ($sgCats as $sgCat) : ?>
-          <span class="sg-meta-sep" aria-hidden="true"></span>
-          <a class="sg-meta-chip sg-meta-chip--cate" href="<?php echo sg_e($sgCat['permalink']); ?>"><?php echo sg_icon('folder'); ?><?php echo sg_e($sgCat['name']); ?></a>
-          <?php endforeach; ?>
-          <?php if ($sgRead['chars'] > 0) : ?>
-          <span class="sg-meta-sep" aria-hidden="true"></span>
-          <span class="sg-meta-chip sg-meta-chip--stat"><?php echo sg_icon('book-open'); ?>字数 <?php echo sg_e($sgRead['text']); ?></span>
-          <span class="sg-meta-sep" aria-hidden="true"></span>
-          <span class="sg-meta-chip sg-meta-chip--stat"><?php echo sg_icon('clock'); ?>约 <?php echo (int) $sgRead['minutes']; ?> 分钟</span>
-          <?php endif; ?>
-          <?php if ($sgViews !== '') : ?>
-          <span class="sg-meta-sep" aria-hidden="true"></span>
-          <span class="sg-meta-chip sg-meta-chip--stat"><?php echo sg_icon('eye'); ?>阅读 <?php echo sg_e($sgViews); ?></span>
-          <?php endif; ?>
+        <div class="sg-post-hero-meta">
+          <div class="sg-post-meta-line">
+            <?php if ($sgSticky) : ?>
+            <span class="sg-post-meta-item sg-post-meta-pin" title="置顶"><?php echo sg_icon('bookmark'); ?>置顶</span>
+            <span class="sg-post-meta-sep" aria-hidden="true">|</span>
+            <?php endif; ?>
+            <time class="sg-post-meta-item" datetime="<?php $this->date('c'); ?>" title="<?php $this->date('Y-m-d H:i'); ?>"><?php echo sg_icon('calendar'); ?>发表于 <?php echo sg_e($sgPostedAgo !== '' ? $sgPostedAgo : $this->date('Y-m-d')); ?></time>
+            <?php if ($sgUpdated !== '') : ?>
+            <span class="sg-post-meta-sep" aria-hidden="true">|</span>
+            <span class="sg-post-meta-item" title="更新于 <?php echo sg_e($sgUpdated); ?>"><?php echo sg_icon('history'); ?>更新于 <?php echo sg_e($sgUpdatedAgo !== '' ? $sgUpdatedAgo : $sgUpdated); ?></span>
+            <?php endif; ?>
+            <?php foreach ($sgCats as $sgCat) : ?>
+            <span class="sg-post-meta-sep" aria-hidden="true">|</span>
+            <a class="sg-post-meta-item sg-post-meta-cate" href="<?php echo sg_e($sgCat['permalink']); ?>"><?php echo sg_icon('tag'); ?><?php echo sg_e($sgCat['name']); ?></a>
+            <?php endforeach; ?>
+          </div>
+          <div class="sg-post-meta-line">
+            <span class="sg-post-meta-item"><?php echo sg_icon('type'); ?>字数总计: <?php echo (int) $sgRead['chars']; ?></span>
+            <span class="sg-post-meta-sep" aria-hidden="true">|</span>
+            <span class="sg-post-meta-item"><?php echo sg_icon('clock'); ?>阅读时长: <?php echo (int) $sgRead['minutes']; ?>分钟</span>
+            <span class="sg-post-meta-sep" aria-hidden="true">|</span>
+            <span class="sg-post-meta-item"><?php echo sg_icon('eye'); ?>阅读量: <?php if ($sgViews !== '') : ?><?php echo sg_e($sgViews); ?><?php else : ?><span id="busuanzi_value_page_pv">—</span><?php endif; ?></span>
+          </div>
         </div>
-        <?php if ($sgTags !== '') : ?><div class="sg-meta sg-meta--hero-tags"><?php echo $sgTags; ?></div><?php endif; ?>
       </div>
-      <span class="sg-post-hero-wave" aria-hidden="true"></span>
+      <div class="sg-post-hero-waves" aria-hidden="true">
+        <svg class="sg-waves-svg" viewBox="0 24 150 28" preserveAspectRatio="none">
+          <defs>
+            <path id="sg-gentle-wave" d="M -160 44 c 30 0 58 -18 88 -18 s 58 18 88 18 s 58 -18 88 -18 s 58 18 88 18 v 44 h -352 Z"/>
+          </defs>
+          <g class="sg-waves-parallax">
+            <use href="#sg-gentle-wave" x="48" y="0"/>
+            <use href="#sg-gentle-wave" x="48" y="3"/>
+            <use href="#sg-gentle-wave" x="48" y="5"/>
+            <use href="#sg-gentle-wave" x="48" y="7"/>
+          </g>
+        </svg>
+      </div>
     </header>
     <div class="sg-article-body">
       <a class="sg-back" href="<?php echo sg_e($sgBack); ?>"><?php echo sg_icon('arrow-left'); ?><?php echo sg_e($sgBackLabel); ?></a>
       <?php if ($sgLead !== '') : ?><p class="sg-lead"><?php echo sg_e($sgLead); ?></p><?php endif; ?>
       <div class="sg-prose" data-sg-article><?php echo $sgContent; ?></div>
+
+      <?php if ($sgTags !== '') : ?><div class="sg-meta sg-article-tags" aria-label="文章标签"><?php echo $sgTags; ?></div><?php endif; ?>
 
       <?php /* P1-12：分享条——系统分享 + 复制链接，不引第三方 SDK；
          浏览器不支持 navigator.share 时由 JS 隐藏系统分享按钮 */ ?>
@@ -135,8 +148,10 @@ $sgNext = sg_adjacent_post($this, 'next');
     </div>
   </article>
   <aside class="sg-aside">
-    <?php $this->need('partials/author-card.php'); ?>
-    <div class="sg-aside-sticky">
+    <?php /* 整列吸顶（2026-11-16 第三轮）：作者卡不再随滚动滑走，
+       公告 / 目录全部展示不内滚；列太高时由 article.ts 改为底对齐。 */ ?>
+    <div class="sg-aside-pin" data-sg-aside-pin>
+      <?php $this->need('partials/author-card.php'); ?>
       <?php $this->need('sidebar.php'); ?>
       <?php $this->need('partials/toc.php'); ?>
     </div>

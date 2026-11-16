@@ -1,8 +1,8 @@
 <?php
 /**
  * 首页侧栏 · 小站资讯卡（对齐 Fomalhaut card_webinfo 新版）：
- * KPI 总字数 / 篇均字 / 友链 + 时间条（已运行 · 距上次发文 · 更新）+ 年度产出柱状图。
- * 数据全部来自 lib/config.php 的 sg_webinfo()，不引入访问量统计脚本，访客位不输出。
+ * KPI 总字数 / 篇均字 / 友链 + 时间条（已运行 · 距上次发文 · 更新）+ 年度产出柱状图 + 访客位。
+ * 数据全部来自 lib/config.php 的 sg_webinfo()；访客数 / 总访问量由页脚 busuanzi 镜像异步回写。
  */
 $sgWi = sg_webinfo();
 $sgWiMax = 1;
@@ -47,6 +47,17 @@ $sgWiFriendsLink = sg_page_exists('friends') ? sg_page_url('friends') : '';
         <span class="sg-hinfo-bar-y"><?php echo (int) $sgWiBar['year']; ?></span>
       </div>
       <?php endforeach; ?>
+    </div>
+  </div>
+  <?php /* 访客位（2026-11-16 第三轮，对齐 Fomalhaut .wi-visit）：数字由 busuanzi 镜像异步回写 */ ?>
+  <div class="sg-hinfo-visit">
+    <div class="sg-hinfo-visit-item">
+      <span class="sg-hinfo-visit-num" id="busuanzi_value_site_uv">—</span>
+      <span class="sg-hinfo-visit-label">本站访客数</span>
+    </div>
+    <div class="sg-hinfo-visit-item">
+      <span class="sg-hinfo-visit-num" id="busuanzi_value_site_pv">—</span>
+      <span class="sg-hinfo-visit-label">本站总访问量</span>
     </div>
   </div>
 </section>

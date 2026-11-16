@@ -91,13 +91,6 @@ body { overflow-x: clip; }
 
 .sg-hero-side > section { flex: 0 0 auto; min-width: 0; min-height: 0; }
 
-/* 首页昼夜卡让位（2026-11-13 第三十二轮 / 第三十六轮改到第二行）：
-   这块纯氛围内容只有一枚圆盘 + 两行字，窄屏一律收起，宽度让给同排的海报与碎语。
-   切主题的入口不受影响：左下浮动按钮与导航抽屉里的「切换昼夜」都还在。 */
-@media (max-width: 1023.98px) {
-  .sg-theme-block { display: none; }
-}
-
 /* 文章页：正文 + 320px 侧栏 */
 .sg-article-layout { display: flex; flex-direction: column; gap: 1.5rem; }
 

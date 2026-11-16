@@ -250,7 +250,7 @@ function sg_stats(): array
  * 小站资讯卡数据（对齐 Fomalhaut card_webinfo 新版）：
  * KPI 总字数 / 篇均字 / 友链 + 已运行 / 距上次发文 / 更新 + 年度产出柱状（最多近 8 年）与写作日数。
  * 复用现有 sg_total_words / sg_uptime / sg_json；文章时间一次查全在 PHP 侧聚合。
- * 不引入访问量统计脚本，访客位不输出。任何一步失败都回退默认值，绝不让首页 500。
+ * 访客数 / 总访问量不在这里算：页脚 busuanzi 镜像异步回写 DOM。任何一步失败都回退默认值，绝不让首页 500。
  */
 function sg_webinfo(): array
 {
@@ -290,7 +290,9 @@ function sg_webinfo(): array
 
     $bars = [];
     if ($years) {
-        $maxYear = max(array_keys($years));
+        /* 年度产出（2026-11-16 第三轮）：范围始终含当前年——今年还没发文也要露出 0；
+           区间内缺年一律补 0，最多 8 年。 */
+        $maxYear = max(max(array_keys($years)), (int) date('Y'));
         $minYear = max(min(array_keys($years)), $maxYear - 7);
         for ($y = $minYear; $y <= $maxYear; ++$y) {
             $bars[] = ['year' => $y, 'count' => $years[$y] ?? 0];

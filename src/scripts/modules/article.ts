@@ -456,8 +456,26 @@ export function initLightbox(): void {
   });
 }
 
+/** 侧栏整列吸顶：列高超出视口时改底对齐（top 为负），目录尾部始终够得着。 */
+function initAsidePin(): void {
+  const pin = document.querySelector<HTMLElement>('[data-sg-aside-pin]');
+  if (!pin) return;
+  const mq = window.matchMedia('(min-width: 1024px)');
+  const fit = (): void => {
+    if (!mq.matches) { pin.style.top = ''; return; }
+    const h = pin.offsetHeight;
+    pin.style.top = h > window.innerHeight - 104 ? `calc(100vh - ${h}px - 1rem)` : '';
+  };
+  fit();
+  pageOn(window, 'resize', fit, { passive: true });
+  const ro = new ResizeObserver(fit);
+  ro.observe(pin);
+  onPageDispose(() => ro.disconnect());
+}
+
 export function initArticle(): void {
   initTOC();
+  initAsidePin();
   initProseImages(); // 先把正文裸图包成灯箱链接，再统一绑定灯箱
   initLightbox();
   initCodeBlocks(); // 工具条与高亮解耦，先出条再等语法着色

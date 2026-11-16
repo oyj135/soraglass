@@ -709,6 +709,8 @@ function sg_notes_slug(): string
 
 /**
  * 碎语分类下的全部文章 cid（静态缓存，一次请求只查一次）。
+ * 分类按 slug=notes 或名称「碎语」认：真站建分类时缩略名未必填 notes，
+ * 只认 slug 会把碎语漏进首页/归档列表（2026-11-16 第三轮修复）。
  *
  * 2026-11-13：碎语与普通文章要求「完全隔离」—— 知识档案、首页封面轮播、
  * 侧栏最近文章、归档页都要把碎语剔出去，所以单独提供一份 id 集合，
@@ -726,7 +728,7 @@ function sg_note_cids(): array
     try {
         $db = \Typecho\Db::get();
         $cat = $db->fetchRow($db->select('mid')->from('table.metas')
-            ->where('type = ?', 'category')->where('slug = ?', sg_notes_slug())->limit(1));
+            ->where('type = ?', 'category')->where('slug = ? OR name = ?', sg_notes_slug(), '碎语')->limit(1));
         if ($cat && !empty($cat['mid'])) {
             foreach ($db->fetchAll($db->select('cid')->from('table.relationships')
                 ->where('mid = ?', (int) $cat['mid'])) as $row) {

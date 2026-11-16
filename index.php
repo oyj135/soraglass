@@ -26,7 +26,7 @@ $sgNotesLink = sg_page_url('notes');
 $sgSlides = sg_home_slides(5);
 
 // 正文文章列表（2026-11-16 首页重构）：独立取普通文章，跳过碎语，取固定 6 篇。
-// 碎语有两种挂法：分类 slug=notes 与「碎语」标签，两个 cid 集合并集一起剔。
+// 碎语有两种挂法：分类（slug=notes 或名称「碎语」）与「碎语」标签，两个 cid 集合并集一起剔。
 // 用 Widget_Archive@sg_home_list（type=index）而非 Widget_Contents_Post_Recent——
 // 后者不查 text，摘要恒空；这里列表卡要显示引号摘要，必须用 Archive。
 $sgHomeListHtml = '';
@@ -122,10 +122,11 @@ unset($sgCardArchive);
         <?php $this->need('partials/lyric-bar.php'); ?>
 
         <?php
-        /* 第二行：海报 / 碎语 / 昼夜 5:4:3 三卡同排，全部保留。 */
+        /* 第二行起：相册卡、碎语卡各占整行（2026-11-16 第三轮按用户要求）。
+           昼夜切换卡已移除——模式切换统一在右侧悬浮按钮组里。 */
         ?>
-        <div class="sg-grid sg-grid-12 sg-home-stories">
-          <a class="sg-poster-wide sg-col-5" href="<?php echo sg_e($sgPoster['link'] !== '' ? $sgPoster['link'] : $sgHome); ?>" data-sg-hover data-sg-spotlight>
+        <div class="sg-home-stories">
+          <a class="sg-poster-wide" href="<?php echo sg_e($sgPoster['link'] !== '' ? $sgPoster['link'] : $sgHome); ?>" data-sg-hover data-sg-spotlight>
             <img src="<?php echo sg_e($sgPoster['cover']); ?>" alt="" loading="lazy" referrerpolicy="no-referrer">
             <span class="sg-veil"></span>
             <div class="sg-poster-body">
@@ -135,7 +136,7 @@ unset($sgCardArchive);
             </div>
           </a>
 
-          <div class="sg-glass sg-chatter sg-col-4" data-sg-carousel data-sg-hover>
+          <div class="sg-glass sg-chatter" data-sg-carousel data-sg-hover>
             <?php if ($sgNotes) : ?>
               <?php foreach ($sgNotes as $sgNoteIndex => $sgNote) : ?>
                 <?php $sgNote['active'] = $sgNoteIndex === 0; ?>
@@ -158,8 +159,6 @@ unset($sgCardArchive);
             <?php endif; ?>
             <span class="sg-dots" data-sg-dots></span>
           </div>
-
-          <?php $this->need('partials/theme-block.php'); ?>
         </div>
 
         <?php $this->need('partials/briefing.php'); ?>
