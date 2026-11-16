@@ -1,0 +1,217 @@
+/* ============================================================
+   首页重构样式（2026-11-16，参考 Fomalhaut 首页信息架构）
+   ------------------------------------------------------------
+   命名空间：
+     .sg-front*      100vh 全屏图片首屏（勿用 .sg-hero*，那是首页主区旧名）
+     .sg-home-*      正文两栏布局 / 文章列表区
+     .sg-hcard / .sg-hcal / .sg-hcd / .sg-hinfo  右侧四张新卡
+   全部颜色/间距走 tokens，不新增硬编码色值。
+   ============================================================ */
+
+/* ---------- 首屏上的透明导航（滚动离开首屏后由 core.ts 去掉 is-front 恢复实底） ---------- */
+.sg-nav.is-front {
+  background: transparent;
+  border-bottom-color: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+html.dark .sg-nav.is-front { background: transparent; border-bottom-color: transparent; }
+.sg-nav.is-front .sg-brand,
+.sg-nav.is-front .sg-brand-accent,
+.sg-nav.is-front .sg-nav-link,
+.sg-nav.is-front .sg-nav-more-btn { color: #fff !important; opacity: .95; text-shadow: 0 1px 8px rgba(0, 0, 0, .45); }
+.sg-nav.is-front .sg-nav-link.is-active::after { background: #fff; }
+.sg-nav.is-front .sg-nav-more-menu { color: var(--sg-text); }
+
+/* ---------- 100vh 全屏首屏 ---------- */
+.sg-main--home { padding-top: 0; } /* 首屏自带全高，去掉主容器顶部留白；滚动后由正文区自行留白 */
+
+.sg-front {
+  position: relative;
+  isolation: isolate;
+  height: 100vh;
+  height: 100svh;
+  min-height: 30rem;
+  margin-inline: calc(50% - 50vw); /* 出血到视口全宽（.sg-main 有 max-width 与 padding） */
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: #fff;
+}
+.sg-front-media,
+.sg-front-img,
+.sg-front-veil { position: absolute; inset: 0; width: 100%; height: 100%; }
+.sg-front-media { z-index: -2; }
+.sg-front-img { object-fit: cover; display: block; }
+.sg-front-img--dark { display: none; }
+html.dark .sg-front-img--light { display: none; }
+html.dark .sg-front-img--dark { display: block; }
+/* 遮罩：压暗图片保证白字可读，底部渐变过渡到正文底色 */
+.sg-front-veil {
+  z-index: -1;
+  background:
+    linear-gradient(to bottom, rgba(6, 20, 24, .28) 0%, rgba(6, 20, 24, .34) 60%, rgba(6, 20, 24, .66) 100%),
+    linear-gradient(to right, rgba(6, 20, 24, .18), rgba(6, 20, 24, .18));
+}
+/* 暗色壁纸本身已足够深，遮罩减到最轻，避免整屏糊成纯黑看不见图与标题 */
+html.dark .sg-front-veil {
+  background: linear-gradient(to bottom, rgba(4, 12, 14, .12) 0%, rgba(4, 12, 14, .18) 65%, rgba(4, 12, 14, .55) 100%);
+}
+.sg-front-inner {
+  position: relative;
+  z-index: 1;
+  width: min(90%, 46rem);
+  text-align: center;
+  padding-bottom: 4rem;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, .45);
+}
+.sg-front-title {
+  margin: 0 0 1rem;
+  font-size: clamp(2.2rem, 6vw, 4rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: .01em;
+  overflow-wrap: anywhere;
+}
+.sg-front-title-mark { display: inline-block; margin-left: .35em; font-size: .6em; opacity: .9; }
+.sg-front-sub {
+  margin: 0;
+  font-size: clamp(.95rem, 2.4vw, 1.25rem);
+  line-height: 1.8;
+  opacity: .92;
+}
+.sg-front-social { display: flex; flex-wrap: wrap; justify-content: center; gap: .85rem; margin-top: 1.75rem; }
+.sg-front-social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid rgba(255, 255, 255, .38);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .10);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  transition: background-color .25s var(--sg-ease), transform .25s var(--sg-ease);
+}
+.sg-front-social-link svg { width: 1.1rem; height: 1.1rem; }
+.sg-front-social-link:hover { background: rgba(255, 255, 255, .26); transform: translateY(-3px); }
+.sg-front-next {
+  position: absolute;
+  left: 50%;
+  bottom: 2.25rem;
+  z-index: 2;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .35rem;
+  transform: translateX(-50%);
+  padding: .35rem .75rem;
+  border: 0;
+  background: none;
+  color: #fff;
+  cursor: pointer;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, .5);
+}
+.sg-front-next-label { font-size: .72rem; letter-spacing: .25em; opacity: .85; }
+.sg-front-next svg { width: 1.75rem; height: 1.75rem; animation: sg-front-bob 2s var(--sg-ease) infinite; }
+@keyframes sg-front-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+@media (prefers-reduced-motion: reduce) { .sg-front-next svg { animation: none; } }
+
+/* ---------- 正文两栏（74% : 26%） ---------- */
+.sg-home-body { display: flex; flex-direction: column; gap: 1.5rem; }
+.sg-home-main { min-width: 0; flex: 1; }
+.sg-home-main .sg-hero { display: block; } /* 轮播容器全宽，不再是 7:5 grid 的 7 列 */
+.sg-home-main .sg-hero-cover { width: 100%; }
+.sg-home-aside {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  align-content: start;
+  min-width: 0;
+}
+@media (min-width: 1024px) {
+  .sg-home-body { flex-direction: row; align-items: flex-start; gap: 2rem; }
+  .sg-home-aside { width: 20rem; flex: 0 0 20rem; position: sticky; top: 5.5rem; }
+}
+@media (min-width: 1280px) { .sg-home-aside { width: 21rem; flex-basis: 21rem; } }
+
+/* ---------- 首页文章列表区 ---------- */
+.sg-home-latest { scroll-margin-top: 5rem; }
+.sg-home-section-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.1rem; }
+.sg-home-section-title { display: inline-flex; align-items: center; gap: .5rem; margin: 0; font-size: 1.25rem; font-weight: 700; }
+.sg-home-section-title svg { width: 1.15rem; height: 1.15rem; color: var(--sg-accent-ink); }
+.sg-home-section-more { display: inline-flex; align-items: center; gap: .3rem; font-size: .82rem; color: var(--sg-muted); text-decoration: none; transition: color .2s var(--sg-ease); }
+.sg-home-section-more svg { width: .85rem; height: .85rem; }
+.sg-home-section-more:hover { color: var(--sg-accent-ink); }
+
+/* 首页文章栅格：主栏比归档整页窄，固定两栏，不复用 .sg-reading-list 的三栏断点。
+   卡片形态仍用已定稿的 .sg-feature-card（凸三角封面 + 引号摘要 + hover 1.08）。 */
+.sg-home-grid { display: grid; gap: 1.25rem; grid-template-columns: minmax(0, 1fr); align-items: stretch; }
+@media (min-width: 620px) { .sg-home-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ---------- 右侧卡片公共外壳（对齐文章页 .sg-side-card 的玻璃材质） ---------- */
+.sg-hcard {
+  border: 1px solid var(--sg-line);
+  border-radius: var(--sg-radius-card, var(--sg-radius));
+  background: var(--sg-card);
+  -webkit-backdrop-filter: blur(var(--sg-blur-card));
+  backdrop-filter: blur(var(--sg-blur-card));
+  box-shadow: var(--sg-shadow-soft);
+  padding: 1.15rem 1.25rem;
+}
+html.dark .sg-hcard { background: var(--sg-card); }
+.sg-hcard-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .9rem; }
+.sg-hcard-title { display: inline-flex; align-items: center; gap: .45rem; font-size: .9rem; font-weight: 700; color: var(--sg-text); }
+.sg-hcard-title svg { width: .95rem; height: .95rem; color: var(--sg-accent-ink); }
+
+/* ---------- 日历卡 ---------- */
+.sg-hcal-ym { font-family: var(--font-sans); font-size: .7rem; color: var(--sg-faint); letter-spacing: .02em; }
+.sg-hcal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .15rem; text-align: center; }
+.sg-hcal-wd { font-family: var(--font-sans); font-size: .66rem; color: var(--sg-faint); padding-bottom: .35rem; }
+.sg-hcal-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  font-family: var(--font-sans);
+  font-size: .72rem;
+  color: var(--sg-muted);
+  border-radius: .45rem;
+}
+.sg-hcal-cell.is-empty { visibility: hidden; }
+.sg-hcal-cell.is-today {
+  color: #fff;
+  font-weight: 700;
+  background: var(--sg-accent);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--sg-accent) 40%, transparent);
+}
+.sg-hcal-foot { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-top: .85rem; padding-top: .7rem; border-top: 1px solid var(--sg-line); font-family: var(--font-sans); font-size: .7rem; color: var(--sg-muted); }
+.sg-hcal-today { color: var(--sg-accent-ink); font-weight: 600; }
+
+/* ---------- 春节倒计时卡 ---------- */
+.sg-hcd-date { font-family: var(--font-sans); font-size: .7rem; color: var(--sg-faint); }
+.sg-hcd-main { display: flex; align-items: center; gap: .75rem; }
+.sg-hcd-left { flex: 0 0 30%; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; text-align: center; }
+.sg-hcd-label { flex: 0 0 100%; font-size: .72rem; color: var(--sg-muted); }
+.sg-hcd-num { font-size: 2em; font-weight: 700; line-height: 1.1; color: var(--sg-accent-ink); }
+.sg-hcd-unit { font-size: .7rem; color: var(--sg-muted); margin-left: .15rem; }
+.sg-hcd-rows { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .4rem; }
+.sg-hcd-row { display: flex; align-items: center; gap: .4rem; font-family: var(--font-sans); font-size: .68rem; color: var(--sg-muted); }
+.sg-hcd-rlabel { flex: 0 0 2.2em; }
+.sg-hcd-bar { flex: 1; height: .5rem; border-radius: .35rem; background: var(--sg-chip); overflow: hidden; }
+.sg-hcd-bar i { display: block; height: 100%; border-radius: inherit; background: var(--sg-accent); }
+.sg-hcd-row em { flex: 0 0 2.4em; text-align: right; font-style: normal; }
+
+/* ---------- 小站资讯卡 ---------- */
+.sg-hinfo-kpi { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
+.sg-hinfo-kpi-item { display: flex; flex-direction: column; align-items: center; gap: .2rem; padding: .6rem .2rem; border-radius: .6rem; background: var(--sg-chip); }
+.sg-hinfo-num { font-size: 1.15rem; font-weight: 700; color: var(--sg-accent-ink); line-height: 1.1; }
+.sg-hinfo-label { font-family: var(--font-sans); font-size: .66rem; color: var(--sg-muted); }
+.sg-hinfo-time { display: flex; flex-direction: column; gap: .45rem; margin-top: .9rem; padding-top: .75rem; border-top: 1px solid var(--sg-line); }
+.sg-hinfo-time-item { display: flex; align-items: center; justify-content: space-between; font-size: .78rem; color: var(--sg-muted); }
+.sg-hinfo-time-item b { font-weight: 600; color: var(--sg-text); }

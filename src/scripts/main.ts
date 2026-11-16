@@ -12,6 +12,7 @@ import { initParallax } from './modules/parallax';
 import { initArticle } from './modules/article';
 import { initNotes } from './modules/notes';
 import { initNavigation } from './modules/navigation';
+import { initHome } from './modules/home';
 
 /**
  * 单独兜住每个模块的异常。
@@ -44,6 +45,7 @@ function mountPage(): void {
   safe('parallax', initParallax);
   safe('article', initArticle);
   safe('notes', initNotes);
+  safe('home', initHome);
 }
 function boot(): void {
   mountPage(); safe('effects', initEffects); initNavigation(mountPage);
