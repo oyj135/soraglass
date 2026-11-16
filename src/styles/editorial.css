@@ -565,69 +565,10 @@ html.dark .sg-nav { background: var(--sg-card); border-bottom-color: var(--sg-re
 
 /* ============================================================
    P1 组件（2026-11-16）
-   身份带 / 关于我按钮 / 分类最新 / 分享条 / 代码工具条 /
+   关于我按钮 / 分类最新 / 分享条 / 代码工具条 /
    正文图注 / 阅读模式 / 导航「更多」下拉 / 搜索键位提示
+   （首页身份带 P1-1 已于 2026-11-16 按用户要求删除）
    ============================================================ */
-
-/* ---------- P1-1 首页身份带 ---------- */
-.sg-identity {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  width: 100%;
-  max-width: 48rem;
-  margin: 0 auto .9rem;
-  padding: .9rem 1.25rem;
-}
-
-.sg-identity-avatar {
-  flex: none;
-  width: 3rem;
-  height: 3rem;
-  overflow: hidden;
-  border: 1px solid var(--sg-border);
-  border-radius: 50%;
-}
-
-.sg-identity-avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
-
-.sg-identity-text { flex: 1; min-width: 0; }
-
-.sg-identity-name {
-  display: flex;
-  align-items: baseline;
-  gap: .5rem;
-  margin: 0;
-  color: var(--sg-text);
-  font-size: 1.05rem;
-  font-weight: 700;
-  line-height: 1.4;
-}
-
-.sg-identity-sub {
-  color: var(--sg-faint);
-  font-family: var(--font-sans);
-  font-size: .72rem;
-  font-weight: 400;
-}
-
-.sg-identity-motto {
-  margin: .15rem 0 0;
-  color: var(--sg-muted);
-  font-family: var(--font-sans);
-  font-size: .8rem;
-  line-height: 1.5;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.sg-identity-socials { flex: none; }
-
-@media (max-width: 640px) {
-  .sg-identity { gap: .75rem; padding: .75rem 1rem; }
-  .sg-identity-socials { display: none; }
-}
 
 /* ---------- P1-2 关于我按钮 ---------- */
 .sg-author-btn {
@@ -696,8 +637,8 @@ html.dark .sg-nav { background: var(--sg-card); border-bottom-color: var(--sg-re
 /* ---------- P1-12 文章分享条 ---------- */
 .sg-share { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 2rem; }
 
-/* ---------- P1-8 代码块工具条 ---------- */
-/* 代码块底色本来就是固定深色（#0b1220），工具条沿用同一套深色文字 */
+/* ---------- P1-8 代码块工具条（2026-11-16 改 mac 风格 + 折叠） ---------- */
+/* 代码区仍是固定深色（#0b1220）；工具条用 mac 窗口风格的稍浅深灰条 */
 .sg-prose pre.sg-codeblock { position: relative; padding-top: 2.6rem; }
 
 .sg-code-bar {
@@ -707,33 +648,53 @@ html.dark .sg-nav { background: var(--sg-card); border-bottom-color: var(--sg-re
   right: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: .5rem;
-  padding: .35rem .8rem;
-  border-bottom: 1px solid rgba(255, 255, 255, .08);
+  gap: .75rem;
+  padding: .45rem .8rem;
+  border-bottom: 1px solid rgba(255, 255, 255, .07);
+  border-radius: var(--sg-radius-inner) var(--sg-radius-inner) 0 0;
+  background: #1b2531;
 }
+
+/* mac 三色圆点：纯装饰，沿用 mac 交通灯配色 */
+.sg-code-dots { display: inline-flex; align-items: center; gap: .38rem; flex: none; }
+.sg-code-dot { width: .7rem; height: .7rem; border-radius: 50%; }
+.sg-code-dot--red { background: #ff5f56; }
+.sg-code-dot--yellow { background: #ffbd2e; }
+.sg-code-dot--green { background: #27c93f; }
 
 .sg-code-lang {
   color: #9fb3c8;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: .68rem;
-  letter-spacing: .08em;
-  text-transform: uppercase;
+  font-size: .72rem;
+  letter-spacing: .02em;
 }
 
-.sg-code-copy {
-  padding: .15rem .55rem;
-  border: 0;
+.sg-code-actions { display: inline-flex; align-items: center; gap: .3rem; margin-left: auto; }
+
+.sg-code-copy,
+.sg-code-fold {
+  padding: .2rem .6rem;
+  border: 1px solid rgba(255, 255, 255, .12);
   border-radius: .35rem;
-  background: transparent;
+  background: rgba(255, 255, 255, .04);
   color: #9fb3c8;
   font-family: var(--font-sans);
   font-size: .72rem;
+  line-height: 1.4;
   cursor: pointer;
-  transition: color var(--sg-dur-fast) var(--sg-ease), background var(--sg-dur-fast) var(--sg-ease);
+  transition: color var(--sg-dur-fast) var(--sg-ease), background var(--sg-dur-fast) var(--sg-ease), border-color var(--sg-dur-fast) var(--sg-ease);
 }
 
-.sg-code-copy:is(:hover, :focus-visible) { color: #e2e8f0; background: rgba(255, 255, 255, .08); }
+.sg-code-copy:is(:hover, :focus-visible),
+.sg-code-fold:is(:hover, :focus-visible) {
+  color: #e2e8f0;
+  background: rgba(255, 255, 255, .12);
+  border-color: rgba(255, 255, 255, .22);
+}
+
+/* 折叠态：隐藏代码正文，工具条仍在，可随时展开 */
+.sg-prose pre.sg-codeblock.is-collapsed { padding-bottom: .2rem; }
+.sg-prose pre.sg-codeblock.is-collapsed code { display: none; }
 
 /* ---------- P1-7 正文图片灯箱与图注 ---------- */
 .sg-prose-figure { margin: 1.5rem 0; text-align: center; }
@@ -807,7 +768,8 @@ html.sg-readmode [data-sg-readmode-toggle] { color: var(--sg-accent-ink); border
   padding: .5rem;
   border: 1px solid var(--sg-border);
   border-radius: var(--sg-radius-inner);
-  background: var(--sg-panel);
+  /* 实底 + 阴影：下拉是浮在壁纸/头图上的菜单，用接近实色的卡面保证文字对比 */
+  background: var(--sg-card-strong);
   box-shadow: var(--sg-shadow-strong);
   -webkit-backdrop-filter: blur(var(--sg-blur-nav));
   backdrop-filter: blur(var(--sg-blur-nav));
@@ -816,10 +778,12 @@ html.sg-readmode [data-sg-readmode-toggle] { color: var(--sg-accent-ink); border
 .sg-nav-more:is(:hover, :focus-within, .is-open) .sg-nav-more-menu { display: flex; }
 
 .sg-nav-more-link {
-  padding: .45rem .75rem;
+  position: relative;
+  padding: .5rem .75rem;
   border-radius: .5rem;
   color: var(--sg-muted);
   font-size: .9rem;
+  font-weight: 500;
   text-decoration: none;
   white-space: nowrap;
   transition: color var(--sg-dur-fast) var(--sg-ease), background var(--sg-dur-fast) var(--sg-ease);
@@ -827,10 +791,28 @@ html.sg-readmode [data-sg-readmode-toggle] { color: var(--sg-accent-ink); border
 
 .sg-nav-more-link:is(:hover, :focus-visible) {
   color: var(--sg-accent-ink);
-  background: color-mix(in srgb, var(--sg-accent) 10%, transparent);
+  background: color-mix(in srgb, var(--sg-accent) 16%, transparent);
+  font-weight: 600;
 }
 
-.sg-nav-more-link.is-active { color: var(--sg-accent-ink); font-weight: 600; }
+/* 选中项（2026-11-16）：实底高对比 + 左侧强调条，暗色下换成深色文字避免浅青底看不清 */
+.sg-nav-more-link.is-active {
+  color: #fff;
+  font-weight: 700;
+  background: var(--sg-accent-deep);
+}
+.sg-nav-more-link.is-active::before {
+  content: '';
+  position: absolute;
+  left: .2rem;
+  top: 50%;
+  width: 3px;
+  height: 55%;
+  border-radius: 2px;
+  background: var(--sg-accent-soft);
+  transform: translateY(-50%);
+}
+html.dark .sg-nav-more-link.is-active { color: #04171b; background: var(--sg-accent); }
 
 /* ---------- P1-10 搜索键位提示 ---------- */
 .sg-search-kbd {

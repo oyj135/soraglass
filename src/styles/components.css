@@ -2176,7 +2176,22 @@ html.dark .sg-page-head .sg-search { text-shadow: 0 1px 18px rgba(2, 6, 23, .55)
   transition: background-color .3s, color .3s, border-color .3s;
 }
 .sg-filter-btn:hover { color: var(--sg-accent-ink); }
-.sg-filter-btn.is-active { background: var(--sg-indigo); border-color: var(--sg-accent-ink); color: #fff; }
+/* 选中态（2026-11-16）：加深为实底、白字加粗并给足描边/阴影，避免浅底高光冲淡文字。 */
+.sg-filter-btn.is-active {
+  background: var(--sg-accent-deep);
+  border-color: var(--sg-accent-deep);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--sg-accent-deep) 35%, transparent);
+}
+.sg-filter-btn.is-active .sg-filter-count { opacity: .9; }
+/* 暗色下 deep 档被提亮为浅青，需换回深色文字才读得清 */
+html.dark .sg-filter-btn.is-active {
+  background: var(--sg-accent);
+  border-color: var(--sg-accent-soft);
+  color: #04171b;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .35);
+}
 .sg-filter-count { opacity: .7; margin-left: .25rem; font-weight: 500; }
 
 /* 页内即时筛选：用独立类名，避免与导航的 .sg-nav.is-hidden（位移动画）冲突 */
@@ -3830,21 +3845,9 @@ html.dark .sg-about-title h1 {
   background-image: linear-gradient(110deg, var(--sg-text) 20%, var(--sg-accent-soft) 66%, var(--sg-accent-pale) 100%);
 }
 
-/* ---------- 视觉手法 4：主操作微光（只给「全部档案」胶囊，别铺满所有按钮） ---------- */
-@keyframes sg-sheen {
-  from { background-position: 200% 0; }
-  to { background-position: -200% 0; }
-}
-
-.sg-archive .sg-filter-btn.is-active {
-  background-image: linear-gradient(100deg, transparent 18%, rgba(255, 255, 255, .22) 45%, transparent 72%);
-  background-size: 220% 100%;
-  animation: sg-sheen 4.2s linear infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sg-archive .sg-filter-btn.is-active { animation: none; background-image: none; }
-}
+/* 视觉手法 4（2026-11-16 移除）：原「全部档案」胶囊有一条 sg-sheen 白色高光
+   反复扫过，叠在选中态白字上会把字冲淡、看不清。选中可读性优先，删掉该动画，
+   选中态改用 components.css 上方 .sg-filter-btn.is-active 的深色实底方案。 */
 
 
 /* ---------- 卡片按下反馈（对应源站 active:scale-95） ----------

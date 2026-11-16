@@ -22,10 +22,11 @@ if (!defined('SG_ROOT')) {
 }
 $this->need('header.php');
 
-$sgSize = (int) sg_opt('sgPageSize', '200');
-if ($sgSize <= 0) {
-    $sgSize = 200;
-}
+/* 知识档案是「全量知识条目」页，取数上限固定 200，不受后台「每页条数上限」
+   sgPageSize 影响——归档页 archives.php 同样固定 200。2026-11-16 修复：
+   此前跟随 sgPageSize，后台误填 6 时本部文章被 if(count>=sgSize) 截断成 6 篇，
+   标签计数也跟着只统计这 6 篇（java 4 / 后端 4 …），表现为「篇数与标签都错」。 */
+$sgSize = 200;
 
 $sgPosts = [];
 $sgCids  = [];

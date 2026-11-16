@@ -51,12 +51,29 @@ export function initArchive(): void {
     if (empty) empty.hidden = shown > 0;
   };
 
-  tagButtons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      activeTag = btn.dataset.sgArchiveTag === '全部' ? '' : (btn.dataset.sgArchiveTag ?? '');
-      tagButtons.forEach((other) => other.classList.toggle('is-active', other === btn));
-      apply();
+  const selectTag = (btn: HTMLElement): void => {
+    const tag = btn.dataset.sgArchiveTag === '全部' ? '' : (btn.dataset.sgArchiveTag ?? '');
+    if (tag === activeTag) return;
+    activeTag = tag;
+    tagButtons.forEach((other) => {
+      const on = other === btn;
+      other.classList.toggle('is-active', on);
+      other.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
+    apply();
+  };
+
+  tagButtons.forEach((btn) => {
+    btn.setAttribute('aria-pressed', btn.classList.contains('is-active') ? 'true' : 'false');
+    // 鼠标悬浮即可选择（2026-11-16）：仅鼠标/笔的 hover，触屏没有真实 hover，
+    // pointerType 为 touch 时不在这里切换，交给下面的 click 兜底，避免滚动误触。
+    btn.addEventListener('pointerenter', (event) => {
+      if (event.pointerType === 'mouse' || event.pointerType === 'pen') selectTag(btn);
+    });
+    // 键盘 Tab 聚焦也能选中，保持无障碍可达。
+    btn.addEventListener('focus', () => selectTag(btn));
+    // 触屏点击仍可用；鼠标点击同一标签是 no-op（selectTag 内已去重）。
+    btn.addEventListener('click', () => selectTag(btn));
   });
 
   if (input) {

@@ -108,13 +108,31 @@ function initTOC(): void {
 }
 
 /**
- * P1-8：代码块工具条。
+ * P1-8：代码块工具条（2026-11-16 改 mac 风格 + 折叠）。
  *
- * 每个 pre 顶部加一条语言标签 + 复制按钮；与语法高亮解耦，
- * highlight.js 加载失败时工具条仍然可用。复制反馈直接写在按钮上。
+ * 每个 pre 顶部加一条 mac 工具条：左侧红黄绿三色圆点 + 语言标签，
+ * 右侧复制按钮 + 折叠按钮。与语法高亮解耦，highlight.js 加载失败时仍可用。
+ * 折叠态按代码块序号存 localStorage，刷新后保持；不影响复制与高亮。
  */
 function initCodeBlocks(): void {
-  document.querySelectorAll<HTMLElement>('[data-sg-article] pre').forEach((pre) => {
+  const foldKey = (i: number): string => `sg-codefold-${i}`;
+  const readFold = (i: number): boolean => {
+    try {
+      return window.localStorage.getItem(foldKey(i)) === '1';
+    } catch {
+      return false;
+    }
+  };
+  const writeFold = (i: number, folded: boolean): void => {
+    try {
+      if (folded) window.localStorage.setItem(foldKey(i), '1');
+      else window.localStorage.removeItem(foldKey(i));
+    } catch {
+      /* 隐私模式忽略 */
+    }
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-sg-article] pre').forEach((pre, index) => {
     if (pre.querySelector('.sg-code-bar')) return;
     const code = pre.querySelector('code');
     if (!code) return;
@@ -124,9 +142,22 @@ function initCodeBlocks(): void {
     const bar = document.createElement('div');
     bar.className = 'sg-code-bar';
 
+    /* 左侧：mac 三色圆点（纯装饰） */
+    const dots = document.createElement('span');
+    dots.className = 'sg-code-dots';
+    dots.setAttribute('aria-hidden', 'true');
+    for (const color of ['red', 'yellow', 'green']) {
+      const dot = document.createElement('span');
+      dot.className = `sg-code-dot sg-code-dot--${color}`;
+      dots.appendChild(dot);
+    }
+
     const lang = document.createElement('span');
     lang.className = 'sg-code-lang';
     lang.textContent = match?.[1] ?? 'text';
+
+    const actions = document.createElement('span');
+    actions.className = 'sg-code-actions';
 
     const btn = document.createElement('button');
     btn.type = 'button';
@@ -161,7 +192,24 @@ function initCodeBlocks(): void {
       done(ok);
     });
 
-    bar.append(lang, btn);
+    /* 折叠按钮：切换 .is-collapsed（CSS 隐藏 code），状态本地记忆 */
+    const fold = document.createElement('button');
+    fold.type = 'button';
+    fold.className = 'sg-code-fold';
+    const applyFold = (folded: boolean): void => {
+      pre.classList.toggle('is-collapsed', folded);
+      fold.setAttribute('aria-expanded', folded ? 'false' : 'true');
+      fold.textContent = folded ? '展开' : '折叠';
+    };
+    applyFold(readFold(index));
+    pageOn(fold, 'click', () => {
+      const folded = !pre.classList.contains('is-collapsed');
+      applyFold(folded);
+      writeFold(index, folded);
+    });
+
+    actions.append(btn, fold);
+    bar.append(dots, lang, actions);
     pre.appendChild(bar);
   });
 }
