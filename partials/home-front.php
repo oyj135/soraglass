@@ -4,12 +4,13 @@
  *
  * 命名空间一律用 .sg-front* —— 首页主区早已占用 .sg-hero / .sg-hero-cover，
  * 2026-11-16 曾因同名把首页布局改坏，务必隔离，勿改回 .sg-hero。
- * 背景取现有壁纸首图（明暗各一），站名/副标题/社交全部复用后台已有设置项，
- * 不新增设置项、不引入打字机等第三方脚本。
+ * 背景取独立的首屏图设置（sgFrontImg / sgFrontImgDark），与正文壁纸脱钩：
+ * 留空时取对应壁纸组第 2 张，日间组不足两张再兜底内置 bg-2.svg，
+ * 保证首屏与正文背景默认不是同一张图。站名/副标题/社交复用后台已有设置项。
  */
 $sgFrontWalls = sg_wallpapers();
-$sgFrontLight = $sgFrontWalls['light'][0] ?? sg_theme_url('dist/img/bg-1.svg');
-$sgFrontDark  = $sgFrontWalls['dark'][0] ?? sg_theme_url('dist/img/bg-1.svg');
+$sgFrontLight = sg_bg_url(trim((string) sg_opt('sgFrontImg', ''))) ?: ($sgFrontWalls['light'][1] ?? sg_theme_url('dist/img/bg-2.svg'));
+$sgFrontDark  = sg_bg_url(trim((string) sg_opt('sgFrontImgDark', ''))) ?: ($sgFrontWalls['dark'][1] ?? ($sgFrontWalls['dark'][0] ?? sg_theme_url('dist/img/bg-1.svg')));
 $sgFrontName  = sg_opt('sgNavTitle', (string) $this->options->title);
 $sgFrontAfter = sg_opt('sgNavAfter', '空璃');
 $sgFrontSub   = (string) $this->options->description;

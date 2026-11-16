@@ -223,12 +223,96 @@ function sg_stats(): array
         }
     };
 
+    $meta = static function (string $type): int {
+        try {
+            $db = \Typecho\Db::get();
+            $row = $db->fetchObject(
+                $db->select(['COUNT(*)' => 'num'])->from('table.metas')->where('type = ?', $type)
+            );
+            return (int) ($row->num ?? 0);
+        } catch (\Throwable $e) {
+            return 0;
+        }
+    };
+
     $photos = sg_gallery_catalog()['photoTotal'];
 
     return [
         'posts'  => (string) $count('post'),
         'notes'  => (string) sg_notes_count(),
         'photos' => (string) $photos,
+        'tags'       => (string) $meta('tag'),
+        'categories' => (string) $meta('category'),
+    ];
+}
+
+/**
+ * 小站资讯卡数据（对齐 Fomalhaut card_webinfo 新版）：
+ * KPI 总字数 / 篇均字 / 友链 + 已运行 / 距上次发文 / 更新 + 年度产出柱状（最多近 8 年）与写作日数。
+ * 复用现有 sg_total_words / sg_uptime / sg_json；文章时间一次查全在 PHP 侧聚合。
+ * 不引入访问量统计脚本，访客位不输出。任何一步失败都回退默认值，绝不让首页 500。
+ */
+function sg_webinfo(): array
+{
+    $words = sg_total_words();
+    $posts = (int) (sg_stats()['posts'] ?? 0);
+    $friends = count(array_values(array_filter(sg_json('sgFriends', 'friends', []), 'is_array')));
+    $uptime = sg_uptime();
+
+    $years = [];
+    $writeDays = [];
+    $lastPost = 0;
+    $lastModified = 0;
+    try {
+        $db = \Typecho\Db::get();
+        $rows = $db->fetchAll(
+            $db->select('created', 'modified')->from('table.contents')
+                ->where('type = ?', 'post')->where('status = ?', 'publish')
+        );
+        foreach ($rows as $row) {
+            $created = (int) ($row['created'] ?? 0);
+            $modified = (int) ($row['modified'] ?? 0);
+            if ($created > 0) {
+                $y = (int) date('Y', $created);
+                $years[$y] = ($years[$y] ?? 0) + 1;
+                $writeDays[date('Y-n-j', $created)] = 1;
+                if ($created > $lastPost) {
+                    $lastPost = $created;
+                }
+            }
+            if ($modified > $lastModified) {
+                $lastModified = $modified;
+            }
+        }
+    } catch (\Throwable $e) {
+        /* 聚合失败时下面全部走兜底值 */
+    }
+
+    $bars = [];
+    if ($years) {
+        $maxYear = max(array_keys($years));
+        $minYear = max(min(array_keys($years)), $maxYear - 7);
+        for ($y = $minYear; $y <= $maxYear; ++$y) {
+            $bars[] = ['year' => $y, 'count' => $years[$y] ?? 0];
+        }
+    } else {
+        $bars[] = ['year' => (int) date('Y'), 'count' => 0];
+    }
+
+    $avg = $posts > 0 ? (int) round($words / $posts) : 0;
+    $avgText = $avg >= 10000
+        ? rtrim(rtrim(number_format($avg / 10000, 1), '0'), '.') . 'w'
+        : ($avg >= 1000 ? rtrim(rtrim(number_format($avg / 1000, 1), '0'), '.') . 'k' : (string) $avg);
+
+    return [
+        'words'     => sg_words_format($words),
+        'avg'       => $avgText,
+        'friends'   => $friends,
+        'runDays'   => (int) $uptime['days'],
+        'sincePost' => $lastPost > 0 ? max(0, (int) floor((time() - $lastPost) / 86400)) : 0,
+        'update'    => $lastModified > 0 ? date('n-j', $lastModified) : '—',
+        'bars'      => $bars,
+        'writeDays' => count($writeDays),
     ];
 }
 

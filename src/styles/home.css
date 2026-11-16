@@ -135,24 +135,29 @@ html.dark .sg-front-veil {
   min-width: 0;
 }
 @media (min-width: 1024px) {
+  /* 右栏不 sticky：与左栏一起随页面滚动（对齐参考站作者卡随页滚动的取舍） */
   .sg-home-body { flex-direction: row; align-items: flex-start; gap: 2rem; }
-  .sg-home-aside { width: 20rem; flex: 0 0 20rem; position: sticky; top: 5.5rem; }
+  .sg-home-aside { width: 20rem; flex: 0 0 20rem; }
 }
 @media (min-width: 1280px) { .sg-home-aside { width: 21rem; flex-basis: 21rem; } }
 
 /* ---------- 首页文章列表区 ---------- */
-.sg-home-latest { scroll-margin-top: 5rem; }
-.sg-home-section-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.1rem; }
+.sg-home-latest { scroll-margin-top: 5rem; margin-top: -.5rem; }
+.sg-home-section-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: .75rem; }
 .sg-home-section-title { display: inline-flex; align-items: center; gap: .5rem; margin: 0; font-size: 1.25rem; font-weight: 700; }
 .sg-home-section-title svg { width: 1.15rem; height: 1.15rem; color: var(--sg-accent-ink); }
-.sg-home-section-more { display: inline-flex; align-items: center; gap: .3rem; font-size: .82rem; color: var(--sg-muted); text-decoration: none; transition: color .2s var(--sg-ease); }
-.sg-home-section-more svg { width: .85rem; height: .85rem; }
-.sg-home-section-more:hover { color: var(--sg-accent-ink); }
 
-/* 首页文章栅格：主栏比归档整页窄，固定两栏，不复用 .sg-reading-list 的三栏断点。
-   卡片形态仍用已定稿的 .sg-feature-card（凸三角封面 + 引号摘要 + hover 1.08）。 */
-.sg-home-grid { display: grid; gap: 1.25rem; grid-template-columns: minmax(0, 1fr); align-items: stretch; }
+/* 首页文章栅格：宽屏三栏小卡（对齐参考站 multicard），中屏两栏、窄屏单栏。
+   卡片形态仍用已定稿的 .sg-feature-card（凸三角封面 + 引号摘要 + 图片区 hover 1.08）。 */
+.sg-home-grid { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr); align-items: stretch; }
 @media (min-width: 620px) { .sg-home-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1280px) {
+  .sg-home-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  /* 三栏档标题单行、信息区更紧凑（参考站 ≥1069px 的行为） */
+  .sg-home-grid .sg-feature-title { -webkit-line-clamp: 1; font-size: 1.1rem; }
+  .sg-home-grid .sg-feature-body { min-height: 8.25rem; padding: .85rem 1rem 1rem; gap: .45rem; }
+  .sg-home-grid .sg-feature-quote { font-size: .9rem; margin: 0 1rem 1.4rem; }
+}
 
 /* ---------- 右侧卡片公共外壳（对齐文章页 .sg-side-card 的玻璃材质） ---------- */
 .sg-hcard {
@@ -207,11 +212,23 @@ html.dark .sg-hcard { background: var(--sg-card); }
 .sg-hcd-bar i { display: block; height: 100%; border-radius: inherit; background: var(--sg-accent); }
 .sg-hcd-row em { flex: 0 0 2.4em; text-align: right; font-style: normal; }
 
-/* ---------- 小站资讯卡 ---------- */
+/* ---------- 小站资讯卡（对齐 Fomalhaut card_webinfo 新版：KPI + 时间条 + 年度产出柱状） ---------- */
 .sg-hinfo-kpi { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
-.sg-hinfo-kpi-item { display: flex; flex-direction: column; align-items: center; gap: .2rem; padding: .6rem .2rem; border-radius: .6rem; background: var(--sg-chip); }
+.sg-hinfo-kpi-item { display: flex; flex-direction: column; align-items: center; gap: .2rem; padding: .6rem .2rem; border-radius: .6rem; background: var(--sg-chip); text-decoration: none; }
+a.sg-hinfo-kpi-item { transition: background-color .2s var(--sg-ease); }
+a.sg-hinfo-kpi-item:hover { background: var(--sg-line); }
 .sg-hinfo-num { font-size: 1.15rem; font-weight: 700; color: var(--sg-accent-ink); line-height: 1.1; }
 .sg-hinfo-label { font-family: var(--font-sans); font-size: .66rem; color: var(--sg-muted); }
-.sg-hinfo-time { display: flex; flex-direction: column; gap: .45rem; margin-top: .9rem; padding-top: .75rem; border-top: 1px solid var(--sg-line); }
-.sg-hinfo-time-item { display: flex; align-items: center; justify-content: space-between; font-size: .78rem; color: var(--sg-muted); }
+.sg-hinfo-time { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .45rem; margin-top: .9rem; padding-top: .75rem; border-top: 1px solid var(--sg-line); font-size: .72rem; color: var(--sg-muted); }
+.sg-hinfo-time-item { display: inline-flex; align-items: center; gap: .3rem; }
 .sg-hinfo-time-item b { font-weight: 600; color: var(--sg-text); }
+.sg-hinfo-time-sep { color: var(--sg-faint); }
+.sg-hinfo-chart { margin-top: .85rem; padding-top: .75rem; border-top: 1px solid var(--sg-line); }
+.sg-hinfo-chart-head { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; margin-bottom: .6rem; font-size: .78rem; font-weight: 600; color: var(--sg-text); }
+.sg-hinfo-chart-sub { font-family: var(--font-sans); font-size: .66rem; font-weight: 400; color: var(--sg-faint); }
+.sg-hinfo-bars { display: flex; align-items: stretch; gap: .3rem; height: 6.5rem; }
+.sg-hinfo-bar { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: .2rem; }
+.sg-hinfo-bar-n { font-family: var(--font-sans); font-size: .62rem; color: var(--sg-muted); }
+.sg-hinfo-bar-track { flex: 1; width: 100%; max-width: 1.4rem; display: flex; align-items: flex-end; }
+.sg-hinfo-bar-track i { display: block; width: 100%; border-radius: .3rem .3rem .15rem .15rem; background: linear-gradient(to top, var(--sg-accent), var(--sg-accent-soft)); }
+.sg-hinfo-bar-y { font-family: var(--font-sans); font-size: .6rem; color: var(--sg-faint); }

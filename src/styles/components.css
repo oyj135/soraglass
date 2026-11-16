@@ -238,6 +238,85 @@ html.sg-lock, html.sg-lock body { overflow: hidden; }
   .sg-tool { width: 2.5rem; height: 2.5rem; }
 }
 
+/* ---------- 右侧悬浮按钮组（对齐 Fomalhaut #rightside，AI 助手不加） ---------- */
+.sg-rightside {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .5rem;
+}
+.sg-rightside-hidden { display: none; flex-direction: column; align-items: center; gap: .5rem; }
+.sg-rightside-hidden.is-open { display: flex; animation: sg-rightside-in .25s var(--sg-ease); }
+@keyframes sg-rightside-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.sg-rightside-btn {
+  width: 2.375rem;
+  height: 2.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--sg-border);
+  border-radius: var(--sg-radius-inner);
+  background: var(--sg-card-strong);
+  -webkit-backdrop-filter: blur(var(--sg-blur-nav));
+  backdrop-filter: blur(var(--sg-blur-nav));
+  box-shadow: var(--sg-shadow);
+  color: var(--sg-text);
+  cursor: pointer;
+  transition: background-color .25s var(--sg-ease), color .25s var(--sg-ease);
+}
+.sg-rightside-btn:hover { background: var(--sg-accent); color: #fff; }
+.sg-rightside-btn svg { width: 1.05rem; height: 1.05rem; transition: transform .25s var(--sg-ease); }
+.sg-rightside-btn.is-open svg { transform: rotate(90deg); }
+/* 回顶：平时显示百分比，≥95% 或 hover 显示箭头（inline display 由 rightside.ts 写，hover 用 !important 覆盖） */
+.sg-go-up svg { display: none; }
+.sg-go-up-percent { display: block; font-weight: 700; font-size: .8rem; line-height: 1; }
+.sg-go-up-percent span { font-size: .6rem; margin-left: -1px; }
+.sg-go-up:hover svg { display: block !important; }
+.sg-go-up:hover .sg-go-up-percent { display: none !important; }
+@media (max-width: 767px) {
+  .sg-rightside { right: .75rem; bottom: 1rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sg-rightside-hidden.is-open { animation: none; }
+  .sg-rightside-btn svg { transition: none; }
+}
+
+/* ---------- 顶部胶囊加载条（对齐 Fomalhaut pace：5rem×8px 圆角胶囊 + 四色渐变） ---------- */
+.sg-pace {
+  position: fixed;
+  top: .625rem;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: 5rem;
+  height: .5rem;
+  border-radius: .5rem;
+  border: 1px solid var(--sg-line);
+  background: var(--sg-chip);
+  overflow: hidden;
+  z-index: 2000;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .3s ease;
+}
+.sg-pace.is-active { opacity: 1; }
+.sg-pace.is-done { opacity: 0; }
+.sg-pace-progress {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  transform: translateX(-100%);
+  transition: transform .2s ease;
+  background: linear-gradient(-45deg, var(--sg-warm-bright), var(--sg-accent), var(--sg-accent-2), var(--sg-accent-soft));
+  background-size: 300% 300%;
+  animation: sg-pace-gradient 2s ease infinite;
+}
+@keyframes sg-pace-gradient { 0% { background-position: 0 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+
 /* ---------- 搜索 ---------- */
 .sg-search {
   position: relative;
@@ -290,110 +369,60 @@ html.dark .sg-search-input {
 .sg-search--sm .sg-search-icon { left: .875rem; }
 .sg-search--sm .sg-search-icon svg { width: 1rem; height: 1rem; }
 
-/* ---------- 个人卡 ---------- */
-.sg-profile { display: flex; flex-direction: column; justify-content: space-between; gap: 1.5rem; }
-.sg-profile-head { display: flex; align-items: center; gap: 1rem; position: relative; z-index: 10; }
-@media (min-width: 768px) { .sg-profile-head { gap: 1.5rem; } }
+/* ---------- 作者卡（对齐 Fomalhaut card_author：居中头像 + 名字/简介 + 三格统计 + 全宽按钮） ---------- */
+.sg-profile { display: flex; flex-direction: column; align-items: center; gap: .9rem; text-align: center; }
+.sg-profile-top { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 10; }
 
 .sg-avatar-ring {
   flex-shrink: 0;
-  width: 4rem;
-  height: 4rem;
+  width: 6.875rem;
+  height: 6.875rem;
   padding: .25rem;
-  border-radius: var(--sg-radius-outer);
+  border-radius: 50%;
   background: linear-gradient(to top right, var(--sg-ring-a), var(--sg-ring-b));
   box-shadow: var(--sg-shadow);
-  transition: transform .5s;
 }
-
-.sg-avatar-ring:hover { transform: scale(1.04); }
-@media (min-width: 640px) { .sg-avatar-ring { width: 5rem; height: 5rem; } }
-@media (min-width: 768px) { .sg-avatar-ring { width: 6rem; height: 6rem; border-radius: var(--sg-radius-outer); } }
 
 .sg-avatar-ring img {
   width: 100%;
   height: 100%;
-  border-radius: calc(var(--sg-radius-outer) - .25rem);
+  border-radius: 50%;
   object-fit: cover;
   background: #fff;
+  transition: transform .5s var(--sg-ease);
 }
 
-@media (min-width: 768px) { .sg-avatar-ring img { border-radius: calc(var(--sg-radius-outer) - .25rem); } }
-
-.sg-profile-main { flex: 1; min-width: 0; }
+/* 头像动画只在图片本身 hover 时触发（卡片本体无动画） */
+.sg-avatar-ring:hover img { transform: rotate(360deg); }
+@media (prefers-reduced-motion: reduce) { .sg-avatar-ring img { transition: none; } .sg-avatar-ring:hover img { transform: none; } }
 
 .sg-profile-name {
-  font-size: 1.25rem;
+  margin: .6rem 0 0;
+  font-size: 1.4rem;
   font-weight: 700;
   letter-spacing: .025em;
   line-height: 1.35;
-  padding-bottom: .25rem;
-  margin-bottom: .25rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
-
-@media (min-width: 640px) { .sg-profile-name { font-size: 1.5rem; } }
-@media (min-width: 768px) { .sg-profile-name { font-size: 1.875rem; margin-bottom: .5rem; } }
 
 .sg-profile-bio {
-  font-size: .75rem;
+  margin: .2rem 0 0;
+  font-size: .85rem;
   font-weight: 500;
   line-height: 1.7;
-  color: var(--sg-text);
-  opacity: .85;
-  max-width: 28rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-@media (min-width: 640px) { .sg-profile-bio { font-size: .875rem; } }
-@media (min-width: 768px) { .sg-profile-bio { font-size: 1rem; -webkit-line-clamp: unset; overflow: visible; } }
-
-.sg-profile-foot {
-  position: relative;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.25rem;
-  margin-top: 1.5rem;
-}
-
-@media (min-width: 768px) {
-  .sg-profile-foot { flex-direction: row; align-items: flex-end; margin-top: 2rem; }
-}
-
-.sg-stats { display: flex; align-items: center; gap: .5rem; width: 100%; justify-content: space-between; padding-inline: .5rem; }
-@media (min-width: 640px) { .sg-stats { gap: 1.5rem; } }
-@media (min-width: 768px) { .sg-stats { width: auto; justify-content: flex-start; padding-inline: 0; } }
-
-.sg-stat { text-align: center; padding-inline: .5rem; }
-.sg-stat-num { font-size: 1.25rem; font-weight: 900; color: var(--sg-accent-ink); transition: transform .3s; display: block; }
-@media (min-width: 768px) { .sg-stat-num { font-size: 1.5rem; } }
-.sg-stat:hover .sg-stat-num { transform: scale(1.1); }
-.sg-stat-num.is-purple { color: var(--sg-accent-2); }
-.sg-stat-num.is-pink { color: var(--sg-accent-soft); }
-
-.sg-stat-label {
-  display: block;
-  margin-top: 2px;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: .1em;
-  text-transform: uppercase;
   color: var(--sg-muted);
+  max-width: 16rem;
 }
 
-@media (min-width: 768px) { .sg-stat-label { font-size: 10px; } }
+/* 三格统计：上行标签下行数字，整块可点（对齐参考站 site-data 表格布局） */
+.sg-stats { display: table; width: 100%; table-layout: fixed; margin-top: .15rem; }
+.sg-stat { display: table-cell; text-align: center; padding: .25rem 0; text-decoration: none; }
+.sg-stat-label { display: block; font-size: .8rem; color: var(--sg-muted); transition: color .3s; }
+.sg-stat-num { display: block; margin-top: -.1em; font-size: 1.35rem; font-weight: 800; color: var(--sg-accent-ink); transition: color .3s; }
+.sg-stat:hover .sg-stat-label,
+.sg-stat:hover .sg-stat-num { color: var(--sg-accent); }
 
-.sg-stat-divider { display: none; width: 1px; height: 2rem; background: rgba(203, 213, 225, .50); }
-@media (min-width: 768px) { .sg-stat-divider { display: block; height: 2.5rem; } }
-html.dark .sg-stat-divider { background: rgba(51, 65, 85, 1); }
+/* 首页作者卡的「关于我」全宽（文章页 author-card 仍用 editorial.css 的内联胶囊版） */
+.sg-profile .sg-author-btn { width: 100%; margin-top: .15rem; }
 
 .sg-socials { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; }
 @media (min-width: 768px) { .sg-socials { justify-content: flex-end; gap: .75rem; } }
@@ -3015,11 +3044,7 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
   border: 1px solid var(--sg-reading-border);
   border-radius: var(--sg-radius-outer);
   box-shadow: var(--sg-shadow);
-  transition:
-    transform var(--sg-dur-card) var(--sg-ease),
-    box-shadow var(--sg-dur-card) var(--sg-ease);
 }
-.sg-feature-card:hover { transform: translateY(-4px) scale(var(--sg-lift)); box-shadow: var(--sg-shadow-strong); }
 
 /* 封面：底边中央向下凸出三角尖（100% 处），左右两侧到 130px 后斜向尖点。 */
 .sg-feature-media {
@@ -3067,8 +3092,9 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
   overflow: hidden;
   transition: transform .6s ease-in-out;
 }
-.sg-feature-card:hover .sg-feature-media img,
-.sg-feature-card:hover .sg-feature-quote { transform: scale(1.08); }
+/* 卡片本体 hover 无动画；只有指针落在图片区时封面与摘要同步放大（对齐参考站取舍） */
+.sg-feature-media:hover img,
+.sg-feature-media:hover .sg-feature-quote { transform: scale(1.08); }
 
 /* 信息区：约 150px，居中排布（标题 / 元信息 / 标签）。封面凸三角两侧露出的
    区域由卡面背景承接，与下方信息区同色，形成 Fomalhaut 的折纸咬合观感。 */
@@ -3126,11 +3152,10 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
   margin-right: .15rem;
   background: var(--sg-line);
 }
-/* 减少动效：去掉封面/摘要缩放与卡片位移 */
+/* 减少动效：去掉封面/摘要缩放 */
 @media (prefers-reduced-motion: reduce) {
-  .sg-feature-card:hover { transform: none; }
-  .sg-feature-card:hover .sg-feature-media img,
-  .sg-feature-card:hover .sg-feature-quote { transform: none; }
+  .sg-feature-media:hover img,
+  .sg-feature-media:hover .sg-feature-quote { transform: none; }
   .sg-feature-media img, .sg-feature-quote { transition: none; }
 }
 html.dark .sg-feature-card { background: var(--sg-card-strong); }

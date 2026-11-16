@@ -1,26 +1,52 @@
 <?php
 /**
- * 首页侧栏 · 小站资讯卡（参考 Fomalhaut card_webinfo 的 KPI + 时间形态）。
- * 数据全部复用现有 PHP 函数，不新增查询逻辑、不引入访问量统计脚本：
- *   sg_total_words() 总字数 / sg_stats() 文章·碎语·照片 / sg_uptime() 运行天数 / sg_year_posts() 本年产出。
+ * 首页侧栏 · 小站资讯卡（对齐 Fomalhaut card_webinfo 新版）：
+ * KPI 总字数 / 篇均字 / 友链 + 时间条（已运行 · 距上次发文 · 更新）+ 年度产出柱状图。
+ * 数据全部来自 lib/config.php 的 sg_webinfo()，不引入访问量统计脚本，访客位不输出。
  */
-$sgWiWords = sg_words_format(sg_total_words());
-$sgWiStats = sg_stats();
-$sgWiUptime = sg_uptime();
-$sgWiYear = sg_year_posts();
+$sgWi = sg_webinfo();
+$sgWiMax = 1;
+foreach ($sgWi['bars'] as $sgWiBar) {
+    if ($sgWiBar['count'] > $sgWiMax) {
+        $sgWiMax = $sgWiBar['count'];
+    }
+}
+$sgWiFriendsLink = sg_page_exists('friends') ? sg_page_url('friends') : '';
 ?>
 <section class="sg-hcard sg-hinfo" aria-label="小站资讯">
   <div class="sg-hcard-head">
     <span class="sg-hcard-title"><?php echo sg_icon('activity'); ?>小站资讯</span>
   </div>
   <div class="sg-hinfo-kpi">
-    <div class="sg-hinfo-kpi-item"><span class="sg-hinfo-num"><?php echo sg_e($sgWiWords); ?></span><span class="sg-hinfo-label">总字数</span></div>
-    <div class="sg-hinfo-kpi-item"><span class="sg-hinfo-num"><?php echo sg_e($sgWiStats['posts']); ?></span><span class="sg-hinfo-label">文章</span></div>
-    <div class="sg-hinfo-kpi-item"><span class="sg-hinfo-num"><?php echo sg_e($sgWiStats['photos']); ?></span><span class="sg-hinfo-label">照片</span></div>
+    <div class="sg-hinfo-kpi-item"><span class="sg-hinfo-num"><?php echo sg_e($sgWi['words']); ?></span><span class="sg-hinfo-label">总字数</span></div>
+    <div class="sg-hinfo-kpi-item"><span class="sg-hinfo-num"><?php echo sg_e($sgWi['avg']); ?></span><span class="sg-hinfo-label">篇均字</span></div>
+    <?php if ($sgWiFriendsLink !== '') : ?>
+    <a class="sg-hinfo-kpi-item" href="<?php echo sg_e($sgWiFriendsLink); ?>"><span class="sg-hinfo-num"><?php echo (int) $sgWi['friends']; ?></span><span class="sg-hinfo-label">友链</span></a>
+    <?php else : ?>
+    <div class="sg-hinfo-kpi-item"><span class="sg-hinfo-num"><?php echo (int) $sgWi['friends']; ?></span><span class="sg-hinfo-label">友链</span></div>
+    <?php endif; ?>
   </div>
   <div class="sg-hinfo-time">
-    <div class="sg-hinfo-time-item"><span>已运行</span><b><?php echo (int) $sgWiUptime['days']; ?> 天</b></div>
-    <div class="sg-hinfo-time-item"><span>本年产出</span><b><?php echo (int) $sgWiYear; ?> 篇</b></div>
-    <div class="sg-hinfo-time-item"><span>碎语</span><b><?php echo sg_e($sgWiStats['notes']); ?> 条</b></div>
+    <span class="sg-hinfo-time-item"><span class="sg-hinfo-time-k">已运行</span><b><?php echo (int) $sgWi['runDays']; ?> 天</b></span>
+    <span class="sg-hinfo-time-sep" aria-hidden="true">·</span>
+    <span class="sg-hinfo-time-item"><span class="sg-hinfo-time-k">距上次发文</span><b><?php echo (int) $sgWi['sincePost']; ?> 天</b></span>
+    <span class="sg-hinfo-time-sep" aria-hidden="true">·</span>
+    <span class="sg-hinfo-time-item"><span class="sg-hinfo-time-k">更新</span><b><?php echo sg_e($sgWi['update']); ?></b></span>
+  </div>
+  <div class="sg-hinfo-chart">
+    <div class="sg-hinfo-chart-head">
+      <span>年度产出</span>
+      <span class="sg-hinfo-chart-sub">共 <?php echo (int) $sgWi['writeDays']; ?> 个写作日</span>
+    </div>
+    <div class="sg-hinfo-bars">
+      <?php foreach ($sgWi['bars'] as $sgWiBar) : ?>
+      <?php $sgWiH = $sgWiBar['count'] > 0 ? max(12, (int) round($sgWiBar['count'] / $sgWiMax * 68)) : 4; ?>
+      <div class="sg-hinfo-bar">
+        <span class="sg-hinfo-bar-n"><?php echo (int) $sgWiBar['count']; ?></span>
+        <span class="sg-hinfo-bar-track"><i style="height:<?php echo $sgWiH; ?>%<?php echo $sgWiBar['count'] > 0 ? '' : ';opacity:.25'; ?>"></i></span>
+        <span class="sg-hinfo-bar-y"><?php echo (int) $sgWiBar['year']; ?></span>
+      </div>
+      <?php endforeach; ?>
+    </div>
   </div>
 </section>

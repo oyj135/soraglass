@@ -37,6 +37,7 @@ if ($sgName === '') {
 </footer>
 
 <?php $this->need('partials/toolbox.php'); ?>
+<?php $this->need('partials/rightside.php'); ?>
 
 <audio data-sg-audio preload="metadata"></audio>
 <div class="sg-toast" data-sg-toast role="status" aria-live="polite"></div>

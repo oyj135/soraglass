@@ -749,6 +749,43 @@ function sg_is_note(int $cid): bool
     return $cid > 0 && in_array($cid, sg_note_cids(), true);
 }
 
+/**
+ * 打了「碎语」标签的全部文章 cid（静态缓存，失败回空数组）。
+ * 有的站碎语不走分类而是打标签，首页最新文章列表要把两种写法都剔出去；
+ * 标签按 name='碎语' 或 slug='notes' 认，与分类的约定缩略名保持一致。
+ */
+function sg_chatter_tag_cids(): array
+{
+    static $cache = null;
+    if ($cache !== null) {
+        return $cache;
+    }
+
+    $cache = [];
+    try {
+        $db = \Typecho\Db::get();
+        $tags = $db->fetchAll($db->select('mid')->from('table.metas')
+            ->where('type = ?', 'tag')->where('name = ? OR slug = ?', '碎语', 'notes'));
+        foreach ($tags as $tag) {
+            $mid = (int) ($tag['mid'] ?? 0);
+            if ($mid <= 0) {
+                continue;
+            }
+            foreach ($db->fetchAll($db->select('cid')->from('table.relationships')->where('mid = ?', $mid)) as $row) {
+                $cid = (int) ($row['cid'] ?? 0);
+                if ($cid > 0) {
+                    $cache[] = $cid;
+                }
+            }
+        }
+        $cache = array_values(array_unique($cache));
+    } catch (\Throwable $e) {
+        $cache = [];
+    }
+
+    return $cache;
+}
+
 /** 碎语页副标题里要显示的条数（与首页轮播共用同一份数据） */
 function sg_notes_count(): int
 {

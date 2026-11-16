@@ -13,6 +13,7 @@ import { initArticle } from './modules/article';
 import { initNotes } from './modules/notes';
 import { initNavigation } from './modules/navigation';
 import { initHome } from './modules/home';
+import { initRightside } from './modules/rightside';
 
 /**
  * 单独兜住每个模块的异常。
@@ -46,6 +47,7 @@ function mountPage(): void {
   safe('article', initArticle);
   safe('notes', initNotes);
   safe('home', initHome);
+  safe('rightside', initRightside);
 }
 function boot(): void {
   mountPage(); safe('effects', initEffects); initNavigation(mountPage);

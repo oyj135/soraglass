@@ -26,13 +26,14 @@ $sgNotesLink = sg_page_url('notes');
 $sgSlides = sg_home_slides(5);
 
 // 正文文章列表（2026-11-16 首页重构）：独立取普通文章，跳过碎语，取固定 6 篇。
+// 碎语有两种挂法：分类 slug=notes 与「碎语」标签，两个 cid 集合并集一起剔。
 // 用 Widget_Archive@sg_home_list（type=index）而非 Widget_Contents_Post_Recent——
 // 后者不查 text，摘要恒空；这里列表卡要显示引号摘要，必须用 Archive。
 $sgHomeListHtml = '';
 $sgHomeListCount = 0;
 $sgHomeListLimit = 6;
 try {
-    $sgNoteCids = sg_note_cids();
+    $sgNoteCids = array_values(array_unique(array_merge(sg_note_cids(), sg_chatter_tag_cids())));
     ob_start();
     $this->widget('Widget_Archive@sg_home_list', 'pageSize=' . ($sgHomeListLimit + count($sgNoteCids)) . '&type=index')->to($sgList);
     while ($sgList->next()) {
@@ -110,8 +111,7 @@ unset($sgCardArchive);
         <?php if ($sgHomeListHtml !== '') : ?>
         <section class="sg-home-latest" id="sg-home-content" aria-label="最新文章">
           <div class="sg-home-section-head">
-            <h2 class="sg-home-section-title"><?php echo sg_icon('book-open'); ?>最近文章</h2>
-            <a class="sg-home-section-more" href="<?php echo sg_e(sg_page_url('archives')); ?>">全部文章<?php echo sg_icon('arrow-up-right'); ?></a>
+            <h2 class="sg-home-section-title"><?php echo sg_icon('book-open'); ?>最新文章</h2>
           </div>
           <div class="sg-home-grid">
             <?php echo $sgHomeListHtml; ?>
