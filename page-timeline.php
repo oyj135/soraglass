@@ -4,53 +4,49 @@
  *
  * @package custom
  *
- * 结构与源站 components/TimelineClient.tsx + TimelineNode.tsx 一致：
- * 标题 → 搜索 → 「全部档案」+ 标签胶囊（带计数）→ 固定矩阵网格
- * （封面/日期/标题/描述/#标签）。
+ * 结构：标题 → 搜索 → 「全部档案」+ 标签胶囊（带计数）→ 固定矩阵网格 → 分页条。
  *
- * 2026-11-12 第四轮：去掉「中枢链路 / 矩阵网格」双视图切换。
- * 两套布局的阅读节奏差异太大，切换按钮本身也在抢标签胶囊的注意力；
- * 现只保留等宽矩阵，行高与列宽由 CSS 固定，翻页时不会跳版。
+ * 服务端分页（2026-11-16 第二十轮）：筛选与分页全部在服务端完成，
+ * URL 三个 query 参数：tag（标签 slug）、k（关键词）、p（页码，1 起）。
+ * 不能用 s / page：Typecho 的 Archive::execute() 把 s 当搜索参数 302 跳走、
+ * 把 page 当归档分页，独立页会被劫持（见 var/Widget/Archive.php:565）。
+ * 服务端只输出当前页 9 篇的 HTML，翻页/筛选都是真实 <a> 链接 —— 既可被
+ * navigation.ts 的 PJAX 接管（query 变化即新路由），无 JS 时也能正常翻页。
+ * 标签计数基于全量文章（切片前），不随分页变化。
  *
- * 缩略名仍是 timeline，旧链接不失效；只是导航与标题换成了更贴切的名字。
- *
- * 标签胶囊不取 Widget_Metas_Tag_Cloud，而是从本页文章列表自己汇总：
- * 这样胶囊的 slug 与卡片 data-tags 一定同源，筛选不会因为转义差异匹配不上。
+ * 碎语不属于知识档案：多取碎语条数再剔掉，保证普通文章仍能填满一页。
+ * 缩略名仍是 timeline，旧链接不失效。
  */
 if (!defined('SG_ROOT')) {
     require_once __DIR__ . '/functions.php';
 }
 $this->need('header.php');
 
-/* 知识档案是「全量知识条目」页，取数上限固定 200，不受后台「每页条数上限」
-   sgPageSize 影响——归档页 archives.php 同样固定 200。2026-11-16 修复：
-   此前跟随 sgPageSize，后台误填 6 时本部文章被 if(count>=sgSize) 截断成 6 篇，
-   标签计数也跟着只统计这 6 篇（java 4 / 后端 4 …），表现为「篇数与标签都错」。 */
-$sgSize = 200;
+$sgSize = 200;                 // 全量取数上限（与归档页一致，不受 sgPageSize 影响）
+$sgPageSize = 9;               // 显示层每页 9 篇（3×3 矩阵）
+$sgCurrentPage = max(1, (int) ($_GET['p'] ?? 1));
+$sgActiveTag = trim((string) ($_GET['tag'] ?? ''));
+$sgKeyword = trim((string) ($_GET['k'] ?? ''));
 
-$sgPosts = [];
+$sgAllPosts = [];
 $sgCids  = [];
 try {
-    /* 碎语不属于知识档案（2026-11-13）：多取「碎语条数」那么多再剔掉，
-       保证普通文章仍能填满一页，不会被碎语挤掉。 */
     $sgNoteTotal = count(sg_note_cids());
     $this->widget('Widget_Contents_Post_Recent', 'pageSize=' . ($sgSize + $sgNoteTotal))->to($sgRecent);
     while ($sgRecent->next()) {
         if (sg_is_note((int) $sgRecent->cid)) {
             continue;
         }
-        if (count($sgPosts) >= $sgSize) {
+        if (count($sgAllPosts) >= $sgSize) {
             break;
         }
         $sgCids[] = (int) $sgRecent->cid;
-        $sgPosts[] = [
+        $sgAllPosts[] = [
             'cid'       => (int) $sgRecent->cid,
             'title'     => (string) $sgRecent->title,
             'permalink' => (string) $sgRecent->permalink,
-            // Widget::date() 是「打印」而不是「返回」——写成 $sgRecent->date('Y.m.d')
-            // 会把这 6 个日期直接 echo 到 <main> 之前（页首那串裸日期）。
+            // Widget::date() 是「打印」而非「返回」，取格式化串要用 ->date->format()
             'date'      => $sgRecent->date->format('Y.m.d'),
-            // 时间戳供参考图卡「发表于 N 天前」用；Typecho\Date 有 timestamp 属性
             'stamp'     => (int) ($sgRecent->date->timestamp ?? 0),
             'cover'     => sg_cover($sgRecent),
             'desc'      => sg_field($sgRecent, 'description', '') !== ''
@@ -59,10 +55,10 @@ try {
         ];
     }
 } catch (\Throwable $e) {
-    $sgPosts = [];
+    $sgAllPosts = [];
 }
 
-// 标签总表：slug => ['name'=>..,'count'=>..]，按出现次数倒序，最多 18 个
+// 标签总表：slug => ['name'=>..,'count'=>..]，基于全量，按出现次数倒序，最多 18 个
 $sgTagMap   = sg_post_tags_map($sgCids);
 $sgTagStats = [];
 foreach ($sgTagMap as $sgRowTags) {
@@ -79,39 +75,95 @@ uasort($sgTagStats, static function (array $a, array $b): int {
 });
 $sgTagStats = array_slice($sgTagStats, 0, 18, true);
 
+/* ---- 服务端筛选：标签 slug + 关键词（标题/描述/标签名），二者交叉 ---- */
+$sgFiltered = [];
+foreach ($sgAllPosts as $sgPost) {
+    $sgRowTags = $sgTagMap[$sgPost['cid']] ?? [];
+    $sgSlugs   = array_map(static fn(array $t): string => (string) $t['slug'], $sgRowTags);
+    $sgNames   = array_map(static fn(array $t): string => (string) $t['name'], $sgRowTags);
+
+    $sgByTag = $sgActiveTag === '' || in_array($sgActiveTag, $sgSlugs, true);
+    $sgByText = true;
+    if ($sgKeyword !== '') {
+        $sgHaystack = mb_strtolower($sgPost['title'] . ' ' . $sgPost['desc'] . ' ' . implode(' ', $sgNames));
+        $sgByText = mb_strpos($sgHaystack, mb_strtolower($sgKeyword)) !== false;
+    }
+    if (!$sgByTag || !$sgByText) {
+        continue;
+    }
+    $sgPost['slugs'] = $sgSlugs;
+    $sgPost['names'] = $sgNames;
+    $sgFiltered[] = $sgPost;
+}
+
+/* ---- 服务端切片：只把当前页的 9 篇渲染成 HTML ---- */
+$sgTotal = count($sgFiltered);
+$sgTotalPages = max(1, (int) ceil($sgTotal / $sgPageSize));
+if ($sgCurrentPage > $sgTotalPages) {
+    $sgCurrentPage = $sgTotalPages;
+}
+$sgPosts = array_slice($sgFiltered, ($sgCurrentPage - 1) * $sgPageSize, $sgPageSize);
+
+/* ---- 分页/筛选链接构造：相对 query，PJAX 可接管，无 JS 也能翻页 ---- */
+// 翻页链接：换页码，保留当前标签与关键词。
+$sgUrl = static function (int $p) use ($sgActiveTag, $sgKeyword): string {
+    $sgQuery = [];
+    if ($p > 1) { $sgQuery['p'] = $p; }
+    if ($sgActiveTag !== '') { $sgQuery['tag'] = $sgActiveTag; }
+    if ($sgKeyword !== '') { $sgQuery['k'] = $sgKeyword; }
+    return '?' . ($sgQuery ? http_build_query($sgQuery) : '');
+};
+// 标签切换：保留搜索词、回到第 1 页；「全部」清空 tag。
+$sgTagUrl = static function (string $tag) use ($sgKeyword): string {
+    $sgQuery = [];
+    if ($tag !== '') { $sgQuery['tag'] = $tag; }
+    if ($sgKeyword !== '') { $sgQuery['k'] = $sgKeyword; }
+    return '?' . (($sgQuery) ? http_build_query($sgQuery) : '');
+};
+
+$sgSub = sg_page_sub($this, '总计 ' . $sgTotal . ' 篇研究记录');
+if ($sgTotal !== count($sgAllPosts)) {
+    $sgSub .= ' · 当前筛选 ' . $sgTotal . ' 篇';
+}
 $sgHead = [
     'title'       => (string) $this->title,
-    'sub'         => sg_page_sub($this, '总计 ' . count($sgPosts) . ' 篇研究记录'),
+    'sub'         => $sgSub,
     'search'      => true,
     'center'      => false,
     'placeholder' => '搜寻被封存的知识...',
+    // 服务端搜索：提交到本页，用 k（避开 Typecho 占用的 s），保留当前标签，回填关键词
+    'search_action' => '',
+    'search_name'   => 'k',
+    'search_hidden' => ($sgActiveTag !== '') ? ['tag' => $sgActiveTag] : [],
+    'search_value'  => $sgKeyword,
 ];
 ?>
 <main id="sg-main" class="sg-main sg-main--wide sg-main--pad sg-archive" data-sg-page="timeline" data-sg-archive data-sg-grid>
   <?php sg_page_head($sgHead); ?>
 
   <div class="sg-archive-toolbar">
-    <div class="sg-filter sg-archive-tags">
-      <button class="sg-filter-btn is-active" type="button" data-sg-archive-tag="全部">全部档案</button>
+    <nav class="sg-filter sg-archive-tags" aria-label="按标签筛选">
+      <?php $sgAllActive = $sgActiveTag === ''; ?>
+      <a class="sg-filter-btn<?php echo $sgAllActive ? ' is-active' : ''; ?>" href="<?php echo sg_e($sgTagUrl('')); ?>"<?php echo $sgAllActive ? ' aria-current="page"' : ''; ?>>全部档案</a>
       <?php foreach ($sgTagStats as $sgSlug => $sgStat) : ?>
-      <button class="sg-filter-btn" type="button" data-sg-archive-tag="<?php echo sg_e((string) $sgSlug); ?>"><?php echo sg_e($sgStat['name']); ?><span class="sg-filter-count"><?php echo (int) $sgStat['count']; ?></span></button>
+      <?php $sgOn = ($sgActiveTag === (string) $sgSlug); ?>
+      <a class="sg-filter-btn<?php echo $sgOn ? ' is-active' : ''; ?>" href="<?php echo sg_e($sgTagUrl((string) $sgSlug)); ?>"<?php echo $sgOn ? ' aria-current="page"' : ''; ?>><?php echo sg_e($sgStat['name']); ?><span class="sg-filter-count"><?php echo (int) $sgStat['count']; ?></span></a>
       <?php endforeach; ?>
-    </div>
+    </nav>
   </div>
 
   <div class="sg-archive-list">
     <?php foreach ($sgPosts as $sgPost) : ?>
     <?php
-      $sgTags    = $sgTagMap[$sgPost['cid']] ?? [];
-      $sgSlugs   = array_map(static fn(array $t): string => $t['slug'], $sgTags);
-      $sgNames   = array_map(static fn(array $t): string => $t['name'], $sgTags);
-      $sgKeyword = $sgPost['title'] . ' ' . $sgPost['desc'] . ' ' . implode(' ', $sgNames);
+      $sgNames   = $sgPost['names'];
+      $sgSlugs   = $sgPost['slugs'];
+      $sgKeywordRow = $sgPost['title'] . ' ' . $sgPost['desc'] . ' ' . implode(' ', $sgNames);
     ?>
     <?php
       $sgAgo = sg_time_ago((int) ($sgPost['stamp'] ?? 0));
       $sgDesc = trim((string) $sgPost['desc']);
     ?>
-    <article class="sg-feature-card" data-sg-archive-card data-sg-page-item data-keywords="<?php echo sg_e($sgKeyword); ?>" data-tags="<?php echo sg_e(implode('|', $sgSlugs)); ?>">
+    <article class="sg-feature-card" data-sg-archive-card data-keywords="<?php echo sg_e($sgKeywordRow); ?>" data-tags="<?php echo sg_e(implode('|', $sgSlugs)); ?>">
       <a class="sg-feature-media" href="<?php echo sg_e($sgPost['permalink']); ?>" tabindex="-1" aria-hidden="true">
         <img src="<?php echo sg_e($sgPost['cover']); ?>" alt="" loading="lazy">
         <?php if ($sgDesc !== '') : ?>
@@ -133,12 +185,41 @@ $sgHead = [
     <?php endforeach; ?>
   </div>
 
-  <!-- 分页条（每页 9 篇）：由 archive.ts 按筛选结果动态渲染 -->
-  <nav class="sg-page-nav" data-sg-page-nav aria-label="知识档案分页"></nav>
+  <?php if ($sgTotal === 0) : ?>
+  <p class="sg-filter-empty">这个频段没有接收到任何信号，换个关键词或标签试试。</p>
+  <?php endif; ?>
 
-  <p class="sg-filter-empty" data-sg-archive-empty hidden>这个频段没有接收到任何信号，换个关键词或标签试试。</p>
+  <!-- 服务端分页条（每页 9 篇）：真实 <a> 链接，PJAX 可接管，无 JS 也能翻页 -->
+  <?php if ($sgTotalPages > 1) : ?>
+  <nav class="sg-page-nav" data-sg-page-nav aria-label="知识档案分页">
+    <?php
+      $sgPrev = $sgCurrentPage > 1 ? $sgCurrentPage - 1 : 0;
+      $sgNext = $sgCurrentPage < $sgTotalPages ? $sgCurrentPage + 1 : 0;
+    ?>
+    <?php if ($sgPrev) : ?>
+    <a class="sg-page-btn sg-page-btn--nav" href="<?php echo sg_e($sgUrl($sgPrev)); ?>" rel="prev" aria-label="上一页"><?php echo sg_icon('chevron-left'); ?></a>
+    <?php else : ?>
+    <span class="sg-page-btn sg-page-btn--nav is-disabled" aria-disabled="true" aria-label="上一页"><?php echo sg_icon('chevron-left'); ?></span>
+    <?php endif; ?>
 
-  <?php if (!$sgPosts) : ?>
+    <?php for ($sgP = 1; $sgP <= $sgTotalPages; $sgP++) : ?>
+    <?php if ($sgP === $sgCurrentPage) : ?>
+    <span class="sg-page-btn is-active" aria-current="page" aria-label="第 <?php echo $sgP; ?> 页"><?php echo $sgP; ?></span>
+    <?php else : ?>
+    <a class="sg-page-btn" href="<?php echo sg_e($sgUrl($sgP)); ?>" aria-label="第 <?php echo $sgP; ?> 页"><?php echo $sgP; ?></a>
+    <?php endif; ?>
+    <?php endfor; ?>
+
+    <?php if ($sgNext) : ?>
+    <a class="sg-page-btn sg-page-btn--nav" href="<?php echo sg_e($sgUrl($sgNext)); ?>" rel="next" aria-label="下一页"><?php echo sg_icon('chevron-right'); ?></a>
+    <?php else : ?>
+    <span class="sg-page-btn sg-page-btn--nav is-disabled" aria-disabled="true" aria-label="下一页"><?php echo sg_icon('chevron-right'); ?></span>
+    <?php endif; ?>
+  </nav>
+  <p class="sg-page-status" aria-live="polite">第 <?php echo $sgCurrentPage; ?> / <?php echo $sgTotalPages; ?> 页</p>
+  <?php endif; ?>
+
+  <?php if (!$sgAllPosts) : ?>
   <div class="sg-glass sg-notfound">
     <span class="sg-notfound-code">空</span>
     <h1>还没有研究记录</h1>

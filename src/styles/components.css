@@ -2900,11 +2900,13 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
   overflow: hidden;
 }
 
-/* ---------- 参考图文章卡（2026-11-16）：大图 + V 形折角 + 引号 + 深色信息区 ----------
+/* ---------- 文章卡（2026-11-16 第二十轮）：形态对齐 Fomalhaut multicard，材质保留 Soraglass ----------
    用于归档/分类/标签/搜索列表（card-post.php）与知识档案（page-timeline.php）。
-   结构：.sg-feature-card > .sg-feature-media（图 + 引号） + .sg-feature-body（标题/元信息/标签）。
-   V 形折角：图片容器底边用 clip-path 切出向下的三角缺口，深色 body 顶边用一个
-   同色三角补上，视觉上像图片折进卡片。所有颜色走 tokens，不改青瓷主调。 */
+   形态取自参考主题 source/css/_index_card_style/multicard.styl：
+     · 封面固定 200px，clip-path 底边中央「向下凸三角」（书签尖），两侧凹进露出卡面
+     · 摘要层用同一裁切覆盖封面（半透明深底 + 白色「」引号），hover 与图片同步 scale(1.08)
+     · 信息区居中标题/元信息/标签
+   保留 Soraglass 的 tokens 配色、玻璃阅读面、宋体与 20/8/28 圆角制度 —— 只借形态，不换皮。 */
 .sg-feature-card {
   position: relative;
   display: flex;
@@ -2921,73 +2923,71 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
 }
 .sg-feature-card:hover { transform: translateY(-4px) scale(var(--sg-lift)); box-shadow: var(--sg-shadow-strong); }
 
-/* 图片区：上宽下带 V 形缺口。缺口深度 1.4rem，三角宽占满底边。 */
+/* 封面：底边中央向下凸出三角尖（100% 处），左右两侧到 130px 后斜向尖点。 */
 .sg-feature-media {
   position: relative;
-  display: block;
-  aspect-ratio: 16 / 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  height: 12.5rem;              /* 200px，与 Fomalhaut 封面同高 */
   overflow: hidden;
   background: rgba(148, 163, 184, .15);
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 1.4rem), 0 100%);
+  clip-path: polygon(0 8.125rem, 0 0, 100% 0, 100% 8.125rem, 50% 100%);
 }
 .sg-feature-media img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform var(--sg-dur-card) var(--sg-ease);
+  transition: transform .6s ease-in-out;
 }
-.sg-feature-card:hover .sg-feature-media img { transform: scale(var(--sg-thumb-zoom)); }
-/* 顶部压一层由下至上的暗渐变，保证引号白字可读 */
+/* 摘要覆盖层：与封面同裁切（父级 clip-path 已裁），半透明深底承托白字 */
 .sg-feature-media::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(4, 18, 24, .12) 0%, rgba(4, 18, 24, .05) 45%, rgba(4, 18, 24, .42) 100%);
+  background: rgba(4, 18, 24, .42);
   pointer-events: none;
 }
-/* 引号悬浮文字：居中偏上，白色衬线，「」包裹 */
+/* 引号摘要：覆盖在封面上、垂直居中偏下，hover 与图片同步放大 */
 .sg-feature-quote {
-  position: absolute;
+  position: relative;
   z-index: 1;
-  left: 1.25rem;
-  right: 1.25rem;
-  top: 1.1rem;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  margin: 0 1.5rem 1.6rem;
   color: #fff;
   font-family: var(--font-serif);
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 600;
   line-height: 1.7;
   letter-spacing: .01em;
-  text-shadow: 0 2px 12px rgba(2, 6, 23, .85);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  text-shadow: 1px 2px 3px rgba(0, 0, 0, .65);
   overflow: hidden;
+  transition: transform .6s ease-in-out;
 }
+.sg-feature-card:hover .sg-feature-media img,
+.sg-feature-card:hover .sg-feature-quote { transform: scale(1.08); }
 
+/* 信息区：约 150px，居中排布（标题 / 元信息 / 标签）。封面凸三角两侧露出的
+   区域由卡面背景承接，与下方信息区同色，形成 Fomalhaut 的折纸咬合观感。 */
 .sg-feature-body {
   position: relative;
   display: flex;
   flex: 1;
   flex-direction: column;
+  justify-content: center;
   gap: .55rem;
-  padding: .35rem 1.25rem 1.25rem;
+  min-height: 9.375rem;         /* 150px */
+  padding: 1rem 1.25rem 1.25rem;
   color: var(--sg-text);
-}
-/* V 形补角：贴在 body 顶部的深色三角，填进图片缺口，形成折纸咬合 */
-.sg-feature-body::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 1.4rem;
-  background: var(--sg-reading-surface);
-  clip-path: polygon(0 0, 100% 0, 50% 100%);
 }
 .sg-feature-title {
   position: relative;
-  margin: 1.1rem 0 0;
+  margin: 0;
   font-family: var(--font-serif);
   font-size: 1.3rem;
   font-weight: 700;
@@ -3016,7 +3016,13 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
 .sg-feature-tags > span { display: inline-flex; align-items: center; gap: .3rem; }
 .sg-feature-meta svg,
 .sg-feature-tags svg { width: .9rem; height: .9rem; flex: none; color: var(--sg-accent-ink); }
-/* 暗色下 reading-surface 偏深，引号/标题仍用亮字 */
+/* 减少动效：去掉封面/摘要缩放与卡片位移 */
+@media (prefers-reduced-motion: reduce) {
+  .sg-feature-card:hover { transform: none; }
+  .sg-feature-card:hover .sg-feature-media img,
+  .sg-feature-card:hover .sg-feature-quote { transform: none; }
+  .sg-feature-media img, .sg-feature-quote { transition: none; }
+}
 html.dark .sg-feature-card { background: var(--sg-card-strong); }
 
 /* ---------- 通用按钮 ---------- */
@@ -3668,42 +3674,66 @@ html:not(.dark) .sg-heat-cell[data-level="4"] { background: #35616b; }
 .sg-archive-tags { margin-bottom: .25rem; }
 .sg-archive-tags .sg-filter-btn { cursor: pointer; }
 
-/* 知识档案分页条（2026-11-16）：显示层分页每页 9 篇，由 archive.ts 渲染按钮。
-   [hidden] 需要显式 display:none —— .sg-page-nav 写了 display:flex，否则隐藏失效。 */
+/* 知识档案分页条（2026-11-16 第二十轮）：服务端分页，按钮是真实 <a> 链接。
+   形态对齐 Fomalhaut #pagination：圆形页码、当前页主题色实心白字、hover 变色、
+   前后页用 chevron；配色仍走 tokens（青瓷签名色），不改 Soraglass 材质。 */
 .sg-page-nav {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: .5rem;
-  margin-top: 1.75rem;
+  gap: .6rem;
+  margin-top: 2rem;
 }
-.sg-page-nav[hidden] { display: none; }
 .sg-page-btn {
-  min-width: 2.25rem;
-  min-height: 2.25rem;
-  padding: 0 .7rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
   border: 1px solid var(--sg-border);
-  border-radius: var(--sg-radius-inner);
+  border-radius: 50%;
   background: var(--sg-card);
   color: var(--sg-muted);
   font-family: var(--font-sans);
-  font-size: .85rem;
+  font-size: .875rem;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
   cursor: pointer;
-  transition: background-color .3s, color .3s, border-color .3s;
+  transition: background-color var(--sg-dur-fast) var(--sg-ease),
+              color var(--sg-dur-fast) var(--sg-ease),
+              border-color var(--sg-dur-fast) var(--sg-ease),
+              transform var(--sg-dur-fast) var(--sg-ease);
 }
-.sg-page-btn:is(:hover, :focus-visible):not(:disabled) {
-  color: var(--sg-accent-ink);
-  border-color: var(--sg-accent-soft);
+.sg-page-btn:is(a:not(.is-disabled)):is(:hover, :focus-visible) {
+  background: var(--sg-accent);
+  border-color: var(--sg-accent);
+  color: #fff;
+  transform: translateY(-2px);
 }
 .sg-page-btn.is-active {
-  background: var(--sg-accent-deep);
-  border-color: var(--sg-accent-deep);
+  background: var(--sg-accent);
+  border-color: var(--sg-accent);
   color: #fff;
   font-weight: 700;
+  cursor: default;
 }
-html.dark .sg-page-btn.is-active { background: var(--sg-accent); border-color: var(--sg-accent-soft); color: #04171b; }
-.sg-page-btn:disabled { opacity: .4; cursor: not-allowed; }
+html.dark .sg-page-btn.is-active { color: #04171b; }
+.sg-page-btn--nav svg { width: 1.05rem; height: 1.05rem; }
+.sg-page-btn.is-disabled { opacity: .4; cursor: default; }
+.sg-page-status {
+  margin: .85rem 0 0;
+  color: var(--sg-faint);
+  font-family: var(--font-sans);
+  font-size: .75rem;
+  text-align: center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sg-page-btn { transition: none; }
+  .sg-page-btn:is(a:not(.is-disabled)):is(:hover, :focus-visible) { transform: none; }
+}
 
 /* 知识档案标签对齐参考图（2026-11-16）：半透明玻璃大胶囊 + 衬线字 + 较大 gap。
    作用域锁在 .sg-archive-toolbar，只影响「全部档案 / Leetcode / 题解…」这一排筛选条，
@@ -3742,14 +3772,21 @@ html.dark .sg-archive-toolbar .sg-archive-tags .sg-filter-btn.is-active {
 .sg-archive-toolbar .sg-archive-tags .sg-filter-count { opacity: .68; margin-left: .3rem; font-weight: 400; }
 .sg-archive-toolbar .sg-archive-tags .sg-filter-btn.is-active .sg-filter-count { opacity: .9; }
 
-.sg-archive-list {
+/* 栅格断点对齐 Fomalhaut multicard：≥1069px 三栏 / 572–1068px 双栏 / <572px 单栏。
+   知识档案（.sg-archive-list）与归档/分类/标签/搜索（.sg-reading-list）共用同一套卡片栅格。 */
+.sg-archive-list,
+.sg-reading-list {
   display: grid;
   gap: 1.25rem;
   grid-template-columns: minmax(0, 1fr);
   align-items: stretch;
 }
-@media (min-width: 768px) { .sg-archive-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (min-width: 1200px) { .sg-archive-list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 572px) {
+  .sg-archive-list, .sg-reading-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1069px) {
+  .sg-archive-list, .sg-reading-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
 
 .sg-archive-card {
   display: flex;

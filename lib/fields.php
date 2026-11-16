@@ -193,8 +193,18 @@ function sg_page_head(array $head = []): void
        会先闪一下「光影画廊」大标题再被 gallery.ts 收起。 */
     $hidden = (bool) ($head['hidden'] ?? false);
     $placeholder = (string) ($head['placeholder'] ?? '搜索标题、描述或标签…');
+    /* 服务端分页/筛选（page-timeline.php）：允许把搜索框提交到本页而非首页，
+       并带隐藏字段（如当前标签）与回填值。未传时保持原样——action 仍是首页，
+       其余 9 个调用方不受影响。传空字符串表示提交到当前 URL（GET 会替换 query）。 */
+    $searchAction = array_key_exists('search_action', $head) ? (string) $head['search_action'] : null;
+    $searchHidden = (array) ($head['search_hidden'] ?? []);
+    $searchValue = (string) ($head['search_value'] ?? '');
+    $searchName = (string) ($head['search_name'] ?? 's');
     $options = sg_options();
     $home = is_object($options) ? rtrim((string) $options->siteUrl, '/') . '/' : '/';
+    if ($searchAction === null) {
+        $searchAction = $home;
+    }
     ?>
 <div class="sg-page-head"<?php echo $hidden ? ' hidden' : ''; ?>>
   <?php if ($back) : ?>
@@ -206,9 +216,12 @@ function sg_page_head(array $head = []): void
       <?php if ($sub !== '') : ?><p class="sg-page-sub"><?php echo sg_e($sub); ?></p><?php endif; ?>
     </div>
     <?php if ($search) : ?>
-    <form class="sg-search sg-search--sm" role="search" method="get" action="<?php echo sg_e($home); ?>">
+    <form class="sg-search sg-search--sm" role="search" method="get" action="<?php echo sg_e($searchAction); ?>">
+      <?php foreach ($searchHidden as $sgHiddenName => $sgHiddenValue) : ?>
+      <input type="hidden" name="<?php echo sg_e((string) $sgHiddenName); ?>" value="<?php echo sg_e((string) $sgHiddenValue); ?>">
+      <?php endforeach; ?>
       <span class="sg-search-icon"><?php echo sg_icon('search'); ?></span>
-      <input class="sg-search-input" type="search" name="s" placeholder="<?php echo sg_e($placeholder); ?>" aria-label="站内搜索">
+      <input class="sg-search-input" type="search" name="<?php echo sg_e($searchName); ?>" value="<?php echo sg_e($searchValue); ?>" placeholder="<?php echo sg_e($placeholder); ?>" aria-label="站内搜索">
     </form>
     <?php endif; ?>
   </div>

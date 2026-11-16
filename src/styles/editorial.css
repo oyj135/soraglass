@@ -146,7 +146,10 @@ html.dark .sg-search-input {
 }
 .sg-main[data-sg-page="archive"] .sg-page-sub { font-family: var(--font-sans); font-size: .875rem; letter-spacing: 0; }
 .sg-main[data-sg-page="archive"] .sg-search--sm { max-width: 24rem; margin: 0; }
-.sg-reading-list { overflow: hidden; }
+/* 2026-11-16 第二十轮：列表卡已统一为 .sg-feature-card 栅格（栅格定义在 components.css），
+   overflow 不能用 hidden，否则会裁掉卡片 hover 的上浮与阴影。下方 .sg-post-card 系列
+   是旧行式结构的规则，对现在的卡片已不生效，保留仅为兼容历史，不再参与布局。 */
+.sg-reading-list { overflow: visible; }
 .sg-reading-list .sg-post-card {
   display: grid;
   grid-template-columns: 5.5rem minmax(0, 1fr);
