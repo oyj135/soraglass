@@ -5,8 +5,13 @@
  */
 function sg_field($archive, string $key, string $default = ''): string
 {
-    $value = $archive->fields->{$key};
-    return (is_string($value) && $value !== '') ? $value : $default;
+    try {
+        $fields = $archive->fields ?? null;
+        $value = $fields ? ($fields->{$key} ?? null) : null;
+        return (is_string($value) && $value !== '') ? $value : $default;
+    } catch (\Throwable $e) {
+        return $default;
+    }
 }
 
 function sg_cover($archive): string
@@ -483,6 +488,50 @@ function sg_home_poster($archive = null): array
     }
 
     return $fallback;
+}
+
+/**
+ * 首页封面轮播的数据源：最近若干篇「普通文章」（跳过碎语）。
+ *
+ * 为什么不再复用 index.php 的主循环：主循环受「每页条数上限」限制，
+ * 一旦这个值小于碎语条数（线上是 6 篇碎语），最新一页会全是碎语，
+ * 循环里被逐条跳过后封面就成了空卡片 —— 2026-11-16 线上「左侧文章不显示」就是这个原因。
+ * 这里用 Recent 组件单独取数，条数按「需要几张 + 碎语条数」多取，与列表分页互不影响。
+ *
+ * @return array<int,array{title:string,url:string,cover:string,date:string,category:string,desc:string}>
+ */
+function sg_home_slides(int $limit = 5): array
+{
+    $limit = max(1, $limit);
+    $slides = [];
+
+    try {
+        $recent = \Widget\Contents\Post\Recent::allocWithAlias(
+            'sg_home_slides',
+            ['pageSize' => $limit + count(sg_note_cids())]
+        );
+        while ($recent->next()) {
+            if (sg_is_note((int) $recent->cid)) {
+                continue;
+            }
+            $title = trim((string) $recent->title);
+            $slides[] = [
+                'title'    => $title !== '' ? $title : '未命名文章',
+                'url'      => (string) $recent->permalink,
+                'cover'    => sg_cover($recent),
+                'date'     => date('Y.m.d', (int) $recent->created),
+                'category' => sg_first_category($recent),
+                'desc'     => sg_excerpt($recent, 72),
+            ];
+            if (count($slides) >= $limit) {
+                break;
+            }
+        }
+    } catch (\Throwable $e) {
+        return [];
+    }
+
+    return $slides;
 }
 
 /**
@@ -1149,4 +1198,75 @@ function sg_meting_playlist(string $endpoint): array
     }
 
     return $out;
+}
+
+/**
+ * 文章字数与预计阅读时长。
+ *
+ * 中文按 400 字/分钟、英文/数字按 220 词/分钟估算，最少 1 分钟。
+ * 只统计可见文字：先剥 HTML，再把连续空白压成一个空格。
+ * 失败时返回 0 字 / 1 分钟，模板按 chars > 0 决定是否显示。
+ *
+ * @return array{chars:int, minutes:int, text:string}
+ */
+function sg_reading_stats(string $html): array
+{
+    $text = trim((string) preg_replace('/\s+/u', ' ', strip_tags($html)));
+    $chars = function_exists('mb_strlen') ? (int) mb_strlen($text, 'UTF-8') : strlen($text);
+    $cjk = preg_match_all('/[\x{4e00}-\x{9fff}]/u', $text);
+    $latin = preg_match_all('/[A-Za-z0-9]+/', $text);
+    $minutes = (int) ceil(((int) $cjk) / 400 + ((int) $latin) / 220);
+    if ($minutes < 1) {
+        $minutes = 1;
+    }
+
+    if ($chars >= 10000) {
+        $textCount = rtrim(rtrim(number_format($chars / 10000, 1), '0'), '.') . ' 万字';
+    } else {
+        $textCount = number_format($chars) . ' 字';
+    }
+
+    return ['chars' => $chars, 'minutes' => $minutes, 'text' => $textCount];
+}
+
+/**
+ * 上下篇：按发布时间取相邻的普通文章（跳过页面、草稿、加密与未来文章）。
+ *
+ * 查询条件与 Typecho 自带的 thePrev()/theNext() 保持一致，额外返回封面，
+ * 供文章末尾的图文导航使用。取不到时返回 null，不抛错。
+ *
+ * @return array{title:string,url:string,cover:string}|null
+ */
+function sg_adjacent_post($archive, string $direction = 'prev'): ?array
+{
+    try {
+        $isPrev = $direction === 'prev';
+        $query = $archive->select()
+            ->where('table.contents.created ' . ($isPrev ? '<' : '>') . ' ?', $archive->created)
+            ->where('table.contents.status = ?', 'publish')
+            ->where('table.contents.type = ?', 'post')
+            ->where("table.contents.password IS NULL OR table.contents.password = ''");
+
+        if (!$isPrev) {
+            $query->where('table.contents.created < ?', time());
+        }
+
+        $query->order('table.contents.created', $isPrev ? \Typecho\Db::SORT_DESC : \Typecho\Db::SORT_ASC)->limit(1);
+
+        $content = \Widget\Contents\From::allocWithAlias(
+            'sg_' . $direction . ':' . $archive->cid,
+            ['query' => $query]
+        );
+        if (!$content->have()) {
+            return null;
+        }
+
+        return [
+            'title' => (string) $content->title,
+            'url'   => (string) $content->permalink,
+            'cover' => sg_cover($content),
+        ];
+    } catch (\Throwable $e) {
+        return null;
+    }
 }

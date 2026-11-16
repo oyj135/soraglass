@@ -472,6 +472,14 @@ function themeConfig($form): void
     $form->addInput(new Radio('sgClickEffect', $effectOptions, 'on', _t('点击涟漪'), _t('点击页面时的粒子反馈')));
     $form->addInput(new Radio('sgSplash', $effectOptions, 'on', _t('开屏动画'), _t('每个会话首次进入时约 0.6 秒的品牌遮罩，站内切页不再重放')));
 
+    /* ---------------- 文章页与侧栏 ---------------- */
+    $form->addInput(new Textarea('sgNotice', null, '', _t('侧栏公告'), _t('显示在文章页与独立页右侧栏的公告卡；留空则不输出该卡。支持换行，按纯文本处理。')));
+    $form->addInput(new Text('sgSidebar', null, 'notice,recent,categories,tags,webinfo', _t('侧栏卡片与顺序'), _t(
+        '英文逗号分隔，按顺序输出。可用：<code>notice</code> 公告、<code>recent</code> 最近文章、'
+        . '<code>categories</code> 分类、<code>tags</code> 标签、<code>webinfo</code> 站点信息。'
+        . '留空则只保留作者卡与目录。'
+    )));
+
     /* ---------------- 首页三张卡 ---------------- */
     $form->addInput(new Text('sgDefaultCover', null, '', _t('默认文章封面'), _t(
         '<b>显示位置</b>：文章封面兜底图 —— 首页封面轮播、文章列表卡、文章详情页顶部大图、知识档案卡片缩略图；'
@@ -553,7 +561,7 @@ function themeConfig($form): void
     $form->addInput(new Text('sgPlaylistLimit', null, '50', _t('歌单上限（条）'), _t('最多展示的曲目数量，默认 50；填 0 不限制。较大的歌单会增加页面加载时间。')));
     $form->addInput(new Text('sgIcp', null, '', _t('备案号'), _t('显示位置：页脚第一行「系统已稳定运行」的右侧。填阿里云备案下来的完整号（例：湘ICP备2023030699号）；留空则整段不输出，不留空位')));
     $form->addInput(new Text('sgUptimeSince', null, '', _t('建站日期'), _t('显示位置：页脚第一行「系统已稳定运行：N 天 N 小时」。格式 2024-01-01（也可写 2024/01/01）。不满一年显示天数，满一年显示「1 年 12 天 12 小时」；留空则自动取最早一篇已发布文章的时间')));
-    $form->addInput(new Text('sgPageSize', null, '200', _t('每页条数上限'), _t('对齐源站「无分页」：模板不输出分页条，列表一次取完。填 0 则沿用「设置 → 阅读」的每页文章数目')));
+    $form->addInput(new Text('sgPageSize', null, '200', _t('每页条数上限'), _t('列表一次取数上限，默认 200；填 0 则沿用「设置 → 阅读」的每页文章数目。模板不输出分页条')));
 }
 
 /**
@@ -574,6 +582,8 @@ function themeInit($archive): void
         return;
     }
 
+    /* 列表一次取完：模板不输出分页条（用户明确不需要分页）。
+       0 表示沿用「设置 → 阅读」的每页文章数目。 */
     $size = (int) sg_opt('sgPageSize', '200');
     if ($size > 0 && ($archive->is('index') || $archive->is('archive'))) {
         $archive->parameter->pageSize = $size;

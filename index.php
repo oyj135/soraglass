@@ -21,6 +21,9 @@ $sgCoverFallback = $sgPoster['cover'] !== '' ? $sgPoster['cover'] : sg_theme_url
 // 碎语轮播：读 JSON 短记（合并了原来的「杂谈 / 说说」两页），取最新 4 条
 $sgNotes = array_slice(sg_notes(), 0, 4);
 $sgNotesLink = sg_page_url('notes');
+
+// 封面轮播：单独取最近的文章（跳过碎语），不受列表「每页条数上限」影响
+$sgSlides = sg_home_slides(5);
 ?>
 <main id="sg-main" class="sg-main" data-sg-page="index">
   <form class="sg-search" role="search" method="get" action="<?php echo sg_e($sgHome); ?>">
@@ -34,23 +37,22 @@ $sgNotesLink = sg_page_url('notes');
     ?>
     <div class="sg-grid sg-grid-12 sg-hero">
       <section class="sg-glass sg-post-carousel sg-col-7 sg-hero-cover" data-sg-carousel data-sg-interval="5000" data-sg-hover>
-        <?php $GLOBALS['SG_SLIDE_SEEN'] = false; ?>
-        <?php
-        /* 碎语不进首页封面轮播（2026-11-13）：碎语在下方有专门的轮播区块。
-           用「总数 > 碎语数」判断是否还有普通文章，避免全是碎语时轮播空着。 */
-        $sgHasPlainPost = true;
-        try {
-            $sgHasPlainPost = (int) $this->getTotal() > count(sg_note_cids());
-        } catch (\Throwable $e) {
-            $sgHasPlainPost = true;
-        }
-        ?>
-        <?php if ($this->have() && $sgHasPlainPost) : ?>
-          <?php while ($this->next()) : ?>
-            <?php if (!sg_is_note((int) $this->cid)) : ?>
-            <?php $this->need('partials/slide-post.php'); ?>
-            <?php endif; ?>
-          <?php endwhile; ?>
+        <?php if ($sgSlides) : ?>
+          <?php foreach ($sgSlides as $sgSlideIndex => $sgSlide) : ?>
+            <article class="sg-post-slide<?php echo $sgSlideIndex === 0 ? ' is-active' : ''; ?>" data-sg-slide>
+              <a class="sg-slide-media" href="<?php echo sg_e($sgSlide['url']); ?>" tabindex="-1" aria-hidden="true">
+                <img class="sg-slide-cover" src="<?php echo sg_e($sgSlide['cover']); ?>" alt="" <?php echo $sgSlideIndex === 0 ? '' : 'loading="lazy"'; ?>>
+              </a>
+              <a class="sg-slide-body" href="<?php echo sg_e($sgSlide['url']); ?>">
+                <span class="sg-slide-chips">
+                  <span class="sg-chip--tag"><?php echo sg_e($sgSlide['category']); ?></span>
+                  <span class="sg-chip--mono"><?php echo sg_e($sgSlide['date']); ?></span>
+                </span>
+                <h2 class="sg-slide-title"><?php echo sg_e($sgSlide['title']); ?></h2>
+                <span class="sg-slide-desc"><?php echo sg_e($sgSlide['desc']); ?></span>
+              </a>
+            </article>
+          <?php endforeach; ?>
         <?php else : ?>
           <article class="sg-post-slide is-active" data-sg-slide>
             <div class="sg-slide-media"><img class="sg-slide-cover" src="<?php echo sg_e($sgCoverFallback); ?>" alt=""></div>
@@ -89,7 +91,6 @@ $sgNotesLink = sg_page_url('notes');
       </a>
 
       <div class="sg-glass sg-chatter sg-col-4" data-sg-carousel data-sg-hover>
-        <?php $GLOBALS['SG_SLIDE_SEEN'] = false; ?>
         <?php if ($sgNotes) : ?>
           <?php foreach ($sgNotes as $sgNoteIndex => $sgNote) : ?>
             <?php $sgNote['active'] = $sgNoteIndex === 0; ?>

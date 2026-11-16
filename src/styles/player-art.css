@@ -81,7 +81,7 @@
 .is-playing .sg-player-state-dot { color:var(--sg-accent-ink); }
 .sg-player-wave { display:block;width:100%;height:32px;flex:none; }
 .sg-music .sg-player-wave { height:38px; }
-.sg-player .sg-album-art { max-width:18.5rem;margin-top:.65rem;margin-bottom:.25rem; }
+.sg-player .sg-album-art { max-width:13rem;margin-top:.55rem;margin-bottom:.2rem; }
 .sg-player .sg-player-info { margin-top:.25rem; }
 .sg-player .sg-player-wave { margin-top:.35rem; }
 .sg-player-lyric { overflow:hidden;text-overflow:ellipsis; }

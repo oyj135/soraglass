@@ -89,7 +89,7 @@ body { overflow-x: clip; }
   min-width: 0;
 }
 
-.sg-hero-side > section { flex: 0 0 auto; min-height: 0; }
+.sg-hero-side > section { flex: 0 0 auto; min-width: 0; min-height: 0; }
 
 /* 首页昼夜卡让位（2026-11-13 第三十二轮 / 第三十六轮改到第二行）：
    这块纯氛围内容只有一枚圆盘 + 两行字，窄屏一律收起，宽度让给同排的海报与碎语。

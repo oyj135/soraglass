@@ -5,45 +5,6 @@ import { pageOn, pageTimeout, pageInterval, pageFrame, onPageDispose, pageSignal
  */
 import { reducedMotion } from './core';
 
-/**
- * 阅读进度中轴线（2026-11-14 第三十五轮）。
- * 只在带 .sg-article-layout 的正文页生成，轨道样式见 components.css .sg-readline。
- * 进度写进 CSS 变量，一次 rAF 一次 style 写入；正文不足一屏直接收线。
- */
-function initReadline(): void {
-  const body = document.querySelector<HTMLElement>('.sg-article-layout [data-sg-article]');
-  if (!body) return;
-
-  const host = document.createElement('div');
-  host.className = 'sg-readline';
-  host.setAttribute('aria-hidden', 'true');
-  host.appendChild(document.createElement('i'));
-  document.body.appendChild(host);
-  onPageDispose(() => host.remove());
-
-  let raf = 0;
-  const paint = (): void => {
-    raf = 0;
-    const rect = body.getBoundingClientRect();
-    // 可滚动量 = 正文高 - 视口高；低于 160px 说明内容本来就短
-    const span = rect.height - window.innerHeight;
-    if (span < 160) {
-      host.classList.add('is-off');
-      return;
-    }
-    host.classList.remove('is-off');
-    const p = Math.min(1, Math.max(0, -rect.top / span));
-    host.style.setProperty('--sg-read-p', p.toFixed(4));
-  };
-  const schedule = (): void => {
-    if (!raf) raf = pageFrame(paint);
-  };
-
-  paint();
-  pageOn(window, 'scroll', schedule, { passive: true });
-  pageOn(window, 'resize', schedule, { passive: true });
-}
-
 function initTOC(): void {
   const article = document.querySelector<HTMLElement>('[data-sg-article]');
   const toc = document.querySelector<HTMLElement>('[data-sg-toc]');
@@ -54,6 +15,53 @@ function initTOC(): void {
   if (heads.length < 2) return;
 
   toc.hidden = false;
+  if (!toc.id) toc.id = 'sg-toc-panel';
+
+  /* 移动端目录开关：目录在窄屏默认收起，由右下角浮动按钮打开；
+     桌面端按钮由 CSS 隐藏，目录保持吸顶。 */
+  const fab = document.createElement('button');
+  fab.type = 'button';
+  fab.className = 'sg-toc-fab';
+  fab.setAttribute('aria-controls', toc.id);
+  fab.setAttribute('aria-expanded', 'false');
+  fab.textContent = '目录';
+  document.body.appendChild(fab);
+  onPageDispose(() => fab.remove());
+
+  const setOpen = (open: boolean): void => {
+    toc.classList.toggle('is-mobile-open', open);
+    fab.setAttribute('aria-expanded', String(open));
+    fab.textContent = open ? '收起目录' : '目录';
+    if (open) {
+      toc.querySelector<HTMLAnchorElement>('.sg-toc-list a')?.focus({ preventScroll: true });
+    } else {
+      fab.focus({ preventScroll: true });
+    }
+  };
+  pageOn(fab, 'click', () => setOpen(!toc.classList.contains('is-mobile-open')));
+  pageOn(document, 'keydown', (event) => {
+    if (event.key === 'Escape' && toc.classList.contains('is-mobile-open')) setOpen(false);
+  });
+
+  /* 阅读百分比：与左侧阅读轴的算法保持一致，正文不足一屏时按 0/100 处理。 */
+  const percent = toc.querySelector<HTMLElement>('[data-sg-toc-percent]');
+  if (percent) {
+    let raf = 0;
+    const paint = (): void => {
+      raf = 0;
+      const rect = article.getBoundingClientRect();
+      const span = rect.height - window.innerHeight;
+      const p = span < 160 ? (rect.top < 0 ? 1 : 0) : Math.min(1, Math.max(0, -rect.top / span));
+      percent.textContent = `${Math.round(p * 100)}%`;
+    };
+    const schedule = (): void => {
+      if (!raf) raf = pageFrame(paint);
+    };
+    paint();
+    pageOn(window, 'scroll', schedule, { passive: true });
+    pageOn(window, 'resize', schedule, { passive: true });
+  }
+
   const list = document.createElement('ul');
   list.className = 'sg-toc-list';
 
@@ -70,6 +78,7 @@ function initTOC(): void {
       head.focus({ preventScroll: true });
       head.scrollIntoView({ behavior: reducedMotion() ? 'instant' : 'smooth', block: 'start' });
       window.history.replaceState(null, '', `#${head.id}`);
+      if (window.matchMedia('(max-width: 1023.98px)').matches) setOpen(false);
     });
     item.appendChild(link);
     list.appendChild(item);
@@ -253,7 +262,6 @@ export function initLightbox(): void {
 }
 
 export function initArticle(): void {
-  initReadline();
   initTOC();
   initLightbox();
   void initHighlight();

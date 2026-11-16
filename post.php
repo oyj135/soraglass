@@ -32,6 +32,24 @@ if (
         }
     }
 }
+
+/* 正文只取一次：字数统计、阅读时长与正文输出共用同一份过滤结果。 */
+ob_start();
+$this->content();
+$sgContent = (string) ob_get_clean();
+$sgRead = sg_reading_stats($sgContent);
+
+$sgUpdated = '';
+try {
+    if (!empty($this->modified) && (int) $this->modified !== (int) $this->created) {
+        $sgUpdated = $this->date('Y-m-d', (int) $this->modified);
+    }
+} catch (\Throwable $e) {
+    $sgUpdated = '';
+}
+
+$sgPrev = sg_adjacent_post($this, 'prev');
+$sgNext = sg_adjacent_post($this, 'next');
 ?>
 <main id="sg-main" class="sg-main sg-article-layout" data-sg-page="post" data-sg-origin="<?php echo $sgIsNote ? 'note' : 'article'; ?>">
   <article class="sg-glass sg-article sg-reading-surface">
@@ -43,25 +61,53 @@ if (
       <header class="sg-article-head">
         <h1><?php echo sg_e($sgArticleTitle !== '' ? $sgArticleTitle : '未命名文章'); ?></h1>
         <div class="sg-meta">
-          <time class="sg-meta-chip" datetime="<?php $this->date('c'); ?>"><?php echo sg_icon('clock'); ?><?php $this->date('Y-m-d H:i:s'); ?></time>
+          <time class="sg-meta-chip" datetime="<?php $this->date('c'); ?>"><?php echo sg_icon('clock'); ?><?php $this->date('Y-m-d H:i'); ?></time>
+          <?php if ($sgUpdated !== '') : ?>
+          <span class="sg-meta-chip"><?php echo sg_icon('history'); ?>更新于 <?php echo sg_e($sgUpdated); ?></span>
+          <?php endif; ?>
           <?php foreach ($sgCats as $sgCat) : ?>
-          <a class="sg-meta-chip" href="<?php echo sg_e($sgCat['permalink']); ?>"><?php echo sg_icon('tag'); ?><?php echo sg_e($sgCat['name']); ?></a>
+          <a class="sg-meta-chip" href="<?php echo sg_e($sgCat['permalink']); ?>"><?php echo sg_icon('folder'); ?><?php echo sg_e($sgCat['name']); ?></a>
           <?php endforeach; ?>
+          <?php if ($sgRead['chars'] > 0) : ?>
+          <span class="sg-meta-chip"><?php echo sg_icon('history'); ?><?php echo sg_e($sgRead['text']); ?></span>
+          <span class="sg-meta-chip"><?php echo sg_icon('clock'); ?><?php echo (int) $sgRead['minutes']; ?> 分钟阅读</span>
+          <?php endif; ?>
           <?php if ($sgTags !== '') : ?><?php echo $sgTags; ?><?php endif; ?>
         </div>
       </header>
       <?php if ($sgLead !== '') : ?><p class="sg-lead"><?php echo sg_e($sgLead); ?></p><?php endif; ?>
-      <div class="sg-prose" data-sg-article><?php $this->content(); ?></div>
+      <div class="sg-prose" data-sg-article><?php echo $sgContent; ?></div>
+
+      <?php if ($sgPrev || $sgNext) : ?>
       <nav class="sg-post-nav" aria-label="上下篇">
-        <span><?php $this->thePrev('%s', '已经是第一篇'); ?></span>
-        <span><?php $this->theNext('%s', '已经是最后一篇'); ?></span>
+        <?php if ($sgPrev) : ?>
+        <a class="sg-post-nav-item is-prev<?php echo $sgNext ? '' : ' is-full'; ?>" href="<?php echo sg_e($sgPrev['url']); ?>">
+          <img src="<?php echo sg_e($sgPrev['cover']); ?>" alt="" loading="lazy" referrerpolicy="no-referrer">
+          <span class="sg-post-nav-info">
+            <em>上一篇</em>
+            <b><?php echo sg_e($sgPrev['title'] !== '' ? $sgPrev['title'] : '未命名文章'); ?></b>
+          </span>
+        </a>
+        <?php endif; ?>
+        <?php if ($sgNext) : ?>
+        <a class="sg-post-nav-item is-next<?php echo $sgPrev ? '' : ' is-full'; ?>" href="<?php echo sg_e($sgNext['url']); ?>">
+          <img src="<?php echo sg_e($sgNext['cover']); ?>" alt="" loading="lazy" referrerpolicy="no-referrer">
+          <span class="sg-post-nav-info">
+            <em>下一篇</em>
+            <b><?php echo sg_e($sgNext['title'] !== '' ? $sgNext['title'] : '未命名文章'); ?></b>
+          </span>
+        </a>
+        <?php endif; ?>
       </nav>
+      <?php endif; ?>
     </div>
   </article>
   <aside class="sg-aside">
     <?php $this->need('partials/author-card.php'); ?>
-    <?php $this->need('sidebar.php'); ?>
-    <?php $this->need('partials/toc.php'); ?>
+    <div class="sg-aside-sticky">
+      <?php $this->need('partials/toc.php'); ?>
+      <?php $this->need('sidebar.php'); ?>
+    </div>
   </aside>
 </main>
 <?php $this->need('footer.php'); ?>

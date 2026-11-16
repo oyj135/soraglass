@@ -57,7 +57,10 @@ if ($sgView !== '') {
     </div>
   </article>
   <aside class="sg-aside">
-    <?php $this->need('partials/toc.php'); ?>
+    <div class="sg-aside-sticky">
+      <?php $this->need('partials/toc.php'); ?>
+      <?php $this->need('sidebar.php'); ?>
+    </div>
   </aside>
 </main>
 <?php $this->need('footer.php'); ?>

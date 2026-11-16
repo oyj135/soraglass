@@ -463,6 +463,7 @@ html.dark .sg-player-card { --sg-spark: rgba(255, 255, 255, .55); }
   justify-content: space-between;
   gap: .35rem;
   height: 100%;
+  min-width: 0;
   cursor: pointer;
 }
 
@@ -1145,16 +1146,9 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
    右 5 列竖排个人卡与播放器（右栏的分配规则在 layout.css 的 .sg-hero-side）。 */
 
 @media (min-width: 1024px) {
-  /* 封面高度跟视口挂钩，两头封顶：短屏不至于把歌词条顶出折叠线，
-     超宽屏也不会被拉成一条扁带。用双类名是为了压过后面 .sg-post-carousel
-     的 min-height（同权重时后者会赢，clamp 就白写了）。 */
-  .sg-hero .sg-hero-cover { min-height: clamp(21rem, 46vh, 27rem); }
-
-  /* 封顶解耦（2026-11-14 第二阶段）：hero 行是 stretch 等高，行高实际由右栏
-     「个人卡 + 播放卡」决定（1344px 视口实测约 550px = 34.4rem）。max-height
-     让封面停在这一档，音乐卡以后再加内容不再把封面一起拉高；超出部分表现为
-     右侧副卡自然下探。数值按当前右栏实测高度取值，回归时两侧保持一致。 */
-  .sg-hero .sg-hero-cover { max-height: 34.5rem; }
+  /* 封面高度不封顶：右栏「个人卡 + 播放卡」是内容定高，封面靠 grid 的
+     stretch 与它齐平，不会出现音乐卡下探、左侧留白一截的错位。
+     宽屏下的最小高度写在 editorial.css。 */
 
   /* 封面成了主角，字号跟着放一档。原来是按 4 列小轮播定的 1.5rem，
      在 7 列的宽度上标题缩在左下角，与"主视觉"的身份不匹配。
@@ -2149,53 +2143,6 @@ html.dark .sg-prose a { color: var(--sg-indigo-soft); }
 .sg-toc-list a:hover { color: var(--sg-accent-ink); }
 .sg-toc-list li.is-active a { color: var(--sg-accent-ink); font-weight: 700; }
 .sg-toc-list .sg-toc-lv3 a { padding-left: 1.75rem; font-size: .8125rem; }
-
-/* 阅读进度中轴线（2026-11-14 第三十五轮）
-   —— 不做顶部通栏进度条：那条是模板站的通用解法，还和吸顶导航抢同一条边。
-   这里把进度画成视口左侧的一段竖轴，正文滚多少填多少，游标跟着走。
-   竖轴只占 2px，不挤压内容；窄屏两侧没有留白，一律收起。 */
-.sg-readline {
-  position: fixed;
-  left: 1.5rem;
-  top: 50%;
-  z-index: 2;
-  display: none;
-  width: 2px;
-  height: min(52vh, 30rem);
-  transform: translateY(-50%);
-  border-radius: 999px;
-  /* 轨道用 ink 而不是 accent：亮色下 ink==accent，暗色下 ink 是亮青，
-     否则深青铺在深底上等于没画。 */
-  background: color-mix(in srgb, var(--sg-accent-ink) 24%, transparent);
-  pointer-events: none;
-}
-
-.sg-readline > i {
-  position: absolute;
-  inset: 0 0 auto;
-  height: calc(var(--sg-read-p, 0) * 100%);
-  border-radius: inherit;
-  background: linear-gradient(to bottom, var(--sg-accent-2), var(--sg-accent-ink));
-}
-
-/* 游标：一个 7px 实心点，比整条高亮更容易在余光里定位 */
-.sg-readline::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: calc(var(--sg-read-p, 0) * 100%);
-  width: .4375rem;
-  height: .4375rem;
-  border-radius: 50%;
-  background: var(--sg-accent-ink);
-  transform: translate(-50%, -50%);
-}
-
-@media (min-width: 1024px) { .sg-readline { display: block; } }
-@media (min-width: 1600px) { .sg-readline { left: 3rem; } }
-
-/* 正文不足一屏时没有"进度"可言，收线，免得中轴变成一根静止装饰 */
-.sg-readline.is-off { display: none; }
 
 /* ---------- 独立页页头 ---------- */
 .sg-page-head { margin-bottom: 2.5rem; }

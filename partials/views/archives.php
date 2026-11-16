@@ -4,10 +4,8 @@
  * 由 page.php 在 slug = archives 时分发进来，不需要后台选择自定义模板。
  * 不调用 getTotal()/page —— page 上下文里 Archive::$countSql 未初始化会抛错。
  */
-$sgLimit = (int) sg_opt('sgPageSize', '200');
-if ($sgLimit < 1) {
-    $sgLimit = 200;
-}
+/* 独立归档页保持原样：固定最多 200 篇，不受列表分页的「每页条数」影响。 */
+$sgLimit = 200;
 
 $sgGroups = [];
 $sgTotal = 0;
