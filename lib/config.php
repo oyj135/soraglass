@@ -469,6 +469,38 @@ function sg_user_is_admin(): bool
     return $isAdmin;
 }
 
+/**
+ * 相对时间文案（供参考图文章卡使用，如「发表于 28 天前」）。
+ * 只做正整数 + 中文单位，未来/无效时间返回空串由调用方回退到绝对日期。
+ * 纯展示函数，不参与任何过滤/取数。
+ */
+function sg_time_ago(int $timestamp): string
+{
+    if ($timestamp <= 0) {
+        return '';
+    }
+    $diff = time() - $timestamp;
+    if ($diff < 0) {
+        return '';
+    }
+    if ($diff < 60) {
+        return '刚刚';
+    }
+    $units = [
+        [31536000, '年'],
+        [2592000, '个月'],
+        [86400, '天'],
+        [3600, '小时'],
+        [60, '分钟'],
+    ];
+    foreach ($units as [$seconds, $label]) {
+        if ($diff >= $seconds) {
+            return intdiv($diff, $seconds) . ' ' . $label . '前';
+        }
+    }
+    return '';
+}
+
 /** 独立页副标题：优先自定义字段 subtitle */function sg_page_sub($archive, string $default = ''): string
 {
     try {

@@ -50,6 +50,8 @@ try {
             // Widget::date() 是「打印」而不是「返回」——写成 $sgRecent->date('Y.m.d')
             // 会把这 6 个日期直接 echo 到 <main> 之前（页首那串裸日期）。
             'date'      => $sgRecent->date->format('Y.m.d'),
+            // 时间戳供参考图卡「发表于 N 天前」用；Typecho\Date 有 timestamp 属性
+            'stamp'     => (int) ($sgRecent->date->timestamp ?? 0),
             'cover'     => sg_cover($sgRecent),
             'desc'      => sg_field($sgRecent, 'description', '') !== ''
                 ? sg_field($sgRecent, 'description', '')
@@ -105,25 +107,34 @@ $sgHead = [
       $sgNames   = array_map(static fn(array $t): string => $t['name'], $sgTags);
       $sgKeyword = $sgPost['title'] . ' ' . $sgPost['desc'] . ' ' . implode(' ', $sgNames);
     ?>
-    <article class="sg-glass sg-archive-card" data-sg-archive-card data-keywords="<?php echo sg_e($sgKeyword); ?>" data-tags="<?php echo sg_e(implode('|', $sgSlugs)); ?>" data-sg-spotlight>
-      <a class="sg-archive-cover" href="<?php echo sg_e($sgPost['permalink']); ?>" tabindex="-1" aria-hidden="true">
+    <?php
+      $sgAgo = sg_time_ago((int) ($sgPost['stamp'] ?? 0));
+      $sgDesc = trim((string) $sgPost['desc']);
+    ?>
+    <article class="sg-feature-card" data-sg-archive-card data-sg-page-item data-keywords="<?php echo sg_e($sgKeyword); ?>" data-tags="<?php echo sg_e(implode('|', $sgSlugs)); ?>">
+      <a class="sg-feature-media" href="<?php echo sg_e($sgPost['permalink']); ?>" tabindex="-1" aria-hidden="true">
         <img src="<?php echo sg_e($sgPost['cover']); ?>" alt="" loading="lazy">
+        <?php if ($sgDesc !== '') : ?>
+        <span class="sg-feature-quote">「<?php echo sg_e($sgDesc); ?>」</span>
+        <?php endif; ?>
       </a>
-      <div class="sg-archive-body">
-        <div class="sg-archive-date"><time datetime="<?php echo sg_e($sgPost['date']); ?>"><?php echo sg_e($sgPost['date']); ?></time></div>
-        <h3><a href="<?php echo sg_e($sgPost['permalink']); ?>"><?php echo sg_e($sgPost['title']); ?></a></h3>
-        <?php if ($sgPost['desc'] !== '') : ?><p><?php echo sg_e($sgPost['desc']); ?></p><?php endif; ?>
+      <div class="sg-feature-body">
+        <h3 class="sg-feature-title"><a href="<?php echo sg_e($sgPost['permalink']); ?>"><?php echo sg_e($sgPost['title']); ?></a></h3>
+        <div class="sg-feature-meta">
+          <span><?php echo sg_icon('clock'); ?><time datetime="<?php echo sg_e($sgPost['date']); ?>"><?php echo sg_e($sgAgo !== '' ? '发表于 ' . $sgAgo : '发表于 ' . $sgPost['date']); ?></time></span>
+        </div>
         <?php if ($sgNames) : ?>
-        <div class="sg-archive-tags">
-          <?php foreach ($sgNames as $sgTagName) : ?>
-          <span class="sg-archive-tag">#<?php echo sg_e($sgTagName); ?></span>
-          <?php endforeach; ?>
+        <div class="sg-feature-tags">
+          <span><?php echo sg_icon('tag'); ?><?php echo sg_e(implode(' · ', $sgNames)); ?></span>
         </div>
         <?php endif; ?>
       </div>
     </article>
     <?php endforeach; ?>
   </div>
+
+  <!-- 分页条（每页 9 篇）：由 archive.ts 按筛选结果动态渲染 -->
+  <nav class="sg-page-nav" data-sg-page-nav aria-label="知识档案分页"></nav>
 
   <p class="sg-filter-empty" data-sg-archive-empty hidden>这个频段没有接收到任何信号，换个关键词或标签试试。</p>
 
