@@ -562,3 +562,303 @@ html.dark .sg-nav { background: var(--sg-card); border-bottom-color: var(--sg-re
 @media print {
   .sg-toc-fab { display: none !important; }
 }
+
+/* ============================================================
+   P1 组件（2026-11-16）
+   身份带 / 关于我按钮 / 分类最新 / 分享条 / 代码工具条 /
+   正文图注 / 阅读模式 / 导航「更多」下拉 / 搜索键位提示
+   ============================================================ */
+
+/* ---------- P1-1 首页身份带 ---------- */
+.sg-identity {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  max-width: 48rem;
+  margin: 0 auto .9rem;
+  padding: .9rem 1.25rem;
+}
+
+.sg-identity-avatar {
+  flex: none;
+  width: 3rem;
+  height: 3rem;
+  overflow: hidden;
+  border: 1px solid var(--sg-border);
+  border-radius: 50%;
+}
+
+.sg-identity-avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+.sg-identity-text { flex: 1; min-width: 0; }
+
+.sg-identity-name {
+  display: flex;
+  align-items: baseline;
+  gap: .5rem;
+  margin: 0;
+  color: var(--sg-text);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.sg-identity-sub {
+  color: var(--sg-faint);
+  font-family: var(--font-sans);
+  font-size: .72rem;
+  font-weight: 400;
+}
+
+.sg-identity-motto {
+  margin: .15rem 0 0;
+  color: var(--sg-muted);
+  font-family: var(--font-sans);
+  font-size: .8rem;
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sg-identity-socials { flex: none; }
+
+@media (max-width: 640px) {
+  .sg-identity { gap: .75rem; padding: .75rem 1rem; }
+  .sg-identity-socials { display: none; }
+}
+
+/* ---------- P1-2 关于我按钮 ---------- */
+.sg-author-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  margin-top: .9rem;
+  padding: .45rem 1.1rem;
+  border: 1px solid var(--sg-border);
+  border-radius: 999px;
+  background: var(--sg-card);
+  color: var(--sg-text);
+  font-family: var(--font-sans);
+  font-size: .8rem;
+  text-decoration: none;
+  transition:
+    color var(--sg-dur-fast) var(--sg-ease),
+    border-color var(--sg-dur-fast) var(--sg-ease),
+    transform var(--sg-dur-fast) var(--sg-ease);
+}
+
+.sg-author-btn svg { width: .95rem; height: .95rem; }
+
+.sg-author-btn:is(:hover, :focus-visible) {
+  border-color: var(--sg-accent-ink);
+  color: var(--sg-accent-ink);
+  transform: translateY(-1px);
+}
+
+/* ---------- P1-4 分类卡「最新 1 条」 ---------- */
+/* 卡片从 <a> 改成 <div> 后，顶栏链接需要显式去掉下划线并继承字色 */
+.sg-term-card-top { color: inherit; text-decoration: none; }
+.sg-term-card-top:is(:hover, :focus-visible) .sg-term-card-name { color: var(--sg-accent-ink); }
+
+.sg-term-card-latest {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  min-width: 0;
+  margin-top: .35rem;
+  padding-top: .6rem;
+  border-top: 1px dashed var(--sg-line);
+  color: var(--sg-muted);
+  font-family: var(--font-sans);
+  font-size: .78rem;
+  text-decoration: none;
+  transition: color var(--sg-dur-fast) var(--sg-ease);
+}
+
+.sg-term-card-latest svg { flex: none; width: .85rem; height: .85rem; color: var(--sg-faint); }
+
+.sg-term-card-latest span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sg-term-card-latest time { flex: none; color: var(--sg-faint); font-size: .7rem; }
+
+.sg-term-card-latest:is(:hover, :focus-visible) { color: var(--sg-accent-ink); }
+.sg-term-card-latest:is(:hover, :focus-visible) svg { color: var(--sg-accent-ink); }
+
+/* ---------- P1-12 文章分享条 ---------- */
+.sg-share { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 2rem; }
+
+/* ---------- P1-8 代码块工具条 ---------- */
+/* 代码块底色本来就是固定深色（#0b1220），工具条沿用同一套深色文字 */
+.sg-prose pre.sg-codeblock { position: relative; padding-top: 2.6rem; }
+
+.sg-code-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: .35rem .8rem;
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+}
+
+.sg-code-lang {
+  color: #9fb3c8;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .68rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.sg-code-copy {
+  padding: .15rem .55rem;
+  border: 0;
+  border-radius: .35rem;
+  background: transparent;
+  color: #9fb3c8;
+  font-family: var(--font-sans);
+  font-size: .72rem;
+  cursor: pointer;
+  transition: color var(--sg-dur-fast) var(--sg-ease), background var(--sg-dur-fast) var(--sg-ease);
+}
+
+.sg-code-copy:is(:hover, :focus-visible) { color: #e2e8f0; background: rgba(255, 255, 255, .08); }
+
+/* ---------- P1-7 正文图片灯箱与图注 ---------- */
+.sg-prose-figure { margin: 1.5rem 0; text-align: center; }
+
+.sg-prose .sg-prose-zoom { display: inline-block; text-decoration: none; }
+
+.sg-prose-figure img { display: block; margin: 0 auto; cursor: zoom-in; }
+
+.sg-prose-figure .sg-photo-cap {
+  margin-top: .6rem;
+  color: var(--sg-faint);
+  font-family: var(--font-sans);
+  font-size: .78rem;
+  line-height: 1.6;
+}
+
+/* ---------- P1-9 阅读模式 ---------- */
+/* 隐藏侧栏、封面、文末导航、分享与装饰层，只留正文；
+   工具箱保留阅读模式按钮本身，方便退出。 */
+html.sg-readmode .sg-aside,
+html.sg-readmode .sg-cover,
+html.sg-readmode .sg-post-nav,
+html.sg-readmode .sg-share,
+html.sg-readmode .sg-back,
+html.sg-readmode .sg-footer-wrap,
+html.sg-readmode .sg-disc,
+html.sg-readmode .sg-sheet,
+html.sg-readmode .sg-effects,
+html.sg-readmode .sg-danmaku,
+html.sg-readmode .sg-toc-fab { display: none !important; }
+
+html.sg-readmode .sg-bg { opacity: 0; }
+
+html.sg-readmode .sg-article-layout { display: block; }
+
+html.sg-readmode .sg-article { max-width: 46rem; margin-inline: auto; }
+
+html.sg-readmode .sg-toolbox .sg-tool:not([data-sg-readmode-toggle]) { display: none; }
+
+html.sg-readmode [data-sg-readmode-toggle] { color: var(--sg-accent-ink); border-color: var(--sg-accent-ink); }
+
+/* ---------- P1-11 导航「更多」下拉 ---------- */
+.sg-nav-more { position: relative; display: inline-flex; }
+
+.sg-nav-more-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.sg-nav-more-btn svg { width: .85rem; height: .85rem; transition: transform var(--sg-dur-fast) var(--sg-ease); }
+
+.sg-nav-more.is-open .sg-nav-more-btn svg { transform: rotate(180deg); }
+
+.sg-nav-more.is-active .sg-nav-more-btn { color: var(--sg-accent-ink); }
+
+.sg-nav-more-menu {
+  position: absolute;
+  top: calc(100% + .6rem);
+  right: 0;
+  z-index: 120;
+  display: none;
+  flex-direction: column;
+  gap: .15rem;
+  min-width: 9rem;
+  padding: .5rem;
+  border: 1px solid var(--sg-border);
+  border-radius: var(--sg-radius-inner);
+  background: var(--sg-panel);
+  box-shadow: var(--sg-shadow-strong);
+  -webkit-backdrop-filter: blur(var(--sg-blur-nav));
+  backdrop-filter: blur(var(--sg-blur-nav));
+}
+
+.sg-nav-more:is(:hover, :focus-within, .is-open) .sg-nav-more-menu { display: flex; }
+
+.sg-nav-more-link {
+  padding: .45rem .75rem;
+  border-radius: .5rem;
+  color: var(--sg-muted);
+  font-size: .9rem;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color var(--sg-dur-fast) var(--sg-ease), background var(--sg-dur-fast) var(--sg-ease);
+}
+
+.sg-nav-more-link:is(:hover, :focus-visible) {
+  color: var(--sg-accent-ink);
+  background: color-mix(in srgb, var(--sg-accent) 10%, transparent);
+}
+
+.sg-nav-more-link.is-active { color: var(--sg-accent-ink); font-weight: 600; }
+
+/* ---------- P1-10 搜索键位提示 ---------- */
+.sg-search-kbd {
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.4rem;
+  height: 1.4rem;
+  padding: 0 .35rem;
+  border: 1px solid var(--sg-border);
+  border-radius: .35rem;
+  background: var(--sg-card);
+  color: var(--sg-faint);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .72rem;
+  pointer-events: none;
+  transition: opacity var(--sg-dur-fast) var(--sg-ease);
+}
+
+.sg-search:focus-within .sg-search-kbd { opacity: 0; }
+
+/* 带清除按钮的搜索框：键位提示左移，避免与清除按钮重叠 */
+.sg-search.sg-search-field .sg-search-kbd { right: 2.75rem; }
+
+@media (hover: none) {
+  .sg-search-kbd { display: none; }
+}

@@ -295,6 +295,83 @@ function sg_uptime(): array
     return ['text' => $text, 'days' => $days, 'hours' => $hours, 'since' => $start];
 }
 
+/**
+ * 全站已发布文章的总字数（P1 小站资讯 KPI）。
+ *
+ * 逐篇取 text 字段剥标签后累加：Markdown 存的是源码，strip_tags 对纯文本
+ * 基本无副作用；不先转 HTML 是为了省掉每篇一次 Markdown 解析。
+ * 静态缓存保证一次请求只算一遍；失败回 0。
+ */
+function sg_total_words(): int
+{
+    static $cache = null;
+    if ($cache !== null) {
+        return $cache;
+    }
+
+    $cache = 0;
+    try {
+        $db = \Typecho\Db::get();
+        $rows = $db->fetchAll(
+            $db->select(['table.contents.text' => 'text'])
+                ->from('table.contents')
+                ->where('type = ?', 'post')
+                ->where('status = ?', 'publish')
+        );
+        foreach ($rows as $row) {
+            $text = (string) ($row['text'] ?? '');
+            if (strncmp($text, '<!--markdown-->', 15) === 0) {
+                $text = substr($text, 15);
+            }
+            $text = (string) preg_replace('/\s+/u', '', strip_tags($text));
+            $cache += function_exists('mb_strlen') ? (int) mb_strlen($text, 'UTF-8') : strlen($text);
+        }
+    } catch (\Throwable $e) {
+        $cache = 0;
+    }
+
+    return $cache;
+}
+
+/** 字数展示格式：过万写成「x.x 万」 */
+function sg_words_format(int $chars): string
+{
+    if ($chars >= 10000) {
+        return rtrim(rtrim(number_format($chars / 10000, 1), '0'), '.') . ' 万';
+    }
+    return number_format($chars);
+}
+
+/**
+ * 本年度产出：今年 1 月 1 日以来发布的普通文章数（不含碎语）。
+ * 碎语按 cid 集合在 PHP 侧剔除，避免连表。
+ */
+function sg_year_posts(): int
+{
+    try {
+        $db = \Typecho\Db::get();
+        $start = mktime(0, 0, 0, 1, 1, (int) date('Y'));
+        $rows = $db->fetchAll(
+            $db->select(['table.contents.cid' => 'cid'])
+                ->from('table.contents')
+                ->where('type = ?', 'post')
+                ->where('status = ?', 'publish')
+                ->where('created >= ?', $start !== false ? $start : 0)
+        );
+        $notes = sg_note_cids();
+        $count = 0;
+        foreach ($rows as $row) {
+            $cid = (int) ($row['cid'] ?? 0);
+            if ($cid > 0 && !in_array($cid, $notes, true)) {
+                ++$count;
+            }
+        }
+        return $count;
+    } catch (\Throwable $e) {
+        return 0;
+    }
+}
+
 /** 当前页面标识，供导航高亮使用 */
 function sg_current_slug($archive): string
 {

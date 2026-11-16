@@ -24,8 +24,48 @@ $sgNotesLink = sg_page_url('notes');
 
 // 封面轮播：单独取最近的文章（跳过碎语），不受列表「每页条数上限」影响
 $sgSlides = sg_home_slides(5);
+
+/* 身份带（P1-1）：搜索上方一条轻量身份区，站点名 + 一句话介绍 + 社交图标。
+   不用 h1——首页 h1 已由个人卡占用，这里只是可跳过的标识行。 */
+$sgIdentityOn = sg_opt('sgIdentity', 'on') === 'on';
+$sgIdName = trim(sg_opt('sgAuthorName', (string) $this->options->title));
+$sgIdMotto = trim((string) $this->options->description);
+$sgIdAvatar = sg_opt('sgAvatarUrl', sg_theme_url('dist/img/avatar.svg'));
+$sgIdSocial = sg_json('sgSocial', 'social', []);
 ?>
 <main id="sg-main" class="sg-main" data-sg-page="index">
+  <?php if ($sgIdentityOn && ($sgIdName !== '' || $sgIdMotto !== '')) : ?>
+  <section class="sg-glass sg-identity" data-sg-hover data-sg-spotlight>
+    <a class="sg-identity-avatar" href="<?php echo sg_e($sgHome); ?>" tabindex="-1" aria-hidden="true">
+      <img src="<?php echo sg_e($sgIdAvatar); ?>" alt="">
+    </a>
+    <div class="sg-identity-text">
+      <p class="sg-identity-name">
+        <?php echo sg_e($sgIdName !== '' ? $sgIdName : (string) $this->options->title); ?>
+        <?php if ($sgIdName !== '' && $sgIdName !== (string) $this->options->title) : ?>
+        <span class="sg-identity-sub"><?php echo sg_e((string) $this->options->title); ?></span>
+        <?php endif; ?>
+      </p>
+      <?php if ($sgIdMotto !== '') : ?>
+      <p class="sg-identity-motto"><?php echo sg_e($sgIdMotto); ?></p>
+      <?php endif; ?>
+    </div>
+    <?php if ($sgIdSocial) : ?>
+    <div class="sg-socials sg-identity-socials">
+      <?php foreach ($sgIdSocial as $sgIdSocialItem) : ?>
+      <?php $sgIdSocialUrl = trim((string) ($sgIdSocialItem['url'] ?? '')); ?>
+      <?php if ($sgIdSocialUrl === '') : ?>
+      <?php continue; ?>
+      <?php endif; ?>
+      <a class="sg-social" href="<?php echo sg_e($sgIdSocialUrl); ?>" target="_blank" rel="noopener" aria-label="<?php echo sg_e((string) ($sgIdSocialItem['name'] ?? '')); ?>">
+        <?php echo sg_icon(sg_social_icon($sgIdSocialItem)); ?>
+      </a>
+      <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
+  </section>
+  <?php endif; ?>
+
   <form class="sg-search" role="search" method="get" action="<?php echo sg_e($sgHome); ?>">
     <span class="sg-search-icon"><?php echo sg_icon('search'); ?></span>
     <input class="sg-search-input" type="search" name="s" placeholder="搜寻标题、描述或标签..." aria-label="站内搜索">

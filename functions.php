@@ -438,6 +438,7 @@ function themeConfig($form): void
     $form->addInput(new Text('sgNavTitle', null, '', _t('导航前缀'), _t('留空则使用站点名称')));
     $form->addInput(new Text('sgNavSuffix', null, 'の', _t('导航分隔符'), _t('例：の')));
     $form->addInput(new Text('sgNavAfter', null, '空璃', _t('导航后缀'), _t('例：空璃')));
+    $form->addInput(new Radio('sgIdentity', ['on' => _t('开启'), 'off' => _t('关闭')], 'on', _t('首页身份带'), _t('搜索框上方的一条轻量身份区：头像 + 博主名 + 站点简介（后台「站点描述」）+ 社交图标。')));
 
     /* 背景：共享回退图、日间组、夜间组与可暂停轮播。 */
     $form->addInput(new Text('sgBg', null, '', _t('背景壁纸（全站最底层）'), _t(

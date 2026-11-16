@@ -5,10 +5,14 @@
  */
 $sgRows = [];
 
+/* P1-4：每个分类附带最新一篇文章，一次连表查好按 mid 索引 */
+$sgLatestMap = sg_category_latest_map();
+
 try {
     $this->widget('Widget_Metas_Category_List')->to($sgCats);
     while ($sgCats->next()) {
         $sgRows[] = [
+            'mid'   => (int) $sgCats->mid,
             'name'  => (string) $sgCats->name,
             'desc'  => trim((string) $sgCats->description),
             'count' => (int) $sgCats->count,
@@ -38,14 +42,22 @@ $sgHead = [
   <?php else : ?>
   <div class="sg-term-grid">
     <?php foreach ($sgRows as $sgRow) : ?>
-    <a class="sg-glass sg-term-card" href="<?php echo sg_e($sgRow['url']); ?>">
-      <span class="sg-term-card-top">
+    <?php $sgLatest = $sgLatestMap[$sgRow['mid']] ?? null; ?>
+    <div class="sg-glass sg-term-card">
+      <a class="sg-term-card-top" href="<?php echo sg_e($sgRow['url']); ?>">
         <span class="sg-term-card-name"><?php echo sg_e($sgRow['name']); ?></span>
         <span class="sg-term-card-arrow"><?php echo sg_icon('arrow-up-right'); ?></span>
-      </span>
+      </a>
       <span class="sg-term-card-desc"><?php echo sg_e($sgRow['desc'] !== '' ? $sgRow['desc'] : '这个分类还没有写说明'); ?></span>
       <span class="sg-term-card-count"><b><?php echo $sgRow['count']; ?></b> 篇文章</span>
-    </a>
+      <?php if ($sgLatest) : ?>
+      <a class="sg-term-card-latest" href="<?php echo sg_e($sgLatest['url']); ?>">
+        <?php echo sg_icon('clock'); ?>
+        <span><?php echo sg_e($sgLatest['title'] !== '' ? $sgLatest['title'] : '未命名文章'); ?></span>
+        <time><?php echo sg_e($sgLatest['date']); ?></time>
+      </a>
+      <?php endif; ?>
+    </div>
     <?php endforeach; ?>
   </div>
   <?php endif; ?>

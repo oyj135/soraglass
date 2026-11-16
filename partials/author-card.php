@@ -22,4 +22,11 @@ $sgHome = rtrim((string) $this->options->siteUrl, '/') . '/';
     <?php endforeach; ?>
   </div>
   <?php endif; ?>
+
+  <?php /* P1-2：关于我按钮——关于页存在时才出现，避免死链 */ ?>
+  <?php if (sg_page_exists('about')) : ?>
+  <a class="sg-author-btn" href="<?php echo sg_e(sg_page_url('about')); ?>">
+    <?php echo sg_icon('user'); ?>关于我
+  </a>
+  <?php endif; ?>
 </section>

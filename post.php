@@ -78,6 +78,13 @@ $sgNext = sg_adjacent_post($this, 'next');
       <?php if ($sgLead !== '') : ?><p class="sg-lead"><?php echo sg_e($sgLead); ?></p><?php endif; ?>
       <div class="sg-prose" data-sg-article><?php echo $sgContent; ?></div>
 
+      <?php /* P1-12：分享条——系统分享 + 复制链接，不引第三方 SDK；
+         浏览器不支持 navigator.share 时由 JS 隐藏系统分享按钮 */ ?>
+      <div class="sg-share" role="group" aria-label="分享这篇文章">
+        <button class="sg-btn sg-btn--ghost sg-share-btn" type="button" data-sg-share><?php echo sg_icon('share'); ?>分享</button>
+        <button class="sg-btn sg-btn--ghost" type="button" data-sg-copy-link><?php echo sg_icon('link'); ?>复制链接</button>
+      </div>
+
       <?php if ($sgPrev || $sgNext) : ?>
       <nav class="sg-post-nav" aria-label="上下篇">
         <?php if ($sgPrev) : ?>

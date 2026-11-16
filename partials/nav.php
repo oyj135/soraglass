@@ -84,15 +84,46 @@ $sgNavHints = [
     'archives' => '按时间翻阅全部文章',
     'timeline' => '按主题整理的知识条目',
 ];
+
+/* P1-11：导航分组——条目过多时尾部收进「更多」下拉，避免顶栏溢出换行。
+   顶栏最多 8 个位置：首页 + 6 个页面 + 「更多」；移动端圆盘不受影响，仍平铺全部。 */
+$sgNavMax = 8;
+$sgNavPrimary = $sgNavItems;
+$sgNavMore = [];
+if (count($sgNavItems) + 1 > $sgNavMax) {
+    $sgKeep = $sgNavMax - 2;
+    $sgNavPrimary = array_slice($sgNavItems, 0, $sgKeep);
+    $sgNavMore = array_slice($sgNavItems, $sgKeep);
+}
+$sgMoreActive = false;
+foreach ($sgNavMore as $sgMorePage) {
+    if ($sgActiveKey === $sgMorePage['slug']) {
+        $sgMoreActive = true;
+        break;
+    }
+}
 ?>
 <header class="sg-nav" data-sg-nav>
   <div class="sg-nav-inner">
     <a class="sg-brand" href="<?php echo sg_e($sgHome); ?>"><?php echo sg_e($sgBrandTitle); ?><span class="sg-brand-accent"><?php echo sg_e($sgBrandSuffix); ?></span><?php echo sg_e($sgBrandAfter); ?></a>
     <nav class="sg-nav-links" aria-label="主导航">
       <a class="sg-nav-link<?php echo $sgActive === 'index' ? ' is-active' : ''; ?>"<?php echo $sgActive === 'index' ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgHome); ?>">首页<?php if ($sgActive === 'index') : ?><span class="sg-nav-dot"></span><?php endif; ?></a>
-      <?php foreach ($sgNavItems as $sgPage) : ?>
+      <?php foreach ($sgNavPrimary as $sgPage) : ?>
       <a class="sg-nav-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>"<?php echo $sgActiveKey === $sgPage['slug'] ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgPage['url']); ?>"<?php echo isset($sgNavHints[$sgPage['slug']]) ? ' title="' . sg_e($sgNavHints[$sgPage['slug']]) . '"' : ''; ?>><?php echo sg_e($sgPage['title']); ?><?php if ($sgActiveKey === $sgPage['slug']) : ?><span class="sg-nav-dot"></span><?php endif; ?></a>
       <?php endforeach; ?>
+      <?php if ($sgNavMore) : ?>
+      <div class="sg-nav-more<?php echo $sgMoreActive ? ' is-active' : ''; ?>" data-sg-nav-more>
+        <button class="sg-nav-link sg-nav-more-btn" type="button" aria-expanded="false" aria-haspopup="true">
+          更多<?php echo sg_icon('chevron-down'); ?>
+          <?php if ($sgMoreActive) : ?><span class="sg-nav-dot"></span><?php endif; ?>
+        </button>
+        <div class="sg-nav-more-menu" role="menu">
+          <?php foreach ($sgNavMore as $sgPage) : ?>
+          <a class="sg-nav-more-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>"<?php echo $sgActiveKey === $sgPage['slug'] ? ' aria-current="page"' : ''; ?> role="menuitem" href="<?php echo sg_e($sgPage['url']); ?>"<?php echo isset($sgNavHints[$sgPage['slug']]) ? ' title="' . sg_e($sgNavHints[$sgPage['slug']]) . '"' : ''; ?>><?php echo sg_e($sgPage['title']); ?></a>
+          <?php endforeach; ?>
+        </div>
+      </div>
+      <?php endif; ?>
     </nav>
   </div>
 </header>

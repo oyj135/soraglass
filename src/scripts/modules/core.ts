@@ -163,6 +163,109 @@ function initNav(): void {
 }
 
 /**
+ * P1-11：导航「更多」下拉。
+ *
+ * 悬停由 CSS 处理，这里补点击 / 键盘可达：点按钮开合，
+ * 点外面或按 Esc 收起；同一时刻只开一个。
+ */
+function initNavMore(): void {
+  const groups = Array.from(document.querySelectorAll<HTMLElement>('[data-sg-nav-more]'));
+  if (!groups.length) return;
+
+  const closeAll = (except?: HTMLElement): void => {
+    groups.forEach((group) => {
+      if (group === except) return;
+      group.classList.remove('is-open');
+      group.querySelector('.sg-nav-more-btn')?.setAttribute('aria-expanded', 'false');
+    });
+  };
+
+  groups.forEach((group) => {
+    const btn = group.querySelector<HTMLButtonElement>('.sg-nav-more-btn');
+    if (!btn) return;
+    pageOn(btn, 'click', (event) => {
+      event.stopPropagation();
+      const open = !group.classList.contains('is-open');
+      closeAll(group);
+      group.classList.toggle('is-open', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  });
+
+  pageOn(document, 'click', (event) => {
+    if (!(event.target instanceof Element) || !event.target.closest('[data-sg-nav-more]')) closeAll();
+  });
+  pageOn(document, 'keydown', (event) => {
+    if (event.key === 'Escape') closeAll();
+  });
+}
+
+/**
+ * P1-10：搜索快捷键。
+ *
+ * 按 `/` 聚焦当前页可见的站内搜索框；正在输入时不拦截。
+ * 同时给每个搜索表单注入一个 `/` 键位提示，聚焦后隐去。
+ */
+function initSearchShortcut(): void {
+  const visibleInput = (): HTMLInputElement | undefined =>
+    Array.from(document.querySelectorAll<HTMLInputElement>('.sg-search-input')).find(
+      (input) => input.offsetParent !== null,
+    );
+
+  pageOn(document, 'keydown', (event) => {
+    if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey) return;
+    const target = event.target as HTMLElement | null;
+    if (
+      target &&
+      (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable)
+    ) {
+      return;
+    }
+    const input = visibleInput();
+    if (!input) return;
+    event.preventDefault();
+    input.focus();
+    input.select();
+  });
+
+  document.querySelectorAll<HTMLFormElement>('form.sg-search').forEach((form) => {
+    if (form.querySelector('.sg-search-kbd')) return;
+    const kbd = document.createElement('kbd');
+    kbd.className = 'sg-search-kbd';
+    kbd.textContent = '/';
+    kbd.setAttribute('aria-hidden', 'true');
+    form.appendChild(kbd);
+  });
+}
+
+/**
+ * P1-9：阅读模式。
+ *
+ * 隐藏侧栏、封面、文末导航与装饰层，只留正文；状态写 localStorage，
+ * 只在存在切换按钮的页面（文章 / 独立页）生效，不影响首页。
+ */
+function initReadMode(): void {
+  const buttons = Array.from(document.querySelectorAll<HTMLElement>('[data-sg-readmode-toggle]'));
+  if (!buttons.length) return;
+
+  const KEY = 'sg-readmode';
+  const apply = (on: boolean): void => {
+    document.documentElement.classList.toggle('sg-readmode', on);
+    buttons.forEach((btn) => btn.setAttribute('aria-pressed', String(on)));
+  };
+
+  apply(readStore(KEY, false));
+  buttons.forEach((btn) => {
+    pageOn(btn, 'click', () => {
+      const on = !document.documentElement.classList.contains('sg-readmode');
+      apply(on);
+      writeStore(KEY, on);
+      toast(on ? '已进入阅读模式' : '已退出阅读模式');
+    });
+  });
+}
+
+/**
  * 分段控件（关于页「自我介绍 / 研究动态」、知识档案「中枢链路 / 矩阵网格」）。
  *
  * DOM 契约：
@@ -493,7 +596,10 @@ function initImageFallback(): void {
 export function initCore(): void {
   initTheme();
   initSearchControls();
+  initSearchShortcut();
   initNav();
+  initNavMore();
+  initReadMode();
   initBackground();
   initSplash();
   initSegments();

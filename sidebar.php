@@ -148,6 +148,9 @@ if ($sgCloud) {
 <?php
 $sgCounts = sg_stats();
 $sgUptime = sg_uptime();
+/* P1-3：小站资讯 KPI——在原有计数上补运行天数、年度产出与总字数 */
+$sgWords = sg_total_words();
+$sgYearPosts = sg_year_posts();
 ?>
 <section class="sg-glass sg-side-card">
   <h3 class="sg-side-title">站点信息</h3>
@@ -163,6 +166,18 @@ $sgUptime = sg_uptime();
     <div>
       <b><?php echo sg_e($sgCounts['photos']); ?></b>
       <span>照片</span>
+    </div>
+    <div>
+      <b><?php echo (int) $sgUptime['days']; ?></b>
+      <span>运行天数</span>
+    </div>
+    <div>
+      <b><?php echo (int) $sgYearPosts; ?></b>
+      <span>年度产出</span>
+    </div>
+    <div>
+      <b><?php echo sg_e(sg_words_format($sgWords)); ?></b>
+      <span>总字数</span>
     </div>
     <div class="is-wide">
       <b><?php echo sg_e((string) $sgUptime['text']); ?></b>

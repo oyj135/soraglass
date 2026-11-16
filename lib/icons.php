@@ -52,6 +52,10 @@ function sg_icon(string $name, string $class = ''): string
         /* 项目卡（第三十七轮）：星数与分支数改成图标 + 数字，比裸「★ 3」清楚 */
         'star'        => '<path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>',
         'fork'        => '<circle cx="6" cy="5" r="2"/><circle cx="18" cy="5" r="2"/><circle cx="12" cy="19" r="2"/><path d="M6 7v2.5A2.5 2.5 0 0 0 8.5 12h7a2.5 2.5 0 0 0 2.5-2.5V7"/><path d="M12 12v5"/>',
+        /* P1：文章分享、代码复制、阅读模式 */
+        'share'       => '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4"/>',
+        'copy'        => '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
+        'book-open'   => '<path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"/>',
     ];
     if (!isset($paths[$name])) {
         return '';

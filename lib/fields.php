@@ -1230,6 +1230,58 @@ function sg_reading_stats(string $html): array
 }
 
 /**
+ * 每个分类的最新一篇文章（P1 分类总览页「最新 1 条」）。
+ *
+ * 一次连表查询按发布时间倒序取前 600 行，PHP 侧每个 mid 只留第一条；
+ * 返回 [mid => ['title','url','date']]，失败回空数组。
+ */
+function sg_category_latest_map(): array
+{
+    try {
+        $db = \Typecho\Db::get();
+        $options = \Typecho\Widget::widget('Widget_Options');
+        $rows = $db->fetchAll(
+            $db->select([
+                'table.relationships.mid' => 'mid',
+                'table.contents.cid' => 'cid',
+                'table.contents.title' => 'title',
+                'table.contents.slug' => 'slug',
+                'table.contents.created' => 'created',
+            ])->from('table.relationships')
+                ->join('table.contents', 'table.contents.cid = table.relationships.cid')
+                ->where('table.contents.type = ?', 'post')
+                ->where('table.contents.status = ?', 'publish')
+                ->order('table.contents.created', \Typecho\Db::SORT_DESC)
+                ->limit(600)
+        );
+
+        $map = [];
+        foreach ($rows as $row) {
+            $mid = (int) ($row['mid'] ?? 0);
+            $cid = (int) ($row['cid'] ?? 0);
+            if ($mid <= 0 || $cid <= 0 || isset($map[$mid])) {
+                continue;
+            }
+            $created = (int) ($row['created'] ?? 0);
+            $path = \Typecho\Router::url('post', [
+                'cid' => $cid,
+                'slug' => (string) ($row['slug'] ?? ''),
+                'created' => $created,
+                'type' => 'post',
+            ]);
+            $map[$mid] = [
+                'title' => (string) ($row['title'] ?? ''),
+                'url' => \Typecho\Common::url($path, $options->index),
+                'date' => $created > 0 ? date('Y-m-d', $created) : '',
+            ];
+        }
+        return $map;
+    } catch (\Throwable $e) {
+        return [];
+    }
+}
+
+/**
  * 上下篇：按发布时间取相邻的普通文章（跳过页面、草稿、加密与未来文章）。
  *
  * 查询条件与 Typecho 自带的 thePrev()/theNext() 保持一致，额外返回封面，

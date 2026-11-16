@@ -3,7 +3,7 @@ import { pageOn, pageTimeout, pageInterval, pageFrame, onPageDispose, pageSignal
  * 文章增强：目录高亮、代码高亮、公式渲染、图片灯箱。
  * highlight.js / katex 走动态 import，只会在真的有代码块 / 公式的页面下载。
  */
-import { reducedMotion } from './core';
+import { reducedMotion, toast } from './core';
 
 function initTOC(): void {
   const article = document.querySelector<HTMLElement>('[data-sg-article]');
@@ -105,6 +105,153 @@ function initTOC(): void {
 
   heads.forEach((head) => observer.observe(head));
   onPageDispose(() => observer.disconnect());
+}
+
+/**
+ * P1-8：代码块工具条。
+ *
+ * 每个 pre 顶部加一条语言标签 + 复制按钮；与语法高亮解耦，
+ * highlight.js 加载失败时工具条仍然可用。复制反馈直接写在按钮上。
+ */
+function initCodeBlocks(): void {
+  document.querySelectorAll<HTMLElement>('[data-sg-article] pre').forEach((pre) => {
+    if (pre.querySelector('.sg-code-bar')) return;
+    const code = pre.querySelector('code');
+    if (!code) return;
+
+    pre.classList.add('sg-codeblock');
+    const match = code.className.match(/language-([\w+#-]+)/);
+    const bar = document.createElement('div');
+    bar.className = 'sg-code-bar';
+
+    const lang = document.createElement('span');
+    lang.className = 'sg-code-lang';
+    lang.textContent = match?.[1] ?? 'text';
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'sg-code-copy';
+    btn.textContent = '复制';
+    pageOn(btn, 'click', () => {
+      const text = code.innerText;
+      const done = (ok: boolean): void => {
+        btn.textContent = ok ? '已复制' : '复制失败';
+        pageTimeout(() => {
+          btn.textContent = '复制';
+        }, 1800);
+      };
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(text).then(() => done(true)).catch(() => done(false));
+        return;
+      }
+      /* 非安全上下文（http 等）兜底 */
+      const area = document.createElement('textarea');
+      area.value = text;
+      area.style.position = 'fixed';
+      area.style.opacity = '0';
+      document.body.appendChild(area);
+      area.select();
+      let ok = false;
+      try {
+        ok = document.execCommand('copy');
+      } catch {
+        ok = false;
+      }
+      area.remove();
+      done(ok);
+    });
+
+    bar.append(lang, btn);
+    pre.appendChild(bar);
+  });
+}
+
+/**
+ * P1-7：正文图片灯箱与图注。
+ *
+ * 把正文里的裸 <img> 包成 figure + [data-sg-photo] 链接，复用照片墙灯箱；
+ * 有 alt 的图在下方输出图注。图片独占一个 <p> 时把 figure 提到 p 外，
+ * 避免 figure 嵌在 p 里的非法结构。必须在 initLightbox 之前跑。
+ */
+function initProseImages(): void {
+  const article = document.querySelector<HTMLElement>('[data-sg-article]');
+  if (!article) return;
+
+  article.querySelectorAll('img').forEach((img) => {
+    if (img.closest('[data-sg-photo], .sg-code-bar, pre')) return;
+
+    const src = img.currentSrc || img.src;
+    if (!src) return;
+
+    /* 先记住原位置：appendChild 会把 img 从文档里移走 */
+    const origin = img.parentElement;
+    const next = img.nextSibling;
+    const soloParagraph =
+      !!origin && origin.tagName === 'P' && origin.children.length === 1 && (origin.textContent ?? '').trim() === '';
+
+    const figure = document.createElement('figure');
+    figure.className = 'sg-prose-figure';
+    const link = document.createElement('a');
+    link.className = 'sg-prose-zoom';
+    link.setAttribute('data-sg-photo', '');
+    link.href = src;
+    link.appendChild(img);
+    figure.appendChild(link);
+
+    const alt = (img.alt ?? '').trim();
+    if (alt) {
+      const cap = document.createElement('figcaption');
+      cap.className = 'sg-photo-cap';
+      cap.textContent = alt;
+      figure.appendChild(cap);
+    }
+
+    if (!origin) return;
+    if (soloParagraph) {
+      /* 图片是段落里唯一内容：整段替换为 figure，避免 figure 嵌在 p 里 */
+      origin.replaceWith(figure);
+    } else {
+      origin.insertBefore(figure, next);
+    }
+  });
+}
+
+/**
+ * P1-12：文章分享。
+ *
+ * 系统分享（navigator.share）+ 复制链接，不引第三方 SDK；
+ * 浏览器不支持系统分享时隐藏该按钮，只留复制链接。
+ */
+function initShare(): void {
+  const url = window.location.href;
+  const title = document.querySelector<HTMLElement>('.sg-article-head h1')?.textContent?.trim() || document.title;
+
+  const share = document.querySelector<HTMLButtonElement>('[data-sg-share]');
+  if (share) {
+    if (typeof navigator.share !== 'function') {
+      share.hidden = true;
+    } else {
+      pageOn(share, 'click', () => {
+        navigator.share({ title, url }).catch(() => {
+          /* 用户取消分享不提示 */
+        });
+      });
+    }
+  }
+
+  const copy = document.querySelector<HTMLButtonElement>('[data-sg-copy-link]');
+  if (copy) {
+    pageOn(copy, 'click', () => {
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard
+          .writeText(url)
+          .then(() => toast('链接已复制'))
+          .catch(() => toast('复制失败，请从地址栏复制'));
+      } else {
+        toast('当前环境不支持复制，请从地址栏复制');
+      }
+    });
+  }
 }
 
 async function initHighlight(): Promise<void> {
@@ -263,7 +410,10 @@ export function initLightbox(): void {
 
 export function initArticle(): void {
   initTOC();
+  initProseImages(); // 先把正文裸图包成灯箱链接，再统一绑定灯箱
   initLightbox();
+  initCodeBlocks(); // 工具条与高亮解耦，先出条再等语法着色
   void initHighlight();
   void initMath();
+  initShare();
 }
