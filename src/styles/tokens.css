@@ -107,6 +107,18 @@
      改成从 accent 压深 20%，两种主题都成立，也不再和文字色抢同一个 token。 */
   --sg-accent-fill-hot: color-mix(in srgb, var(--sg-accent) 82%, #000);
 
+  /* 文章头图元信息（2026-11-16）：压在深青遮罩上的图标分色，全部从签名色派生。
+     发布/时长用冷青亮档，更新用暖色，分类用浅青，统计用冷白；亮暗各一套。 */
+  --sg-hero-ink: rgba(255, 255, 255, .94);
+  --sg-hero-ink-soft: rgba(255, 255, 255, .78);
+  --sg-hero-chip-bg: rgba(9, 28, 32, .42);
+  --sg-hero-chip-line: rgba(255, 255, 255, .18);
+  --sg-hero-sep: rgba(255, 255, 255, .35);
+  --sg-hero-ic-date: var(--sg-accent-soft);
+  --sg-hero-ic-update: var(--sg-warm-bright);
+  --sg-hero-ic-cate: var(--sg-accent-pale);
+  --sg-hero-ic-stat: #e8f6f7;
+
   --sg-gradient-opacity: .6;
 
   /* 交互：全站卡片共用一套时长与缓动，改这里即全局生效。

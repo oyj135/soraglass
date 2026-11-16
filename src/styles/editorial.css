@@ -177,7 +177,8 @@ html.dark .sg-search-input {
 
 /* 长文：把空间留给内容，标题不为已移除的角标预留空白。 */
 .sg-article.sg-reading-surface .sg-cover { aspect-ratio: 16 / 9; }
-.sg-article.sg-reading-surface .sg-article-body { max-width: 46rem; margin-inline: auto; padding: 1.5rem; }
+/* 头图已承载标题与元信息，正文顶部只留正常段距；hero 自带底部波浪过渡（components.css）。 */
+.sg-article.sg-reading-surface .sg-article-body { max-width: 46rem; margin-inline: auto; padding: .5rem 1.5rem 2rem; }
 .sg-article.sg-reading-surface .sg-article-head { margin-block: .5rem 2rem; padding-bottom: 1.5rem; }
 .sg-article.sg-reading-surface .sg-article-head h1 {
   padding-right: 0;
@@ -263,7 +264,7 @@ html.dark .sg-nav { background: var(--sg-card); border-bottom-color: var(--sg-re
 @media (min-width: 768px) {
   .sg-main[data-sg-page="archive"] .sg-page-head-row { align-items: center; }
   .sg-article.sg-reading-surface .sg-cover { aspect-ratio: 21 / 9; }
-  .sg-article.sg-reading-surface .sg-article-body { padding: 2.5rem 3rem 3rem; }
+  .sg-article.sg-reading-surface .sg-article-body { padding: 1rem 3rem 3rem; }
   .sg-article.sg-reading-surface .sg-prose { font-size: 1.125rem; }
   .sg-article.sg-reading-surface .sg-prose h2 { font-size: 1.75rem; }
 }
@@ -277,7 +278,7 @@ html.dark .sg-nav { background: var(--sg-card); border-bottom-color: var(--sg-re
 }
 @media print {
   .sg-article.sg-reading-surface { border: 0; color: #000; }
-  .sg-article-layout .sg-aside, .sg-article .sg-back { display: none !important; }
+  .sg-article-layout .sg-aside, .sg-article .sg-back, .sg-hero { display: none !important; }
   .sg-article.sg-reading-surface .sg-article-body { max-width: none; padding: 0; }
   .sg-article.sg-reading-surface :is(.sg-meta-chip, .sg-lead, .sg-prose, .sg-post-nav, a) { color: #000; }
 }
@@ -294,6 +295,25 @@ html.dark .sg-nav { background: var(--sg-card); border-bottom-color: var(--sg-re
 /* ---------- 文章元信息 ---------- */
 .sg-article.sg-reading-surface .sg-meta { gap: .5rem .75rem; }
 .sg-article.sg-reading-surface .sg-meta-chip svg { width: .8125rem; height: .8125rem; }
+/* 头图里的元信息压在深青遮罩上：旧规则 .sg-article.sg-reading-surface .sg-meta-chip 的
+   color:var(--sg-muted) 特异性更高，亮色下会把白字压成深灰看不见。这里用同等上下文 + 更多类
+   把 hero 内的胶囊锁定为浅字 + 分色图标，正文区（.sg-article-body）的元信息不受影响。 */
+.sg-article.sg-reading-surface .sg-meta--hero .sg-meta-chip,
+.sg-article.sg-reading-surface .sg-meta--hero-tags .sg-meta-chip {
+  padding: .34rem .7rem;
+  border: 1px solid var(--sg-hero-chip-line);
+  background: var(--sg-hero-chip-bg);
+  color: var(--sg-hero-ink);
+  font-size: .75rem;
+  font-weight: 500;
+}
+.sg-article.sg-reading-surface .sg-meta--hero-tags .sg-meta-chip.is-pink { color: var(--sg-hero-ink-soft); }
+.sg-article.sg-reading-surface .sg-meta--hero-tags .sg-tag-link { color: inherit; }
+.sg-article.sg-reading-surface .sg-meta--hero .sg-meta-chip--pin svg { color: var(--sg-hero-ic-update); }
+.sg-article.sg-reading-surface .sg-meta--hero .sg-meta-chip--date svg { color: var(--sg-hero-ic-date); }
+.sg-article.sg-reading-surface .sg-meta--hero .sg-meta-chip--updated svg { color: var(--sg-hero-ic-update); }
+.sg-article.sg-reading-surface .sg-meta--hero .sg-meta-chip--cate svg { color: var(--sg-hero-ic-cate); }
+.sg-article.sg-reading-surface .sg-meta--hero .sg-meta-chip--stat svg { color: var(--sg-hero-ic-stat); }
 
 /* ---------- 上下篇：参考 Fomalhaut 的图文横幅 ---------- */
 .sg-post-nav {

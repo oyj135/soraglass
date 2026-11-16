@@ -30,14 +30,14 @@ $sgCardTags = trim((string) ob_get_clean());
   <div class="sg-feature-body">
     <h3 class="sg-feature-title"><a href="<?php $this->permalink(); ?>"><?php echo sg_e($sgCardTitle !== '' ? $sgCardTitle : '未命名文章'); ?></a></h3>
     <div class="sg-feature-meta">
-      <span><?php echo sg_icon('clock'); ?><?php echo sg_e($sgCardAgo !== '' ? '发表于 ' . $sgCardAgo : '发表于 ' . $this->date('Y.m.d')); ?></span>
+      <span class="is-date"><?php echo sg_icon('clock'); ?><?php echo sg_e($sgCardAgo !== '' ? '发表于 ' . $sgCardAgo : '发表于 ' . $this->date('Y.m.d')); ?></span>
       <?php if ($sgCardCate !== '') : ?>
-      <span><?php echo sg_icon('folder'); ?><?php echo sg_e($sgCardCate); ?></span>
+      <span class="is-cate"><?php echo sg_icon('folder'); ?><?php echo sg_e($sgCardCate); ?></span>
       <?php endif; ?>
     </div>
     <?php if ($sgCardTags !== '') : ?>
     <div class="sg-feature-tags">
-      <span><?php echo sg_icon('tag'); ?><?php echo sg_e($sgCardTags); ?></span>
+      <span class="is-tag"><?php echo sg_icon('tag'); ?><?php echo sg_e($sgCardTags); ?></span>
     </div>
     <?php endif; ?>
   </div>

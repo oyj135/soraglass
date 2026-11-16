@@ -40,41 +40,66 @@ $sgContent = (string) ob_get_clean();
 $sgRead = sg_reading_stats($sgContent);
 
 $sgUpdated = '';
+$sgUpdatedAgo = '';
 try {
     if (!empty($this->modified) && (int) $this->modified !== (int) $this->created) {
         $sgUpdated = $this->date('Y-m-d', (int) $this->modified);
+        $sgUpdatedAgo = sg_time_ago((int) $this->modified);
     }
 } catch (\Throwable $e) {
     $sgUpdated = '';
+    $sgUpdatedAgo = '';
 }
+/* 头图元信息（参考 Fomalhaut post-info 的信息完整度）：
+   发表于 / 更新于走相对时间；字数与阅读时长复用正文统计；阅读量是可选自定义字段 views，
+   没装计数插件时不显示，绝不伪造数字。 */
+$sgPostedAgo = sg_time_ago((int) $this->created);
+$sgViews = sg_field($this, 'views', '');
+$sgSticky = (int) $this->sticky > 0;
 
 $sgPrev = sg_adjacent_post($this, 'prev');
 $sgNext = sg_adjacent_post($this, 'next');
 ?>
 <main id="sg-main" class="sg-main sg-article-layout" data-sg-page="post" data-sg-origin="<?php echo $sgIsNote ? 'note' : 'article'; ?>">
   <article class="sg-glass sg-article sg-reading-surface">
-    <div class="sg-cover">
-      <img src="<?php echo sg_e(sg_cover($this)); ?>" alt="<?php echo sg_e((string) $this->title); ?>">
-    </div>
-    <div class="sg-article-body">
-      <a class="sg-back" href="<?php echo sg_e($sgBack); ?>"><?php echo sg_icon('arrow-left'); ?><?php echo sg_e($sgBackLabel); ?></a>
-      <header class="sg-article-head">
-        <h1><?php echo sg_e($sgArticleTitle !== '' ? $sgArticleTitle : '未命名文章'); ?></h1>
-        <div class="sg-meta">
-          <time class="sg-meta-chip" datetime="<?php $this->date('c'); ?>"><?php echo sg_icon('clock'); ?><?php $this->date('Y-m-d H:i'); ?></time>
+    <?php /* 参考 Fomalhaut：标题 + 元信息压在封面 Banner 上，底部波浪过渡到正文。
+           颜色用青瓷 token + 深青遮罩，保持 Soraglass 材质，不照搬源站蓝。 */ ?>
+    <header class="sg-hero">
+      <img class="sg-hero-cover" src="<?php echo sg_e(sg_cover($this)); ?>" alt="" aria-hidden="true">
+      <span class="sg-hero-scrim" aria-hidden="true"></span>
+      <div class="sg-hero-inner">
+        <h1 class="sg-hero-title"><?php echo sg_e($sgArticleTitle !== '' ? $sgArticleTitle : '未命名文章'); ?></h1>
+        <div class="sg-meta sg-meta--hero">
+          <?php if ($sgSticky) : ?>
+          <span class="sg-meta-chip sg-meta-chip--pin" title="置顶"><?php echo sg_icon('bookmark'); ?>置顶</span>
+          <span class="sg-meta-sep" aria-hidden="true"></span>
+          <?php endif; ?>
+          <time class="sg-meta-chip sg-meta-chip--date" datetime="<?php $this->date('c'); ?>" title="<?php $this->date('Y-m-d H:i'); ?>"><?php echo sg_icon('calendar'); ?>发表于 <?php echo sg_e($sgPostedAgo !== '' ? $sgPostedAgo : $this->date('Y-m-d')); ?></time>
           <?php if ($sgUpdated !== '') : ?>
-          <span class="sg-meta-chip"><?php echo sg_icon('history'); ?>更新于 <?php echo sg_e($sgUpdated); ?></span>
+          <span class="sg-meta-sep" aria-hidden="true"></span>
+          <span class="sg-meta-chip sg-meta-chip--updated" title="更新于 <?php echo sg_e($sgUpdated); ?>"><?php echo sg_icon('history'); ?>更新于 <?php echo sg_e($sgUpdatedAgo !== '' ? $sgUpdatedAgo : $sgUpdated); ?></span>
           <?php endif; ?>
           <?php foreach ($sgCats as $sgCat) : ?>
-          <a class="sg-meta-chip" href="<?php echo sg_e($sgCat['permalink']); ?>"><?php echo sg_icon('folder'); ?><?php echo sg_e($sgCat['name']); ?></a>
+          <span class="sg-meta-sep" aria-hidden="true"></span>
+          <a class="sg-meta-chip sg-meta-chip--cate" href="<?php echo sg_e($sgCat['permalink']); ?>"><?php echo sg_icon('folder'); ?><?php echo sg_e($sgCat['name']); ?></a>
           <?php endforeach; ?>
           <?php if ($sgRead['chars'] > 0) : ?>
-          <span class="sg-meta-chip"><?php echo sg_icon('history'); ?><?php echo sg_e($sgRead['text']); ?></span>
-          <span class="sg-meta-chip"><?php echo sg_icon('clock'); ?><?php echo (int) $sgRead['minutes']; ?> 分钟阅读</span>
+          <span class="sg-meta-sep" aria-hidden="true"></span>
+          <span class="sg-meta-chip sg-meta-chip--stat"><?php echo sg_icon('book-open'); ?>字数 <?php echo sg_e($sgRead['text']); ?></span>
+          <span class="sg-meta-sep" aria-hidden="true"></span>
+          <span class="sg-meta-chip sg-meta-chip--stat"><?php echo sg_icon('clock'); ?>约 <?php echo (int) $sgRead['minutes']; ?> 分钟</span>
           <?php endif; ?>
-          <?php if ($sgTags !== '') : ?><?php echo $sgTags; ?><?php endif; ?>
+          <?php if ($sgViews !== '') : ?>
+          <span class="sg-meta-sep" aria-hidden="true"></span>
+          <span class="sg-meta-chip sg-meta-chip--stat"><?php echo sg_icon('eye'); ?>阅读 <?php echo sg_e($sgViews); ?></span>
+          <?php endif; ?>
         </div>
-      </header>
+        <?php if ($sgTags !== '') : ?><div class="sg-meta sg-meta--hero-tags"><?php echo $sgTags; ?></div><?php endif; ?>
+      </div>
+      <span class="sg-hero-wave" aria-hidden="true"></span>
+    </header>
+    <div class="sg-article-body">
+      <a class="sg-back" href="<?php echo sg_e($sgBack); ?>"><?php echo sg_icon('arrow-left'); ?><?php echo sg_e($sgBackLabel); ?></a>
       <?php if ($sgLead !== '') : ?><p class="sg-lead"><?php echo sg_e($sgLead); ?></p><?php endif; ?>
       <div class="sg-prose" data-sg-article><?php echo $sgContent; ?></div>
 
@@ -112,8 +137,8 @@ $sgNext = sg_adjacent_post($this, 'next');
   <aside class="sg-aside">
     <?php $this->need('partials/author-card.php'); ?>
     <div class="sg-aside-sticky">
-      <?php $this->need('partials/toc.php'); ?>
       <?php $this->need('sidebar.php'); ?>
+      <?php $this->need('partials/toc.php'); ?>
     </div>
   </aside>
 </main>

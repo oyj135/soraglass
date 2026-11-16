@@ -474,10 +474,10 @@ function themeConfig($form): void
 
     /* ---------------- 文章页与侧栏 ---------------- */
     $form->addInput(new Textarea('sgNotice', null, '', _t('侧栏公告'), _t('显示在文章页与独立页右侧栏的公告卡；留空则不输出该卡。支持换行，按纯文本处理。')));
-    $form->addInput(new Text('sgSidebar', null, 'notice,recent,categories,tags,webinfo', _t('侧栏卡片与顺序'), _t(
-        '英文逗号分隔，按顺序输出。可用：<code>notice</code> 公告、<code>recent</code> 最近文章、'
-        . '<code>categories</code> 分类、<code>tags</code> 标签、<code>webinfo</code> 站点信息。'
-        . '留空则只保留作者卡与目录。'
+    $form->addInput(new Text('sgSidebar', null, 'notice', _t('侧栏卡片与顺序'), _t(
+        '文章页侧栏固定为「作者卡 / 公告 / 目录」三张。此项仅 <code>notice</code> 生效（控制公告卡是否显示，'
+        . '内容取上方「侧栏公告」；留空则不显示公告）；<code>recent</code> / <code>categories</code> / '
+        . '<code>tags</code> / <code>webinfo</code> 为历史兼容值，已不再渲染，无需填写。'
     )));
 
     /* ---------------- 首页三张卡 ---------------- */

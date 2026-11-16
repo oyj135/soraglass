@@ -58,8 +58,8 @@ if ($sgView !== '') {
   </article>
   <aside class="sg-aside">
     <div class="sg-aside-sticky">
-      <?php $this->need('partials/toc.php'); ?>
       <?php $this->need('sidebar.php'); ?>
+      <?php $this->need('partials/toc.php'); ?>
     </div>
   </aside>
 </main>

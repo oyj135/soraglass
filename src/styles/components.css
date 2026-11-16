@@ -2014,6 +2014,104 @@ html.dark .sg-i-moon { display: inline-flex; }
 
 
 /* ---------- 文章页 ---------- */
+
+/* 头图 Banner（2026-11-16，参考 Fomalhaut post-info）：
+   标题 + 元信息压在封面上，深青遮罩保证白字可读；底部波浪过渡到实底阅读面。
+   全部用青瓷 token，不照搬源站蓝色波浪。editorial.css 里的 sg-cover 规则作用于列表卡封面，
+   这里另起 .sg-hero 类名，互不干扰。 */
+.sg-hero {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  min-height: 20rem;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--sg-accent-deep), #16343a);
+}
+@media (min-width: 768px) { .sg-hero { min-height: 25rem; } }
+
+.sg-hero-cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -2;
+}
+.sg-hero-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(to top, rgba(6, 24, 28, .88) 0%, rgba(8, 30, 34, .58) 42%, rgba(10, 34, 38, .24) 100%);
+}
+.sg-hero-inner {
+  width: 100%;
+  max-width: 46rem;
+  margin-inline: auto;
+  padding: 3.5rem 1.5rem 4.5rem;
+  color: var(--sg-hero-ink);
+}
+@media (min-width: 768px) { .sg-hero-inner { padding: 4.5rem 3rem 5.5rem; } }
+
+.sg-hero-title {
+  margin: 0 0 1.5rem;
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -.015em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, .45);
+}
+.sg-meta--hero,
+.sg-meta--hero-tags { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .6rem; }
+.sg-meta--hero-tags { margin-top: .85rem; }
+
+.sg-meta--hero .sg-meta-chip,
+.sg-meta--hero-tags .sg-meta-chip {
+  padding: .34rem .7rem;
+  border: 1px solid var(--sg-hero-chip-line);
+  border-radius: 999px;
+  background: var(--sg-hero-chip-bg);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: var(--sg-hero-ink);
+  font-size: .75rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.4;
+}
+.sg-meta--hero .sg-meta-chip svg,
+.sg-meta--hero-tags .sg-meta-chip svg { width: .9rem; height: .9rem; opacity: 1; }
+.sg-meta-chip--pin svg { color: var(--sg-hero-ic-update); }
+.sg-meta-chip--date svg { color: var(--sg-hero-ic-date); }
+.sg-meta-chip--updated svg { color: var(--sg-hero-ic-update); }
+.sg-meta-chip--cate svg { color: var(--sg-hero-ic-cate); }
+.sg-meta-chip--stat svg { color: var(--sg-hero-ic-stat); }
+/* 竖线分隔：只在相邻两项之间出现，窄屏自动让位 */
+.sg-meta-sep { width: 1px; height: .85rem; background: var(--sg-hero-sep); flex: none; }
+@media (max-width: 571.98px) { .sg-meta-sep { display: none; } }
+/* 压在头图上的标签胶囊沿用 is-pink，但要覆盖亮色档的前景色 */
+.sg-meta--hero-tags .sg-meta-chip.is-pink { color: var(--sg-hero-ink-soft); }
+.sg-meta--hero-tags .sg-tag-link { color: inherit; text-decoration: none; }
+
+/* 波浪过渡：用 mask 把实底阅读色裁成双波峰，盖在封面底缘，接住正文卡 */
+.sg-hero-wave {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 3.25rem;
+  z-index: 0;
+  background: var(--sg-reading-surface);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 100' preserveAspectRatio='none'%3E%3Cpath d='M0,52 C240,96 480,8 720,44 C960,80 1200,16 1440,52 L1440,100 L0,100 Z'/%3E%3C/svg%3E") center bottom / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 100' preserveAspectRatio='none'%3E%3Cpath d='M0,52 C240,96 480,8 720,44 C960,80 1200,16 1440,52 L1440,100 L0,100 Z'/%3E%3C/svg%3E") center bottom / 100% 100% no-repeat;
+}
+html.dark .sg-hero-scrim {
+  background: linear-gradient(to top, rgba(4, 16, 18, .92) 0%, rgba(6, 22, 25, .66) 42%, rgba(8, 28, 31, .3) 100%);
+}
+
 .sg-article { flex: 1; min-width: 0; overflow: hidden; padding: 0; }
 .sg-article.sg-glass { background: var(--sg-card-strong); box-shadow: var(--sg-shadow-strong); }
 .sg-article.sg-glass { -webkit-backdrop-filter: blur(var(--sg-blur-nav)); backdrop-filter: blur(var(--sg-blur-nav)); }
@@ -3016,6 +3114,18 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
 .sg-feature-tags > span { display: inline-flex; align-items: center; gap: .3rem; }
 .sg-feature-meta svg,
 .sg-feature-tags svg { width: .9rem; height: .9rem; flex: none; color: var(--sg-accent-ink); }
+/* 元信息彩色图标 + 竖线分隔（2026-11-16，与文章头图共用一套分色语言）：
+   日期冷青、分类朱砂、标签浅青。竖线只在相邻项之间出现。 */
+.sg-feature-meta > .is-date svg { color: var(--sg-accent-ink); }
+.sg-feature-meta > .is-cate svg { color: var(--sg-warm-bright); }
+.sg-feature-tags > .is-tag svg { color: var(--sg-accent-2); }
+.sg-feature-meta > span + span::before {
+  content: "";
+  width: 1px;
+  height: .8em;
+  margin-right: .15rem;
+  background: var(--sg-line);
+}
 /* 减少动效：去掉封面/摘要缩放与卡片位移 */
 @media (prefers-reduced-motion: reduce) {
   .sg-feature-card:hover { transform: none; }
