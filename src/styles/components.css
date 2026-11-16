@@ -2017,9 +2017,9 @@ html.dark .sg-i-moon { display: inline-flex; }
 
 /* 头图 Banner（2026-11-16，参考 Fomalhaut post-info）：
    标题 + 元信息压在封面上，深青遮罩保证白字可读；底部波浪过渡到实底阅读面。
-   全部用青瓷 token，不照搬源站蓝色波浪。editorial.css 里的 sg-cover 规则作用于列表卡封面，
-   这里另起 .sg-hero 类名，互不干扰。 */
-.sg-hero {
+   全部用青瓷 token，不照搬源站蓝色波浪。类名统一用 .sg-post-hero 前缀——
+   首页主区早已占用 .sg-hero / .sg-hero-cover，务必隔离，勿改回同名。 */
+.sg-post-hero {
   position: relative;
   isolation: isolate;
   width: 100%;
@@ -2029,9 +2029,9 @@ html.dark .sg-i-moon { display: inline-flex; }
   overflow: hidden;
   background: linear-gradient(135deg, var(--sg-accent-deep), #16343a);
 }
-@media (min-width: 768px) { .sg-hero { min-height: 25rem; } }
+@media (min-width: 768px) { .sg-post-hero { min-height: 25rem; } }
 
-.sg-hero-cover {
+.sg-post-hero-cover {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -2039,22 +2039,22 @@ html.dark .sg-i-moon { display: inline-flex; }
   object-fit: cover;
   z-index: -2;
 }
-.sg-hero-scrim {
+.sg-post-hero-scrim {
   position: absolute;
   inset: 0;
   z-index: -1;
   background: linear-gradient(to top, rgba(6, 24, 28, .88) 0%, rgba(8, 30, 34, .58) 42%, rgba(10, 34, 38, .24) 100%);
 }
-.sg-hero-inner {
+.sg-post-hero-inner {
   width: 100%;
   max-width: 46rem;
   margin-inline: auto;
   padding: 3.5rem 1.5rem 4.5rem;
   color: var(--sg-hero-ink);
 }
-@media (min-width: 768px) { .sg-hero-inner { padding: 4.5rem 3rem 5.5rem; } }
+@media (min-width: 768px) { .sg-post-hero-inner { padding: 4.5rem 3rem 5.5rem; } }
 
-.sg-hero-title {
+.sg-post-hero-title {
   margin: 0 0 1.5rem;
   font-size: clamp(1.75rem, 4vw, 2.75rem);
   font-weight: 700;
@@ -2097,7 +2097,7 @@ html.dark .sg-i-moon { display: inline-flex; }
 .sg-meta--hero-tags .sg-tag-link { color: inherit; text-decoration: none; }
 
 /* 波浪过渡：用 mask 把实底阅读色裁成双波峰，盖在封面底缘，接住正文卡 */
-.sg-hero-wave {
+.sg-post-hero-wave {
   position: absolute;
   left: 0;
   right: 0;
@@ -2108,7 +2108,7 @@ html.dark .sg-i-moon { display: inline-flex; }
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 100' preserveAspectRatio='none'%3E%3Cpath d='M0,52 C240,96 480,8 720,44 C960,80 1200,16 1440,52 L1440,100 L0,100 Z'/%3E%3C/svg%3E") center bottom / 100% 100% no-repeat;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 100' preserveAspectRatio='none'%3E%3Cpath d='M0,52 C240,96 480,8 720,44 C960,80 1200,16 1440,52 L1440,100 L0,100 Z'/%3E%3C/svg%3E") center bottom / 100% 100% no-repeat;
 }
-html.dark .sg-hero-scrim {
+html.dark .sg-post-hero-scrim {
   background: linear-gradient(to top, rgba(4, 16, 18, .92) 0%, rgba(6, 22, 25, .66) 42%, rgba(8, 28, 31, .3) 100%);
 }
 

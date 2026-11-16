@@ -278,7 +278,7 @@ html.dark .sg-nav { background: var(--sg-card); border-bottom-color: var(--sg-re
 }
 @media print {
   .sg-article.sg-reading-surface { border: 0; color: #000; }
-  .sg-article-layout .sg-aside, .sg-article .sg-back, .sg-hero { display: none !important; }
+  .sg-article-layout .sg-aside, .sg-article .sg-back, .sg-post-hero { display: none !important; }
   .sg-article.sg-reading-surface .sg-article-body { max-width: none; padding: 0; }
   .sg-article.sg-reading-surface :is(.sg-meta-chip, .sg-lead, .sg-prose, .sg-post-nav, a) { color: #000; }
 }

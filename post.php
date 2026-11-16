@@ -64,11 +64,11 @@ $sgNext = sg_adjacent_post($this, 'next');
   <article class="sg-glass sg-article sg-reading-surface">
     <?php /* 参考 Fomalhaut：标题 + 元信息压在封面 Banner 上，底部波浪过渡到正文。
            颜色用青瓷 token + 深青遮罩，保持 Soraglass 材质，不照搬源站蓝。 */ ?>
-    <header class="sg-hero">
-      <img class="sg-hero-cover" src="<?php echo sg_e(sg_cover($this)); ?>" alt="" aria-hidden="true">
-      <span class="sg-hero-scrim" aria-hidden="true"></span>
-      <div class="sg-hero-inner">
-        <h1 class="sg-hero-title"><?php echo sg_e($sgArticleTitle !== '' ? $sgArticleTitle : '未命名文章'); ?></h1>
+    <header class="sg-post-hero">
+      <img class="sg-post-hero-cover" src="<?php echo sg_e(sg_cover($this)); ?>" alt="" aria-hidden="true">
+      <span class="sg-post-hero-scrim" aria-hidden="true"></span>
+      <div class="sg-post-hero-inner">
+        <h1 class="sg-post-hero-title"><?php echo sg_e($sgArticleTitle !== '' ? $sgArticleTitle : '未命名文章'); ?></h1>
         <div class="sg-meta sg-meta--hero">
           <?php if ($sgSticky) : ?>
           <span class="sg-meta-chip sg-meta-chip--pin" title="置顶"><?php echo sg_icon('bookmark'); ?>置顶</span>
@@ -96,7 +96,7 @@ $sgNext = sg_adjacent_post($this, 'next');
         </div>
         <?php if ($sgTags !== '') : ?><div class="sg-meta sg-meta--hero-tags"><?php echo $sgTags; ?></div><?php endif; ?>
       </div>
-      <span class="sg-hero-wave" aria-hidden="true"></span>
+      <span class="sg-post-hero-wave" aria-hidden="true"></span>
     </header>
     <div class="sg-article-body">
       <a class="sg-back" href="<?php echo sg_e($sgBack); ?>"><?php echo sg_icon('arrow-left'); ?><?php echo sg_e($sgBackLabel); ?></a>
