@@ -721,8 +721,8 @@ html.sg-readmode [data-sg-readmode-toggle] { color: var(--sg-accent-ink); border
   /* 实底 + 阴影：下拉是浮在壁纸/头图上的菜单，用接近实色的卡面保证文字对比 */
   background: var(--sg-card-strong);
   box-shadow: var(--sg-shadow-strong);
-  -webkit-backdrop-filter: blur(var(--sg-blur-nav));
-  backdrop-filter: blur(var(--sg-blur-nav));
+  
+  
 }
 
 .sg-nav-more:is(:hover, :focus-within, .is-open) .sg-nav-more-menu { display: flex; }

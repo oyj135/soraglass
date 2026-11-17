@@ -8,8 +8,8 @@
 .sg-glass {
   position: relative;
   background: var(--sg-card);
-  -webkit-backdrop-filter: blur(var(--sg-blur-card));
-  backdrop-filter: blur(var(--sg-blur-card));
+  
+  
   border: 1px solid var(--sg-card-border);
   border-radius: var(--sg-radius);
   box-shadow: var(--sg-shadow);
@@ -24,10 +24,14 @@
 
 .sg-glass-strong {
   background: var(--sg-card-strong);
-  -webkit-backdrop-filter: blur(var(--sg-blur-nav));
-  backdrop-filter: blur(var(--sg-blur-nav));
   box-shadow: var(--sg-shadow-strong);
 }
+
+/* 卡片 hover 反馈对齐源站 cardHover：阴影 .05 → .09（无位移，交给各卡自己的动效） */
+.sg-glass:is(:hover) { box-shadow: var(--sg-shadow-strong); }
+/* 侧栏小卡：源站 aside card-widget 是 8px 圆角档（大容器 20px、首页文章卡 25px） */
+.sg-home-aside .sg-glass,
+.sg-aside .sg-glass { border-radius: 8px; }
 
 .sg-card-pad { padding: 1.25rem; }
 @media (min-width: 640px) { .sg-card-pad { padding: 1.5rem; } }
@@ -40,15 +44,13 @@
   position: fixed;
   inset: 0 0 auto;
   z-index: 50;
-  background: rgba(255, 255, 255, .40);
-  -webkit-backdrop-filter: blur(var(--sg-blur-nav));
-  backdrop-filter: blur(var(--sg-blur-nav));
-  border-bottom: 1px solid rgba(255, 255, 255, .20);
+  background: rgba(250, 250, 250, .98);
+  border-bottom: 1px solid rgba(169, 169, 169, .28);
   transition: transform .5s, background-color 1s, border-color 1s;
 }
 
 html.dark .sg-nav {
-  background: rgba(15, 23, 42, .50);
+  background: rgba(18, 18, 18, .98);
   border-bottom-color: rgba(255, 255, 255, .10);
 }
 
@@ -168,8 +170,8 @@ html.dark .sg-nav-link.is-active { color: var(--sg-accent-ink); }
   border: 0;
   border-radius: 1.5rem 0 0 1.5rem;
   background: color-mix(in srgb, var(--sg-accent) 88%, transparent);
-  -webkit-backdrop-filter: blur(var(--sg-blur-nav));
-  backdrop-filter: blur(var(--sg-blur-nav));
+  
+  
   box-shadow: -5px 0 20px color-mix(in srgb, var(--sg-accent) 40%, transparent);
   transition: background-color .3s;
 }
@@ -198,8 +200,8 @@ html.dark .sg-nav-link.is-active { color: var(--sg-accent-ink); }
   z-index: 70;
   display: none;
   background: rgba(2, 6, 23, .55);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+  
+  
 }
 
 .sg-sheet.is-open { display: block; }
@@ -216,8 +218,8 @@ html.sg-lock, html.sg-lock body { overflow: hidden; }
   flex-direction: column;
   gap: 1.25rem;
   background: var(--sg-card-strong);
-  -webkit-backdrop-filter: blur(var(--sg-blur-nav));
-  backdrop-filter: blur(var(--sg-blur-nav));
+  
+  
   border-left: 1px solid var(--sg-border);
 }
 
@@ -245,8 +247,8 @@ html.sg-lock, html.sg-lock body { overflow: hidden; }
   border: 1px solid var(--sg-border);
   border-radius: 50%;
   background: var(--sg-card-strong);
-  -webkit-backdrop-filter: blur(var(--sg-blur-nav));
-  backdrop-filter: blur(var(--sg-blur-nav));
+  
+  
   box-shadow: var(--sg-shadow);
   transition: transform .3s, background-color .3s, color .3s;
 }
@@ -282,8 +284,8 @@ html.sg-lock, html.sg-lock body { overflow: hidden; }
   border: 1px solid var(--sg-border);
   border-radius: var(--sg-radius-inner);
   background: var(--sg-card-strong);
-  -webkit-backdrop-filter: blur(var(--sg-blur-nav));
-  backdrop-filter: blur(var(--sg-blur-nav));
+  
+  
   box-shadow: var(--sg-shadow);
   color: var(--sg-text);
   cursor: pointer;
@@ -407,8 +409,8 @@ html.sg-lock, html.sg-lock body { overflow: hidden; }
   border: 1px solid rgba(255, 255, 255, .40);
   border-radius: var(--sg-radius);
   background: rgba(255, 255, 255, .50);
-  -webkit-backdrop-filter: blur(var(--sg-blur-nav));
-  backdrop-filter: blur(var(--sg-blur-nav));
+  
+  
   box-shadow: var(--sg-shadow);
   color: inherit;
   outline: none;
@@ -1122,8 +1124,8 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
   border: 1px solid var(--sg-lyric-border);
   border-radius: var(--sg-radius);
   background: var(--sg-lyric-bg);
-  -webkit-backdrop-filter: blur(var(--sg-blur-nav));
-  backdrop-filter: blur(var(--sg-blur-nav));
+  
+  
   box-shadow: var(--sg-lyric-shadow);
   color: var(--sg-lyric-text);
   overflow: hidden;
@@ -1375,8 +1377,8 @@ button.sg-progress {
   border: 0;
   border-radius: 999px;
   background: var(--sg-indicator-bg);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  
+  
   color: #fff;
   font-family: var(--font-sans);
   font-size: .64rem;
@@ -1651,8 +1653,8 @@ html.dark .sg-i-moon { display: inline-flex; }
   border: 1px solid rgba(255, 255, 255, .18);
   border-radius: .375rem;
   background: rgba(255, 255, 255, .10);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+  
+  
   letter-spacing: .15em;
 }
 
@@ -1716,8 +1718,8 @@ html.dark .sg-i-moon { display: inline-flex; }
   border: 1px solid rgba(255, 255, 255, .30);
   border-radius: 50%;
   background: rgba(255, 255, 255, .10);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  
+  
   transition: background-color var(--sg-dur-card) var(--sg-ease), border-color var(--sg-dur-card) var(--sg-ease);
 }
 
@@ -1736,8 +1738,8 @@ html.dark .sg-i-moon { display: inline-flex; }
   border: 1px solid rgba(255, 255, 255, .20);
   border-radius: 999px;
   background: rgba(2, 6, 23, .28);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
+  
+  
   color: #fff;
 }
 
@@ -1935,14 +1937,14 @@ html.dark .sg-i-moon { display: inline-flex; }
   border: 1px solid var(--sg-border);
   border-radius: var(--sg-radius);
   background: var(--sg-panel);
-  -webkit-backdrop-filter: blur(var(--sg-blur-nav));
-  backdrop-filter: blur(var(--sg-blur-nav));
+  
+  
   color: var(--sg-text);
   box-shadow: var(--sg-shadow-strong);
   overflow: hidden;
 }
 
-.sg-reader::backdrop { background: rgba(2, 6, 23, .50); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+.sg-reader::backdrop { background: rgba(2, 6, 23, .50);   }
 
 .sg-reader-inner { display: flex; flex-direction: column; max-height: 88dvh; }
 
@@ -2196,8 +2198,7 @@ html.dark .sg-post-meta-line { color: #98a2ad; }
 @media (prefers-reduced-motion: reduce) { .sg-related-item img { transition: none; transform: none !important; } }
 
 .sg-article { flex: 1; min-width: 0; overflow: hidden; padding: 0; }
-.sg-article.sg-glass { background: var(--sg-card-strong); box-shadow: var(--sg-shadow-strong); }
-.sg-article.sg-glass { -webkit-backdrop-filter: blur(var(--sg-blur-nav)); backdrop-filter: blur(var(--sg-blur-nav)); }
+.sg-article.sg-glass { background: var(--sg-card-strong); border-color: var(--sg-border-strong); }
 
 .sg-cover { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; background: rgba(203, 213, 225, .60); }
 html.dark .sg-cover { background: rgba(51, 65, 85, .60); }
@@ -2262,8 +2263,8 @@ html.dark .sg-meta-chip.is-pink { color: var(--sg-warm-bright); }
   border: 1px solid var(--sg-border);
   border-radius: 999px;
   background: var(--sg-chip);
-  -webkit-backdrop-filter: blur(var(--sg-blur-card));
-  backdrop-filter: blur(var(--sg-blur-card));
+  
+  
   font-size: .8125rem;
   font-weight: 700;
   color: var(--sg-text);
@@ -2760,7 +2761,7 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
   top: 4.25rem;
   z-index: 2;
   padding: .375rem 0;
-  backdrop-filter: blur(6px);
+  
 }
 
 .sg-tl-month-label b {
@@ -3223,8 +3224,13 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
 }
 html.dark .sg-feature-card { background: var(--sg-card-strong); }
 
-/* 置顶角标（fomalhaut post-sticky-badge 逐参数复刻：左上角红橙渐变胶囊 + 图钉 + 流光） */
-.sg-feature-card { position: relative; }
+/* 置顶角标（fomalhaut post-sticky-badge 逐参数复刻：左上角红橙渐变胶囊 + 图钉 + 流光）。
+   卡片本体对齐源站 recent-post-item：25px 圆角 + 1px 灰描边（--border-style）。 */
+.sg-feature-card {
+  position: relative;
+  border-radius: 1.5625rem;
+  border-color: var(--sg-border-strong);
+}
 .sg-sticky-badge {
   position: absolute;
   top: 12px;
@@ -4078,8 +4084,8 @@ html.dark .sg-page-btn.is-active { color: #04171b; }
   font-size: .9375rem;
   font-weight: 500;
   letter-spacing: .01em;
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+  
+  
   transition: background-color .3s, color .3s, border-color .3s;
 }
 .sg-archive-toolbar .sg-archive-tags .sg-filter-btn:hover {
@@ -4260,8 +4266,8 @@ html.dark .sg-archive-tag { color: var(--sg-accent-soft); }
   border: 1px solid rgba(255, 255, 255, .28);
   border-radius: 999px;
   background: rgba(2, 6, 23, .35);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+  
+  
   font-size: 9px;
   font-weight: 900;
   letter-spacing: .16em;
@@ -4604,7 +4610,7 @@ html.dark .sg-px-hint { color: rgba(240, 226, 226, .5); }
   background: rgba(255, 255, 255, .72);
   color: #22333b;
   cursor: pointer;
-  backdrop-filter: blur(10px);
+  
   transition: transform .35s var(--sg-ease), background-color .35s linear;
 }
 
