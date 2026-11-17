@@ -504,6 +504,162 @@ function sg_home_poster($archive = null): array
 }
 
 /**
+ * 首页「最新文章」数据源（2026-11-17 第三轮重写，绕开 Widget_Archive）。
+ *
+ * 线上排查结论：index 查询会把置顶文章前置且在窗口内重复出现，同一篇渲染两张卡；
+ * 行内过滤依赖的 magic 属性在列表上下文也不可靠。这里与 sg_notes_query() 同模式
+ * 直接查库，碎语隔离直接写进 SQL 子查询 —— 分类 slug=notes/名称=碎语、标签同名
+ * 同 slug，四条路径全部剔除，不依赖 PHP 侧的 cid 集合。
+ *
+ * @return array<int,array{url:string,cover:string,quote:string,title:string,dateText:string,cate:string,tags:string}>
+ */
+function sg_home_articles(int $limit = 2): array
+{
+    try {
+        $db = \Typecho\Db::get();
+        $p = $db->getPrefix();
+        $rows = $db->fetchAll(
+            "SELECT cid, title, slug, created, text FROM {$p}contents"
+            . " WHERE type = 'post' AND status = 'publish'"
+            . " AND (password IS NULL OR password = '')"
+            . " AND cid NOT IN ("
+            . "SELECT r.cid FROM {$p}relationships r INNER JOIN {$p}metas m ON m.mid = r.mid"
+            . " WHERE (m.type = 'category' AND (m.slug = '" . sg_notes_slug() . "' OR m.name = '碎语'))"
+            . " OR (m.type = 'tag' AND (m.slug = '" . sg_notes_slug() . "' OR m.name = '碎语'))"
+            . ")"
+            . " ORDER BY created DESC LIMIT " . max(1, $limit)
+        );
+        if (!$rows) {
+            return [];
+        }
+
+        $in = implode(',', array_map(static fn($row): int => (int) ($row['cid'] ?? 0), $rows));
+        $fields = [];
+        foreach ($db->fetchAll("SELECT cid, name, str_value FROM {$p}fields WHERE cid IN ({$in})") as $f) {
+            $cid = (int) ($f['cid'] ?? 0);
+            if ($cid > 0 && (string) ($f['str_value'] ?? '') !== '') {
+                $fields[$cid][(string) $f['name']] = (string) $f['str_value'];
+            }
+        }
+        $cats = [];
+        foreach ($db->fetchAll("SELECT r.cid, m.name FROM {$p}relationships r INNER JOIN {$p}metas m ON m.mid = r.mid WHERE r.cid IN ({$in}) AND m.type = 'category'") as $c) {
+            $cid = (int) ($c['cid'] ?? 0);
+            if ($cid > 0 && !isset($cats[$cid])) {
+                $cats[$cid] = (string) ($c['name'] ?? '');
+            }
+        }
+        $tags = [];
+        foreach ($db->fetchAll("SELECT r.cid, m.name FROM {$p}relationships r INNER JOIN {$p}metas m ON m.mid = r.mid WHERE r.cid IN ({$in}) AND m.type = 'tag'") as $t) {
+            $cid = (int) ($t['cid'] ?? 0);
+            $name = trim((string) ($t['name'] ?? ''));
+            if ($cid > 0 && $name !== '') {
+                $tags[$cid][] = $name;
+            }
+        }
+
+        $tz = 0;
+        try {
+            $tz = (int) \Widget\Options::alloc()->timezone;
+        } catch (\Throwable $e) {
+            $tz = 0;
+        }
+        $options = sg_options();
+        $fallbackCover = (string) sg_opt('sgDefaultCover', sg_theme_url('dist/img/cover-default.svg'));
+
+        $out = [];
+        foreach ($rows as $row) {
+            $cid = (int) ($row['cid'] ?? 0);
+            if ($cid <= 0) {
+                continue;
+            }
+            $text = (string) ($row['text'] ?? '');
+            /* 与 sg_notes_query 同处理：Markdown 存文要先转 HTML 才抽得出摘要 */
+            if (strncmp($text, '<!--markdown-->', 15) === 0) {
+                $text = \Utils\Markdown::convert(substr($text, 15));
+            }
+            $own = $fields[$cid] ?? [];
+            $quote = trim((string) ($own['description'] ?? ''));
+            if ($quote === '') {
+                $quote = sg_notes_excerpt($text);
+            }
+
+            /* Router::url 只给路径，自己跟站点入口拼（同 sg_notes_query） */
+            $path = (string) \Typecho\Router::url('post', [
+                'cid'     => $cid,
+                'slug'    => (string) ($row['slug'] ?? ''),
+                'created' => (int) ($row['created'] ?? 0),
+                'type'    => 'post',
+            ]);
+            if ($path === '' || $path === '#') {
+                $path = '/archives/' . $cid . '/';
+            }
+
+            $stamp = (int) ($row['created'] ?? 0);
+            $ago = sg_time_ago($stamp);
+            $cover = trim((string) ($own['cover'] ?? ''));
+            if ($cover === '') {
+                $cover = $fallbackCover;
+            }
+
+            $out[] = [
+                'url'      => (string) \Typecho\Common::url($path, $options->index),
+                'cover'    => sg_media($cover),
+                'quote'    => $quote,
+                'title'    => trim((string) ($row['title'] ?? '')),
+                'dateText' => $ago !== '' ? '发表于 ' . $ago : '发表于 ' . date('Y.m.d', $stamp + $tz),
+                'cate'     => $cats[$cid] ?? '',
+                'tags'     => isset($tags[$cid]) ? sg_e(implode(' · ', $tags[$cid])) : '',
+            ];
+        }
+        return $out;
+    } catch (\Throwable $e) {
+        return [];
+    }
+}
+
+/**
+ * 「最新文章」卡片的统一 HTML（凸三角封面 + 引号摘要 + 居中标题/元信息）。
+ * card-post.php（归档/分类/标签等 Widget 上下文）与首页直查数据共用同一份标记，
+ * 两侧只负责组装字段，改卡片形态只改这里。
+ * tags 传预构建的 HTML（归档页是链接，首页是纯文本），调用方自行转义。
+ */
+function sg_feature_card_html(array $card): string
+{
+    $url = (string) ($card['url'] ?? '#');
+    $cover = (string) ($card['cover'] ?? '');
+    $quote = trim((string) ($card['quote'] ?? ''));
+    $title = trim((string) ($card['title'] ?? ''));
+    if ($title === '') {
+        $title = '未命名文章';
+    }
+    $dateText = trim((string) ($card['dateText'] ?? ''));
+    $cate = trim((string) ($card['cate'] ?? ''));
+    $tags = trim((string) ($card['tags'] ?? ''));
+
+    $html  = '<article class="sg-feature-card" data-sg-filter-item>';
+    $html .= '<a class="sg-feature-media" href="' . sg_e($url) . '" tabindex="-1" aria-hidden="true">';
+    $html .= '<img src="' . sg_e($cover) . '" alt="" loading="lazy">';
+    if ($quote !== '') {
+        $html .= '<span class="sg-feature-quote">「' . sg_e($quote) . '」</span>';
+    }
+    $html .= '</a>';
+    $html .= '<div class="sg-feature-body">';
+    $html .= '<h3 class="sg-feature-title"><a href="' . sg_e($url) . '">' . sg_e($title) . '</a></h3>';
+    $html .= '<div class="sg-feature-meta">';
+    $html .= '<span class="is-date">' . sg_icon('clock') . sg_e($dateText) . '</span>';
+    if ($cate !== '') {
+        $html .= '<span class="is-cate">' . sg_icon('folder') . sg_e($cate) . '</span>';
+    }
+    $html .= '</div>';
+    if ($tags !== '') {
+        $html .= '<div class="sg-feature-tags"><span class="is-tag">' . sg_icon('tag') . $tags . '</span></div>';
+    }
+    $html .= '</div>';
+    $html .= '</article>';
+    return $html;
+}
+
+/**
  * 首页封面轮播的数据源：最近若干篇「普通文章」（跳过碎语）。
  *
  * 为什么不再复用 index.php 的主循环：主循环受「每页条数上限」限制，

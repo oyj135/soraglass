@@ -25,50 +25,14 @@ $sgNotesLink = sg_page_url('notes');
 // 封面轮播：单独取最近的文章（跳过碎语），不受列表「每页条数上限」影响
 $sgSlides = sg_home_slides(5);
 
-// 正文文章列表（2026-11-17 首页重构）：独立取普通文章，跳过碎语，取固定 2 篇。
-// 碎语有两种挂法：分类（slug=notes 或名称「碎语」）与「碎语」标签，两个 cid 集合并集一起剔。
-// 用 Widget_Archive@sg_home_list（type=index）而非 Widget_Contents_Post_Recent——
-// 后者不查 text，摘要恒空；这里列表卡要显示引号摘要，必须用 Archive。
-$sgHomeListHtml = '';
-$sgHomeListCount = 0;
+// 正文文章列表（2026-11-17 第三轮重写）：直接查库（sg_home_articles），
+// 碎语隔离写进 SQL 子查询，绕开 Widget_Archive —— 线上两个问题（置顶碎语重复、
+// 行内过滤失效）都出在 Archive 列表上下文；取固定 2 篇最新的普通文章。
 $sgHomeListLimit = 2;
-try {
-    $sgNoteCids = array_values(array_unique(array_merge(sg_note_cids(), sg_chatter_tag_cids())));
-    ob_start();
-    $this->widget('Widget_Archive@sg_home_list', 'pageSize=' . ($sgHomeListLimit + count($sgNoteCids)) . '&type=index')->to($sgList);
-    while ($sgList->next()) {
-        /* 碎语过滤（2026-11-17 加固）：优先用预查的 cid 集合（分类 slug=notes/name=碎语
-           + 标签同约定）；集合里没有但行内分类命中的也剔 —— 两道闸，不让碎语混进列表。 */
-        $sgRowIsNote = in_array((int) $sgList->cid, $sgNoteCids, true);
-        if (!$sgRowIsNote) {
-            try {
-                foreach ((array) $sgList->categories as $sgRowCat) {
-                    $sgRowCatName = is_array($sgRowCat) ? trim((string) ($sgRowCat['name'] ?? '')) : '';
-                    $sgRowCatSlug = is_array($sgRowCat) ? trim((string) ($sgRowCat['slug'] ?? '')) : '';
-                    if ($sgRowCatName === '碎语' || $sgRowCatSlug === 'notes') {
-                        $sgRowIsNote = true;
-                        break;
-                    }
-                }
-            } catch (\Throwable $e) {
-                /* 行内分类取不到时只退回 cid 集合，不阻塞整张列表 */
-            }
-        }
-        if ($sgRowIsNote) {
-            continue;
-        }
-        ++$sgHomeListCount;
-        $sgCardArchive = $sgList;
-        $this->need('partials/card-post.php');
-        if ($sgHomeListCount >= $sgHomeListLimit) {
-            break;
-        }
-    }
-    $sgHomeListHtml = (string) ob_get_clean();
-} catch (\Throwable $e) {
-    $sgHomeListHtml = '';
+$sgHomeListHtml = '';
+foreach (sg_home_articles($sgHomeListLimit) as $sgHomeCard) {
+    $sgHomeListHtml .= sg_feature_card_html($sgHomeCard);
 }
-unset($sgCardArchive);
 ?>
 <main id="sg-main" class="sg-main sg-main--home" data-sg-page="index">
   <?php /* 100vh 全屏图片首屏：参考 Fomalhaut #page-header.full_page。命名空间 .sg-front*，与首页主区 .sg-hero* 隔离。 */ ?>
