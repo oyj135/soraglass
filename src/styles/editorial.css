@@ -725,7 +725,8 @@ html.sg-readmode .sg-disc,
 html.sg-readmode .sg-sheet,
 html.sg-readmode .sg-effects,
 html.sg-readmode .sg-danmaku,
-html.sg-readmode .sg-toc-fab { display: none !important; }
+html.sg-readmode .sg-toc-fab,
+html.sg-readmode .sg-post-hero { display: none !important; }
 
 html.sg-readmode .sg-bg { opacity: 0; }
 

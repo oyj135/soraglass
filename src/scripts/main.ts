@@ -15,6 +15,7 @@ import { initNavigation } from './modules/navigation';
 import { initHome } from './modules/home';
 import { initRightside } from './modules/rightside';
 import { initNeko } from './modules/neko';
+import { initScrollbar } from './modules/scrollbar';
 
 /**
  * 单独兜住每个模块的异常。
@@ -50,6 +51,7 @@ function mountPage(): void {
   safe('home', initHome);
   safe('rightside', initRightside);
   safe('neko', initNeko);
+  safe('scrollbar', initScrollbar);
 }
 function boot(): void {
   mountPage(); safe('effects', initEffects); initNavigation(mountPage);

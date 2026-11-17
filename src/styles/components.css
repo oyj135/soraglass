@@ -2055,21 +2055,25 @@ html.dark .sg-i-moon { display: inline-flex; }
 
 /* ---------- 文章页 ---------- */
 
-/* 头图 Banner（2026-11-16，参考 Fomalhaut post-info）：
-   标题 + 元信息压在封面上，深青遮罩保证白字可读；底部波浪过渡到实底阅读面。
-   全部用青瓷 token，不照搬源站蓝色波浪。类名统一用 .sg-post-hero 前缀——
+/* 头图 Banner（2026-11-17，逐参数对齐 Fomalhaut #page-header.post-bg + #post-info）：
+   全宽 400px（移动 360px）头图独立于正文卡，标题/元信息压在下部（bottom 100px），
+   深色遮罩 alpha(dark-black,.5) 保证白字可读；底部四层白色海浪是日间模式的分割线，
+   夜间整体隐藏（源站 [data-theme=dark] 同做法）。类名统一用 .sg-post-hero 前缀——
    首页主区早已占用 .sg-hero / .sg-hero-cover，务必隔离，勿改回同名。 */
 .sg-post-hero {
   position: relative;
   isolation: isolate;
-  width: 100%;
-  min-height: 20rem;
+  z-index: 2;
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+  height: 400px;
   display: flex;
-  align-items: center;
-  overflow: hidden;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: visible; /* 海浪 bottom:-11px 要垂到头图外，不能被裁 */
   background: linear-gradient(135deg, var(--sg-accent-deep), #16343a);
 }
-@media (min-width: 768px) { .sg-post-hero { min-height: 25rem; } }
+@media (max-width: 768px) { .sg-post-hero { height: 360px; } }
 
 .sg-post-hero-cover {
   position: absolute;
@@ -2083,28 +2087,41 @@ html.dark .sg-i-moon { display: inline-flex; }
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(to top, rgba(6, 24, 28, .88) 0%, rgba(8, 30, 34, .58) 42%, rgba(10, 34, 38, .24) 100%);
+  /* Fomalhaut post-bg :before 是 alpha($dark-black, .5) 的均匀压暗 */
+  background: rgba(0, 0, 0, .5);
 }
 .sg-post-hero-inner {
+  position: relative;
+  z-index: 1;
   width: 100%;
-  max-width: 46rem;
+  max-width: 72rem;
   margin-inline: auto;
-  padding: 3.5rem 1.5rem 5.5rem;
+  padding: 0 8% 6.25rem; /* Fomalhaut #post-info bottom:100px = 6.25rem */
   color: var(--sg-hero-ink);
   text-align: center;
 }
-@media (min-width: 768px) { .sg-post-hero-inner { padding: 4.5rem 3rem 7rem; } }
+@media (max-width: 900px) {
+  .sg-post-hero-inner { text-align: left; padding-bottom: 4.5rem; }
+}
+@media (max-width: 768px) {
+  .sg-post-hero-inner { padding: 0 22px 3.5rem; }
+}
 
 .sg-post-hero-title {
-  margin: 0 0 1.25rem;
-  font-size: clamp(1.75rem, 4vw, 2.75rem);
-  font-weight: 700;
-  line-height: 1.35;
-  letter-spacing: -.015em;
+  margin: 0 0 .75rem;
+  font-size: clamp(1.75rem, 4vw, 2.5rem); /* Fomalhaut 2.5em */
+  font-weight: 500; /* Fomalhaut post-title 是 normal，这里留一档宋体骨架 */
+  line-height: 1.5;
+  letter-spacing: -.01em;
   text-wrap: balance;
   overflow-wrap: anywhere;
-  text-shadow: 0 2px 18px rgba(0, 0, 0, .45);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, .35);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
+@media (max-width: 768px) { .sg-post-hero-title { font-size: 2.1rem; } }
 
 /* 双行元信息（对齐 Fomalhaut post-meta：纯文本 + 图标 + 竖线，不再用胶囊） */
 .sg-post-hero-meta { display: flex; flex-direction: column; align-items: center; gap: .55rem; }
@@ -2128,25 +2145,27 @@ html.dark .sg-i-moon { display: inline-flex; }
 .sg-post-meta-sep { opacity: .45; }
 @media (max-width: 571.98px) { .sg-post-meta-sep { display: none; } }
 
-/* 四层白色海浪（2026-11-16 第三轮，逐参数对齐 Fomalhaut gentle-wave）：
-   同一条 path 叠四层，透明度递减 + 错相位横移，最下一层实底接住正文阅读面；
-   夜间隐藏（源站 [data-theme=dark] 同做法），减少动效时静止。 */
+/* 四层白色海浪（2026-11-17，逐参数对齐 Fomalhaut gentle-wave / .main-hero-waves-area）：
+   同一条 path 叠四层，透明度递减 + 错相位横移，最下一层实底接住正文；
+   填色用源站 #f7f9fe 系列（日间近白），夜间整块隐藏。
+   bottom:-11px 垂到头图外，形成「海浪线分割」。 */
 .sg-post-hero-waves {
   position: absolute;
   left: 0;
   right: 0;
   bottom: -11px;
-  z-index: 0;
+  z-index: 5;
   height: 5rem;
   pointer-events: none;
 }
-@media (max-width: 768px) { .sg-post-hero-waves { height: 40px; } }
-.sg-waves-svg { display: block; width: 100%; height: 100%; }
+@media (max-width: 768px) { .sg-post-hero-waves { height: 40px; min-height: 40px; } }
+.sg-waves-svg { display: block; width: 100%; height: 5rem; }
+@media (max-width: 768px) { .sg-waves-svg { height: 40px; min-height: 40px; } }
 .sg-waves-parallax > use { animation: sg-wave-move 25s cubic-bezier(.55, .5, .45, .5) infinite; }
-.sg-waves-parallax > use:nth-child(1) { fill: color-mix(in srgb, var(--sg-reading-surface) 74%, transparent); animation-delay: -2s; animation-duration: 7s; }
-.sg-waves-parallax > use:nth-child(2) { fill: color-mix(in srgb, var(--sg-reading-surface) 51%, transparent); animation-delay: -3s; animation-duration: 10s; }
-.sg-waves-parallax > use:nth-child(3) { fill: color-mix(in srgb, var(--sg-reading-surface) 21%, transparent); animation-delay: -4s; animation-duration: 13s; }
-.sg-waves-parallax > use:nth-child(4) { fill: var(--sg-reading-surface); animation-delay: -5s; animation-duration: 20s; }
+.sg-waves-parallax > use:nth-child(1) { fill: #f7f9febd; animation-delay: -2s; animation-duration: 7s; }
+.sg-waves-parallax > use:nth-child(2) { fill: #f7f9fe82; animation-delay: -3s; animation-duration: 10s; }
+.sg-waves-parallax > use:nth-child(3) { fill: #f7f9fe36; animation-delay: -4s; animation-duration: 13s; }
+.sg-waves-parallax > use:nth-child(4) { fill: #f7f9fe; animation-delay: -5s; animation-duration: 20s; }
 @keyframes sg-wave-move { 0% { transform: translate3d(-90px, 0, 0); } 100% { transform: translate3d(85px, 0, 0); } }
 html.dark .sg-post-hero-waves { display: none; }
 @media (prefers-reduced-motion: reduce) { .sg-waves-parallax > use { animation: none; } }
@@ -2154,6 +2173,9 @@ html.dark .sg-post-hero-waves { display: none; }
 html.dark .sg-post-hero-scrim {
   background: linear-gradient(to top, rgba(4, 16, 18, .92) 0%, rgba(6, 22, 25, .66) 42%, rgba(8, 28, 31, .3) 100%);
 }
+
+/* 文章页主容器：头图顶到视口顶（导航悬浮其上），正文卡与侧栏在头图之下。 */
+.sg-main--post { padding-top: 0; gap: 1rem; }
 
 .sg-article { flex: 1; min-width: 0; overflow: hidden; padding: 0; }
 .sg-article.sg-glass { background: var(--sg-card-strong); box-shadow: var(--sg-shadow-strong); }

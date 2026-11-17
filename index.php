@@ -25,13 +25,13 @@ $sgNotesLink = sg_page_url('notes');
 // 封面轮播：单独取最近的文章（跳过碎语），不受列表「每页条数上限」影响
 $sgSlides = sg_home_slides(5);
 
-// 正文文章列表（2026-11-16 首页重构）：独立取普通文章，跳过碎语，取固定 6 篇。
+// 正文文章列表（2026-11-17 首页重构）：独立取普通文章，跳过碎语，取固定 2 篇。
 // 碎语有两种挂法：分类（slug=notes 或名称「碎语」）与「碎语」标签，两个 cid 集合并集一起剔。
 // 用 Widget_Archive@sg_home_list（type=index）而非 Widget_Contents_Post_Recent——
 // 后者不查 text，摘要恒空；这里列表卡要显示引号摘要，必须用 Archive。
 $sgHomeListHtml = '';
 $sgHomeListCount = 0;
-$sgHomeListLimit = 6;
+$sgHomeListLimit = 2;
 try {
     $sgNoteCids = array_values(array_unique(array_merge(sg_note_cids(), sg_chatter_tag_cids())));
     ob_start();
