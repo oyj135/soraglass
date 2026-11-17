@@ -162,6 +162,10 @@ $sgHead = [
     <?php
       $sgAgo = sg_time_ago((int) ($sgPost['stamp'] ?? 0));
       $sgDesc = trim((string) $sgPost['desc']);
+      /* 引号摘要精简（2026-11-17）：最多 48 字（两行以内），与首页/归档卡片同步 */
+      if (function_exists('mb_strlen') && mb_strlen($sgDesc, 'UTF-8') > 48) {
+          $sgDesc = mb_substr($sgDesc, 0, 48, 'UTF-8') . '…';
+      }
     ?>
     <article class="sg-feature-card" data-sg-archive-card data-keywords="<?php echo sg_e($sgKeywordRow); ?>" data-tags="<?php echo sg_e(implode('|', $sgSlugs)); ?>">
       <a class="sg-feature-media" href="<?php echo sg_e($sgPost['permalink']); ?>" tabindex="-1" aria-hidden="true">

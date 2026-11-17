@@ -582,6 +582,10 @@ function sg_home_articles(int $limit = 2): array
             if ($quote === '') {
                 $quote = sg_notes_excerpt($text);
             }
+            /* 引号摘要精简（2026-11-17）：卡片上最多 48 字（两行以内），与知识档案同步 */
+            if (function_exists('mb_strlen') && mb_strlen($quote, 'UTF-8') > 48) {
+                $quote = mb_substr($quote, 0, 48, 'UTF-8') . '…';
+            }
 
             /* Router::url 只给路径，自己跟站点入口拼（同 sg_notes_query） */
             $path = (string) \Typecho\Router::url('post', [

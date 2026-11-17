@@ -15,7 +15,6 @@ $sgFrontSub   = (string) $this->options->description;
 $sgFrontSocial = sg_json('sgSocial', 'social', []);
 ?>
 <section class="sg-front" data-sg-front aria-label="站点首屏">
-  <span class="sg-front-veil" aria-hidden="true"></span>
   <div class="sg-front-inner">
     <h1 class="sg-front-title"><?php echo sg_e($sgFrontName); ?><span class="sg-front-title-mark">· <?php echo sg_e($sgFrontAfter); ?></span></h1>
     <?php if ($sgFrontSub !== '') : ?><p class="sg-front-sub" data-sg-typewriter="<?php echo sg_e($sgFrontSub); ?>"><?php echo sg_e($sgFrontSub); ?></p><?php endif; ?>

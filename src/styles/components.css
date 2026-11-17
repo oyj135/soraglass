@@ -2061,42 +2061,46 @@ html.dark .sg-i-moon { display: inline-flex; }
 
 /* ---------- 文章页 ---------- */
 
-/* 文章页顶部（2026-11-17 第三轮）：改用 Fomalhaut #page-header.not-top-img 的
-   无头图形态 —— 全站壁纸是唯一背景层，文章页不再叠第二张头图。
-   标题/元信息回到正文卡内：标题居中、下缘一条浅分隔线
-   （对齐 #post > #post-info .post-title 的 border-bottom），元信息灰色小字两行。 */
+/* 文章页顶部（2026-11-17 第四轮，逐参数对齐 Fomalhaut not-top-img 的
+   #post > #post-info）：标题左对齐、font-weight normal、2.5em、行高 1.5，
+   下缘 border-bottom: 1px（padding-bottom 4px）；元信息两行 #78818a 灰
+   （95% 字号）；post-info 与正文间距 30px。 */
 .sg-post-head {
-  padding: 2.25rem 1.5rem 1.25rem;
-  text-align: center;
+  padding: 2.25rem 1.5rem 0;
+  text-align: left;
 }
-@media (min-width: 768px) { .sg-post-head { padding: 3rem 3rem 1.25rem; } }
+@media (min-width: 768px) { .sg-post-head { padding: 3rem 3rem 0; } }
 
 .sg-post-head-title {
-  margin: 0 auto .9rem;
-  max-width: 46rem;
-  padding-bottom: .65rem;
+  margin: 0 0 .5rem;
+  padding-bottom: .25rem;
   border-bottom: 1px solid var(--sg-line);
-  font-size: clamp(1.5rem, 3.2vw, 2.25rem);
-  font-weight: 700;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 400;
   line-height: 1.5;
-  letter-spacing: -.01em;
-  text-wrap: balance;
+  letter-spacing: 0;
   overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-/* 双行元信息（对齐 Fomalhaut #post > #post-meta：纯文本 + 图标 + 竖线，#78818a 同档灰） */
-.sg-post-head-meta { display: flex; flex-direction: column; align-items: center; gap: .5rem; }
+/* 双行元信息（对齐 Fomalhaut #post > #post-meta：#78818a 灰、95% 字号、
+   图标 margin-right 4px；纯文本 + 竖线分隔） */
+.sg-post-head-meta { display: flex; flex-direction: column; align-items: flex-start; gap: .35rem; margin-bottom: 1.9rem; }
 .sg-post-meta-line {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   gap: .35rem .6rem;
   font-family: var(--font-sans);
-  font-size: .8125rem;
+  font-size: .95rem;
   line-height: 1.5;
-  color: var(--sg-muted);
+  color: #78818a;
 }
+html.dark .sg-post-meta-line { color: #98a2ad; }
 .sg-post-meta-item { display: inline-flex; align-items: center; gap: .35rem; }
 .sg-post-meta-item svg { width: .9rem; height: .9rem; flex: none; }
 .sg-post-meta-pin { color: var(--sg-warm-bright); }
@@ -2213,9 +2217,25 @@ html.dark .sg-prose a { color: var(--sg-indigo-soft); }
 /* 侧栏 */
 .sg-author-card { padding: 1.5rem; text-align: center; }
 /* <a> 默认是行内元素，不给 display:block 的话 5rem 宽高不生效、头像会撑满整张卡 */
-.sg-author-avatar { display: block; width: 5rem; height: 5rem; margin: 0 auto .75rem; padding: .25rem; border-radius: 50%; background: linear-gradient(to top right, var(--sg-ring-a), var(--sg-ring-b)); box-shadow: var(--sg-shadow); transition: transform .5s; }
+.sg-author-avatar { display: block; position: relative; width: 5rem; height: 5rem; margin: 0 auto .75rem; padding: .25rem; border-radius: 50%; background: linear-gradient(to top right, var(--sg-ring-a), var(--sg-ring-b)); box-shadow: var(--sg-shadow); transition: transform .5s; }
 .sg-author-avatar:hover { transform: scale(1.05); }
 .sg-author-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #fff; }
+/* 头像呼吸灯（2026-11-17，fomalhaut avatar-glow 同款节奏 4s ease-in-out）：
+   用 ::after 光晕层呼吸 opacity，不占用静态 box-shadow；颜色从青瓷 token 派生，
+   日间往白里调（压在白卡上才看得见），夜间用原色。 */
+.sg-author-avatar::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  box-shadow: 0 0 6px 4px color-mix(in srgb, var(--sg-accent) 32%, transparent);
+  opacity: .25;
+  animation: sg-avatar-glow 4s ease-in-out infinite;
+  pointer-events: none;
+}
+html.dark .sg-author-avatar::after { box-shadow: 0 0 6px 4px color-mix(in srgb, var(--sg-accent-soft) 42%, transparent); }
+@keyframes sg-avatar-glow { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .sg-author-avatar::after { animation: none; opacity: .5; } }
 .sg-author-name { font-size: 1.15rem; font-weight: 700; margin-bottom: .5rem; }
 .sg-author-bio { font-size: .75rem; line-height: 1.7; color: var(--sg-muted); margin-bottom: 1rem; }
 .sg-author-card .sg-socials { margin-top: 1rem; gap: .5rem; }
@@ -3039,7 +3059,7 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
   z-index: 1;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   margin: 0 1.5rem 1.6rem;
   color: #fff;
   font-family: var(--font-serif);

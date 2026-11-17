@@ -15,8 +15,19 @@
 @source "../../**/*.php";
 @source "../**/*.ts";
 
+/* 全局字体对齐 Fomalhaut（2026-11-17）：霞鹜文楷 LXGW WenKai 打头，
+   @font-face 与源站 custom.css 同源（jsDelivr @fontsource，SIL OFL 1.1）；
+   未命中字形回落自托管思源宋体，再回落系统黑体。 */
+@font-face {
+  font-family: 'LXGW';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('https://cdn.jsdelivr.net/npm/@fontsource/lxgw-wenkai-tc@5/files/lxgw-wenkai-tc-chinese-traditional-400-normal.woff2') format('woff2');
+}
+
 @theme {
-  --font-serif: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+  --font-serif: "LXGW", -apple-system, 'Quicksand', 'PingFang SC', 'Hiragino Sans GB', "Noto Serif SC", 'Microsoft Yahei', sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   /* 无衬线族（2026-11-13 第三十二轮）：仅供 9–12px 的元信息使用。
      全部走系统字体，不新增网络请求 —— 自托管的只有 Noto Serif SC，

@@ -9,7 +9,7 @@ $sgCardCtx = isset($sgCardArchive) && $sgCardArchive ? $sgCardArchive : $this;
 $sgCardTitle = trim((string) $sgCardCtx->title);
 /* 摘要一律走 sg_excerpt()：它内部用 ob 捕获 excerpt() 的输出并返回字符串。
    直接调 $archive->excerpt() 会在独立 widget（首页列表）里把原文 echo 到卡片 DOM 之外。 */
-$sgCardDesc = trim(strip_tags(sg_excerpt($sgCardCtx, 88, '')));
+$sgCardDesc = trim(strip_tags(sg_excerpt($sgCardCtx, 48, '')));
 // date 属性是 Typecho 的时间对象；(string) 转换取到时间戳
 $sgCardStamp = 0;
 try {

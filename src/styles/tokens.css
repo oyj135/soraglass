@@ -260,8 +260,10 @@ html.dark {
   }
 
   body {
-    /* 竖向 flex：内容短时（归档/分类页）把页脚压到视口底部，
+    /* 全局字号对齐 Fomalhaut（global-font-size: 15.5px）；
+       竖向 flex：内容短时（归档/分类页）把页脚压到视口底部，
        不让仪表盘悬在半空。fixed 定位的子元素不参与此布局。 */
+    font-size: 15.5px;
     display: flex;
     flex-direction: column;
     min-height: 100vh;

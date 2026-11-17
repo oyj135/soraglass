@@ -44,22 +44,8 @@ html.dark .sg-nav.is-front { background: transparent; border-bottom-color: trans
   overflow: hidden;
   color: #fff;
 }
-/* 遮罩：压暗壁纸保证白字可读，底部渐变过渡到正文底色。 */
-.sg-front-veil {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background:
-    linear-gradient(to bottom, rgba(6, 20, 24, .28) 0%, rgba(6, 20, 24, .34) 60%, rgba(6, 20, 24, .66) 100%),
-    linear-gradient(to right, rgba(6, 20, 24, .18), rgba(6, 20, 24, .18));
-}
-/* 夜间首屏压暗（2026-11-16 第三轮）：用户反馈暗色下首屏太亮——
-   暗色壁纸未必真暗（可与日间同图），遮罩不再减到最轻，整体压到接近正文夜色。 */
-html.dark .sg-front-veil {
-  background:
-    linear-gradient(to bottom, rgba(3, 10, 12, .48) 0%, rgba(3, 10, 12, .55) 60%, rgba(3, 10, 12, .82) 100%),
-    linear-gradient(to right, rgba(3, 10, 12, .22), rgba(3, 10, 12, .22));
-}
+/* 遮罩已移除（2026-11-17）：首屏直接透出全站壁纸，不再压暗 —— 文字可读性
+   交给 .sg-front-inner 的 text-shadow。 */
 .sg-front-inner {
   position: relative;
   z-index: 1;
