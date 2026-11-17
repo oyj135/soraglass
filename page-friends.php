@@ -42,18 +42,15 @@ $sgFriends = array_map(static function (array $row) use ($sgString): array {
   <?php endif; ?>
 
   <?php if ($sgFriends) : ?>
-  <div class="sg-site-card-group">
+  <div class="sg-flink-list">
     <?php foreach ($sgFriends as $sgFriend) : ?>
-    <a class="sg-site-card" href="<?php echo sg_e($sgFriend['url']); ?>" target="_blank" rel="noopener noreferrer" title="<?php echo sg_e($sgFriend['name']); ?>" aria-label="<?php echo sg_e('访问 ' . $sgFriend['name'] . '（新窗口）'); ?>">
-      <span class="sg-site-card-img"><img src="<?php echo sg_e($sgFriend['siteshot']); ?>" alt="<?php echo sg_e($sgFriend['name']); ?>" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='<?php echo sg_e(sg_theme_url('dist/img/cover-default.svg')); ?>'"></span>
-      <span class="sg-site-card-info">
-        <img class="sg-site-card-avatar" src="<?php echo sg_e($sgFriend['avatar']); ?>" alt="" width="44" height="44" loading="lazy" decoding="async">
-        <span class="sg-site-card-text">
-          <span class="sg-site-card-title"><?php echo sg_e($sgFriend['name']); ?></span>
-          <span class="sg-site-card-desc"><?php echo sg_e($sgFriend['description']); ?></span>
-        </span>
-      </span>
-    </a>
+    <div class="sg-flink-item">
+      <a href="<?php echo sg_e($sgFriend['url']); ?>" target="_blank" rel="noopener noreferrer" title="<?php echo sg_e($sgFriend['name']); ?>" aria-label="<?php echo sg_e('访问 ' . $sgFriend['name'] . '（新窗口）'); ?>">
+        <span class="sg-flink-icon"><img src="<?php echo sg_e($sgFriend['avatar']); ?>" alt="<?php echo sg_e($sgFriend['name']); ?>" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='<?php echo sg_e(sg_theme_url('dist/img/avatar.svg')); ?>'"></span>
+        <span class="sg-flink-name"><?php echo sg_e($sgFriend['name']); ?></span>
+        <span class="sg-flink-desc" title="<?php echo sg_e($sgFriend['description']); ?>"><?php echo sg_e($sgFriend['description']); ?></span>
+      </a>
+    </div>
     <?php endforeach; ?>
   </div>
   <?php else : ?>

@@ -27,8 +27,8 @@ $sgSlides = sg_home_slides(5);
 
 // 正文文章列表（2026-11-17 第三轮重写）：直接查库（sg_home_articles），
 // 碎语隔离写进 SQL 子查询，绕开 Widget_Archive —— 线上两个问题（置顶碎语重复、
-// 行内过滤失效）都出在 Archive 列表上下文；取固定 2 篇最新的普通文章。
-$sgHomeListLimit = 2;
+// 行内过滤失效）都出在 Archive 列表上下文；取固定 4 篇（两行两列，置顶优先）。
+$sgHomeListLimit = 4;
 $sgHomeListHtml = '';
 foreach (sg_home_articles($sgHomeListLimit) as $sgHomeCard) {
     $sgHomeListHtml .= sg_feature_card_html($sgHomeCard);

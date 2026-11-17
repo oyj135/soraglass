@@ -1243,10 +1243,7 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
      stretch 与它齐平，不会出现音乐卡下探、左侧留白一截的错位。
      宽屏下的最小高度写在 editorial.css。 */
 
-  /* 2026-11-16 再缩一档：封面标题/内边距收一档，与缩小后的卡高协调。 */
-  .sg-hero-cover .sg-slide-body { padding: 1.25rem 1.6rem; }
-  .sg-hero-cover .sg-slide-title { font-size: 1.45rem; line-height: 1.3; }
-  .sg-hero-cover .sg-slide-desc { font-size: .85rem; max-width: 44ch; }
+  /* 2026-11-17：轮播改 blog-slider 形态，旧的窄档覆写已删（见 editorial.css 同段）。 */
 
   /* 副卡再收一档：内边距、字号、头像都缩，右栏整体变矮，封面随之变矮 */
   .sg-hero-side .sg-profile { padding: 1rem 1.4rem; gap: .6rem; }

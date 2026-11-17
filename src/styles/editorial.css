@@ -42,76 +42,9 @@ html.dark .sg-search-input {
 
 /* 封面有独立的图片区和文字区，长标题不再压在图上。 */
 .sg-main[data-sg-page="index"] > .sg-stack { gap: 1.25rem; }
-/* 2026-11-16 再缩一档：封面 min-height 桌面 26→21rem、移动 22→18rem。
-   封面实际高度由右栏（个人卡+播放卡）经 grid stretch 决定，这里下调的是下限；
-   右栏两卡的压缩见 components.css 的主编区段，两处一起改才真正变矮。 */
-.sg-hero .sg-hero-cover {
-  min-height: 18rem;
-  background: var(--sg-reading-surface);
-  border-color: var(--sg-reading-border);
-  box-shadow: var(--sg-shadow-reading);
-}
-@media (min-width: 1024px) {
-  .sg-hero .sg-hero-cover { min-height: 21rem; }
-}
-.sg-hero-cover .sg-post-slide { display: grid; grid-template-rows: minmax(0, 1fr) auto; }
-.sg-slide-media { position: relative; display: block; min-height: 0; overflow: hidden; }
-.sg-hero-cover .sg-slide-cover { position: relative; display: block; inset: auto; }
-.sg-hero-cover .sg-slide-body {
-  height: auto;
-  min-height: 9rem;
-  padding: 1.1rem 1.5rem 2.75rem;
-  color: var(--sg-text);
-  justify-content: flex-start;
-  transition: color var(--sg-dur-fast);
-}
-.sg-hero-cover .sg-slide-chips { gap: .75rem; margin-bottom: .75rem; }
-.sg-hero-cover .sg-chip--tag,
-.sg-hero-cover .sg-chip--mono {
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  box-shadow: none;
-  font-family: var(--font-sans);
-  font-size: .75rem;
-  font-weight: 500;
-  letter-spacing: 0;
-  text-transform: none;
-}
-.sg-hero-cover .sg-chip--tag { color: var(--sg-accent-ink); }
-.sg-hero-cover .sg-chip--mono { color: var(--sg-faint); }
-.sg-hero-cover .sg-slide-title {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  overflow: hidden;
-  margin-bottom: .45rem;
-  font-size: clamp(1.25rem, 1.9vw, 1.55rem);
-  line-height: 1.4;
-  letter-spacing: -.015em;
-  overflow-wrap: anywhere;
-  transition: color var(--sg-dur-fast);
-}
-.sg-hero-cover .sg-slide-desc {
-  max-width: none;
-  margin-bottom: 0;
-  color: var(--sg-muted);
-  font-size: .875rem;
-  line-height: 1.7;
-  -webkit-line-clamp: 2;
-}
-.sg-hero-cover .sg-dots { right: 1.5rem; bottom: 1rem; }
-.sg-hero-cover .sg-dot { background: color-mix(in srgb, var(--sg-accent-ink) 28%, transparent); }
-.sg-hero-cover .sg-dot:is(:hover, .is-active) { background: var(--sg-accent-ink); }
-.sg-hero-cover .sg-slide-body:is(:hover, :focus-visible) .sg-slide-title { color: var(--sg-accent-ink); }
-.sg-hero-cover .sg-slide-body:active { transform: none; }
-.sg-hero-cover .sg-post-slide:hover .sg-slide-cover { transform: scale(1.025); }
-.sg-hero-cover .sg-slide-body:focus-visible { outline-offset: -4px; }
-
-/* 副栏保留自然高度和纵向播放器，作者信息与音乐分别有自己的节奏。 */
+/* 2026-11-17：轮播改用 blog-slider 形态后，旧的「上下两行 grid、chip 平铺」
+   覆写已整段删除 —— 布局与字号统一由 components.css 的 .sg-post-carousel 区管理。
+   副栏保留自然高度和纵向播放器，作者信息与音乐分别有自己的节奏。 */
 .sg-hero-side .sg-profile { padding: 1.5rem; }
 .sg-hero-side .sg-profile-foot { padding-top: 1rem; border-top: 1px solid var(--sg-line); }
 .sg-hero-side .sg-stat-num { font-size: 1.25rem; }
@@ -252,7 +185,6 @@ html.dark .sg-nav { background: var(--sg-card); border-bottom-color: var(--sg-re
   .sg-reading-list .sg-thumb { aspect-ratio: 4 / 3; }
   .sg-reading-list .sg-card-title { font-size: 1.375rem; }
   .sg-reading-list .sg-card-desc { font-size: .9375rem; }
-  .sg-hero-cover .sg-slide-body { padding-inline: 2rem; }
 }
 @media (min-width: 768px) {
   .sg-main[data-sg-page="archive"] .sg-page-head-row { align-items: center; }

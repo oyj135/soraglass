@@ -1,80 +1,77 @@
-/* 友链页（2026-11-17 第二轮，逐参数对齐 Fomalhaut _flink_style/volantis.styl 的 .site-card）：
-   四栏卡片（≥2048 五栏 / ≤768 三栏 / ≤500 两栏），顶部 120px 站点截图、
-   下方 44px 圆头像 + 名称 + 两行简介；hover 抬升阴影 + 名称着色（源站 #ff5722 同构）。
-   卡面走 Soraglass 玻璃 token，截图 hover 缓慢放大（源站 transform 2s ease）。 */
-.sg-site-card-group { display: flex; flex-wrap: wrap; align-items: stretch; margin: -8px; }
+/* 友链页（2026-11-17 第八轮，逐参数对齐 Fomalhaut _flink_style/butterfly.styl ——
+   源站 flink_style 未在 _config.yml 配置，case 走 default = butterfly）：
+   90px 高、圆角 8px 的横条卡（≥1024 三列 / ≤1024 两列 / ≤600 单列）：
+   60px 圆头像 + 加粗站名 + 一行简介。
+   hover 两件事（源站同款）：
+     ① ::before 从中心 scale(0)→scale(1) 扫开浅底（.3s ease-out）；
+     ② 头像宽度 60→0、margin-left -10px（.3s ease-out），文字让位。 */
+.sg-flink-list { display: flex; flex-wrap: wrap; padding: 10px 10px 0; }
 
-.sg-site-card {
-  display: flex;
-  flex-direction: column;
-  width: calc(100% / 4 - 16px);
-  margin: 8px;
-  padding: 10px;
-  border: 1px solid var(--sg-card-border);
-  border-radius: 12px;
-  background: var(--sg-card);
-  -webkit-backdrop-filter: blur(var(--sg-blur-card));
-  backdrop-filter: blur(var(--sg-blur-card));
-  color: var(--sg-text);
-  line-height: 1.4;
-  transition: box-shadow .28s ease, border-color var(--sg-dur-fast) linear;
-}
-@media (min-width: 2048px) { .sg-site-card { width: calc(100% / 5 - 16px); } }
-@media (max-width: 768px) { .sg-site-card { width: calc(100% / 3 - 16px); } }
-@media (max-width: 500px) { .sg-site-card { width: calc(100% / 2 - 16px); } }
-
-/* hover 对齐源站 volantis .site-card：阴影加深在截图框上、标题变 #ff5722；
-   整卡不变边框不抬升、截图不缩放（源站没有这两样）。 */
-.sg-site-card:is(:hover, :focus-visible) .sg-site-card-img {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, .1), 0 2px 4px rgba(0, 0, 0, .1), 0 4px 8px rgba(0, 0, 0, .1), 0 8px 16px rgba(0, 0, 0, .1);
-}
-
-/* 截图：120px 高（≤500px 时 100px，同源站）；hover 不缩放（源站同） */
-.sg-site-card-img {
-  display: block;
-  height: 120px;
+.sg-flink-item {
+  position: relative;
   overflow: hidden;
-  border-radius: 6px;
-  background: var(--sg-chip);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, .2);
-  transition: box-shadow .28s ease;
+  width: calc(100% / 3 - 14px);
+  height: 90px;
+  margin: 15px 7px;
+  border-radius: 8px;
+  line-height: 17px;
+  transform: translateZ(0);
 }
-@media (max-width: 500px) { .sg-site-card-img { height: 100px; } }
-.sg-site-card-img img { display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none; transition: transform 2s ease; }
+@media (max-width: 1024px) { .sg-flink-item { width: calc(50% - 14px); } }
+@media (max-width: 600px) { .sg-flink-item { width: 100%; } }
 
-.sg-site-card-info { display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; }
-.sg-site-card-avatar {
-  flex: none;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: var(--sg-chip);
-  box-shadow: 0 0 10px rgba(0, 0, 0, .18);
+/* hover 扫开的浅底（源站 var(--text-bg-hover) 同构：亮色主题色 12%，暗色白 10%） */
+.sg-flink-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: color-mix(in srgb, var(--sg-accent) 12%, transparent);
+  transform: scale(0);
+  transition: transform .3s ease-out;
 }
-.sg-site-card-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; padding-top: 2px; }
-.sg-site-card-title {
-  font-weight: 600;
-  font-size: 1rem;
+html.dark .sg-flink-item::before { background: rgba(255, 255, 255, .1); }
+.sg-flink-item:is(:hover, :focus-within, :active)::before { transform: scale(1); }
+
+.sg-flink-item a { position: relative; z-index: 1; display: block; height: 100%; color: var(--sg-text); text-decoration: none; }
+
+.sg-flink-icon {
+  float: left;
+  overflow: hidden;
+  margin: 15px 10px;
+  width: 60px;
+  height: 60px;
+  border-radius: 35px;
+  transition: width .3s ease-out, margin-left .3s ease-out;
+}
+.sg-flink-icon img { width: 100%; height: 100%; object-fit: cover; transition: filter 375ms ease-in .2s, transform .3s; }
+.sg-flink-item:is(:hover, :focus-within) .sg-flink-icon { width: 0; margin-left: -10px; }
+
+.sg-flink-name {
+  display: block;
+  height: 40px;
+  padding: 16px 10px 0 0;
+  font-weight: 700;
+  font-size: 1.43em;
   line-height: 1.4;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: color var(--sg-dur-fast) linear;
 }
-.sg-site-card:is(:hover, :focus-visible) .sg-site-card-title { color: #ff5722; }
-.sg-site-card-desc {
-  font-family: var(--font-sans);
-  font-size: .85rem;
-  line-height: 1.35;
+.sg-flink-desc {
+  display: block;
+  height: 50px;
+  padding: 16px 10px 16px 0;
+  font-size: .93em;
+  line-height: 1.5;
   color: var(--sg-muted);
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  white-space: nowrap;
   overflow: hidden;
-  overflow-wrap: anywhere;
+  text-overflow: ellipsis;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sg-site-card-img img { transition: none; }
+  .sg-flink-item::before,
+  .sg-flink-icon,
+  .sg-flink-icon img { transition: none; }
 }
