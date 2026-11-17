@@ -133,7 +133,7 @@
 
   /* 独立通栏歌词卡（2026-11-17 用户指定）：昼夜都用夜间配方 —— 深色底 + 青色波纹
      与文字辉光，不再跟随日间变浅色。 */
-  --sg-lyric-bg: rgba(5, 12, 14, .92);
+  --sg-lyric-bg: rgba(5, 12, 14, .98);
   --sg-lyric-border: rgba(255, 255, 255, .10);
   --sg-lyric-text: #fff;
   --sg-lyric-wave-a: var(--sg-accent-soft);
@@ -221,7 +221,7 @@ html.dark {
   --sg-ring: #1a2c30;
 
   /* 歌词栏暗色再压深一档 */
-  --sg-lyric-bg: rgba(5, 12, 14, .92);
+  --sg-lyric-bg: rgba(5, 12, 14, .98);
   --sg-lyric-border: rgba(255, 255, 255, .10);
   --sg-lyric-text: #fff;
   --sg-lyric-wave-a: var(--sg-accent-soft);

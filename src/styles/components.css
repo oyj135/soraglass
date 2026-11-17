@@ -8,8 +8,6 @@
 .sg-glass {
   position: relative;
   background: var(--sg-card);
-  
-  
   border: 1px solid var(--sg-card-border);
   border-radius: var(--sg-radius);
   box-shadow: var(--sg-shadow);
@@ -170,8 +168,6 @@ html.dark .sg-nav-link.is-active { color: var(--sg-accent-ink); }
   border: 0;
   border-radius: 1.5rem 0 0 1.5rem;
   background: color-mix(in srgb, var(--sg-accent) 88%, transparent);
-  
-  
   box-shadow: -5px 0 20px color-mix(in srgb, var(--sg-accent) 40%, transparent);
   transition: background-color .3s;
 }
@@ -200,8 +196,6 @@ html.dark .sg-nav-link.is-active { color: var(--sg-accent-ink); }
   z-index: 70;
   display: none;
   background: rgba(2, 6, 23, .55);
-  
-  
 }
 
 .sg-sheet.is-open { display: block; }
@@ -218,8 +212,6 @@ html.sg-lock, html.sg-lock body { overflow: hidden; }
   flex-direction: column;
   gap: 1.25rem;
   background: var(--sg-card-strong);
-  
-  
   border-left: 1px solid var(--sg-border);
 }
 
@@ -247,8 +239,6 @@ html.sg-lock, html.sg-lock body { overflow: hidden; }
   border: 1px solid var(--sg-border);
   border-radius: 50%;
   background: var(--sg-card-strong);
-  
-  
   box-shadow: var(--sg-shadow);
   transition: transform .3s, background-color .3s, color .3s;
 }
@@ -284,8 +274,6 @@ html.sg-lock, html.sg-lock body { overflow: hidden; }
   border: 1px solid var(--sg-border);
   border-radius: var(--sg-radius-inner);
   background: var(--sg-card-strong);
-  
-  
   box-shadow: var(--sg-shadow);
   color: var(--sg-text);
   cursor: pointer;
@@ -409,8 +397,6 @@ html.sg-lock, html.sg-lock body { overflow: hidden; }
   border: 1px solid rgba(255, 255, 255, .40);
   border-radius: var(--sg-radius);
   background: rgba(255, 255, 255, .50);
-  
-  
   box-shadow: var(--sg-shadow);
   color: inherit;
   outline: none;
@@ -1124,8 +1110,6 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
   border: 1px solid var(--sg-lyric-border);
   border-radius: var(--sg-radius);
   background: var(--sg-lyric-bg);
-  
-  
   box-shadow: var(--sg-lyric-shadow);
   color: var(--sg-lyric-text);
   overflow: hidden;
@@ -1377,8 +1361,6 @@ button.sg-progress {
   border: 0;
   border-radius: 999px;
   background: var(--sg-indicator-bg);
-  
-  
   color: #fff;
   font-family: var(--font-sans);
   font-size: .64rem;
@@ -1653,8 +1635,6 @@ html.dark .sg-i-moon { display: inline-flex; }
   border: 1px solid rgba(255, 255, 255, .18);
   border-radius: .375rem;
   background: rgba(255, 255, 255, .10);
-  
-  
   letter-spacing: .15em;
 }
 
@@ -1718,8 +1698,6 @@ html.dark .sg-i-moon { display: inline-flex; }
   border: 1px solid rgba(255, 255, 255, .30);
   border-radius: 50%;
   background: rgba(255, 255, 255, .10);
-  
-  
   transition: background-color var(--sg-dur-card) var(--sg-ease), border-color var(--sg-dur-card) var(--sg-ease);
 }
 
@@ -1738,8 +1716,6 @@ html.dark .sg-i-moon { display: inline-flex; }
   border: 1px solid rgba(255, 255, 255, .20);
   border-radius: 999px;
   background: rgba(2, 6, 23, .28);
-  
-  
   color: #fff;
 }
 
@@ -1937,8 +1913,6 @@ html.dark .sg-i-moon { display: inline-flex; }
   border: 1px solid var(--sg-border);
   border-radius: var(--sg-radius);
   background: var(--sg-panel);
-  
-  
   color: var(--sg-text);
   box-shadow: var(--sg-shadow-strong);
   overflow: hidden;
@@ -2263,8 +2237,6 @@ html.dark .sg-meta-chip.is-pink { color: var(--sg-warm-bright); }
   border: 1px solid var(--sg-border);
   border-radius: 999px;
   background: var(--sg-chip);
-  
-  
   font-size: .8125rem;
   font-weight: 700;
   color: var(--sg-text);
@@ -2761,7 +2733,6 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
   top: 4.25rem;
   z-index: 2;
   padding: .375rem 0;
-  
 }
 
 .sg-tl-month-label b {
@@ -4084,8 +4055,6 @@ html.dark .sg-page-btn.is-active { color: #04171b; }
   font-size: .9375rem;
   font-weight: 500;
   letter-spacing: .01em;
-  
-  
   transition: background-color .3s, color .3s, border-color .3s;
 }
 .sg-archive-toolbar .sg-archive-tags .sg-filter-btn:hover {
@@ -4266,8 +4235,6 @@ html.dark .sg-archive-tag { color: var(--sg-accent-soft); }
   border: 1px solid rgba(255, 255, 255, .28);
   border-radius: 999px;
   background: rgba(2, 6, 23, .35);
-  
-  
   font-size: 9px;
   font-weight: 900;
   letter-spacing: .16em;
@@ -4610,7 +4577,6 @@ html.dark .sg-px-hint { color: rgba(240, 226, 226, .5); }
   background: rgba(255, 255, 255, .72);
   color: #22333b;
   cursor: pointer;
-  
   transition: transform .35s var(--sg-ease), background-color .35s linear;
 }
 
