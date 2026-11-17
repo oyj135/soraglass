@@ -93,9 +93,22 @@ $sgNext = sg_adjacent_post($this, 'next');
       </div>
     </div>
   </header>
+  <?php /* 横幅与正文之间的彩色波浪（源站 main-hero-waves-area 同结构：
+     gentle-wave 四层视差滑动，源站是白/黑单色，这里改走青瓷 token 彩色半透明）。 */ ?>
+  <section class="sg-post-waves" aria-hidden="true">
+    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
+      <defs><path id="sg-gentle-wave" d="M -160 44 c 30 0 58 -18 88 -18 s 58 18 88 18 s 58 -18 88 -18 s 58 18 88 18 v 44 h -352 Z"/></defs>
+      <g class="parallax">
+        <use href="#sg-gentle-wave" x="48" y="0"/>
+        <use href="#sg-gentle-wave" x="48" y="3"/>
+        <use href="#sg-gentle-wave" x="48" y="5"/>
+        <use href="#sg-gentle-wave" x="48" y="7"/>
+      </g>
+    </svg>
+  </section>
   <article class="sg-glass sg-article sg-reading-surface">
     <div class="sg-article-body">
-      <a class="sg-back" href="<?php echo sg_e($sgBack); ?>"><?php echo sg_icon('arrow-left'); ?><?php echo sg_e($sgBackLabel); ?></a>
+      <?php /* 返回上一级已移除（2026-11-17 用户指定）：导航与侧栏已有多重入口。 */ ?>
       <?php if ($sgLead !== '') : ?><p class="sg-lead"><?php echo sg_e($sgLead); ?></p><?php endif; ?>
       <div class="sg-prose" data-sg-article><?php echo $sgContent; ?></div>
 

@@ -89,13 +89,12 @@
 .sg-music-stage .sg-album-art { height:100%;width:auto;max-height:17rem;max-width:100%; }
 .sg-music-panel .sg-player-top { position:relative; }
 .sg-music-meta p { font-family:var(--font-sans);font-size:.75rem;font-weight:500;letter-spacing:.02em; }
-/* 音量组（2026-11-17 第七轮）：与静音键合并成一组 .sg-music-sound，
-   平时只显示静音键，悬停/键盘聚焦组时音量（label+滑条+百分比）整体滑出 */
-.sg-music-sound { display:flex; align-items:center; gap:0; }
-.sg-music-volume { position:relative; display:flex; align-items:center; gap:.45rem; max-width:0; opacity:0; overflow:hidden; white-space:nowrap; padding-left:0; border-left:0 solid var(--sg-line); font:11px var(--font-sans); color:var(--sg-muted); transition:max-width var(--sg-dur-card) var(--sg-ease), opacity var(--sg-dur-card) var(--sg-ease), gap var(--sg-dur-card) var(--sg-ease), padding-left var(--sg-dur-card) var(--sg-ease); }
+/* 音量组（2026-11-17 第七轮修订）：与静音键合并成一组 .sg-music-sound，
+   平时只显示静音键，悬停/键盘聚焦组时音量滑条紧贴图标滑出（无分隔线、无间距跳变） */
+.sg-music-sound { display:flex; align-items:center; gap:.55rem; }
+.sg-music-volume { position:relative; display:flex; align-items:center; gap:0; max-width:0; opacity:0; overflow:hidden; white-space:nowrap; font:11px var(--font-sans); color:var(--sg-muted); transition:max-width var(--sg-dur-card) var(--sg-ease), opacity var(--sg-dur-card) var(--sg-ease); }
 .sg-music-volume input { flex:none; width:5.5rem; max-width:5.5rem; }
-.sg-music-volume output { width:2.1rem; font-variant-numeric:tabular-nums; }
-.sg-music-sound:is(:hover,:focus-within) .sg-music-volume { max-width:12rem; opacity:1; gap:.45rem; padding-left:.5rem; border-left-width:1px; }
+.sg-music-sound:is(:hover,:focus-within) .sg-music-volume { max-width:6rem; opacity:1; }
 /* 切换按钮重设计（2026-11-17）：上一首/下一首改为圆形描边按钮，hover 填充主题色 */
 .sg-music-controls button[data-sg-prev],.sg-music-controls button[data-sg-next]{width:42px;height:42px;border-radius:50%;border:1px solid color-mix(in srgb,var(--sg-accent) 35%,transparent);background:color-mix(in srgb,var(--sg-accent) 10%,transparent);color:var(--sg-accent-ink);transition:background .18s ease,transform .18s ease,border-color .18s ease}
 .sg-music-controls button[data-sg-prev]:hover,.sg-music-controls button[data-sg-next]:hover{background:color-mix(in srgb,var(--sg-accent) 22%,transparent);border-color:var(--sg-accent);transform:translateY(-1px)}
