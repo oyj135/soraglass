@@ -48,6 +48,7 @@ try {
             // Widget::date() 是「打印」而非「返回」，取格式化串要用 ->date->format()
             'date'      => $sgRecent->date->format('Y.m.d'),
             'stamp'     => (int) ($sgRecent->date->timestamp ?? 0),
+            'sticky'    => (int) ($sgRecent->sticky ?? 0),
             'cover'     => sg_cover($sgRecent),
             'desc'      => sg_card_desc($sgRecent),
         ];
@@ -166,11 +167,15 @@ $sgHead = [
       }
     ?>
     <article class="sg-feature-card" data-sg-archive-card data-keywords="<?php echo sg_e($sgKeywordRow); ?>" data-tags="<?php echo sg_e(implode('|', $sgSlugs)); ?>">
+      <?php if ((int) ($sgPost['sticky'] ?? 0) > 0) : ?>
+      <div class="sg-sticky-badge<?php echo (int) $sgPost['sticky'] >= 2 ? ' is-top' : ''; ?>"><?php echo sg_icon('bookmark'); ?>置顶<span class="sg-sticky-shine" aria-hidden="true"></span></div>
+      <?php endif; ?>
       <a class="sg-feature-media" href="<?php echo sg_e($sgPost['permalink']); ?>" tabindex="-1" aria-hidden="true">
         <img src="<?php echo sg_e($sgPost['cover']); ?>" alt="" loading="lazy">
         <?php if ($sgDesc !== '') : ?>
         <span class="sg-feature-quote">「<?php echo sg_e($sgDesc); ?>」</span>
         <?php endif; ?>
+        <span class="sg-feature-arrow" aria-hidden="true"></span>
       </a>
       <div class="sg-feature-body">
         <h3 class="sg-feature-title"><a href="<?php echo sg_e($sgPost['permalink']); ?>"><?php echo sg_e($sgPost['title']); ?></a></h3>

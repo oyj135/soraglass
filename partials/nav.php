@@ -85,24 +85,27 @@ $sgNavHints = [
     'timeline' => '按主题整理的知识条目',
 ];
 
-/* 导航图标（2026-11-17，对齐 Fomalhaut 菜单带图标的形态）：
-   按缩略名映射内联 SVG（lib/icons.php）；未命中的页面不显示图标，保持干净。 */
+/* 导航图标（2026-11-17，对齐源站彩色图标的观感）：每个入口一个专属色，
+   用内联 color 控制（sg_icon 是 stroke:currentColor）。 */
 $sgNavIconMap = [
-    'archives'  => 'archive',
-    'timeline'  => 'book-open',
-    'notes'     => 'message',
-    'chatter'   => 'message',
-    'moments'   => 'message',
-    'music'     => 'music',
-    'photowall' => 'image',
-    'gallery'   => 'image',
-    'friends'   => 'users',
-    'about'     => 'user',
-    'projects'  => 'code',
+    'archives'  => ['archive', '#f5b942'],
+    'timeline'  => ['book-open', '#36cfc9'],
+    'notes'     => ['message', '#4cc38a'],
+    'chatter'   => ['message', '#4cc38a'],
+    'moments'   => ['message', '#4cc38a'],
+    'music'     => ['music', '#5ba0f0'],
+    'photowall' => ['image', '#b37feb'],
+    'gallery'   => ['image', '#b37feb'],
+    'friends'   => ['users', '#ff85c0'],
+    'about'     => ['user', '#69c0ff'],
+    'projects'  => ['code', '#ffa940'],
 ];
 $sgNavIcon = static function (string $sgSlug) use ($sgNavIconMap): string {
-    $sgName = $sgNavIconMap[$sgSlug] ?? '';
-    return $sgName !== '' ? sg_icon($sgName, 'sg-nav-ico') : '';
+    $sgEntry = $sgNavIconMap[$sgSlug] ?? null;
+    if ($sgEntry === null) {
+        return '';
+    }
+    return '<span class="sg-nav-ico" style="color:' . $sgEntry[1] . '">' . sg_icon($sgEntry[0]) . '</span>';
 };
 
 /* P1-11：导航分组——条目过多时尾部收进「更多」下拉，避免顶栏溢出换行。
@@ -127,7 +130,7 @@ foreach ($sgNavMore as $sgMorePage) {
   <div class="sg-nav-inner">
     <a class="sg-brand" href="<?php echo sg_e($sgHome); ?>"><?php echo sg_e($sgBrandTitle); ?><span class="sg-brand-accent"><?php echo sg_e($sgBrandSuffix); ?></span><?php echo sg_e($sgBrandAfter); ?></a>
     <nav class="sg-nav-links" aria-label="主导航">
-      <a class="sg-nav-link<?php echo $sgActive === 'index' ? ' is-active' : ''; ?>"<?php echo $sgActive === 'index' ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgHome); ?>"><?php echo sg_icon('home', 'sg-nav-ico'); ?>首页<?php if ($sgActive === 'index') : ?><span class="sg-nav-dot"></span><?php endif; ?></a>
+      <a class="sg-nav-link<?php echo $sgActive === 'index' ? ' is-active' : ''; ?>"<?php echo $sgActive === 'index' ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgHome); ?>"><span class="sg-nav-ico" style="color:#ff6b6b"><?php echo sg_icon('home'); ?></span>首页<?php if ($sgActive === 'index') : ?><span class="sg-nav-dot"></span><?php endif; ?></a>
       <?php foreach ($sgNavPrimary as $sgPage) : ?>
       <a class="sg-nav-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>"<?php echo $sgActiveKey === $sgPage['slug'] ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgPage['url']); ?>"<?php echo isset($sgNavHints[$sgPage['slug']]) ? ' title="' . sg_e($sgNavHints[$sgPage['slug']]) . '"' : ''; ?>><?php echo $sgNavIcon($sgPage['slug']); ?><?php echo sg_e($sgPage['title']); ?><?php if ($sgActiveKey === $sgPage['slug']) : ?><span class="sg-nav-dot"></span><?php endif; ?></a>
       <?php endforeach; ?>
@@ -155,7 +158,7 @@ foreach ($sgNavMore as $sgMorePage) {
 
 <div class="sg-sheet" id="sg-sheet" data-sg-sheet aria-hidden="true">
   <div class="sg-sheet-panel">
-    <a class="sg-sheet-link<?php echo $sgActive === 'index' ? ' is-active' : ''; ?>"<?php echo $sgActive === 'index' ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgHome); ?>"><?php echo sg_icon('home', 'sg-nav-ico'); ?>首页</a>
+    <a class="sg-sheet-link<?php echo $sgActive === 'index' ? ' is-active' : ''; ?>"<?php echo $sgActive === 'index' ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgHome); ?>"><span class="sg-nav-ico" style="color:#ff6b6b"><?php echo sg_icon('home'); ?></span>首页</a>
     <?php foreach ($sgNavItems as $sgPage) : ?>
     <a class="sg-sheet-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>"<?php echo $sgActiveKey === $sgPage['slug'] ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgPage['url']); ?>"<?php echo isset($sgNavHints[$sgPage['slug']]) ? ' title="' . sg_e($sgNavHints[$sgPage['slug']]) . '"' : ''; ?>><?php echo $sgNavIcon($sgPage['slug']); ?><?php echo sg_e($sgPage['title']); ?></a>
     <?php endforeach; ?>

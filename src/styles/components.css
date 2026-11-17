@@ -105,8 +105,13 @@ html.dark .sg-nav-more-link:is(:hover, :focus-visible) { background: color-mix(i
 .sg-sheet-link { padding: .45rem .7rem; margin-inline: -.7rem; border-radius: 10px; transition: background-color .25s linear; }
 .sg-sheet-link:is(:hover, :focus-visible) { background: color-mix(in srgb, var(--sg-accent) 14%, transparent); }
 html.dark .sg-sheet-link:is(:hover, :focus-visible) { background: color-mix(in srgb, var(--sg-accent-soft) 16%, transparent); }
-.sg-nav-ico { flex: none; width: 1em; height: 1em; opacity: .8; }
-.sg-nav-link.is-active .sg-nav-ico, .sg-nav-more-link.is-active .sg-nav-ico, .sg-sheet-link.is-active .sg-nav-ico { opacity: 1; }
+/* 导航图标彩色（2026-11-17，对齐源站彩色图标的观感）：每个入口一个专属色，
+   与卡片段色一致（日期黄/分类橙/标签绿的同族扩展）。 */
+.sg-nav-ico { flex: none; width: 1em; height: 1em; display: inline-flex; }
+.sg-nav-ico svg { width: 100%; height: 100%; }
+.sg-nav-link:is(:hover, :focus-visible) .sg-nav-ico, .sg-nav-link.is-active .sg-nav-ico,
+.sg-nav-more-link:is(:hover, :focus-visible) .sg-nav-ico, .sg-nav-more-link.is-active .sg-nav-ico,
+.sg-sheet-link:is(:hover, :focus-visible) .sg-nav-ico, .sg-sheet-link.is-active .sg-nav-ico { opacity: 1; }
 
 .sg-nav-link.is-active { color: var(--sg-accent-ink); opacity: 1; }
 html.dark .sg-nav-link.is-active { color: var(--sg-accent-ink); }
@@ -3218,6 +3223,81 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
   .sg-feature-media img, .sg-feature-quote { transition: none; }
 }
 html.dark .sg-feature-card { background: var(--sg-card-strong); }
+
+/* 置顶角标（fomalhaut post-sticky-badge 逐参数复刻：左上角红橙渐变胶囊 + 图钉 + 流光） */
+.sg-feature-card { position: relative; }
+.sg-sticky-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 11px 0 9px;
+  border-radius: 999px;
+  background-image: linear-gradient(135deg, #ff9a3d 0%, #ff5f4d 52%, #f5341d 100%);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(231, 63, 32, .45), inset 0 0 0 1px rgba(255, 255, 255, .28);
+  pointer-events: none;
+  transform: translateZ(0);
+}
+/* 强置顶（sticky ≥ 2）：整体加深一档，与普通置顶拉开差距 */
+.sg-sticky-badge.is-top {
+  background-image: linear-gradient(135deg, #ff7a2f 0%, #f0351c 45%, #c8120b 100%);
+  box-shadow: 0 4px 14px rgba(196, 22, 10, .5), inset 0 0 0 1px rgba(255, 255, 255, .28);
+}
+.sg-sticky-badge svg { width: 13px; height: 13px; flex: none; stroke: #fff; }
+/* 斜向高光流光：让角标“会动”，第一眼就能看到 */
+.sg-sticky-badge .sg-sticky-shine {
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 45%;
+  height: 100%;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, .72) 50%, rgba(255, 255, 255, 0) 100%);
+  transform: skewX(-18deg);
+  animation: sg-sticky-shine 3.4s ease-in-out infinite;
+}
+@keyframes sg-sticky-shine {
+  0%, 62% { left: -60%; }
+  86%, 100% { left: 118%; }
+}
+html.dark .sg-sticky-badge { box-shadow: 0 4px 14px rgba(0, 0, 0, .5), inset 0 0 0 1px rgba(255, 255, 255, .34); }
+
+/* 封面三角箭头（fomalhaut recent-post-arrow 同款：20×10 下指小三角 + 3s 弹跳） */
+.sg-feature-arrow {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  margin-left: -10px;
+  width: 20px;
+  height: 10px;
+  background: var(--sg-accent);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  z-index: 2;
+  pointer-events: none;
+  animation: sg-arrow-bob 3s linear infinite;
+}
+html.dark .sg-feature-arrow { background: var(--sg-accent-soft); }
+@keyframes sg-arrow-bob {
+  0% { top: 10px; }
+  10% { top: 19px; }
+  20% { top: 10px; }
+  30% { top: 19px; }
+  40%, 100% { top: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sg-sticky-badge .sg-sticky-shine { animation: none; display: none; }
+  .sg-feature-arrow { animation: none; }
+}
 
 /* ---------- 通用按钮 ---------- */
 .sg-btn {

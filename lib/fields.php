@@ -645,7 +645,7 @@ function sg_home_articles(int $limit = 2): array
         $db = \Typecho\Db::get();
         $p = $db->getPrefix();
         $rows = $db->fetchAll(
-            "SELECT cid, title, slug, created, text FROM {$p}contents"
+            "SELECT cid, title, slug, created, sticky, text FROM {$p}contents"
             . " WHERE type = 'post' AND status = 'publish'"
             . " AND (password IS NULL OR password = '')"
             . " AND cid NOT IN ("
@@ -653,7 +653,7 @@ function sg_home_articles(int $limit = 2): array
             . " WHERE (m.type = 'category' AND (m.slug = '" . sg_notes_slug() . "' OR m.name = '碎语'))"
             . " OR (m.type = 'tag' AND (m.slug = '" . sg_notes_slug() . "' OR m.name = '碎语'))"
             . ")"
-            . " ORDER BY created DESC LIMIT " . max(1, $limit)
+            . " ORDER BY sticky DESC, created DESC LIMIT " . max(1, $limit)
         );
         if (!$rows) {
             return [];
@@ -699,16 +699,15 @@ function sg_home_articles(int $limit = 2): array
                 continue;
             }
             $text = (string) ($row['text'] ?? '');
-            /* 与 sg_notes_query 同处理：Markdown 存文要先转 HTML 才抽得出摘要 */
+            /* Markdown 存文先转 HTML，供下方封面兑底抽 <img> 用（summary 已改为 description-only） */
             if (strncmp($text, '<!--markdown-->', 15) === 0) {
                 $text = \Utils\Markdown::convert(substr($text, 15));
             }
             $own = $fields[$cid] ?? [];
+            /* 引号摘要（2026-11-17 对齐源站）：只取 description 自定义字段 ——
+               Fomalhaut 首页卡的图片文字就是 description（index_post_content method 1），
+               不是正文摘录；没填就不显示，封面保持干净。 */
             $quote = trim((string) ($own['description'] ?? ''));
-            if ($quote === '') {
-                $quote = sg_notes_excerpt($text);
-            }
-            /* 引号摘要精简（2026-11-17）：卡片上最多 48 字（两行以内），与知识档案同步 */
             if (function_exists('mb_strlen') && mb_strlen($quote, 'UTF-8') > 48) {
                 $quote = mb_substr($quote, 0, 48, 'UTF-8') . '…';
             }
@@ -739,6 +738,7 @@ function sg_home_articles(int $limit = 2): array
                 'dateText' => $ago !== '' ? '发表于 ' . $ago : '发表于 ' . date('Y.m.d', $stamp + $tz),
                 'cate'     => $cats[$cid] ?? '',
                 'tags'     => isset($tags[$cid]) ? sg_e(implode(' · ', $tags[$cid])) : '',
+                'sticky'   => (int) ($row['sticky'] ?? 0),
             ];
         }
         return $out;
@@ -765,13 +765,21 @@ function sg_feature_card_html(array $card): string
     $dateText = trim((string) ($card['dateText'] ?? ''));
     $cate = trim((string) ($card['cate'] ?? ''));
     $tags = trim((string) ($card['tags'] ?? ''));
+    $sticky = !empty($card['sticky']);
 
     $html  = '<article class="sg-feature-card" data-sg-filter-item>';
+    /* 置顶角标（fomalhaut post-sticky-badge 同款：红底白字胶囊 + 流光扫过） */
+    if ($sticky) {
+        $sgTopCls = (int) ($card['sticky'] ?? 0) >= 2 ? ' is-top' : '';
+        $html .= '<div class="sg-sticky-badge' . $sgTopCls . '">' . sg_icon('bookmark') . '置顶<span class="sg-sticky-shine" aria-hidden="true"></span></div>';
+    }
     $html .= '<a class="sg-feature-media" href="' . sg_e($url) . '" tabindex="-1" aria-hidden="true">';
     $html .= '<img src="' . sg_e($cover) . '" alt="" loading="lazy">';
     if ($quote !== '') {
         $html .= '<span class="sg-feature-quote">「' . sg_e($quote) . '」</span>';
     }
+    /* 封面 V 缺口尖上的小三角（fomalhaut recent-post-arrow 同款 20×10 + 弹跳） */
+    $html .= '<span class="sg-feature-arrow" aria-hidden="true"></span>';
     $html .= '</a>';
     $html .= '<div class="sg-feature-body">';
     $html .= '<h3 class="sg-feature-title"><a href="' . sg_e($url) . '">' . sg_e($title) . '</a></h3>';
@@ -1262,23 +1270,10 @@ function sg_notes_query(int $limit): array
  */
 function sg_card_desc($archive): string
 {
+    /* 2026-11-17 对齐源站：卡片图片上的文字 = description 自定义字段（index_post_content
+       method 1），不是正文摘录 —— 没填就不显示，封面保持干净；站长可在后台字段里控制。 */
     $custom = sg_field($archive, 'description', '');
-    if ($custom !== '') {
-        $quote = trim(strip_tags($custom));
-    } else {
-        try {
-            $db = \Typecho\Db::get();
-            $p = $db->getPrefix();
-            $row = $db->fetchRow('SELECT text FROM ' . $p . 'contents WHERE cid = ' . (int) $archive->cid);
-            $text = (string) ($row['text'] ?? '');
-            if (strncmp($text, '<!--markdown-->', 15) === 0) {
-                $text = \Utils\Markdown::convert(substr($text, 15));
-            }
-            $quote = sg_notes_excerpt($text);
-        } catch (\Throwable $e) {
-            $quote = '';
-        }
-    }
+    $quote = trim(strip_tags($custom));
     if (function_exists('mb_strlen') && mb_strlen($quote, 'UTF-8') > 48) {
         $quote = mb_substr($quote, 0, 48, 'UTF-8') . '…';
     }

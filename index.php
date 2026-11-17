@@ -92,7 +92,7 @@ foreach (sg_home_articles($sgHomeListLimit) as $sgHomeCard) {
         <?php if ($sgHomeListHtml !== '') : ?>
         <section class="sg-home-latest" id="sg-home-content" aria-label="最新文章">
           <div class="sg-home-section-head">
-            <h2 class="sg-home-section-title"><?php echo sg_icon('book-open'); ?>最新文章</h2>
+            <h2 class="sg-home-section-title"><?php echo sg_icon('book-open'); ?>精选</h2>
           </div>
           <div class="sg-home-grid">
             <?php echo $sgHomeListHtml; ?>

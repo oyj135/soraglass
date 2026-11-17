@@ -89,9 +89,16 @@
 .sg-music-stage .sg-album-art { height:100%;width:auto;max-height:17rem;max-width:100%; }
 .sg-music-panel .sg-player-top { position:relative; }
 .sg-music-meta p { font-family:var(--font-sans);font-size:.75rem;font-weight:500;letter-spacing:.02em; }
-.sg-music-volume-row { display:flex;justify-content:center;align-items:center;gap:.65rem;padding-top:.75rem;border-top:1px solid var(--sg-line);font:11px var(--font-sans);color:var(--sg-muted); }
-.sg-music-volume-row input { flex:none;width:6.25rem;max-width:6.25rem; }
-.sg-music-volume-row output { width:2.1rem;font-variant-numeric:tabular-nums; }
+/* 音量组（2026-11-17 重排）：不再单独占一行，跟在控制行尾部内联展示 */
+.sg-music-volume { display:flex;justify-content:center;align-items:center;gap:.45rem;padding-left:.5rem;border-left:1px solid var(--sg-line);font:11px var(--font-sans);color:var(--sg-muted); }
+.sg-music-volume input { flex:none;width:5.5rem;max-width:5.5rem; }
+.sg-music-volume output { width:2.1rem;font-variant-numeric:tabular-nums; }
+/* 切换按钮重设计（2026-11-17）：上一首/下一首改为圆形描边按钮，hover 填充主题色 */
+.sg-music-controls button[data-sg-prev],.sg-music-controls button[data-sg-next]{width:42px;height:42px;border-radius:50%;border:1px solid color-mix(in srgb,var(--sg-accent) 35%,transparent);background:color-mix(in srgb,var(--sg-accent) 10%,transparent);color:var(--sg-accent-ink);transition:background .18s ease,transform .18s ease,border-color .18s ease}
+.sg-music-controls button[data-sg-prev]:hover,.sg-music-controls button[data-sg-next]:hover{background:color-mix(in srgb,var(--sg-accent) 22%,transparent);border-color:var(--sg-accent);transform:translateY(-1px)}
+html.dark .sg-music-controls button[data-sg-prev],html.dark .sg-music-controls button[data-sg-next]{border-color:color-mix(in srgb,var(--sg-accent-soft) 40%,transparent);background:color-mix(in srgb,var(--sg-accent-soft) 12%,transparent);color:var(--sg-accent-soft)}
+html.dark .sg-music-controls button[data-sg-prev]:hover,html.dark .sg-music-controls button[data-sg-next]:hover{background:color-mix(in srgb,var(--sg-accent-soft) 24%,transparent);border-color:var(--sg-accent-soft)}
+@media(prefers-reduced-motion:reduce){.sg-music-controls button[data-sg-prev],.sg-music-controls button[data-sg-next]{transition:none}}
 .sg-player input[data-sg-progress],.sg-music input[data-sg-progress] { flex:1;min-width:0; }
 .sg-player-progress span { flex:none; }
 .sg-player-card::after { background:none; }

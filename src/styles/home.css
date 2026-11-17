@@ -52,8 +52,18 @@ html.dark .sg-nav.is-front { background: transparent; border-bottom-color: trans
   width: min(90%, 46rem);
   text-align: center;
   padding-bottom: 4rem;
-  text-shadow: 0 2px 18px rgba(0, 0, 0, .45);
 }
+/* 首屏标题/副标题发光字（2026-11-17，复刻 Fomalhaut 夜间霓虹灯发光字）：
+   源站夜间给 #site-title / #site-subtitle 挂 text-shadow 动画（light_15px/10px/5px），
+   日间明确关掉；这里同构 —— 夜间主题色呼吸发光，日间轻投影保底。 */
+/* 日间无遮罩，靠轻投影保底可读 */
+.sg-front-title, .sg-front-sub { text-shadow: 0 2px 14px rgba(0, 0, 0, .35); }
+html.dark .sg-front-title, html.dark .sg-front-sub { text-shadow: none; animation: sg-front-neon 8s ease-in-out infinite; }
+@keyframes sg-front-neon {
+  0%, 100% { text-shadow: 0 0 6px color-mix(in srgb, var(--sg-accent-soft) 75%, transparent), 0 0 18px color-mix(in srgb, var(--sg-accent-soft) 45%, transparent), 0 0 42px color-mix(in srgb, var(--sg-accent) 30%, transparent); }
+  50% { text-shadow: 0 0 2px color-mix(in srgb, var(--sg-accent-soft) 60%, transparent), 0 0 8px color-mix(in srgb, var(--sg-accent-soft) 30%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) { html.dark .sg-front-title, html.dark .sg-front-sub { animation: none; } }
 .sg-front-title {
   margin: 0 0 1rem;
   font-size: clamp(2.2rem, 6vw, 4rem);

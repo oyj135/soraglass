@@ -131,16 +131,17 @@
   --sg-album-paper: #fff;
   --sg-album-shadow: 0 10px 24px rgb(16 37 48 / .14);
 
-  /* 独立通栏歌词卡跟随昼夜：日间月白表面与青瓷字，夜间深青底与浅字。 */
-  --sg-lyric-bg: rgba(246, 252, 252, .92);
-  --sg-lyric-border: color-mix(in srgb, var(--sg-accent) 18%, transparent);
-  --sg-lyric-text: var(--sg-accent-deep);
-  --sg-lyric-wave-a: var(--sg-accent-deep);
-  --sg-lyric-wave-b: var(--sg-accent);
+  /* 独立通栏歌词卡（2026-11-17 用户指定）：昼夜都用夜间配方 —— 深色底 + 青色波纹
+     与文字辉光，不再跟随日间变浅色。 */
+  --sg-lyric-bg: rgba(5, 12, 14, .92);
+  --sg-lyric-border: rgba(255, 255, 255, .10);
+  --sg-lyric-text: #fff;
+  --sg-lyric-wave-a: var(--sg-accent-soft);
+  --sg-lyric-wave-b: var(--sg-accent-pale);
   --sg-lyric-wave-c: var(--sg-accent-2);
-  --sg-lyric-icon: var(--sg-accent);
-  --sg-lyric-text-shadow: none;
-  --sg-lyric-shadow: 0 12px 30px -20px rgb(16 43 48 / .22);
+  --sg-lyric-icon: var(--sg-accent-soft);
+  --sg-lyric-text-shadow: 0 0 8px color-mix(in srgb, var(--sg-accent) 80%, transparent);
+  --sg-lyric-shadow: 0 25px 50px -12px rgb(0 0 0 / .25);
 
   /* 图片上的浮层控件（轮播进度轨，2026-11-13 第三十二轮）。
      和歌词栏同理：压在封面图上的东西必须自带深底，不能跟随页面主题 ——
