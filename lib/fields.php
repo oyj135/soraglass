@@ -637,15 +637,28 @@ function sg_related_posts($archive, int $limit = 6): array
  * 直接查库，碎语隔离直接写进 SQL 子查询 —— 分类 slug=notes/名称=碎语、标签同名
  * 同 slug，四条路径全部剔除，不依赖 PHP 侧的 cid 集合。
  *
- * @return array<int,array{url:string,cover:string,quote:string,title:string,dateText:string,cate:string,tags:string}>
+ * @return array<int,array{url:string,cover:string,quote:string,title:string,dateText:string,cate:string,tags:string,sticky:int}>
  */
 function sg_home_articles(int $limit = 2): array
 {
     try {
         $db = \Typecho\Db::get();
         $p = $db->getPrefix();
+        /* 置顶标记（2026-11-17）：Typecho 原生 contents 表没有 sticky 列，
+           沿用本主题自定义字段约定 —— 文章后台填 sticky=1 普通置顶、sticky=2 强置顶，
+           与 description/cover 同一机制。这里先拉全站置顶 cid=>等级。 */
+        $stickyMap = [];
+        foreach ($db->fetchAll("SELECT f.cid, f.int_value, f.str_value FROM {$p}fields f WHERE f.name = 'sticky'") as $f) {
+            $level = (int) ($f['int_value'] ?? 0) > 0 ? (int) $f['int_value'] : (int) ($f['str_value'] ?? 0);
+            if ($level > 0) {
+                $stickyMap[(int) ($f['cid'] ?? 0)] = $level;
+            }
+        }
+        /* 按时间取一个足够大的候选池（50 篇），置顶优先排序后截取 ——
+           置顶文章未必是最新的 50 篇里，但对个人博客这个池子足够；
+           避免在 SQL 里写 contents.sticky（该列不存在，一查就 500） */
         $rows = $db->fetchAll(
-            "SELECT cid, title, slug, created, sticky, text FROM {$p}contents"
+            "SELECT cid, title, slug, created, text FROM {$p}contents"
             . " WHERE type = 'post' AND status = 'publish'"
             . " AND (password IS NULL OR password = '')"
             . " AND cid NOT IN ("
@@ -653,7 +666,7 @@ function sg_home_articles(int $limit = 2): array
             . " WHERE (m.type = 'category' AND (m.slug = '" . sg_notes_slug() . "' OR m.name = '碎语'))"
             . " OR (m.type = 'tag' AND (m.slug = '" . sg_notes_slug() . "' OR m.name = '碎语'))"
             . ")"
-            . " ORDER BY sticky DESC, created DESC LIMIT " . max(1, $limit)
+            . " ORDER BY created DESC LIMIT 50"
         );
         if (!$rows) {
             return [];
@@ -738,10 +751,19 @@ function sg_home_articles(int $limit = 2): array
                 'dateText' => $ago !== '' ? '发表于 ' . $ago : '发表于 ' . date('Y.m.d', $stamp + $tz),
                 'cate'     => $cats[$cid] ?? '',
                 'tags'     => isset($tags[$cid]) ? sg_e(implode(' · ', $tags[$cid])) : '',
-                'sticky'   => (int) ($row['sticky'] ?? 0),
+                'sticky'   => $stickyMap[$cid] ?? 0,
             ];
         }
-        return $out;
+        /* 置顶优先、同级按时间倒序（对齐源站「置顶卡片显示在精选位」） */
+        usort($out, static function (array $a, array $b): int {
+            $sa = (int) ($a['sticky'] ?? 0);
+            $sb = (int) ($b['sticky'] ?? 0);
+            if ($sa !== $sb) {
+                return $sb <=> $sa;
+            }
+            return 0;
+        });
+        return array_slice($out, 0, max(1, $limit));
     } catch (\Throwable $e) {
         return [];
     }

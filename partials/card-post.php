@@ -32,5 +32,5 @@ echo sg_feature_card_html([
     'dateText' => $sgCardAgo !== '' ? '发表于 ' . $sgCardAgo : '发表于 ' . $sgCardCtx->date('Y.m.d'),
     'cate'     => $sgCardCate,
     'tags'     => $sgCardTags,
-    'sticky'   => (int) $sgCardCtx->sticky,
+    'sticky'   => (int) sg_field($sgCardCtx, 'sticky', '0'),
 ]);

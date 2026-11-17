@@ -48,7 +48,7 @@ try {
             // Widget::date() 是「打印」而非「返回」，取格式化串要用 ->date->format()
             'date'      => $sgRecent->date->format('Y.m.d'),
             'stamp'     => (int) ($sgRecent->date->timestamp ?? 0),
-            'sticky'    => (int) ($sgRecent->sticky ?? 0),
+            'sticky'    => (int) sg_field($sgRecent, 'sticky', '0'),
             'cover'     => sg_cover($sgRecent),
             'desc'      => sg_card_desc($sgRecent),
         ];

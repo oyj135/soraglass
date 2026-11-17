@@ -55,7 +55,7 @@ try {
    没有时交给页脚 busuanzi 镜像回写 #busuanzi_value_page_pv，加载失败保留占位「—」。 */
 $sgPostedAgo = sg_time_ago((int) $this->created);
 $sgViews = sg_field($this, 'views', '');
-$sgSticky = (int) $this->sticky > 0;
+$sgSticky = (int) sg_field($this, 'sticky', '0') > 0;
 
 $sgPrev = sg_adjacent_post($this, 'prev');
 $sgNext = sg_adjacent_post($this, 'next');
