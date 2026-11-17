@@ -451,12 +451,9 @@ function themeConfig($form): void
     foreach (['sgBgLight' => '日间', 'sgBgDark' => '夜间'] as $sgBgKey => $sgBgMode) {
         $form->addInput(new Textarea($sgBgKey, null, '', _t('背景壁纸 · ' . $sgBgMode . '（一行一张，可轮播）'), _t('分别设置' . $sgBgMode . '模式的全站壁纸；最多 12 张，一行一个图片地址。留空沿用上方共享壁纸或内置渐变。单页 sgBg 字段仍覆盖两种模式。') . sg_admin_upload_tools($sgBgKey)));
     }
-    foreach (['sgFrontImg' => '日间', 'sgFrontImgDark' => '夜间'] as $sgFrontKey => $sgFrontMode) {
-        $form->addInput(new Text($sgFrontKey, null, '', _t('首页首屏图 · ' . $sgFrontMode), _t(
-            '首页顶部全屏大图，<b>独立于全站背景壁纸</b>。贴图片地址：<code>https://…</code> 外链、<code>/</code> 开头的站内路径或 <code>usr/uploads/…</code> 相对路径。'
-            . '留空取对应壁纸组的第 2 张；日间组不足两张时兜底内置 <code>dist/img/bg-2.svg</code>，保证首屏与正文背景不是同一张图。'
-        )));
-    }
+    /* 首屏独立图设置已移除（2026-11-17）：首页 100vh 首屏与正文壁纸共用同一张
+       （壁纸组第一张），视觉连续、少一次请求；旧 sgFrontImg / sgFrontImgDark
+       配置值留在库里不再读取。 */
     $form->addInput(new Text('sgBgInterval', null, '9', _t('背景壁纸 · 轮播间隔（秒）'), _t('默认 9 秒，3–120 秒；0 停止轮播。单张图保持静止，标签页隐藏或系统要求减少动效时暂停。')));
     $form->addInput(new Select('sgBgVeil', $veilOptions, 'mid', _t('背景遮罩（壁纸与内容之间）'), _t(
         '<b>显示位置</b>：压在壁纸之上、全部内容之下的那层蒙版，全站生效。<br>'

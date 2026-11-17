@@ -4,9 +4,8 @@
  *
  * 命名空间一律用 .sg-front* —— 首页主区早已占用 .sg-hero / .sg-hero-cover，
  * 2026-11-16 曾因同名把首页布局改坏，务必隔离，勿改回 .sg-hero。
- * 背景取独立的首屏图设置（sgFrontImg / sgFrontImgDark），与正文壁纸脱钩：
- * 留空时取对应壁纸组第 2 张，日间组不足两张再兜底内置 bg-2.svg，
- * 保证首屏与正文背景默认不是同一张图。站名/副标题/社交复用后台已有设置项。
+ * 背景与全站壁纸共用（2026-11-17）：sg_front_bg() 直接取壁纸组第一张，
+ * 不再单独设置首屏图；站名/副标题/社交复用后台已有设置项。
  */
 $sgFrontBg = sg_front_bg();
 $sgFrontLight = $sgFrontBg['light'];

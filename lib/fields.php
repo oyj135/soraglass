@@ -712,6 +712,11 @@ function sg_notes_slug(): string
  * 分类按 slug=notes 或名称「碎语」认：真站建分类时缩略名未必填 notes，
  * 只认 slug 会把碎语漏进首页/归档列表（2026-11-16 第三轮修复）。
  *
+ * 2026-11-17 修复：不能再写 where('slug = ? OR name = ?', 'notes', '碎语') ——
+ * Typecho 的 where() 第三参是 SQL 连接符而不是第二个绑定值，两个占位符只绑
+ * 第一个值，多值写法构造出错误 SQL，被下面的 try/catch 吞成空集合，
+ * 这正是首页最新文章过滤失效、碎语漏出来的根因。改为两条单条件查询在 PHP 侧合并。
+ *
  * 2026-11-13：碎语与普通文章要求「完全隔离」—— 知识档案、首页封面轮播、
  * 侧栏最近文章、归档页都要把碎语剔出去，所以单独提供一份 id 集合，
  * 调用方用 sg_is_note() 过滤即可。不复用 sg_notes()：那份带 LIMIT、
@@ -727,17 +732,30 @@ function sg_note_cids(): array
     $cache = [];
     try {
         $db = \Typecho\Db::get();
-        $cat = $db->fetchRow($db->select('mid')->from('table.metas')
-            ->where('type = ?', 'category')->where('slug = ? OR name = ?', sg_notes_slug(), '碎语')->limit(1));
-        if ($cat && !empty($cat['mid'])) {
-            foreach ($db->fetchAll($db->select('cid')->from('table.relationships')
-                ->where('mid = ?', (int) $cat['mid'])) as $row) {
+        /* 两条单条件查询，PHP 侧取并集：slug=notes 与名称=碎语 认同一个分类 */
+        $mids = [];
+        foreach (
+            [
+                $db->fetchAll($db->select('mid')->from('table.metas')->where('type = ?', 'category')->where('slug = ?', sg_notes_slug())),
+                $db->fetchAll($db->select('mid')->from('table.metas')->where('type = ?', 'category')->where('name = ?', '碎语')),
+            ] as $rows
+        ) {
+            foreach ($rows as $row) {
+                $mid = (int) ($row['mid'] ?? 0);
+                if ($mid > 0) {
+                    $mids[$mid] = true;
+                }
+            }
+        }
+        foreach (array_keys($mids) as $mid) {
+            foreach ($db->fetchAll($db->select('cid')->from('table.relationships')->where('mid = ?', $mid)) as $row) {
                 $cid = (int) ($row['cid'] ?? 0);
                 if ($cid > 0) {
                     $cache[] = $cid;
                 }
             }
         }
+        $cache = array_values(array_unique($cache));
     } catch (\Throwable $e) {
         $cache = [];
     }
@@ -752,12 +770,12 @@ function sg_is_note(int $cid): bool
 }
 
 /**
- * 首页 100vh 首屏用的两张背景图（日/夜，2026-11-17 抽成公共函数）。
+ * 首页 100vh 首屏用的两张背景图（日/夜）。
  *
- * 逻辑与 home-front.php 原实现一致：后台「首屏图」设置优先（sgFrontImg / sgFrontImgDark），
- * 留空时取对应壁纸组第 2 张（与正文首张错开），不足再兜底内置 svg。
- * header.php 用它把首屏这张图从正文壁纸轮播里剔除 —— 首屏与正文不再共用同一张图
- * （用户反馈「首屏和首页正文共用一张背景图片」）。
+ * 2026-11-17 改版：首屏与全站背景壁纸<b>共用同一张</b> —— 直接取当前生效壁纸组
+ * 的第一张（日/夜各自），不再单独设置首屏图（后台 sgFrontImg / sgFrontImgDark
+ * 已移除，历史配置值不再读取）。首屏与正文从同一张图无缝衔接，滚动进入正文
+ * 后壁纸轮播继续；旧的「首屏图与正文错开、header 去重」方案一并废弃。
  *
  * @return array{light:string, dark:string}
  */
@@ -765,8 +783,8 @@ function sg_front_bg(): array
 {
     $walls = sg_wallpapers();
     return [
-        'light' => sg_bg_url(trim((string) sg_opt('sgFrontImg', ''))) ?: ($walls['light'][1] ?? sg_theme_url('dist/img/bg-2.svg')),
-        'dark'  => sg_bg_url(trim((string) sg_opt('sgFrontImgDark', ''))) ?: ($walls['dark'][1] ?? ($walls['dark'][0] ?? sg_theme_url('dist/img/bg-1.svg'))),
+        'light' => $walls['light'][0] ?? sg_theme_url('dist/img/bg-1.svg'),
+        'dark'  => $walls['dark'][0] ?? sg_theme_url('dist/img/bg-2.svg'),
     ];
 }
 
@@ -774,6 +792,9 @@ function sg_front_bg(): array
  * 打了「碎语」标签的全部文章 cid（静态缓存，失败回空数组）。
  * 有的站碎语不走分类而是打标签，首页最新文章列表要把两种写法都剔出去；
  * 标签按 name='碎语' 或 slug='notes' 认，与分类的约定缩略名保持一致。
+ *
+ * 2026-11-17：与 sg_note_cids() 同根因 —— where() 不能带两个绑定值，
+ * 改为两条单条件查询在 PHP 侧合并。
  */
 function sg_chatter_tag_cids(): array
 {
@@ -785,13 +806,21 @@ function sg_chatter_tag_cids(): array
     $cache = [];
     try {
         $db = \Typecho\Db::get();
-        $tags = $db->fetchAll($db->select('mid')->from('table.metas')
-            ->where('type = ?', 'tag')->where('name = ? OR slug = ?', '碎语', 'notes'));
-        foreach ($tags as $tag) {
-            $mid = (int) ($tag['mid'] ?? 0);
-            if ($mid <= 0) {
-                continue;
+        $mids = [];
+        foreach (
+            [
+                $db->fetchAll($db->select('mid')->from('table.metas')->where('type = ?', 'tag')->where('name = ?', '碎语')),
+                $db->fetchAll($db->select('mid')->from('table.metas')->where('type = ?', 'tag')->where('slug = ?', 'notes')),
+            ] as $rows
+        ) {
+            foreach ($rows as $row) {
+                $mid = (int) ($row['mid'] ?? 0);
+                if ($mid > 0) {
+                    $mids[$mid] = true;
+                }
             }
+        }
+        foreach (array_keys($mids) as $mid) {
             foreach ($db->fetchAll($db->select('cid')->from('table.relationships')->where('mid = ?', $mid)) as $row) {
                 $cid = (int) ($row['cid'] ?? 0);
                 if ($cid > 0) {
