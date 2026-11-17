@@ -2074,6 +2074,7 @@ html.dark .sg-i-moon { display: inline-flex; }
    （源站 custom.css 对 h1.post-title 挂 font-weight:bold），夜间霓虹发光；
    元信息两行居中、#78818a 灰（95% 字号）、图标彩色（日历黄、其余蓝）。 */
 .sg-post-banner {
+  flex: 0 0 100%;
   padding: 4.5rem 1.5rem 2rem;
   text-align: center;
 }

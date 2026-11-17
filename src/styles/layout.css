@@ -91,8 +91,10 @@ body { overflow-x: clip; }
 
 .sg-hero-side > section { flex: 0 0 auto; min-width: 0; min-height: 0; }
 
-/* 文章页：正文 + 320px 侧栏 */
-.sg-article-layout { display: flex; flex-direction: column; gap: 1.5rem; }
+/* 文章页：正文 + 320px 侧栏
+   2026-11-17：页顶横幅 .sg-post-banner 是 main 的第一个子元素、需独占整行 ——
+   否则 ≥1024px 的 row 布局会把它和文章卡/侧栏排进同一行，把正文挤没。 */
+.sg-article-layout { display: flex; flex-direction: column; gap: 1.5rem; flex-wrap: wrap; }
 
 @media (min-width: 1024px) {
   .sg-article-layout { flex-direction: row; gap: 2rem; align-items: flex-start; }
