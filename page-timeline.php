@@ -173,7 +173,7 @@ $sgHead = [
     ?>
     <article class="sg-feature-card" data-sg-archive-card data-keywords="<?php echo sg_e($sgKeywordRow); ?>" data-tags="<?php echo sg_e(implode('|', $sgSlugs)); ?>">
       <?php if ((int) ($sgPost['sticky'] ?? 0) > 0) : ?>
-      <div class="sg-sticky-badge<?php echo (int) $sgPost['sticky'] >= 2 ? ' is-top' : ''; ?>"><?php echo sg_icon('bookmark'); ?>置顶<span class="sg-sticky-shine" aria-hidden="true"></span></div>
+      <div class="sg-sticky-badge"><?php echo sg_icon('pin'); ?>精选<span class="sg-sticky-shine" aria-hidden="true"></span></div>
       <?php endif; ?>
       <a class="sg-feature-media" href="<?php echo sg_e($sgPost['permalink']); ?>" tabindex="-1" aria-hidden="true">
         <img src="<?php echo sg_e($sgPost['cover']); ?>" alt="" loading="lazy">

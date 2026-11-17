@@ -71,7 +71,7 @@ $sgNext = sg_adjacent_post($this, 'next');
     <div class="sg-post-banner-meta">
       <div class="sg-post-meta-line">
         <?php if ($sgSticky) : ?>
-        <span class="sg-post-meta-item sg-post-meta-pin" title="置顶"><?php echo sg_icon('bookmark'); ?>置顶</span>
+        <span class="sg-post-meta-item sg-post-meta-pin" title="精选"><?php echo sg_icon('pin'); ?>精选</span>
         <span class="sg-post-meta-sep" aria-hidden="true">|</span>
         <?php endif; ?>
         <time class="sg-post-meta-item is-date" datetime="<?php $this->date('c'); ?>" title="<?php $this->date('Y-m-d H:i'); ?>"><?php echo sg_icon('calendar'); ?>发表于 <?php echo sg_e($sgPostedAgo !== '' ? $sgPostedAgo : $this->date('Y-m-d')); ?></time>

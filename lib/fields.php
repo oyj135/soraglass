@@ -794,8 +794,7 @@ function sg_feature_card_html(array $card): string
     $html  = '<article class="sg-feature-card" data-sg-filter-item>';
     /* 置顶角标（fomalhaut post-sticky-badge 同款：红底白字胶囊 + 流光扫过） */
     if ($sticky) {
-        $sgTopCls = (int) ($card['sticky'] ?? 0) >= 2 ? ' is-top' : '';
-        $html .= '<div class="sg-sticky-badge' . $sgTopCls . '">' . sg_icon('bookmark') . '置顶<span class="sg-sticky-shine" aria-hidden="true"></span></div>';
+        $html .= '<div class="sg-sticky-badge">' . sg_icon('pin') . '精选<span class="sg-sticky-shine" aria-hidden="true"></span></div>';
     }
     $html .= '<a class="sg-feature-media" href="' . sg_e($url) . '" tabindex="-1" aria-hidden="true">';
     $html .= '<img src="' . sg_e($cover) . '" alt="" loading="lazy">';
