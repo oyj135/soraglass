@@ -3302,6 +3302,82 @@ html.dark .sg-feature-arrow { background: var(--sg-accent-soft); }
 }
 
 /* ---------- 通用按钮 ---------- */
+@property --sg-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* ---------- 玻璃变形按钮（hereitis「CSS玻璃变形按钮悬停特效」同风格） ----------
+   玻璃底（blur + 半透明）常驻；hover 时：液态圆角蠕动（先过渡到第一档
+   不对称圆角，再无限交替变形）+ 高光斜条扫过 + 主题色光晕。 */
+.sg-btn,
+.sg-filter-btn {
+  position: relative;
+  overflow: hidden;
+  -webkit-backdrop-filter: blur(10px) saturate(1.35);
+  backdrop-filter: blur(10px) saturate(1.35);
+}
+.sg-btn::after,
+.sg-filter-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 45%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .5) 50%, transparent);
+  transform: skewX(-18deg);
+  transition: left .45s ease;
+  pointer-events: none;
+}
+.sg-btn:is(:hover, :focus-visible)::after,
+.sg-filter-btn:is(:hover, :focus-visible)::after { left: 118%; }
+@keyframes sg-btn-morph {
+  from { border-radius: 1.5rem .5rem 1.5rem .5rem / .5rem 1.5rem .5rem 1.5rem; }
+  to   { border-radius: .5rem 1.5rem .5rem 1.5rem / 1.5rem .5rem 1.5rem .5rem; }
+}
+.sg-btn:is(:hover, :focus-visible),
+.sg-filter-btn:is(:hover, :focus-visible) {
+  border-radius: 1.5rem .5rem 1.5rem .5rem / .5rem 1.5rem .5rem 1.5rem;
+  box-shadow: 0 6px 18px -6px color-mix(in srgb, var(--sg-accent) 55%, transparent);
+  animation: sg-btn-morph 1.5s ease-in-out .35s infinite alternate;
+}
+
+/* ---------- 卡片悬停旋转渐变边框（hereitis「CSS鼠标悬停边框动画」同风格） ----------
+   conic-gradient 彩虹描边绕卡片旋转（@property 动画自定义角度）；
+   不支持 @property 的浏览器退化为静态渐变描边（不影响布局）。
+   应用范围：知识档案/精选文章卡 + 友链卡。 */
+.sg-feature-card::before,
+.sg-flink-item::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  padding: 2px;
+  border-radius: inherit;
+  background: conic-gradient(from var(--sg-angle), var(--sg-accent-soft), #f5b942, #ff6b6b, #b37feb, var(--sg-accent-2), var(--sg-accent-soft));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask-composite: exclude;
+  opacity: 0;
+  transition: opacity .3s ease;
+  pointer-events: none;
+}
+.sg-feature-card:is(:hover, :focus-within)::before,
+.sg-flink-item:is(:hover, :focus-within)::after {
+  opacity: 1;
+  animation: sg-border-spin 3s linear infinite;
+}
+@keyframes sg-border-spin { to { --sg-angle: 360deg; } }
+@media (prefers-reduced-motion: reduce) {
+  .sg-feature-card:is(:hover, :focus-within)::before,
+  .sg-flink-item:is(:hover, :focus-within)::after { animation: none; }
+  .sg-btn:is(:hover, :focus-visible),
+  .sg-filter-btn:is(:hover, :focus-visible) { animation: none; }
+}
+
 .sg-btn {
   display: inline-flex;
   align-items: center;
