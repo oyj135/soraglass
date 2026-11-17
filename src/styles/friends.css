@@ -23,12 +23,13 @@
 @media (max-width: 768px) { .sg-site-card { width: calc(100% / 3 - 16px); } }
 @media (max-width: 500px) { .sg-site-card { width: calc(100% / 2 - 16px); } }
 
-.sg-site-card:is(:hover, :focus-visible) {
-  border-color: color-mix(in srgb, var(--sg-accent-ink) 35%, transparent);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, .1), 0 2px 4px rgba(0, 0, 0, .1), 0 8px 16px rgba(0, 0, 0, .1);
+/* hover 对齐源站 volantis .site-card：阴影加深在截图框上、标题变 #ff5722；
+   整卡不变边框不抬升、截图不缩放（源站没有这两样）。 */
+.sg-site-card:is(:hover, :focus-visible) .sg-site-card-img {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, .1), 0 2px 4px rgba(0, 0, 0, .1), 0 4px 8px rgba(0, 0, 0, .1), 0 8px 16px rgba(0, 0, 0, .1);
 }
 
-/* 截图：120px 高（≤500px 时 100px，同源站），缓慢放大 */
+/* 截图：120px 高（≤500px 时 100px，同源站）；hover 不缩放（源站同） */
 .sg-site-card-img {
   display: block;
   height: 120px;
@@ -36,10 +37,10 @@
   border-radius: 6px;
   background: var(--sg-chip);
   box-shadow: 0 1px 2px rgba(0, 0, 0, .2);
+  transition: box-shadow .28s ease;
 }
 @media (max-width: 500px) { .sg-site-card-img { height: 100px; } }
 .sg-site-card-img img { display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none; transition: transform 2s ease; }
-.sg-site-card:is(:hover, :focus-visible) .sg-site-card-img img { transform: scale(1.06); }
 
 .sg-site-card-info { display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; }
 .sg-site-card-avatar {
@@ -61,7 +62,7 @@
   text-overflow: ellipsis;
   transition: color var(--sg-dur-fast) linear;
 }
-.sg-site-card:is(:hover, :focus-visible) .sg-site-card-title { color: var(--sg-accent-ink); }
+.sg-site-card:is(:hover, :focus-visible) .sg-site-card-title { color: #ff5722; }
 .sg-site-card-desc {
   font-family: var(--font-sans);
   font-size: .85rem;

@@ -63,10 +63,7 @@ foreach (sg_home_articles($sgHomeListLimit) as $sgHomeCard) {
                   <img class="sg-slide-cover" src="<?php echo sg_e($sgSlide['cover']); ?>" alt="" <?php echo $sgSlideIndex === 0 ? '' : 'loading="lazy"'; ?>>
                 </a>
                 <a class="sg-slide-body" href="<?php echo sg_e($sgSlide['url']); ?>">
-                  <span class="sg-slide-chips">
-                    <span class="sg-chip--tag"><?php echo sg_e($sgSlide['category']); ?></span>
-                    <span class="sg-chip--mono"><?php echo sg_e($sgSlide['date']); ?></span>
-                  </span>
+                  <time class="sg-slide-date"><?php echo sg_e($sgSlide['date']); ?></time>
                   <h2 class="sg-slide-title"><?php echo sg_e($sgSlide['title']); ?></h2>
                   <span class="sg-slide-desc"><?php echo sg_e($sgSlide['desc']); ?></span>
                 </a>
@@ -76,7 +73,6 @@ foreach (sg_home_articles($sgHomeListLimit) as $sgHomeCard) {
             <article class="sg-post-slide is-active" data-sg-slide>
               <div class="sg-slide-media"><img class="sg-slide-cover" src="<?php echo sg_e($sgCoverFallback); ?>" alt=""></div>
               <div class="sg-slide-body">
-                <span class="sg-slide-chips"><span class="sg-chip--tag">空璃</span></span>
                 <h2 class="sg-slide-title">还没有文章，去后台写下第一篇吧</h2>
                 <span class="sg-slide-desc">发布后这里会自动变成封面轮播。</span>
               </div>

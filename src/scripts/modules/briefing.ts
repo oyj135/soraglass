@@ -192,7 +192,11 @@ export function initBriefing(): void {
   if (select) {
     select.addEventListener('change', () => {
       available = issues.map((issue, i) => issue.dataset.date === select.value ? i : -1).filter(i => i >= 0);
-      if (available.length) paintIssue(available[0]); startAuto(); announce(`已切换到 ${select.value}`);
+      if (available.length) {
+        paintIssue(available[0]); startAuto(); announce(`已切换到 ${select.value}`);
+      } else {
+        announce(`${select.value} 未生成日报，仍显示当前期`);
+      }
     });
     select.value = issues[0]?.dataset.date || '';
   }

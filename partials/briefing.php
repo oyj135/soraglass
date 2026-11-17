@@ -48,6 +48,20 @@ $sgFirst = $sgIssues[0];
 $sgTotal = count(array_filter($sgIssues, static fn($issue) => $issue['date'] === $sgFirst['date']));
 $sgDates = array_values(array_unique(array_column($sgIssues, 'date')));
 
+/* 往期查看固定提供最近三天（今天/昨天/前天，按站点时区）：
+   已生成的日期标「最新/已生成」，没生成的也列出（选中时 JS 会提示当日未生成）。 */
+$sgRecentDates = [];
+try {
+    $sgBriefTz = new DateTimeZone((string) (\Widget\Options::alloc()->timezone ?? date_default_timezone_get()));
+} catch (\Throwable $e) {
+    $sgBriefTz = new DateTimeZone(date_default_timezone_get());
+}
+$sgBriefCursor = new DateTime('now', $sgBriefTz);
+for ($sgDayOffset = 0; $sgDayOffset < 3; $sgDayOffset++) {
+    $sgRecentDates[] = $sgBriefCursor->format('Y-m-d');
+    $sgBriefCursor->modify('-1 day');
+}
+
 /** 某一期里真正有条目的栏目（空栏目直接不渲染，避免大片「这一栏还没有条目」） */
 $sgIssueChannels = static function (array $issue) use ($sgChannels): array {
     $list = [];
@@ -158,16 +172,16 @@ $sgBgTotal = $sgBgList ? count($sgBgList) : count($sgIssues);
       </div>
 
       <div class="sg-briefing-archive" data-sg-briefing-archive hidden>
-        <?php if (count($sgDates) > 1) : ?>
-        <label class="sg-briefing-archive-label" for="sg-briefing-select">翻阅日期</label>
+        <label class="sg-briefing-archive-label" for="sg-briefing-select">最近三天</label>
         <select id="sg-briefing-select" data-sg-briefing-select aria-label="选择选刊日期">
-          <?php foreach ($sgDates as $sgIndex => $sgDate) : ?>
-          <option value="<?php echo sg_e($sgDate); ?>"><?php echo sg_e($sgDate); ?><?php echo $sgIndex === 0 ? ' · 最新' : ''; ?></option>
+          <?php foreach ($sgRecentDates as $sgDate) : ?>
+          <?php
+            $sgHasIssue = in_array($sgDate, $sgDates, true);
+            $sgMark = $sgHasIssue ? ($sgDate === ($sgDates[0] ?? '') ? ' · 最新' : ' · 已生成') : ' · 未生成';
+          ?>
+          <option value="<?php echo sg_e($sgDate); ?>"><?php echo sg_e($sgDate . $sgMark); ?></option>
           <?php endforeach; ?>
         </select>
-        <?php else : ?>
-        <span class="sg-briefing-archive-label">目前只有一个生成日期。</span>
-        <?php endif; ?>
       </div>
 
       <?php foreach ($sgIssues as $sgIndex => $sgIssue) : ?>
