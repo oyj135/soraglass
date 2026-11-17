@@ -15,24 +15,18 @@ $sgHead = [
     'search' => false,
     'center' => true,
 ];
-/* 恢复头像/名称/简介卡；兼容旧JSON，输出时统一转义。 */
+/* 友链卡（2026-11-17 改版为 Fomalhaut butterfly 友链样式：90px 横排小卡）；
+   兼容旧JSON，输出时统一转义；themeColor 字段不再使用（旧值安全忽略）。 */
 $sgString = static function (array $row, string $key, string $fallback = ''): string {
     return isset($row[$key]) && is_scalar($row[$key]) && (string) $row[$key] !== ''
         ? (string) $row[$key] : $fallback;
 };
 $sgFriends = array_map(static function (array $row) use ($sgString): array {
-    $avatar = sg_media($sgString($row, 'avatar'), sg_theme_url('dist/img/avatar.svg'));
-    $color = $sgString($row, 'themeColor', '#35616b');
-    /* 兼容 hex / rgb(a) / hsl(a)，颜色字段不允许注入其他 CSS 声明。 */
-    if (!preg_match('/^(?:#[a-f0-9]{3,8}|(?:rgb|hsl)a?\([0-9.,%\s+\/-]+\))$/i', $color)) {
-        $color = '#35616b';
-    }
     return [
         'name' => $sgString($row, 'name', '友链'),
         'url' => $sgString($row, 'url', '#'),
         'description' => $sgString($row, 'description'),
-        'avatar' => $avatar,
-        'color' => $color,
+        'avatar' => sg_media($sgString($row, 'avatar'), sg_theme_url('dist/img/avatar.svg')),
     ];
 }, $sgFriends);
 ?>
@@ -44,21 +38,20 @@ $sgFriends = array_map(static function (array $row) use ($sgString): array {
   <?php endif; ?>
 
   <?php if ($sgFriends) : ?>
-  <div class="sg-friend-grid">
-    <?php foreach ($sgFriends as $sgFriend) : ?>
-    <div class="sg-friend-cell">
-      <a class="sg-glass sg-friend" href="<?php echo sg_e($sgFriend['url']); ?>" target="_blank" rel="noopener noreferrer" data-sg-hover aria-label="<?php echo sg_e('访问 ' . $sgFriend['name'] . '（新窗口）'); ?>">
-        <span class="sg-friend-avatar"><img src="<?php echo sg_e($sgFriend['avatar']); ?>" alt="" width="60" height="60" loading="lazy" decoding="async"></span>
-        <span class="sg-friend-main">
-          <span class="sg-friend-head">
-            <span class="sg-friend-name"><?php echo sg_e($sgFriend['name']); ?></span>
-            <span class="sg-friend-status"><i style="background:<?php echo sg_e($sgFriend['color']); ?>"></i>ONLINE</span>
+  <div class="sg-flink">
+    <div class="sg-flink-list">
+      <?php foreach ($sgFriends as $sgFriend) : ?>
+      <div class="sg-flink-item">
+        <a href="<?php echo sg_e($sgFriend['url']); ?>" target="_blank" rel="noopener noreferrer" title="<?php echo sg_e($sgFriend['name']); ?>" aria-label="<?php echo sg_e('访问 ' . $sgFriend['name'] . '（新窗口）'); ?>">
+          <span class="sg-flink-icon"><img src="<?php echo sg_e($sgFriend['avatar']); ?>" alt="<?php echo sg_e($sgFriend['name']); ?>" width="60" height="60" loading="lazy" decoding="async"></span>
+          <span class="sg-flink-text">
+            <span class="sg-flink-name"><?php echo sg_e($sgFriend['name']); ?></span>
+            <span class="sg-flink-desc"><?php echo sg_e($sgFriend['description']); ?></span>
           </span>
-          <span class="sg-friend-desc"><?php echo sg_e($sgFriend['description']); ?></span>
-        </span>
-      </a>
+        </a>
+      </div>
+      <?php endforeach; ?>
     </div>
-    <?php endforeach; ?>
   </div>
   <?php else : ?>
   <div class="sg-glass sg-notfound">

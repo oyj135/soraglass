@@ -248,7 +248,7 @@ function sg_stats(): array
 
 /**
  * 小站资讯卡数据（对齐 Fomalhaut card_webinfo 新版）：
- * KPI 总字数 / 篇均字 / 友链 + 已运行 / 距上次发文 / 更新 + 年度产出柱状（最多近 8 年）与写作日数。
+ * KPI 总字数 / 篇均字 / 友链 + 已运行 / 距上次发文 / 更新 + 年度产出柱状（固定最近三年）与写作日数。
  * 复用现有 sg_total_words / sg_uptime / sg_json；文章时间一次查全在 PHP 侧聚合。
  * 访客数 / 总访问量不在这里算：页脚 busuanzi 镜像异步回写 DOM。任何一步失败都回退默认值，绝不让首页 500。
  */
@@ -289,16 +289,13 @@ function sg_webinfo(): array
     }
 
     $bars = [];
-    if ($years) {
-        /* 年度产出（2026-11-16 第三轮）：范围始终含当前年——今年还没发文也要露出 0；
-           区间内缺年一律补 0，最多 8 年。 */
-        $maxYear = max(max(array_keys($years)), (int) date('Y'));
-        $minYear = max(min(array_keys($years)), $maxYear - 7);
-        for ($y = $minYear; $y <= $maxYear; ++$y) {
-            $bars[] = ['year' => $y, 'count' => $years[$y] ?? 0];
-        }
-    } else {
-        $bars[] = ['year' => (int) date('Y'), 'count' => 0];
+    /* 年度产出（2026-11-17 调整）：固定展示最近三年，当前年恒在列，
+       没有文章的年份计 0（柱子由 side-webinfo.php 渲染成 4px 半透明占位）；
+       不再按历史发文年向前扩散的旧口径（最多近 8 年）。 */
+    $maxYear = (int) date('Y');
+    $minYear = $maxYear - 2;
+    for ($y = $minYear; $y <= $maxYear; ++$y) {
+        $bars[] = ['year' => $y, 'count' => $years[$y] ?? 0];
     }
 
     $avg = $posts > 0 ? (int) round($words / $posts) : 0;

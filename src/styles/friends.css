@@ -1,51 +1,95 @@
-/* 恢复原友链卡结构：头像、名称、在线标记和简介；列间静态错位。 */
-.sg-friend-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; align-items: start; }
-.sg-friend-cell { min-width: 0; }
-.sg-friend {
+/* 友链页（2026-11-17 重构，逐参数对齐 Fomalhaut _flink_style/butterfly.styl）：
+   三栏 90px 小卡，左侧 60px 圆头像；hover 时底层色块自中心 scale(0)→scale(1) 放大、
+   头像 margin-left:-10px + width:0 收窄隐去，名称/简介单行截断 —— 交互与源站一致。
+   材质仍走 Soraglass 玻璃 token：卡面 var(--sg-card)、hover 层叠主题色。
+   断点：≤1024 两栏、≤600 单栏（同源站 maxWidth1024 / maxWidth600）。 */
+.sg-flink-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 15px;
+}
+@media (max-width: 1024px) { .sg-flink-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .sg-flink-list { grid-template-columns: minmax(0, 1fr); } }
+
+.sg-flink-item {
+  position: relative;
+  height: 90px;
+  overflow: hidden;
+  border: 1px solid var(--sg-card-border);
+  border-radius: 8px;
+  background: var(--sg-card);
+  -webkit-backdrop-filter: blur(var(--sg-blur-card));
+  backdrop-filter: blur(var(--sg-blur-card));
+  line-height: 17px;
+  transition: border-color var(--sg-dur-fast) linear;
+}
+
+/* hover 底层色块：从中心放大（源站 :before + text-bg-hover 同构） */
+.sg-flink-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: color-mix(in srgb, var(--sg-accent-ink) 10%, var(--sg-card-strong));
+  transform: scale(0);
+  transition: transform .3s ease-out;
+}
+.sg-flink-item:is(:hover, :focus-within)::before { transform: scale(1); }
+.sg-flink-item:is(:hover, :focus-within) { border-color: color-mix(in srgb, var(--sg-accent-ink) 35%, transparent); }
+
+.sg-flink-item > a {
+  position: relative;
+  z-index: 1;
   display: flex;
-  align-items: flex-start;
-  gap: 1.1rem;
-  min-height: 10rem;
-  padding: 1.35rem;
-  border-radius: var(--sg-radius-outer);
-  transition: transform var(--sg-dur-card) var(--sg-ease), box-shadow var(--sg-dur-card) var(--sg-ease), border-color var(--sg-dur-fast);
+  align-items: center;
+  height: 100%;
+  padding-inline: 14px 10px;
+  color: var(--sg-text);
 }
-.sg-friend:is(:hover, :focus-visible) { border-color: color-mix(in srgb, var(--sg-accent-ink) 35%, transparent); }
-.sg-friend-avatar {
-  flex-shrink: 0;
-  width: 3.75rem;
-  height: 3.75rem;
-  padding: 3px;
-  border-radius: 50%;
-  background: linear-gradient(to top right, var(--sg-ring-a), var(--sg-ring-b));
-  box-shadow: var(--sg-shadow-reading);
-  transition: transform var(--sg-dur-card) var(--sg-ease);
+
+/* 头像：60px 圆，hover 收窄隐去（源站 margin-left:-10px + width:0） */
+.sg-flink-icon {
+  flex: none;
+  overflow: hidden;
+  width: 60px;
+  height: 60px;
+  margin: 15px 10px;
+  border-radius: 35px;
+  background: var(--sg-chip);
+  transition: width .3s ease-out, margin .3s ease-out;
 }
-.sg-friend-avatar img { display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: var(--sg-reading-surface); }
-.sg-friend:is(:hover, :focus-visible) .sg-friend-avatar { transform: rotate(-6deg); }
-.sg-friend-main { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: .5rem; }
-.sg-friend-head { display: flex; flex-direction: column; gap: .25rem; }
-.sg-friend-name { font-size: 1.15rem; font-weight: 700; line-height: 1.5; overflow-wrap: anywhere; transition: color var(--sg-dur-fast); }
-.sg-friend:is(:hover, :focus-visible) .sg-friend-name { color: var(--sg-accent-ink); }
-.sg-friend-status { display: inline-flex; align-items: center; gap: .3rem; font-family: var(--font-sans); font-size: 9px; font-weight: 700; letter-spacing: .12em; color: var(--sg-accent-ink); }
-.sg-friend-status i { width: 5px; height: 5px; border-radius: 50%; }
-.sg-friend-desc { font-size: .84rem; line-height: 1.8; color: var(--sg-muted); overflow-wrap: anywhere; }
-@media (min-width: 640px) {
-  .sg-friend-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .sg-friend-cell:nth-child(2n) { padding-top: 1.25rem; }
+.sg-flink-icon img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.sg-flink-item:is(:hover, :focus-within) .sg-flink-icon { width: 0; margin-left: -10px; }
+
+.sg-flink-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
 }
-@media (min-width: 1024px) {
-  .sg-friend-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; }
-  .sg-friend-cell:nth-child(2n) { padding-top: 0; }
-  .sg-friend-cell:nth-child(3n+2) { padding-top: 1.5rem; }
-  .sg-friend-cell:nth-child(3n) { padding-top: .75rem; }
+.sg-flink-name {
+  font-weight: 700;
+  font-size: 1.15rem;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color var(--sg-dur-fast) linear;
 }
-@media (max-width: 639px) {
-  .sg-friend { min-height: 0; padding: 1.1rem; gap: .9rem; }
-  .sg-friend-avatar { width: 3rem; height: 3rem; padding: 2px; }
-  .sg-friend-name { font-size: 1rem; }
+.sg-flink-item:is(:hover, :focus-within) .sg-flink-name { color: var(--sg-accent-ink); }
+.sg-flink-desc {
+  font-family: var(--font-sans);
+  font-size: .85rem;
+  line-height: 1.5;
+  color: var(--sg-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-@media (hover: none), (prefers-reduced-motion: reduce) {
-  .sg-friend:is(:hover, :focus-visible, :active),
-  .sg-friend:is(:hover, :focus-visible) .sg-friend-avatar { transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sg-flink-item::before { transition: none; }
+  .sg-flink-icon { transition: none; }
 }

@@ -37,7 +37,24 @@ try {
     ob_start();
     $this->widget('Widget_Archive@sg_home_list', 'pageSize=' . ($sgHomeListLimit + count($sgNoteCids)) . '&type=index')->to($sgList);
     while ($sgList->next()) {
-        if (in_array((int) $sgList->cid, $sgNoteCids, true)) {
+        /* 碎语过滤（2026-11-17 加固）：优先用预查的 cid 集合（分类 slug=notes/name=碎语
+           + 标签同约定）；集合里没有但行内分类命中的也剔 —— 两道闸，不让碎语混进列表。 */
+        $sgRowIsNote = in_array((int) $sgList->cid, $sgNoteCids, true);
+        if (!$sgRowIsNote) {
+            try {
+                foreach ((array) $sgList->categories as $sgRowCat) {
+                    $sgRowCatName = is_array($sgRowCat) ? trim((string) ($sgRowCat['name'] ?? '')) : '';
+                    $sgRowCatSlug = is_array($sgRowCat) ? trim((string) ($sgRowCat['slug'] ?? '')) : '';
+                    if ($sgRowCatName === '碎语' || $sgRowCatSlug === 'notes') {
+                        $sgRowIsNote = true;
+                        break;
+                    }
+                }
+            } catch (\Throwable $e) {
+                /* 行内分类取不到时只退回 cid 集合，不阻塞整张列表 */
+            }
+        }
+        if ($sgRowIsNote) {
             continue;
         }
         ++$sgHomeListCount;

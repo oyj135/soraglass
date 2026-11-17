@@ -117,7 +117,8 @@ html.dark .sg-search-input {
 .sg-hero-side .sg-stat-num { font-size: 1.25rem; }
 .sg-hero-side .sg-stat-label { font-size: .6875rem; letter-spacing: 0; }
 .sg-home-stories { margin-top: 0; }
-.sg-main[data-sg-page="index"] .sg-briefing { margin-top: var(--sg-space-section); }
+/* 三卡同距（2026-11-17）：AI 日报不再额外加 section 级上边距，
+   与相册/碎语的 1.25rem 栈间距保持一致 —— 用户反馈「三张卡片间距不一致」就出在这。 */
 
 /* 实底阅读面：原生归档与文章共用，边框 / 阴影均从 token 派生。 */
 .sg-reading-surface,
@@ -219,7 +220,7 @@ html.dark .sg-search-input {
 html.dark .sg-nav { background: var(--sg-card); border-bottom-color: var(--sg-reading-border); }
 .sg-filter-btn { min-height: 2.25rem; font-family: var(--font-sans); font-weight: 500; }
 .sg-project-meta { line-height: 1.8; }
-.sg-project:active, .sg-friend:active { transform: translateY(-1px); }
+.sg-project:active { transform: translateY(-1px); }
 .sg-social[title] { position: relative; }
 .sg-social[title]::after {
   content: attr(title);
@@ -261,10 +262,10 @@ html.dark .sg-nav { background: var(--sg-card); border-bottom-color: var(--sg-re
   .sg-article.sg-reading-surface .sg-prose h2 { font-size: 1.75rem; }
 }
 @media (hover: none) {
-  .sg-project:is(:hover, :focus-within, :active), .sg-friend:is(:hover, :active) { transform: none; }
+  .sg-project:is(:hover, :focus-within, :active) { transform: none; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .sg-project:is(:hover, :focus-within, :active), .sg-friend:is(:hover, :active),
+  .sg-project:is(:hover, :focus-within, :active),
   .sg-hero-cover .sg-post-slide:hover .sg-slide-cover,
   .sg-reading-list .sg-post-card:hover .sg-thumb img { transform: none; }
 }

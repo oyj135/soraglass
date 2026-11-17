@@ -1355,6 +1355,13 @@ function sg_adjacent_post($archive, string $direction = 'prev'): ?array
             $query->where('table.contents.created < ?', time());
         }
 
+        /* 碎语隔离（2026-11-17）：上一篇/下一篇只在普通文章之间流转，
+           碎语分类与「碎语」标签命中的 cid 一律剔除（与首页列表同一份集合）。 */
+        $sgSkipCids = array_values(array_filter(array_map('intval', array_merge(sg_note_cids(), sg_chatter_tag_cids()))));
+        if ($sgSkipCids) {
+            $query->where('table.contents.cid NOT IN (' . implode(',', $sgSkipCids) . ')');
+        }
+
         $query->order('table.contents.created', $isPrev ? \Typecho\Db::SORT_DESC : \Typecho\Db::SORT_ASC)->limit(1);
 
         $content = \Widget\Contents\From::allocWithAlias(
