@@ -980,17 +980,10 @@ html.dark .sg-music-controls .sg-music-play:hover {
 
 html.dark .sg-music-controls .sg-music-mute.is-active { color: var(--sg-accent-soft); }
 
-/* 音量：默认收起，hover / 键盘聚焦展开（纯 CSS 宽度过渡），音乐页独有，保留。 */
+/* 音量组（2026-11-17 第七轮）：静音键 + 音量合并成 .sg-music-sound ——
+   平时只显示静音键，悬停/键盘聚焦该组时音量从右侧滑出；
+   收起/展开的具体过渡在 player-art.css 里。 */
 .sg-music-volume { position: relative; display: flex; align-items: center; gap: .4rem; }
-
-.sg-music-volume input {
-  width: 0;
-  opacity: 0;
-  transition: width var(--sg-dur-card) var(--sg-ease), opacity var(--sg-dur-card) var(--sg-ease);
-}
-
-.sg-music-volume:hover input,
-.sg-music-volume:focus-within input { width: 5rem; opacity: 1; }
 
 /* 右侧面板：歌词 / 歌单 */
 .sg-music-side { display: flex; flex-direction: column; overflow: hidden; padding: 0; min-height: 0; }
@@ -2076,22 +2069,21 @@ html.dark .sg-i-moon { display: inline-flex; }
 
 /* ---------- 文章页 ---------- */
 
-/* 文章页顶部（2026-11-17 第六轮）：背景图移除，回到 Fomalhaut not-top-img 的
-   #post > #post-info 形态 —— 标题左对齐、normal 字重、2.5em、下缘 border-bottom
-   （padding-bottom 4px）；元信息两行 #78818a 灰（95% 字号），图标保留彩色
-   （日历黄、其余蓝，与源站彩色 meta 图标一致）。 */
-.sg-post-head {
-  padding: 2.25rem 1.5rem 0;
-  text-align: left;
+/* 文章页顶部（2026-11-17 第七轮）：与源站 not-top-img 的 #post-info 一致 ——
+   全宽透明横幅直接压在 fixed 壁纸上（不渲染封面图），标题居中白字、加粗
+   （源站 custom.css 对 h1.post-title 挂 font-weight:bold），夜间霓虹发光；
+   元信息两行居中、#78818a 灰（95% 字号）、图标彩色（日历黄、其余蓝）。 */
+.sg-post-banner {
+  padding: 4.5rem 1.5rem 2rem;
+  text-align: center;
 }
-@media (min-width: 768px) { .sg-post-head { padding: 3rem 3rem 0; } }
+@media (min-width: 768px) { .sg-post-banner { padding: 6.5rem 3rem 2.75rem; } }
 
-.sg-post-head-title {
-  margin: 0 0 .5rem;
-  padding-bottom: .25rem;
-  border-bottom: 1px solid var(--sg-line);
+.sg-post-banner-title {
+  margin: 0 0 1rem;
+  color: #fff;
   font-size: clamp(1.75rem, 4vw, 2.5rem);
-  font-weight: 400;
+  font-weight: 700;
   line-height: 1.5;
   letter-spacing: 0;
   overflow-wrap: anywhere;
@@ -2099,15 +2091,23 @@ html.dark .sg-i-moon { display: inline-flex; }
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, .35);
 }
+/* 夜间发光：与首屏标题同一套霓虹呼吸（keyframes 就近定义，不跨文件依赖） */
+html.dark .sg-post-banner-title { text-shadow: none; animation: sg-post-neon 8s ease-in-out infinite; }
+@keyframes sg-post-neon {
+  0%, 100% { text-shadow: 0 0 6px color-mix(in srgb, var(--sg-accent-soft) 75%, transparent), 0 0 18px color-mix(in srgb, var(--sg-accent-soft) 45%, transparent), 0 0 42px color-mix(in srgb, var(--sg-accent) 30%, transparent); }
+  50% { text-shadow: 0 0 2px color-mix(in srgb, var(--sg-accent-soft) 60%, transparent), 0 0 8px color-mix(in srgb, var(--sg-accent-soft) 30%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) { html.dark .sg-post-banner-title { animation: none; } }
 
 /* 双行元信息（对齐 Fomalhaut #post > #post-meta：#78818a 灰、95% 字号；
-   图标彩色：日历黄、其余蓝） */
-.sg-post-head-meta { display: flex; flex-direction: column; align-items: flex-start; gap: .35rem; margin-bottom: 1.9rem; }
+   横幅内居中；图标彩色：日历黄、其余蓝） */
+.sg-post-banner-meta { display: flex; flex-direction: column; align-items: center; gap: .35rem; }
 .sg-post-meta-line {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
   gap: .35rem .6rem;
   font-family: var(--font-sans);
@@ -2281,7 +2281,7 @@ html.dark .sg-meta-chip.is-pink { color: var(--sg-warm-bright); }
 .sg-post-nav a:hover { color: var(--sg-accent-ink); }
 
 /* 正文排版 */
-.sg-prose { font-size: 1rem; line-height: 1.95; overflow-wrap: anywhere; }
+.sg-prose { font-size: 1rem; line-height: 2; overflow-wrap: anywhere; }
 @media (min-width: 768px) { .sg-prose { font-size: 1.0625rem; } }
 .sg-prose h2 { font-size: 1.4rem; margin: 2rem 0 .75rem; scroll-margin-top: 7rem; }
 .sg-prose h3 { font-size: 1.15rem; margin: 1.5rem 0 .5rem; scroll-margin-top: 7rem; }
@@ -3945,6 +3945,17 @@ html:not(.dark) .sg-heat-cell[data-level="4"] { background: #35616b; }
 
 .sg-archive-tags { margin-bottom: .25rem; }
 .sg-archive-tags .sg-filter-btn { cursor: pointer; }
+
+/* 标签胶囊彩色（2026-11-17，对齐源站彩色标签）：PHP 侧按标签名注入 --sg-tag-c，
+   同名永远同色；选中态仍走下方 is-active 的主题色实心，不被彩色覆盖。 */
+.sg-archive-tags .sg-filter-btn:not(.is-active) {
+  color: var(--sg-tag-c, var(--sg-text));
+  border-color: color-mix(in srgb, var(--sg-tag-c, #64748b) 45%, transparent);
+  background: color-mix(in srgb, var(--sg-tag-c, #64748b) 12%, transparent);
+}
+.sg-archive-tags .sg-filter-btn:not(.is-active):is(:hover, :focus-visible) {
+  background: color-mix(in srgb, var(--sg-tag-c, #64748b) 28%, transparent);
+}
 
 /* 知识档案分页条（2026-11-16 第二十轮）：服务端分页，按钮是真实 <a> 链接。
    形态对齐 Fomalhaut #pagination：圆形页码、当前页主题色实心白字、hover 变色、

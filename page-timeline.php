@@ -119,6 +119,11 @@ $sgTagUrl = static function (string $tag) use ($sgKeyword): string {
     if ($sgKeyword !== '') { $sgQuery['k'] = $sgKeyword; }
     return '?' . (($sgQuery) ? http_build_query($sgQuery) : '');
 };
+// 标签胶囊配色（2026-11-17，对齐源站彩色标签）：按标签名 md5 稳定取色，同名永远同色。
+$sgTagPalette = ['#36cfc9', '#5ba0f0', '#b37feb', '#f5b942', '#ff85c0', '#4cc38a', '#ff9f43', '#ff6b6b', '#69c0ff', '#95de64'];
+$sgTagColor = static function (string $name) use ($sgTagPalette): string {
+    return $sgTagPalette[hexdec(md5($name)) % count($sgTagPalette)];
+};
 
 $sgSub = sg_page_sub($this, '总计 ' . $sgTotal . ' 篇研究记录');
 if ($sgTotal !== count($sgAllPosts)) {
@@ -146,7 +151,7 @@ $sgHead = [
       <a class="sg-filter-btn<?php echo $sgAllActive ? ' is-active' : ''; ?>" href="<?php echo sg_e($sgTagUrl('')); ?>"<?php echo $sgAllActive ? ' aria-current="page"' : ''; ?>>全部档案</a>
       <?php foreach ($sgTagStats as $sgSlug => $sgStat) : ?>
       <?php $sgOn = ($sgActiveTag === (string) $sgSlug); ?>
-      <a class="sg-filter-btn<?php echo $sgOn ? ' is-active' : ''; ?>" href="<?php echo sg_e($sgTagUrl((string) $sgSlug)); ?>"<?php echo $sgOn ? ' aria-current="page"' : ''; ?>><?php echo sg_e($sgStat['name']); ?><span class="sg-filter-count"><?php echo (int) $sgStat['count']; ?></span></a>
+      <a class="sg-filter-btn<?php echo $sgOn ? ' is-active' : ''; ?>" style="--sg-tag-c: <?php echo $sgTagColor((string) $sgStat['name']); ?>" href="<?php echo sg_e($sgTagUrl((string) $sgSlug)); ?>"<?php echo $sgOn ? ' aria-current="page"' : ''; ?>><?php echo sg_e($sgStat['name']); ?><span class="sg-filter-count"><?php echo (int) $sgStat['count']; ?></span></a>
       <?php endforeach; ?>
     </nav>
   </div>
@@ -205,8 +210,6 @@ $sgHead = [
     ?>
     <?php if ($sgPrev) : ?>
     <a class="sg-page-btn sg-page-btn--nav" href="<?php echo sg_e($sgUrl($sgPrev)); ?>" rel="prev" aria-label="上一页"><?php echo sg_icon('chevron-left'); ?></a>
-    <?php else : ?>
-    <span class="sg-page-btn sg-page-btn--nav is-disabled" aria-disabled="true" aria-label="上一页"><?php echo sg_icon('chevron-left'); ?></span>
     <?php endif; ?>
 
     <?php for ($sgP = 1; $sgP <= $sgTotalPages; $sgP++) : ?>
@@ -219,11 +222,8 @@ $sgHead = [
 
     <?php if ($sgNext) : ?>
     <a class="sg-page-btn sg-page-btn--nav" href="<?php echo sg_e($sgUrl($sgNext)); ?>" rel="next" aria-label="下一页"><?php echo sg_icon('chevron-right'); ?></a>
-    <?php else : ?>
-    <span class="sg-page-btn sg-page-btn--nav is-disabled" aria-disabled="true" aria-label="下一页"><?php echo sg_icon('chevron-right'); ?></span>
     <?php endif; ?>
   </nav>
-  <p class="sg-page-status" aria-live="polite">第 <?php echo $sgCurrentPage; ?> / <?php echo $sgTotalPages; ?> 页</p>
   <?php endif; ?>
 
   <?php if (!$sgAllPosts) : ?>

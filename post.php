@@ -64,34 +64,36 @@ $sgNext = sg_adjacent_post($this, 'next');
   <?php /* 文章页顶部（2026-11-17 第六轮）：背景图移除（用户反馈），回到
          Fomalhaut not-top-img 的 #post > #post-info 形态 —— 标题左对齐、
          normal 字重、下缘分隔线；元信息两行 #78818a 灰，图标保留彩色。 */ ?>
-  <article class="sg-glass sg-article sg-reading-surface">
-    <header class="sg-post-head">
-      <h1 class="sg-post-head-title"><?php echo sg_e($sgArticleTitle !== '' ? $sgArticleTitle : '未命名文章'); ?></h1>
-      <div class="sg-post-head-meta">
-        <div class="sg-post-meta-line">
-          <?php if ($sgSticky) : ?>
-          <span class="sg-post-meta-item sg-post-meta-pin" title="置顶"><?php echo sg_icon('bookmark'); ?>置顶</span>
-          <span class="sg-post-meta-sep" aria-hidden="true">|</span>
-          <?php endif; ?>
-          <time class="sg-post-meta-item is-date" datetime="<?php $this->date('c'); ?>" title="<?php $this->date('Y-m-d H:i'); ?>"><?php echo sg_icon('calendar'); ?>发表于 <?php echo sg_e($sgPostedAgo !== '' ? $sgPostedAgo : $this->date('Y-m-d')); ?></time>
-          <?php if ($sgUpdated !== '') : ?>
-          <span class="sg-post-meta-sep" aria-hidden="true">|</span>
-          <span class="sg-post-meta-item is-updated" title="更新于 <?php echo sg_e($sgUpdated); ?>"><?php echo sg_icon('history'); ?>更新于 <?php echo sg_e($sgUpdatedAgo !== '' ? $sgUpdatedAgo : $sgUpdated); ?></span>
-          <?php endif; ?>
-          <?php foreach ($sgCats as $sgCat) : ?>
-          <span class="sg-post-meta-sep" aria-hidden="true">|</span>
-          <a class="sg-post-meta-item is-cate sg-post-meta-cate" href="<?php echo sg_e($sgCat['permalink']); ?>"><?php echo sg_icon('tag'); ?><?php echo sg_e($sgCat['name']); ?></a>
-          <?php endforeach; ?>
-        </div>
-        <div class="sg-post-meta-line">
-          <span class="sg-post-meta-item is-word"><?php echo sg_icon('type'); ?>字数总计: <?php echo (int) $sgRead['chars']; ?></span>
-          <span class="sg-post-meta-sep" aria-hidden="true">|</span>
-          <span class="sg-post-meta-item is-time"><?php echo sg_icon('clock'); ?>阅读时长: <?php echo (int) $sgRead['minutes']; ?>分钟</span>
-          <span class="sg-post-meta-sep" aria-hidden="true">|</span>
-          <span class="sg-post-meta-item is-views"><?php echo sg_icon('eye'); ?>阅读量: <?php if ($sgViews !== '') : ?><?php echo sg_e($sgViews); ?><?php else : ?><span id="busuanzi_value_page_pv">—</span><?php endif; ?></span>
-        </div>
+  <?php /* 文章页顶部（2026-11-17 第七轮）：与源站一致 —— 全宽透明横幅压在 fixed 壁纸上，
+         不渲染封面图；标题居中白字（夜间霓虹发光），元信息两行居中、#78818a 灰、彩色图标。 */ ?>
+  <header class="sg-post-banner">
+    <h1 class="sg-post-banner-title"><?php echo sg_e($sgArticleTitle !== '' ? $sgArticleTitle : '未命名文章'); ?></h1>
+    <div class="sg-post-banner-meta">
+      <div class="sg-post-meta-line">
+        <?php if ($sgSticky) : ?>
+        <span class="sg-post-meta-item sg-post-meta-pin" title="置顶"><?php echo sg_icon('bookmark'); ?>置顶</span>
+        <span class="sg-post-meta-sep" aria-hidden="true">|</span>
+        <?php endif; ?>
+        <time class="sg-post-meta-item is-date" datetime="<?php $this->date('c'); ?>" title="<?php $this->date('Y-m-d H:i'); ?>"><?php echo sg_icon('calendar'); ?>发表于 <?php echo sg_e($sgPostedAgo !== '' ? $sgPostedAgo : $this->date('Y-m-d')); ?></time>
+        <?php if ($sgUpdated !== '') : ?>
+        <span class="sg-post-meta-sep" aria-hidden="true">|</span>
+        <span class="sg-post-meta-item is-updated" title="更新于 <?php echo sg_e($sgUpdated); ?>"><?php echo sg_icon('history'); ?>更新于 <?php echo sg_e($sgUpdatedAgo !== '' ? $sgUpdatedAgo : $sgUpdated); ?></span>
+        <?php endif; ?>
+        <?php foreach ($sgCats as $sgCat) : ?>
+        <span class="sg-post-meta-sep" aria-hidden="true">|</span>
+        <a class="sg-post-meta-item is-cate sg-post-meta-cate" href="<?php echo sg_e($sgCat['permalink']); ?>"><?php echo sg_icon('tag'); ?><?php echo sg_e($sgCat['name']); ?></a>
+        <?php endforeach; ?>
       </div>
-    </header>
+      <div class="sg-post-meta-line">
+        <span class="sg-post-meta-item is-word"><?php echo sg_icon('type'); ?>字数总计: <?php echo (int) $sgRead['chars']; ?></span>
+        <span class="sg-post-meta-sep" aria-hidden="true">|</span>
+        <span class="sg-post-meta-item is-time"><?php echo sg_icon('clock'); ?>阅读时长: <?php echo (int) $sgRead['minutes']; ?>分钟</span>
+        <span class="sg-post-meta-sep" aria-hidden="true">|</span>
+        <span class="sg-post-meta-item is-views"><?php echo sg_icon('eye'); ?>阅读量: <?php if ($sgViews !== '') : ?><?php echo sg_e($sgViews); ?><?php else : ?><span id="busuanzi_value_page_pv">—</span><?php endif; ?></span>
+      </div>
+    </div>
+  </header>
+  <article class="sg-glass sg-article sg-reading-surface">
     <div class="sg-article-body">
       <a class="sg-back" href="<?php echo sg_e($sgBack); ?>"><?php echo sg_icon('arrow-left'); ?><?php echo sg_e($sgBackLabel); ?></a>
       <?php if ($sgLead !== '') : ?><p class="sg-lead"><?php echo sg_e($sgLead); ?></p><?php endif; ?>

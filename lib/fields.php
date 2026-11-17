@@ -717,10 +717,12 @@ function sg_home_articles(int $limit = 2): array
                 $text = \Utils\Markdown::convert(substr($text, 15));
             }
             $own = $fields[$cid] ?? [];
-            /* 引号摘要（2026-11-17 对齐源站）：只取 description 自定义字段 ——
-               Fomalhaut 首页卡的图片文字就是 description（index_post_content method 1），
-               不是正文摘录；没填就不显示，封面保持干净。 */
+            /* 引号摘要（2026-11-17）：description 自定义字段优先 —— 填了就是自定义文案；
+               没填则退回正文自动摘要（前 48 字），保证卡片文字始终可见。 */
             $quote = trim((string) ($own['description'] ?? ''));
+            if ($quote === '') {
+                $quote = sg_notes_excerpt($text);
+            }
             if (function_exists('mb_strlen') && mb_strlen($quote, 'UTF-8') > 48) {
                 $quote = mb_substr($quote, 0, 48, 'UTF-8') . '…';
             }
@@ -1292,10 +1294,25 @@ function sg_notes_query(int $limit): array
  */
 function sg_card_desc($archive): string
 {
-    /* 2026-11-17 对齐源站：卡片图片上的文字 = description 自定义字段（index_post_content
-       method 1），不是正文摘录 —— 没填就不显示，封面保持干净；站长可在后台字段里控制。 */
+    /* 2026-11-17：description 自定义字段优先（自定义文案）；没填则回正文自动摘要 ——
+       源站的文字本质就是「有 description 用 description」，
+       这里多一层兑底让卡片文字始终可见。 */
     $custom = sg_field($archive, 'description', '');
     $quote = trim(strip_tags($custom));
+    if ($quote === '') {
+        try {
+            $db = \Typecho\Db::get();
+            $p = $db->getPrefix();
+            $row = $db->fetchRow('SELECT text FROM ' . $p . 'contents WHERE cid = ' . (int) $archive->cid);
+            $text = (string) ($row['text'] ?? '');
+            if (strncmp($text, '<!--markdown-->', 15) === 0) {
+                $text = \Utils\Markdown::convert(substr($text, 15));
+            }
+            $quote = sg_notes_excerpt($text);
+        } catch (\Throwable $e) {
+            $quote = '';
+        }
+    }
     if (function_exists('mb_strlen') && mb_strlen($quote, 'UTF-8') > 48) {
         $quote = mb_substr($quote, 0, 48, 'UTF-8') . '…';
     }
