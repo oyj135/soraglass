@@ -16,6 +16,21 @@
 .sg-curated-count{font:11px/1.6 var(--font-sans);color:var(--sg-faint);white-space:nowrap}.sg-curated-count>span{font-size:1.2rem;margin-left:.6rem;color:var(--sg-accent-ink)}
 .sg-gallery-search-results{margin-top:2.5rem}.sg-gallery-search-results h2{font-size:1.3rem;margin-bottom:1.2rem}.sg-gallery-search-results h2 span{font-size:.8rem;color:var(--sg-muted);margin-left:.6rem}
 [data-sg-gallery] .sg-gallery-masonry{columns:3;column-gap:1.25rem}
+
+/* fj-gallery（Fomalhaut 画廊）等高行排版（2026-11-17）：gallery.ts 逐行打包后绝对定位，
+   图片 object-fit:cover 填满格子；图注改为 hover 浮出的底部渐变层（fj-gallery 观感）。 */
+[data-sg-gallery] .sg-gallery-masonry.is-justified{display:block;position:relative}
+[data-sg-gallery] .sg-gallery-masonry.is-justified .sg-photo{position:absolute;margin:0;overflow:hidden;border-radius:4px;background:var(--sg-chip)}
+[data-sg-gallery] .sg-gallery-masonry.is-justified .sg-photo img{width:100%;height:100%;max-height:none;object-fit:cover;border-radius:0}
+[data-sg-gallery] .sg-gallery-masonry.is-justified .sg-photo--file .sg-photo-file-label{position:absolute;inset:0;min-height:0;align-items:center;justify-content:center}
+[data-sg-gallery] .sg-gallery-masonry.is-justified .sg-photo-caption{position:absolute;inset:auto 0 0 0;padding:1.6rem .7rem .55rem;background:linear-gradient(transparent,rgba(4,18,24,.62));color:#fff;opacity:0;transform:translateY(4px);transition:opacity .18s linear,transform .18s linear}
+[data-sg-gallery] .sg-gallery-masonry.is-justified .sg-photo-caption time{color:rgba(255,255,255,.75)}
+[data-sg-gallery] .sg-gallery-masonry.is-justified .sg-photo:is(:hover,:focus-visible) .sg-photo-caption{opacity:1;transform:none}
+
+/* 懒加载换装淡入（源站 coverIn 同观感） */
+img.is-lazy-in{animation:sg-cover-in .8s ease-out forwards}
+@keyframes sg-cover-in{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){img.is-lazy-in{animation:none}[data-sg-gallery] .sg-gallery-masonry.is-justified .sg-photo-caption{transition:none}}
 [data-sg-gallery] .sg-photo{display:block;border:0;background:transparent;padding:0;border-radius:0;overflow:hidden;margin-bottom:1.75rem;break-inside:avoid;color:var(--sg-text);text-decoration:none;aspect-ratio:auto;box-shadow:none}
 [data-sg-gallery] .sg-photo img{width:auto;max-width:100%;height:auto;max-height:850px;object-fit:contain;min-height:0;display:block;margin-inline:auto;border-radius:3px;transform:none;transition:none}
 [data-sg-gallery] .sg-back,[data-sg-gallery] .sg-gallery-detail-count{background:transparent;border:0;box-shadow:none;padding-inline:0}

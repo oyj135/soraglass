@@ -92,6 +92,12 @@ html.dark .sg-nav {
 
 .sg-nav-link:hover { color: var(--sg-accent-ink); opacity: 1; }
 
+/* 导航条目图标（2026-11-17）：内联 SVG 与文字同行，激活态随链接色走。 */
+.sg-nav-link { display: inline-flex; align-items: center; gap: .4rem; }
+.sg-nav-more-link, .sg-sheet-link { display: flex; align-items: center; gap: .45rem; }
+.sg-nav-ico { flex: none; width: 1em; height: 1em; opacity: .8; }
+.sg-nav-link.is-active .sg-nav-ico, .sg-nav-more-link.is-active .sg-nav-ico, .sg-sheet-link.is-active .sg-nav-ico { opacity: 1; }
+
 .sg-nav-link.is-active { color: var(--sg-accent-ink); opacity: 1; }
 html.dark .sg-nav-link.is-active { color: var(--sg-accent-ink); }
 
@@ -2055,76 +2061,31 @@ html.dark .sg-i-moon { display: inline-flex; }
 
 /* ---------- 文章页 ---------- */
 
-/* 头图 Banner（2026-11-17，逐参数对齐 Fomalhaut #page-header.post-bg + #post-info）：
-   全宽 400px（移动 360px）头图独立于正文卡，标题/元信息压在下部（bottom 100px），
-   深色遮罩 alpha(dark-black,.5) 保证白字可读；底部四层白色海浪是日间模式的分割线，
-   夜间整体隐藏（源站 [data-theme=dark] 同做法）。类名统一用 .sg-post-hero 前缀——
-   首页主区早已占用 .sg-hero / .sg-hero-cover，务必隔离，勿改回同名。 */
-.sg-post-hero {
-  position: relative;
-  isolation: isolate;
-  z-index: 2;
-  width: 100vw;
-  margin-inline: calc(50% - 50vw);
-  height: 400px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  overflow: visible; /* 海浪 bottom:-11px 要垂到头图外，不能被裁 */
-  background: linear-gradient(135deg, var(--sg-accent-deep), #16343a);
-}
-@media (max-width: 768px) { .sg-post-hero { height: 360px; } }
-
-.sg-post-hero-cover {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: -2;
-}
-.sg-post-hero-scrim {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  /* Fomalhaut post-bg :before 是 alpha($dark-black, .5) 的均匀压暗 */
-  background: rgba(0, 0, 0, .5);
-}
-.sg-post-hero-inner {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  max-width: 72rem;
-  margin-inline: auto;
-  padding: 0 8% 6.25rem; /* Fomalhaut #post-info bottom:100px = 6.25rem */
-  color: var(--sg-hero-ink);
+/* 文章页顶部（2026-11-17 第三轮）：改用 Fomalhaut #page-header.not-top-img 的
+   无头图形态 —— 全站壁纸是唯一背景层，文章页不再叠第二张头图。
+   标题/元信息回到正文卡内：标题居中、下缘一条浅分隔线
+   （对齐 #post > #post-info .post-title 的 border-bottom），元信息灰色小字两行。 */
+.sg-post-head {
+  padding: 2.25rem 1.5rem 1.25rem;
   text-align: center;
 }
-@media (max-width: 900px) {
-  .sg-post-hero-inner { text-align: left; padding-bottom: 4.5rem; }
-}
-@media (max-width: 768px) {
-  .sg-post-hero-inner { padding: 0 22px 3.5rem; }
-}
+@media (min-width: 768px) { .sg-post-head { padding: 3rem 3rem 1.25rem; } }
 
-.sg-post-hero-title {
-  margin: 0 0 .75rem;
-  font-size: clamp(1.75rem, 4vw, 2.5rem); /* Fomalhaut 2.5em */
-  font-weight: 500; /* Fomalhaut post-title 是 normal，这里留一档宋体骨架 */
+.sg-post-head-title {
+  margin: 0 auto .9rem;
+  max-width: 46rem;
+  padding-bottom: .65rem;
+  border-bottom: 1px solid var(--sg-line);
+  font-size: clamp(1.5rem, 3.2vw, 2.25rem);
+  font-weight: 700;
   line-height: 1.5;
   letter-spacing: -.01em;
   text-wrap: balance;
   overflow-wrap: anywhere;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, .35);
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
-@media (max-width: 768px) { .sg-post-hero-title { font-size: 2.1rem; } }
 
-/* 双行元信息（对齐 Fomalhaut post-meta：纯文本 + 图标 + 竖线，不再用胶囊） */
-.sg-post-hero-meta { display: flex; flex-direction: column; align-items: center; gap: .55rem; }
+/* 双行元信息（对齐 Fomalhaut #post > #post-meta：纯文本 + 图标 + 竖线，#78818a 同档灰） */
+.sg-post-head-meta { display: flex; flex-direction: column; align-items: center; gap: .5rem; }
 .sg-post-meta-line {
   display: flex;
   flex-wrap: wrap;
@@ -2134,48 +2095,15 @@ html.dark .sg-i-moon { display: inline-flex; }
   font-family: var(--font-sans);
   font-size: .8125rem;
   line-height: 1.5;
-  color: var(--sg-hero-ink-soft);
-  text-shadow: 0 1px 8px rgba(0, 0, 0, .4);
+  color: var(--sg-muted);
 }
 .sg-post-meta-item { display: inline-flex; align-items: center; gap: .35rem; }
 .sg-post-meta-item svg { width: .9rem; height: .9rem; flex: none; }
-.sg-post-meta-pin { color: var(--sg-hero-ic-update); }
+.sg-post-meta-pin { color: var(--sg-warm-bright); }
 .sg-post-meta-cate { color: inherit; text-decoration: none; border-bottom: 1px dashed transparent; transition: color .25s, border-color .25s; }
-.sg-post-meta-cate:hover { color: var(--sg-hero-ink); border-bottom-color: currentColor; }
+.sg-post-meta-cate:hover { color: var(--sg-accent-ink); border-bottom-color: currentColor; }
 .sg-post-meta-sep { opacity: .45; }
 @media (max-width: 571.98px) { .sg-post-meta-sep { display: none; } }
-
-/* 四层白色海浪（2026-11-17，逐参数对齐 Fomalhaut gentle-wave / .main-hero-waves-area）：
-   同一条 path 叠四层，透明度递减 + 错相位横移，最下一层实底接住正文；
-   填色用源站 #f7f9fe 系列（日间近白），夜间整块隐藏。
-   bottom:-11px 垂到头图外，形成「海浪线分割」。 */
-.sg-post-hero-waves {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -11px;
-  z-index: 5;
-  height: 5rem;
-  pointer-events: none;
-}
-@media (max-width: 768px) { .sg-post-hero-waves { height: 40px; min-height: 40px; } }
-.sg-waves-svg { display: block; width: 100%; height: 5rem; }
-@media (max-width: 768px) { .sg-waves-svg { height: 40px; min-height: 40px; } }
-.sg-waves-parallax > use { animation: sg-wave-move 25s cubic-bezier(.55, .5, .45, .5) infinite; }
-.sg-waves-parallax > use:nth-child(1) { fill: #f7f9febd; animation-delay: -2s; animation-duration: 7s; }
-.sg-waves-parallax > use:nth-child(2) { fill: #f7f9fe82; animation-delay: -3s; animation-duration: 10s; }
-.sg-waves-parallax > use:nth-child(3) { fill: #f7f9fe36; animation-delay: -4s; animation-duration: 13s; }
-.sg-waves-parallax > use:nth-child(4) { fill: #f7f9fe; animation-delay: -5s; animation-duration: 20s; }
-@keyframes sg-wave-move { 0% { transform: translate3d(-90px, 0, 0); } 100% { transform: translate3d(85px, 0, 0); } }
-html.dark .sg-post-hero-waves { display: none; }
-@media (prefers-reduced-motion: reduce) { .sg-waves-parallax > use { animation: none; } }
-
-html.dark .sg-post-hero-scrim {
-  background: linear-gradient(to top, rgba(4, 16, 18, .92) 0%, rgba(6, 22, 25, .66) 42%, rgba(8, 28, 31, .3) 100%);
-}
-
-/* 文章页主容器：头图顶到视口顶（导航悬浮其上），正文卡与侧栏在头图之下。 */
-.sg-main--post { padding-top: 0; gap: 1rem; }
 
 .sg-article { flex: 1; min-width: 0; overflow: hidden; padding: 0; }
 .sg-article.sg-glass { background: var(--sg-card-strong); box-shadow: var(--sg-shadow-strong); }

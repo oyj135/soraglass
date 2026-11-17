@@ -8,9 +8,9 @@
  * 留空时取对应壁纸组第 2 张，日间组不足两张再兜底内置 bg-2.svg，
  * 保证首屏与正文背景默认不是同一张图。站名/副标题/社交复用后台已有设置项。
  */
-$sgFrontWalls = sg_wallpapers();
-$sgFrontLight = sg_bg_url(trim((string) sg_opt('sgFrontImg', ''))) ?: ($sgFrontWalls['light'][1] ?? sg_theme_url('dist/img/bg-2.svg'));
-$sgFrontDark  = sg_bg_url(trim((string) sg_opt('sgFrontImgDark', ''))) ?: ($sgFrontWalls['dark'][1] ?? ($sgFrontWalls['dark'][0] ?? sg_theme_url('dist/img/bg-1.svg')));
+$sgFrontBg = sg_front_bg();
+$sgFrontLight = $sgFrontBg['light'];
+$sgFrontDark  = $sgFrontBg['dark'];
 $sgFrontName  = sg_opt('sgNavTitle', (string) $this->options->title);
 $sgFrontAfter = sg_opt('sgNavAfter', '空璃');
 $sgFrontSub   = (string) $this->options->description;

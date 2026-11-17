@@ -16,6 +16,7 @@ import { initHome } from './modules/home';
 import { initRightside } from './modules/rightside';
 import { initNeko } from './modules/neko';
 import { initScrollbar } from './modules/scrollbar';
+import { initLazyload } from './modules/lazyload';
 
 /**
  * 单独兜住每个模块的异常。
@@ -52,6 +53,7 @@ function mountPage(): void {
   safe('rightside', initRightside);
   safe('neko', initNeko);
   safe('scrollbar', initScrollbar);
+  safe('lazyload', initLazyload);
 }
 function boot(): void {
   mountPage(); safe('effects', initEffects); initNavigation(mountPage);

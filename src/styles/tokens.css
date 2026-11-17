@@ -358,6 +358,10 @@ html.dark {
 
   :focus-visible { outline: 2px solid var(--sg-accent); outline-offset: 2px; }
 
+  /* 文字选区（对齐 Fomalhaut ::selection）：主题色底 + 白字，暗色下用亮青 */
+  ::selection { color: #fff; background-color: var(--sg-accent); }
+  html.dark ::selection { color: var(--sg-page); background-color: var(--sg-accent-2); }
+
   /* 安全网：内联 SVG 未写 width/height 时按 1em 渲染。
      @layer base 优先级低于组件层，各处的显式尺寸规则仍然生效。 */
   svg:not([width]) { width: 1em; height: 1em; }

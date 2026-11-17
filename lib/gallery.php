@@ -1,5 +1,16 @@
 <?php
 /** Theme bridge; storage and administration belong to the independent plugin. */
+
+/**
+ * 懒加载占位（2026-11-17，对齐 Fomalhaut post_lazyload.js / vanilla-lazyload 链路）：
+ * src 恒为 1px 透明 GIF，真实地址放 data-lazy-src，前端 IntersectionObserver
+ * 进入视口前才换真实地址 —— 画廊一次几十张缩略图不再全部随页面下载。
+ */
+function sg_lazy_src(): string
+{
+    return 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+}
+
 function sg_gallery_plugin(): bool
 {
     if (!class_exists('Typecho\\Plugin') || !isset(\Typecho\Plugin::export()['activated']['SoraglassGallery'])) { return false; }

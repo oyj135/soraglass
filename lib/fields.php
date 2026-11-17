@@ -752,6 +752,25 @@ function sg_is_note(int $cid): bool
 }
 
 /**
+ * 首页 100vh 首屏用的两张背景图（日/夜，2026-11-17 抽成公共函数）。
+ *
+ * 逻辑与 home-front.php 原实现一致：后台「首屏图」设置优先（sgFrontImg / sgFrontImgDark），
+ * 留空时取对应壁纸组第 2 张（与正文首张错开），不足再兜底内置 svg。
+ * header.php 用它把首屏这张图从正文壁纸轮播里剔除 —— 首屏与正文不再共用同一张图
+ * （用户反馈「首屏和首页正文共用一张背景图片」）。
+ *
+ * @return array{light:string, dark:string}
+ */
+function sg_front_bg(): array
+{
+    $walls = sg_wallpapers();
+    return [
+        'light' => sg_bg_url(trim((string) sg_opt('sgFrontImg', ''))) ?: ($walls['light'][1] ?? sg_theme_url('dist/img/bg-2.svg')),
+        'dark'  => sg_bg_url(trim((string) sg_opt('sgFrontImgDark', ''))) ?: ($walls['dark'][1] ?? ($walls['dark'][0] ?? sg_theme_url('dist/img/bg-1.svg'))),
+    ];
+}
+
+/**
  * 打了「碎语」标签的全部文章 cid（静态缓存，失败回空数组）。
  * 有的站碎语不走分类而是打标签，首页最新文章列表要把两种写法都剔出去；
  * 标签按 name='碎语' 或 slug='notes' 认，与分类的约定缩略名保持一致。

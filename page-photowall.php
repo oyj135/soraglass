@@ -35,10 +35,10 @@ $sgHead = ['title' => (string) $this->title, 'sub' => sg_page_sub($this, '在光
       <a class="sg-curated-album" href="?album=<?php echo sg_e($album['id']); ?>" data-sg-album="<?php echo sg_e($album['id']); ?>" data-keywords="<?php echo sg_e($keywords); ?>">
         <div class="sg-curated-image">
           <?php if ($album['coverThumb'] !== ''): ?><div class="sg-album-stack">
-          <?php foreach ([1, 0] as $sgBack): ?><span class="sg-album-paper sg-album-paper--<?php echo $sgBack; ?>" aria-hidden="true"><img src="<?php echo sg_e($album['stack'][$sgBack] ?? $album['coverThumb']); ?>" alt="" loading="lazy" decoding="async"></span><?php endforeach; ?>
+          <?php foreach ([1, 0] as $sgBack): ?><span class="sg-album-paper sg-album-paper--<?php echo $sgBack; ?>" aria-hidden="true"><img src="<?php echo sg_e(sg_lazy_src()); ?>" data-lazy-src="<?php echo sg_e($album['stack'][$sgBack] ?? $album['coverThumb']); ?>" alt="" decoding="async"></span><?php endforeach; ?>
           <div class="sg-album-front">
           <?php endif; ?>
-          <?php if ($album['coverThumb'] !== ''): ?><img src="<?php echo sg_e($album['coverThumb']); ?>" alt="<?php echo sg_e($album['title']); ?>" loading="<?php echo $i === 0 ? 'eager' : 'lazy'; ?>" decoding="async" <?php if ($coverWidth && $coverHeight) echo 'width="' . $coverWidth . '" height="' . $coverHeight . '"'; ?>><?php else: ?><span class="sg-curated-no-preview">原文件收藏</span><?php endif; ?>
+          <?php if ($album['coverThumb'] !== ''): ?><img src="<?php echo sg_e(sg_lazy_src()); ?>" data-lazy-src="<?php echo sg_e($album['coverThumb']); ?>" alt="<?php echo sg_e($album['title']); ?>" decoding="async" <?php if ($coverWidth && $coverHeight) echo 'width="' . $coverWidth . '" height="' . $coverHeight . '"'; ?>><?php else: ?><span class="sg-curated-no-preview">原文件收藏</span><?php endif; ?>
           <?php if ($album['coverThumb'] !== ''): ?><span class="sg-album-open"><?php echo $album['count']; ?> 张照片 · 打开相册</span></div></div><?php endif; ?>
         </div>
         <div class="sg-curated-meta"><div><?php if ($featured): ?><span class="sg-curated-featured">精选相册</span><?php endif; ?><span class="sg-curated-date"><?php echo sg_e($album['date'] ?: '时间未标记'); ?></span><h2><?php echo sg_e($album['title']); ?></h2><?php if ($album['description'] !== ''): ?><p><?php echo sg_e($album['description']); ?></p><?php endif; ?></div><span class="sg-curated-count"><?php echo $album['count']; ?> 张 <span aria-hidden="true">↗</span></span></div>
@@ -60,7 +60,7 @@ $sgHead = ['title' => (string) $this->title, 'sub' => sg_page_sub($this, '在光
     <div class="sg-gallery-masonry" data-sg-photo-group>
       <?php foreach ($sgPhotoPage['photos'] as $photo): $cap = $photo['caption'] ?: $album['title']; ?>
       <a class="sg-photo<?php echo !$photo['preview'] ? ' sg-photo--file' : ''; ?>" href="<?php echo sg_e($photo['url']); ?>" <?php echo $photo['preview'] ? 'data-sg-photo' : 'target="_blank" rel="noopener noreferrer"'; ?> data-search-photo data-keywords="<?php echo sg_e($cap . ' ' . $photo['date'] . ' ' . $album['title'] . ' ' . $album['description']); ?>">
-        <?php if ($photo['preview']): ?><img src="<?php echo sg_e($photo['thumb']); ?>" alt="<?php echo sg_e($cap); ?>" loading="lazy" decoding="async" <?php if ($photo['width'] && $photo['height']) echo 'width="' . $photo['width'] . '" height="' . $photo['height'] . '"'; ?>><?php else: ?><span class="sg-photo-file-label">打开原文件 ↗</span><?php endif; ?>
+        <?php if ($photo['preview']): ?><img src="<?php echo sg_e(sg_lazy_src()); ?>" data-lazy-src="<?php echo sg_e($photo['thumb']); ?>" alt="<?php echo sg_e($cap); ?>" decoding="async" <?php if ($photo['width'] && $photo['height']) echo 'width="' . $photo['width'] . '" height="' . $photo['height'] . '"'; ?>><?php else: ?><span class="sg-photo-file-label">打开原文件 ↗</span><?php endif; ?>
         <span class="sg-photo-caption"><b><?php echo sg_e($cap); ?></b><?php if ($photo['date']): ?><time><?php echo sg_e($photo['date']); ?></time><?php endif; ?></span>
       </a>
       <?php endforeach; ?>

@@ -85,6 +85,26 @@ $sgNavHints = [
     'timeline' => '按主题整理的知识条目',
 ];
 
+/* 导航图标（2026-11-17，对齐 Fomalhaut 菜单带图标的形态）：
+   按缩略名映射内联 SVG（lib/icons.php）；未命中的页面不显示图标，保持干净。 */
+$sgNavIconMap = [
+    'archives'  => 'archive',
+    'timeline'  => 'book-open',
+    'notes'     => 'message',
+    'chatter'   => 'message',
+    'moments'   => 'message',
+    'music'     => 'music',
+    'photowall' => 'image',
+    'gallery'   => 'image',
+    'friends'   => 'users',
+    'about'     => 'user',
+    'projects'  => 'code',
+];
+$sgNavIcon = static function (string $sgSlug) use ($sgNavIconMap): string {
+    $sgName = $sgNavIconMap[$sgSlug] ?? '';
+    return $sgName !== '' ? sg_icon($sgName, 'sg-nav-ico') : '';
+};
+
 /* P1-11：导航分组——条目过多时尾部收进「更多」下拉，避免顶栏溢出换行。
    顶栏最多 8 个位置：首页 + 6 个页面 + 「更多」；移动端圆盘不受影响，仍平铺全部。 */
 $sgNavMax = 8;
@@ -107,9 +127,9 @@ foreach ($sgNavMore as $sgMorePage) {
   <div class="sg-nav-inner">
     <a class="sg-brand" href="<?php echo sg_e($sgHome); ?>"><?php echo sg_e($sgBrandTitle); ?><span class="sg-brand-accent"><?php echo sg_e($sgBrandSuffix); ?></span><?php echo sg_e($sgBrandAfter); ?></a>
     <nav class="sg-nav-links" aria-label="主导航">
-      <a class="sg-nav-link<?php echo $sgActive === 'index' ? ' is-active' : ''; ?>"<?php echo $sgActive === 'index' ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgHome); ?>">首页<?php if ($sgActive === 'index') : ?><span class="sg-nav-dot"></span><?php endif; ?></a>
+      <a class="sg-nav-link<?php echo $sgActive === 'index' ? ' is-active' : ''; ?>"<?php echo $sgActive === 'index' ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgHome); ?>"><?php echo sg_icon('home', 'sg-nav-ico'); ?>首页<?php if ($sgActive === 'index') : ?><span class="sg-nav-dot"></span><?php endif; ?></a>
       <?php foreach ($sgNavPrimary as $sgPage) : ?>
-      <a class="sg-nav-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>"<?php echo $sgActiveKey === $sgPage['slug'] ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgPage['url']); ?>"<?php echo isset($sgNavHints[$sgPage['slug']]) ? ' title="' . sg_e($sgNavHints[$sgPage['slug']]) . '"' : ''; ?>><?php echo sg_e($sgPage['title']); ?><?php if ($sgActiveKey === $sgPage['slug']) : ?><span class="sg-nav-dot"></span><?php endif; ?></a>
+      <a class="sg-nav-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>"<?php echo $sgActiveKey === $sgPage['slug'] ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgPage['url']); ?>"<?php echo isset($sgNavHints[$sgPage['slug']]) ? ' title="' . sg_e($sgNavHints[$sgPage['slug']]) . '"' : ''; ?>><?php echo $sgNavIcon($sgPage['slug']); ?><?php echo sg_e($sgPage['title']); ?><?php if ($sgActiveKey === $sgPage['slug']) : ?><span class="sg-nav-dot"></span><?php endif; ?></a>
       <?php endforeach; ?>
       <?php if ($sgNavMore) : ?>
       <div class="sg-nav-more<?php echo $sgMoreActive ? ' is-active' : ''; ?>" data-sg-nav-more>
@@ -119,7 +139,7 @@ foreach ($sgNavMore as $sgMorePage) {
         </button>
         <div class="sg-nav-more-menu" role="menu">
           <?php foreach ($sgNavMore as $sgPage) : ?>
-          <a class="sg-nav-more-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>"<?php echo $sgActiveKey === $sgPage['slug'] ? ' aria-current="page"' : ''; ?> role="menuitem" href="<?php echo sg_e($sgPage['url']); ?>"<?php echo isset($sgNavHints[$sgPage['slug']]) ? ' title="' . sg_e($sgNavHints[$sgPage['slug']]) . '"' : ''; ?>><?php echo sg_e($sgPage['title']); ?></a>
+          <a class="sg-nav-more-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>"<?php echo $sgActiveKey === $sgPage['slug'] ? ' aria-current="page"' : ''; ?> role="menuitem" href="<?php echo sg_e($sgPage['url']); ?>"<?php echo isset($sgNavHints[$sgPage['slug']]) ? ' title="' . sg_e($sgNavHints[$sgPage['slug']]) . '"' : ''; ?>><?php echo $sgNavIcon($sgPage['slug']); ?><?php echo sg_e($sgPage['title']); ?></a>
           <?php endforeach; ?>
         </div>
       </div>
@@ -135,9 +155,9 @@ foreach ($sgNavMore as $sgMorePage) {
 
 <div class="sg-sheet" id="sg-sheet" data-sg-sheet aria-hidden="true">
   <div class="sg-sheet-panel">
-    <a class="sg-sheet-link<?php echo $sgActive === 'index' ? ' is-active' : ''; ?>"<?php echo $sgActive === 'index' ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgHome); ?>">首页</a>
+    <a class="sg-sheet-link<?php echo $sgActive === 'index' ? ' is-active' : ''; ?>"<?php echo $sgActive === 'index' ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgHome); ?>"><?php echo sg_icon('home', 'sg-nav-ico'); ?>首页</a>
     <?php foreach ($sgNavItems as $sgPage) : ?>
-    <a class="sg-sheet-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>"<?php echo $sgActiveKey === $sgPage['slug'] ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgPage['url']); ?>"<?php echo isset($sgNavHints[$sgPage['slug']]) ? ' title="' . sg_e($sgNavHints[$sgPage['slug']]) . '"' : ''; ?>><?php echo sg_e($sgPage['title']); ?></a>
+    <a class="sg-sheet-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>"<?php echo $sgActiveKey === $sgPage['slug'] ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgPage['url']); ?>"<?php echo isset($sgNavHints[$sgPage['slug']]) ? ' title="' . sg_e($sgNavHints[$sgPage['slug']]) . '"' : ''; ?>><?php echo $sgNavIcon($sgPage['slug']); ?><?php echo sg_e($sgPage['title']); ?></a>
     <?php endforeach; ?>
     <hr class="sg-divider">
     <button class="sg-sheet-link" type="button" data-sg-theme-toggle><?php echo sg_icon('sun', 'sg-i-sun'); ?><?php echo sg_icon('moon', 'sg-i-moon'); ?> 切换昼夜</button>

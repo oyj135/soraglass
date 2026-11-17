@@ -6,6 +6,9 @@ interface Album { id: string; title: string; description: string; date: string; 
 interface AlbumPage { albums: Album[]; total: number; page: number; pages: number; openAlbum?: Album }
 interface PhotoPage { photos: Photo[]; total: number; page: number; pages: number }
 
+/** 懒加载占位：1px 透明 GIF（Fomalhaut post_lazyload.js 同款） */
+const LAZY_PLACEHOLDER = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
 export function initGallery(): void {
   const root = document.querySelector<HTMLElement>('[data-sg-gallery]');
   if (!root) return;
@@ -37,10 +40,14 @@ export function initGallery(): void {
     finally { clearTimeout(timer); signal?.removeEventListener('abort', abort); pageAbort.removeEventListener('abort', abort); }
   }
   function image(src: string, original: string, alt: string, width = 0, height = 0): HTMLImageElement {
-    const img = node('img'); img.src = src || original; img.alt = alt; img.loading = 'lazy'; img.decoding = 'async';
+    /* 懒加载（2026-11-17，Fomalhaut vanilla-lazyload 同链路）：src 先给占位 GIF，
+       真实地址放 data-lazy-src，由 modules/lazyload.ts 进入视口前换装。 */
+    const img = node('img'); img.src = LAZY_PLACEHOLDER; img.alt = alt; img.decoding = 'async';
+    img.dataset.lazySrc = src || original;
     if (width > 0 && height > 0) { img.width = width; img.height = height; }
     let fallback = false; img.addEventListener('error', () => {
-      if (!fallback && original && img.src !== original) { fallback = true; img.src = original; }
+      const pending = img.dataset.lazySrc ?? '';
+      if (!fallback && original && pending !== original) { fallback = true; img.dataset.lazySrc = original; img.src = original; }
       else { img.hidden = true; img.parentElement?.append(node('span', '暂无法预览，可打开原文件', 'sg-curated-no-preview')); }
     }); return img;
   }
@@ -69,6 +76,47 @@ export function initGallery(): void {
     link.append(p.preview ? image(p.thumb, p.url, caption, p.width, p.height) : node('span', '打开原文件 ↗', 'sg-photo-file-label'));
     const info = node('span', '', 'sg-photo-caption'); info.append(node('b', caption)); if (p.date) info.append(node('time', p.date)); link.append(info); return link;
   }
+  /* fj-gallery（Fomalhaut 画廊）同款等高行排版（2026-11-17）：
+     按图片宽高比逐行打包，行高 = 行宽 / 行内比例和，图片以 object-fit:cover 填满格子；
+     最后一行不强行拉满（fj-gallery 同取舍）。尺寸来自后台记录的 width/height，
+     排版不依赖图片加载完成；无尺寸的条目按 1.45 平均比例占位。 */
+  function justifyGroup(box: HTMLElement): void {
+    const items = Array.from(box.querySelectorAll<HTMLElement>('.sg-photo'));
+    if (!items.length) return;
+    const gap = 14, width = box.clientWidth;
+    if (width <= 0) return;
+    const target = width >= 700 ? 250 : width >= 460 ? 210 : 170;
+    const ratio = (el: HTMLElement): number => {
+      const img = el.querySelector('img');
+      const w = Number(img?.getAttribute('width')) || 0, h = Number(img?.getAttribute('height')) || 0;
+      return w > 0 && h > 0 ? w / h : 1.45;
+    };
+    box.classList.add('is-justified');
+    box.style.position = 'relative';
+    const rows: HTMLElement[][] = [];
+    let row: HTMLElement[] = [];
+    let sum = 0;
+    for (const el of items) {
+      row.push(el); sum += ratio(el);
+      if (sum >= width / target) { rows.push(row); row = []; sum = 0; }
+    }
+    if (row.length) rows.push(row);
+    let top = 0;
+    rows.forEach((r, ri) => {
+      const sumR = r.reduce((acc, el) => acc + ratio(el), 0);
+      const isLast = ri === rows.length - 1;
+      const h = isLast && sumR < width / target ? target : (width - gap * (r.length - 1)) / sumR;
+      let left = 0;
+      for (const el of r) {
+        const w = ratio(el) * h;
+        el.style.left = `${left}px`; el.style.top = `${top}px`;
+        el.style.width = `${w}px`; el.style.height = `${h}px`;
+        left += w + gap;
+      }
+      top += h + gap;
+    });
+    box.style.height = `${top}px`;
+  }
   function makeDetail(a: Album): HTMLElement {
     const section = node('section', '', 'sg-gallery-detail'); section.dataset.sgGalleryDetail = a.id; section.dataset.loaded = '0'; section.hidden = true;
     const top = node('div', '', 'sg-gallery-detail-top'), back = node('a', '← 返回画廊', 'sg-back'); back.href = '?'; back.dataset.sgGalleryBack = '';
@@ -87,6 +135,7 @@ export function initGallery(): void {
     try {
       const data = await read<PhotoPage>('gallery-photos', { album: section.dataset.sgGalleryDetail!, page }), box = section.querySelector<HTMLElement>('[data-sg-photo-group]')!;
       if (page === 1) box.replaceChildren(); box.append(...data.photos.map(p => photoCard(p, known.get(p.album))));
+      justifyGroup(box);
       section.dataset.loaded = '1'; section.dataset.photoPage = String(data.page); section.dataset.photoPages = String(data.pages);
       section.querySelector<HTMLButtonElement>('[data-gallery-photos-more]')!.hidden = data.page >= data.pages; initLightbox();
     } finally { section.setAttribute('aria-busy', 'false'); photoLoads.delete(section); }
@@ -103,6 +152,7 @@ export function initGallery(): void {
       }
       if (version !== routeVersion) return;
       list!.hidden = Boolean(detail); root!.querySelectorAll<HTMLElement>('[data-sg-gallery-detail]').forEach(d => { d.hidden = d !== detail; });
+      if (detail && detail.dataset.loaded === '1') { const g = detail.querySelector<HTMLElement>('[data-sg-photo-group]'); if (g) justifyGroup(g); }
       if (head) head.hidden = Boolean(detail); if (empty && detail) empty.hidden = true;
       if (push) { const url = new URL(location.href); if (detail) url.searchParams.set('album', id); else url.searchParams.delete('album'); history.pushState(null, '', url); }
       if (detail) { lastAlbum = id; if (detail.dataset.loaded !== '1') { message('正在读取照片…'); await loadPhotos(detail); } }
@@ -121,6 +171,7 @@ export function initGallery(): void {
       if (version !== searchVersion) return;
       renderAlbums(a.albums); albumPage = a.page; albumPages = a.pages; searchPage = p.page; searchPages = p.pages;
       results?.replaceChildren(...p.photos.map(photo => photoCard(photo, known.get(photo.album), true)));
+      if (results && p.total) justifyGroup(results);
       const count = root!.querySelector('[data-sg-gallery-photos-count]'); if (count) count.textContent = `${p.total} 张`;
       if (found) found.hidden = !p.total; if (empty) empty.hidden = a.total > 0 || p.total > 0;
       if (moreAlbums) moreAlbums.hidden = a.page >= a.pages; if (moreSearch) moreSearch.hidden = p.page >= p.pages; message();
@@ -140,7 +191,7 @@ export function initGallery(): void {
   });
   moreSearch?.addEventListener('click', async () => {
     moreSearch!.disabled = true; const version = searchVersion;
-    try { const data = await read<PhotoPage>('gallery-search', { page: searchPage + 1, q: query }); if (version !== searchVersion) return; results?.append(...data.photos.map(p => photoCard(p, known.get(p.album), true))); searchPage = data.page; searchPages = data.pages; moreSearch!.hidden = searchPage >= searchPages; }
+    try { const data = await read<PhotoPage>('gallery-search', { page: searchPage + 1, q: query }); if (version !== searchVersion) return; results?.append(...data.photos.map(p => photoCard(p, known.get(p.album), true))); if (results) justifyGroup(results); searchPage = data.page; searchPages = data.pages; moreSearch!.hidden = searchPage >= searchPages; }
     catch (e) { message(e instanceof Error ? e.message : '读取失败'); } finally { moreSearch!.disabled = false; }
   });
   let timer = 0; const schedule = (): void => { clearTimeout(timer); timer = pageTimeout(() => { void search(); }, 200); };
@@ -151,5 +202,11 @@ export function initGallery(): void {
     const a = img.closest<HTMLElement>('[data-sg-album]'), original = a ? known.get(a.dataset.sgAlbum!)?.cover : img.closest<HTMLAnchorElement>('[data-sg-photo]')?.href;
     let retried = false; img.addEventListener('error', () => { if (!retried && original && img.src !== original) { retried = true; img.src = original; } else { img.hidden = true; img.parentElement?.append(node('span', '暂无法预览', 'sg-curated-no-preview')); } });
   });
+  /* 首屏就打开的相册（?album=）：服务端已渲染照片，直接排一次等高行；
+     窗口尺寸变化时对可见相册重排。 */
+  const justifyVisible = (): void => { root.querySelectorAll<HTMLElement>('[data-sg-photo-group]').forEach(box => { const sec = box.closest<HTMLElement>('[data-sg-gallery-detail]'); if (!sec?.hidden) justifyGroup(box); }); };
+  justifyVisible();
+  let rzTimer = 0;
+  pageOn(window, 'resize', () => { clearTimeout(rzTimer); rzTimer = pageTimeout(justifyVisible, 180); });
   void route(new URL(location.href).searchParams.get('album') || '');
 }

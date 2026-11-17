@@ -10,6 +10,23 @@ $sgOwnBg = '';
 try { $sgOwnBg = trim((string) ($this->fields->sgBg ?? '')); } catch (\Throwable $e) { /* 归档页无自定义字段 */ }
 $sgWallpapers = sg_wallpapers($sgOwnBg);
 
+/* 首屏去重（2026-11-17）：首页 100vh 首屏固定显示 sg_front_bg() 那张图，
+   把它从正文壁纸轮播里剔除 —— 否则滚动过首屏又会看到同一张图
+   （用户反馈「首屏和首页正文共用一张背景图片」）。
+   只在首页且无单页 sgBg 覆盖时生效；剔除后某组为空则保留原组，宁可比重复也别空。 */
+if ($this->is('index') && $sgOwnBg === '') {
+    $sgFrontBg = sg_front_bg();
+    foreach (['light', 'dark'] as $sgMode) {
+        $sgKeep = array_values(array_filter(
+            $sgWallpapers[$sgMode],
+            static function (string $sgUrl) use ($sgFrontBg, $sgMode): bool { return $sgUrl !== $sgFrontBg[$sgMode]; }
+        ));
+        if ($sgKeep !== []) {
+            $sgWallpapers[$sgMode] = $sgKeep;
+        }
+    }
+}
+
 $sgVeil = (string) sg_opt('sgBgVeil', 'mid');
 if (!in_array($sgVeil, ['soft', 'mid', 'strong'], true)) {
     $sgVeil = 'mid';
