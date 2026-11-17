@@ -63,7 +63,7 @@ $sgHead = [
 
         <div class="sg-music-sound">
           <button type="button" class="sg-music-mute" data-sg-mute aria-label="静音"><?php echo sg_icon('volume'); ?></button>
-          <div class="sg-music-volume"><label for="sg-music-volume">音量</label><input id="sg-music-volume" class="sg-progress" type="range" min="0" max="100" value="80" data-sg-volume><output for="sg-music-volume" data-sg-volume-value>80%</output></div>
+          <div class="sg-music-volume"><input id="sg-music-volume" class="sg-progress" type="range" min="0" max="100" value="80" data-sg-volume aria-label="音量"></div>
         </div>
       </div>
     </section>
