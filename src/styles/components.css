@@ -2080,15 +2080,16 @@ html.dark .sg-i-moon { display: inline-flex; }
 }
 @media (min-width: 768px) { .sg-post-banner { padding: 6.5rem 3rem 1rem; } }
 
-/* 彩色波浪（2026-11-17，源站 main-hero-waves-area 同款 gentle-wave 四层视差，
-   配色改走青瓷 token：四层不同透明度的 accent/accent-2/accent-soft 叠色） */
-.sg-post-waves { flex: 0 0 100%; width: 100%; height: 4rem; margin-bottom: 1rem; }
+/* 彩虹波浪（2026-11-17，源站 main-hero-waves-area 同款 gentle-wave 四层视差）：
+   颜色改成彩虹渐变（SVG defs 里的 sg-rainbow，红→橙→黄→绿→青→蓝→紫，
+   四层不同透明度叠色）；width 100vw + 负外边距通栏，铺满整行视口宽度。 */
+.sg-post-waves { flex: 0 0 auto; width: 100vw; margin-left: calc(50% - 50vw); height: 4.5rem; margin-bottom: 1rem; }
 .sg-post-waves svg { width: 100%; height: 100%; }
 .sg-post-waves .parallax > use { animation: sg-wave-move 25s cubic-bezier(.55, .5, .45, .5) infinite; }
-.sg-post-waves .parallax > use:nth-child(1) { animation-delay: -2s; animation-duration: 7s; fill: color-mix(in srgb, var(--sg-accent-2) 60%, transparent); }
-.sg-post-waves .parallax > use:nth-child(2) { animation-delay: -3s; animation-duration: 10s; fill: color-mix(in srgb, var(--sg-accent-soft) 45%, transparent); }
-.sg-post-waves .parallax > use:nth-child(3) { animation-delay: -4s; animation-duration: 13s; fill: color-mix(in srgb, var(--sg-accent) 40%, transparent); }
-.sg-post-waves .parallax > use:nth-child(4) { animation-delay: -5s; animation-duration: 20s; fill: color-mix(in srgb, var(--sg-accent) 70%, transparent); }
+.sg-post-waves .parallax > use:nth-child(1) { animation-delay: -2s; animation-duration: 7s; }
+.sg-post-waves .parallax > use:nth-child(2) { animation-delay: -3s; animation-duration: 10s; }
+.sg-post-waves .parallax > use:nth-child(3) { animation-delay: -4s; animation-duration: 13s; }
+.sg-post-waves .parallax > use:nth-child(4) { animation-delay: -5s; animation-duration: 20s; }
 @keyframes sg-wave-move {
   0% { transform: translate3d(-90px, 0, 0); }
   100% { transform: translate3d(85px, 0, 0); }

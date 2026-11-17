@@ -97,12 +97,23 @@ $sgNext = sg_adjacent_post($this, 'next');
      gentle-wave 四层视差滑动，源站是白/黑单色，这里改走青瓷 token 彩色半透明）。 */ ?>
   <section class="sg-post-waves" aria-hidden="true">
     <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
-      <defs><path id="sg-gentle-wave" d="M -160 44 c 30 0 58 -18 88 -18 s 58 18 88 18 s 58 -18 88 -18 s 58 18 88 18 v 44 h -352 Z"/></defs>
+      <defs>
+        <path id="sg-gentle-wave" d="M -160 44 c 30 0 58 -18 88 -18 s 58 18 88 18 s 58 -18 88 -18 s 58 18 88 18 v 44 h -352 Z"/>
+        <linearGradient id="sg-rainbow" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="150" y2="0">
+          <stop offset="0" stop-color="#ff6b6b"/>
+          <stop offset=".16" stop-color="#ff9f43"/>
+          <stop offset=".33" stop-color="#f5b942"/>
+          <stop offset=".5" stop-color="#4cc38a"/>
+          <stop offset=".66" stop-color="#36cfc9"/>
+          <stop offset=".83" stop-color="#5ba0f0"/>
+          <stop offset="1" stop-color="#b37feb"/>
+        </linearGradient>
+      </defs>
       <g class="parallax">
-        <use href="#sg-gentle-wave" x="48" y="0"/>
-        <use href="#sg-gentle-wave" x="48" y="3"/>
-        <use href="#sg-gentle-wave" x="48" y="5"/>
-        <use href="#sg-gentle-wave" x="48" y="7"/>
+        <use href="#sg-gentle-wave" x="48" y="0" fill="url(#sg-rainbow)" fill-opacity=".5"/>
+        <use href="#sg-gentle-wave" x="48" y="3" fill="url(#sg-rainbow)" fill-opacity=".4"/>
+        <use href="#sg-gentle-wave" x="48" y="5" fill="url(#sg-rainbow)" fill-opacity=".5"/>
+        <use href="#sg-gentle-wave" x="48" y="7" fill="url(#sg-rainbow)" fill-opacity=".65"/>
       </g>
     </svg>
   </section>

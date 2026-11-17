@@ -258,6 +258,9 @@ html.dark {
   html {
     background-color: var(--sg-page);
     transition: background-color 1s;
+    /* 通栏元素（文章页彩虹波浪 100vw）会把内容撑到滚动条外，
+       关掉横向滚动避免 Windows 上出现横向滚动条。 */
+    overflow-x: hidden;
   }
 
   body {
