@@ -60,41 +60,59 @@ $sgSticky = (int) $this->sticky > 0;
 $sgPrev = sg_adjacent_post($this, 'prev');
 $sgNext = sg_adjacent_post($this, 'next');
 ?>
-<main id="sg-main" class="sg-main sg-article-layout" data-sg-page="post" data-sg-origin="<?php echo $sgIsNote ? 'note' : 'article'; ?>">
-  <?php /* 文章页顶部（2026-11-17 第三轮）：改用 Fomalhaut #page-header.not-top-img 的
-         无头图形态 —— 全站壁纸是唯一背景层，文章页不再叠第二张头图（用户反馈
-         「不去除会有两个背景图片」）。标题/元信息回到正文卡内：标题居中、
-         下缘一条浅分隔线（#post > #post-info .post-title 同构），元信息灰色小字两行。
-         标签仍在正文末尾。 */ ?>
-  <article class="sg-glass sg-article sg-reading-surface">
-    <header class="sg-post-head">
-      <h1 class="sg-post-head-title"><?php echo sg_e($sgArticleTitle !== '' ? $sgArticleTitle : '未命名文章'); ?></h1>
-      <div class="sg-post-head-meta">
+<main id="sg-main" class="sg-main sg-main--post" data-sg-page="post" data-sg-origin="<?php echo $sgIsNote ? 'note' : 'article'; ?>">
+  <?php /* 参考 Fomalhaut #page-header.post-bg + post-info（2026-11-17 第五轮）：
+         全宽 400px 头图，标题/元信息压在下部（bottom 100px，居中），
+         遮罩日间 .5 夜间 .7（darkmode.styl 同参数），
+         底部四层白色海浪是日间模式的分割线，夜间整块隐藏。
+         标签移到正文末尾。 */ ?>
+  <header class="sg-post-hero">
+    <img class="sg-post-hero-cover" src="<?php echo sg_e(sg_cover($this)); ?>" alt="" aria-hidden="true">
+    <span class="sg-post-hero-scrim" aria-hidden="true"></span>
+    <div class="sg-post-hero-inner">
+      <h1 class="sg-post-hero-title"><?php echo sg_e($sgArticleTitle !== '' ? $sgArticleTitle : '未命名文章'); ?></h1>
+      <div class="sg-post-hero-meta">
         <div class="sg-post-meta-line">
           <?php if ($sgSticky) : ?>
           <span class="sg-post-meta-item sg-post-meta-pin" title="置顶"><?php echo sg_icon('bookmark'); ?>置顶</span>
           <span class="sg-post-meta-sep" aria-hidden="true">|</span>
           <?php endif; ?>
-          <time class="sg-post-meta-item" datetime="<?php $this->date('c'); ?>" title="<?php $this->date('Y-m-d H:i'); ?>"><?php echo sg_icon('calendar'); ?>发表于 <?php echo sg_e($sgPostedAgo !== '' ? $sgPostedAgo : $this->date('Y-m-d')); ?></time>
+          <time class="sg-post-meta-item is-date" datetime="<?php $this->date('c'); ?>" title="<?php $this->date('Y-m-d H:i'); ?>"><?php echo sg_icon('calendar'); ?>发表于 <?php echo sg_e($sgPostedAgo !== '' ? $sgPostedAgo : $this->date('Y-m-d')); ?></time>
           <?php if ($sgUpdated !== '') : ?>
           <span class="sg-post-meta-sep" aria-hidden="true">|</span>
-          <span class="sg-post-meta-item" title="更新于 <?php echo sg_e($sgUpdated); ?>"><?php echo sg_icon('history'); ?>更新于 <?php echo sg_e($sgUpdatedAgo !== '' ? $sgUpdatedAgo : $sgUpdated); ?></span>
+          <span class="sg-post-meta-item is-updated" title="更新于 <?php echo sg_e($sgUpdated); ?>"><?php echo sg_icon('history'); ?>更新于 <?php echo sg_e($sgUpdatedAgo !== '' ? $sgUpdatedAgo : $sgUpdated); ?></span>
           <?php endif; ?>
           <?php foreach ($sgCats as $sgCat) : ?>
           <span class="sg-post-meta-sep" aria-hidden="true">|</span>
-          <a class="sg-post-meta-item sg-post-meta-cate" href="<?php echo sg_e($sgCat['permalink']); ?>"><?php echo sg_icon('tag'); ?><?php echo sg_e($sgCat['name']); ?></a>
+          <a class="sg-post-meta-item is-cate sg-post-meta-cate" href="<?php echo sg_e($sgCat['permalink']); ?>"><?php echo sg_icon('tag'); ?><?php echo sg_e($sgCat['name']); ?></a>
           <?php endforeach; ?>
         </div>
         <div class="sg-post-meta-line">
-          <span class="sg-post-meta-item"><?php echo sg_icon('type'); ?>字数总计: <?php echo (int) $sgRead['chars']; ?></span>
+          <span class="sg-post-meta-item is-word"><?php echo sg_icon('type'); ?>字数总计: <?php echo (int) $sgRead['chars']; ?></span>
           <span class="sg-post-meta-sep" aria-hidden="true">|</span>
-          <span class="sg-post-meta-item"><?php echo sg_icon('clock'); ?>阅读时长: <?php echo (int) $sgRead['minutes']; ?>分钟</span>
+          <span class="sg-post-meta-item is-time"><?php echo sg_icon('clock'); ?>阅读时长: <?php echo (int) $sgRead['minutes']; ?>分钟</span>
           <span class="sg-post-meta-sep" aria-hidden="true">|</span>
-          <span class="sg-post-meta-item"><?php echo sg_icon('eye'); ?>阅读量: <?php if ($sgViews !== '') : ?><?php echo sg_e($sgViews); ?><?php else : ?><span id="busuanzi_value_page_pv">—</span><?php endif; ?></span>
+          <span class="sg-post-meta-item is-views"><?php echo sg_icon('eye'); ?>阅读量: <?php if ($sgViews !== '') : ?><?php echo sg_e($sgViews); ?><?php else : ?><span id="busuanzi_value_page_pv">—</span><?php endif; ?></span>
         </div>
       </div>
-    </header>
-    <div class="sg-article-body">
+    </div>
+    <div class="sg-post-hero-waves" aria-hidden="true">
+      <svg class="sg-waves-svg" viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
+        <defs>
+          <path id="sg-gentle-wave" d="M -160 44 c 30 0 58 -18 88 -18 s 58 18 88 18 s 58 -18 88 -18 s 58 18 88 18 v 44 h -352 Z"/>
+        </defs>
+        <g class="sg-waves-parallax">
+          <use href="#sg-gentle-wave" x="48" y="0"/>
+          <use href="#sg-gentle-wave" x="48" y="3"/>
+          <use href="#sg-gentle-wave" x="48" y="5"/>
+          <use href="#sg-gentle-wave" x="48" y="7"/>
+        </g>
+      </svg>
+    </div>
+  </header>
+  <div class="sg-article-layout">
+    <article class="sg-glass sg-article sg-reading-surface">
+      <div class="sg-article-body">
       <a class="sg-back" href="<?php echo sg_e($sgBack); ?>"><?php echo sg_icon('arrow-left'); ?><?php echo sg_e($sgBackLabel); ?></a>
       <?php if ($sgLead !== '') : ?><p class="sg-lead"><?php echo sg_e($sgLead); ?></p><?php endif; ?>
       <div class="sg-prose" data-sg-article><?php echo $sgContent; ?></div>
@@ -130,6 +148,25 @@ $sgNext = sg_adjacent_post($this, 'next');
         <?php endif; ?>
       </nav>
       <?php endif; ?>
+
+      <?php $sgRelated = sg_related_posts($this, 6); if ($sgRelated) : ?>
+      <div class="sg-related">
+        <div class="sg-related-head"><?php echo sg_icon('thumbs-up'); ?>相关推荐</div>
+        <div class="sg-related-list">
+          <?php foreach ($sgRelated as $sgRel) : ?>
+          <div class="sg-related-cell">
+            <a class="sg-related-item" href="<?php echo sg_e($sgRel['url']); ?>" title="<?php echo sg_e($sgRel['title']); ?>">
+              <img src="<?php echo sg_e($sgRel['cover']); ?>" alt="" loading="lazy" referrerpolicy="no-referrer">
+              <div class="sg-related-content">
+                <div class="sg-related-date"><?php echo sg_icon('history'); ?><time><?php echo sg_e($sgRel['date']); ?></time></div>
+                <div class="sg-related-title"><?php echo sg_e($sgRel['title'] !== '' ? $sgRel['title'] : '未命名文章'); ?></div>
+              </div>
+            </a>
+          </div>
+          <?php endforeach; ?>
+        </div>
+      </div>
+      <?php endif; ?>
     </div>
   </article>
   <aside class="sg-aside">
@@ -141,5 +178,6 @@ $sgNext = sg_adjacent_post($this, 'next');
       <?php $this->need('partials/toc.php'); ?>
     </div>
   </aside>
+  </div>
 </main>
 <?php $this->need('footer.php'); ?>

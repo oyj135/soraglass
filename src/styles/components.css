@@ -92,9 +92,19 @@ html.dark .sg-nav {
 
 .sg-nav-link:hover { color: var(--sg-accent-ink); opacity: 1; }
 
-/* 导航条目图标（2026-11-17）：内联 SVG 与文字同行，激活态随链接色走。 */
-.sg-nav-link { display: inline-flex; align-items: center; gap: .4rem; }
+/* 导航条目图标（2026-11-17）：内联 SVG 与文字同行，激活态随链接色走。
+   悬浮背景胶囊（2026-11-17，对齐 Fomalhaut 菜单项 hover 背景）：
+   加水平 padding + 负 margin，背景胶囊外扩但布局间距不变。 */
+.sg-nav-link { display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .65rem; margin-inline: -.65rem; border-radius: .5rem; transition: color .3s, opacity .3s, background-color .25s linear; }
+.sg-nav-link:is(:hover, :focus-visible) { background: color-mix(in srgb, var(--sg-accent) 14%, transparent); }
+html.dark .sg-nav-link:is(:hover, :focus-visible) { background: color-mix(in srgb, var(--sg-accent-soft) 16%, transparent); }
 .sg-nav-more-link, .sg-sheet-link { display: flex; align-items: center; gap: .45rem; }
+.sg-nav-more-link { padding: .35rem .6rem; margin-inline: -.6rem; border-radius: .5rem; transition: background-color .25s linear; }
+.sg-nav-more-link:is(:hover, :focus-visible) { background: color-mix(in srgb, var(--sg-accent) 14%, transparent); }
+html.dark .sg-nav-more-link:is(:hover, :focus-visible) { background: color-mix(in srgb, var(--sg-accent-soft) 16%, transparent); }
+.sg-sheet-link { padding: .45rem .7rem; margin-inline: -.7rem; border-radius: 10px; transition: background-color .25s linear; }
+.sg-sheet-link:is(:hover, :focus-visible) { background: color-mix(in srgb, var(--sg-accent) 14%, transparent); }
+html.dark .sg-sheet-link:is(:hover, :focus-visible) { background: color-mix(in srgb, var(--sg-accent-soft) 16%, transparent); }
 .sg-nav-ico { flex: none; width: 1em; height: 1em; opacity: .8; }
 .sg-nav-link.is-active .sg-nav-ico, .sg-nav-more-link.is-active .sg-nav-ico, .sg-sheet-link.is-active .sg-nav-ico { opacity: 1; }
 
@@ -2061,22 +2071,63 @@ html.dark .sg-i-moon { display: inline-flex; }
 
 /* ---------- 文章页 ---------- */
 
-/* 文章页顶部（2026-11-17 第四轮，逐参数对齐 Fomalhaut not-top-img 的
-   #post > #post-info）：标题左对齐、font-weight normal、2.5em、行高 1.5，
-   下缘 border-bottom: 1px（padding-bottom 4px）；元信息两行 #78818a 灰
-   （95% 字号）；post-info 与正文间距 30px。 */
-.sg-post-head {
-  padding: 2.25rem 1.5rem 0;
-  text-align: left;
+/* 文章页顶部（2026-11-17 第五轮，逐参数对齐 Fomalhaut #page-header.post-bg + #post-info）：
+   全宽 400px（移动 360px）头图，标题/元信息压在下部（bottom 100px，居中）；
+   遮罩日间 alpha(dark-black,.5)、夜间 .7（darkmode.styl 同参数）；
+   底部四层白色海浪是日间模式的分割线，夜间整块隐藏（源站同做法）。
+   元信息图标彩色（源站 meta 图标即彩色：日历黄、其余蓝）。 */
+.sg-post-hero {
+  position: relative;
+  isolation: isolate;
+  z-index: 2;
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+  height: 400px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: visible; /* 海浪 bottom:-11px 要垂到头图外，不能被裁 */
+  background: linear-gradient(135deg, var(--sg-accent-deep), #16343a);
 }
-@media (min-width: 768px) { .sg-post-head { padding: 3rem 3rem 0; } }
+@media (max-width: 768px) { .sg-post-hero { height: 360px; } }
 
-.sg-post-head-title {
-  margin: 0 0 .5rem;
-  padding-bottom: .25rem;
-  border-bottom: 1px solid var(--sg-line);
-  font-size: clamp(1.75rem, 4vw, 2.5rem);
-  font-weight: 400;
+.sg-post-hero-cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -2;
+}
+.sg-post-hero-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  /* Fomalhaut post-bg :before = alpha($dark-black, .5)；夜间 darkmode.styl 加深到 .7 */
+  background: rgba(26, 28, 30, .5);
+}
+html.dark .sg-post-hero-scrim { background: rgba(16, 18, 20, .7); }
+.sg-post-hero-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding: 0 8% 6.25rem; /* Fomalhaut #post-info bottom:100px = 6.25rem */
+  color: var(--sg-hero-ink);
+  text-align: center;
+}
+@media (max-width: 900px) {
+  .sg-post-hero-inner { text-align: left; padding-bottom: 4.5rem; }
+}
+@media (max-width: 768px) {
+  .sg-post-hero-inner { padding: 0 22px 3.5rem; }
+}
+
+.sg-post-hero-title {
+  margin: 0 0 .75rem;
+  font-size: clamp(1.75rem, 4vw, 2.5rem); /* Fomalhaut 2.5em */
+  font-weight: 400; /* Fomalhaut post-title 是 normal */
   line-height: 1.5;
   letter-spacing: 0;
   overflow-wrap: anywhere;
@@ -2085,29 +2136,128 @@ html.dark .sg-i-moon { display: inline-flex; }
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+@media (max-width: 768px) { .sg-post-hero-title { font-size: 2.1rem; } }
 
-/* 双行元信息（对齐 Fomalhaut #post > #post-meta：#78818a 灰、95% 字号、
-   图标 margin-right 4px；纯文本 + 竖线分隔） */
-.sg-post-head-meta { display: flex; flex-direction: column; align-items: flex-start; gap: .35rem; margin-bottom: 1.9rem; }
+/* 双行元信息（对齐 Fomalhaut #post-meta：light-grey 灰白、95% 字号；
+   图标彩色：日历黄、其余蓝（源站 meta 图标即彩色）） */
+.sg-post-hero-meta { display: flex; flex-direction: column; align-items: center; gap: .5rem; }
 .sg-post-meta-line {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
   gap: .35rem .6rem;
   font-family: var(--font-sans);
   font-size: .95rem;
   line-height: 1.5;
-  color: #78818a;
+  color: var(--sg-hero-ink-soft);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, .4);
 }
-html.dark .sg-post-meta-line { color: #98a2ad; }
 .sg-post-meta-item { display: inline-flex; align-items: center; gap: .35rem; }
 .sg-post-meta-item svg { width: .9rem; height: .9rem; flex: none; }
+.sg-post-meta-item.is-date svg { color: #f5b942; }
+.sg-post-meta-item.is-updated svg,
+.sg-post-meta-item.is-cate svg,
+.sg-post-meta-item.is-word svg,
+.sg-post-meta-item.is-time svg,
+.sg-post-meta-item.is-views svg { color: #5ba0f0; }
 .sg-post-meta-pin { color: var(--sg-warm-bright); }
 .sg-post-meta-cate { color: inherit; text-decoration: none; border-bottom: 1px dashed transparent; transition: color .25s, border-color .25s; }
-.sg-post-meta-cate:hover { color: var(--sg-accent-ink); border-bottom-color: currentColor; }
+.sg-post-meta-cate:hover { color: var(--sg-hero-ink); border-bottom-color: currentColor; }
 .sg-post-meta-sep { opacity: .45; }
 @media (max-width: 571.98px) { .sg-post-meta-sep { display: none; } }
+
+/* 四层白色海浪（逐参数对齐 Fomalhaut gentle-wave / .main-hero-waves-area）：
+   日间模式的分割线；夜间整块隐藏（darkmode.styl [data-theme=dark] 同做法）。 */
+.sg-post-hero-waves {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -11px;
+  z-index: 5;
+  height: 5rem;
+  pointer-events: none;
+}
+@media (max-width: 768px) { .sg-post-hero-waves { height: 40px; min-height: 40px; } }
+.sg-waves-svg { display: block; width: 100%; height: 5rem; }
+@media (max-width: 768px) { .sg-waves-svg { height: 40px; min-height: 40px; } }
+.sg-waves-parallax > use { animation: sg-wave-move 25s cubic-bezier(.55, .5, .45, .5) infinite; }
+.sg-waves-parallax > use:nth-child(1) { fill: #f7f9febd; animation-delay: -2s; animation-duration: 7s; }
+.sg-waves-parallax > use:nth-child(2) { fill: #f7f9fe82; animation-delay: -3s; animation-duration: 10s; }
+.sg-waves-parallax > use:nth-child(3) { fill: #f7f9fe36; animation-delay: -4s; animation-duration: 13s; }
+.sg-waves-parallax > use:nth-child(4) { fill: #f7f9fe; animation-delay: -5s; animation-duration: 20s; }
+@keyframes sg-wave-move { 0% { transform: translate3d(-90px, 0, 0); } 100% { transform: translate3d(85px, 0, 0); } }
+html.dark .sg-post-hero-waves { display: none; }
+@media (prefers-reduced-motion: reduce) { .sg-waves-parallax > use { animation: none; } }
+
+/* 文章页主容器：头图顶到视口顶（导航悬浮其上），正文卡与侧栏在头图之下。 */
+.sg-main--post { padding-top: 0; gap: 1rem; }
+
+/* 相关推荐（2026-11-17，逐参数对齐 Fomalhaut _layout/relatedposts.styl + postImgHover）：
+   三栏 200px 卡（≤768 两栏 150px、≤600 单栏）；封面 opacity .4，hover 提亮到 .8
+   并 scale(1.1)（filter 375ms ease-in .2s, transform .6s 同参数）；日期+标题
+   居中压图。圆角 12px（custom.css 同参数）。 */
+.sg-related { margin-top: 40px; }
+.sg-related-head {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  margin-bottom: 8px;
+  font-weight: 700;
+  font-size: 1.43em;
+}
+.sg-related-head svg { width: 1.1em; height: 1.1em; color: var(--sg-accent-ink); }
+.sg-related-list { display: flex; flex-wrap: wrap; margin: -3px; }
+.sg-related-cell {
+  position: relative;
+  overflow: hidden;
+  margin: 3px;
+  width: calc(33.333% - 6px);
+  height: 200px;
+  background: rgba(12, 18, 22, .5);
+  border-radius: 12px;
+}
+@media (max-width: 768px) { .sg-related-cell { margin: 2px; width: calc(50% - 4px); height: 150px; } }
+@media (max-width: 600px) { .sg-related-cell { width: calc(100% - 4px); } }
+.sg-related-item { display: block; height: 100%; }
+.sg-related-item img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: .4;
+  transition: filter 375ms ease-in .2s, transform .6s;
+}
+.sg-related-item:is(:hover, :focus-visible) img { opacity: .8; transform: scale(1.1); }
+.sg-related-content {
+  position: absolute;
+  top: 50%;
+  transform: translate(0, -50%);
+  padding: 0 20px;
+  width: 100%;
+  text-align: center;
+}
+.sg-related-date {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .3rem;
+  color: rgba(255, 255, 255, .78);
+  font-family: var(--font-sans);
+  font-size: 90%;
+}
+.sg-related-date svg { width: .95em; height: .95em; }
+.sg-related-title {
+  color: rgba(255, 255, 255, .92);
+  font-weight: 600;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+@media (prefers-reduced-motion: reduce) { .sg-related-item img { transition: none; transform: none !important; } }
 
 .sg-article { flex: 1; min-width: 0; overflow: hidden; padding: 0; }
 .sg-article.sg-glass { background: var(--sg-card-strong); box-shadow: var(--sg-shadow-strong); }

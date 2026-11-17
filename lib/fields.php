@@ -504,6 +504,132 @@ function sg_home_poster($archive = null): array
 }
 
 /**
+ * 文章末尾「相关推荐」数据源（2026-11-17 新增，对齐 Fomalhaut related_post）。
+ *
+ * 相关性：与当前文章共享分类或标签（与源站 helper 同口径，共享数即权重），
+ * 权重降序 → 时间降序，剔除自己与碎语（cid 集合同 sg_home_articles）。
+ * 直查模式与 sg_home_articles 同理由 —— Widget 上下文的坑已经踩过。
+ * 展示日期用 updated（源站 date_type: updated），没有更新记录时回落 created。
+ *
+ * @return array<int,array{url:string,cover:string,date:string,title:string}>
+ */
+function sg_related_posts($archive, int $limit = 6): array
+{
+    try {
+        $cid = (int) $archive->cid;
+        if ($cid <= 0) {
+            return [];
+        }
+        $db = \Typecho\Db::get();
+        $p = $db->getPrefix();
+
+        /* 当前文章的分类/标签 mid 列表 */
+        $mids = [];
+        foreach ($db->fetchAll("SELECT r.mid FROM {$p}relationships r INNER JOIN {$p}metas m ON m.mid = r.mid WHERE r.cid = {$cid} AND m.type IN ('category', 'tag')") as $row) {
+            $mid = (int) ($row['mid'] ?? 0);
+            if ($mid > 0) {
+                $mids[$mid] = true;
+            }
+        }
+        if (!$mids) {
+            return [];
+        }
+        $midList = implode(',', array_keys($mids));
+
+        /* 共享 meta 的文章按共享数计权重；碎语隔离直接写进子查询 */
+        $rows = $db->fetchAll(
+            "SELECT r.cid, COUNT(*) AS w FROM {$p}relationships r"
+            . " WHERE r.mid IN ({$midList}) AND r.cid <> {$cid}"
+            . " AND r.cid NOT IN ("
+            . "SELECT r2.cid FROM {$p}relationships r2 INNER JOIN {$p}metas m2 ON m2.mid = r2.mid"
+            . " WHERE (m2.type = 'category' AND (m2.slug = '" . sg_notes_slug() . "' OR m2.name = '碎语'))"
+            . " OR (m2.type = 'tag' AND (m2.slug = '" . sg_notes_slug() . "' OR m2.name = '碎语'))"
+            . ") GROUP BY r.cid"
+        );
+        if (!$rows) {
+            return [];
+        }
+
+        /* 权重降序 → 时间降序，截取 limit，再取文章行 */
+        $scored = [];
+        foreach ($rows as $row) {
+            $scored[(int) ($row['cid'] ?? 0)] = (int) ($row['w'] ?? 0);
+        }
+        $in = implode(',', array_keys($scored));
+        $posts = $db->fetchAll(
+            "SELECT cid, title, slug, created, modified, text FROM {$p}contents"
+            . " WHERE cid IN ({$in}) AND type = 'post' AND status = 'publish'"
+            . " AND (password IS NULL OR password = '')"
+        );
+        if (!$posts) {
+            return [];
+        }
+
+        $fields = [];
+        foreach ($db->fetchAll("SELECT cid, name, str_value FROM {$p}fields WHERE cid IN ({$in})") as $f) {
+            $fcid = (int) ($f['cid'] ?? 0);
+            if ($fcid > 0 && (string) ($f['str_value'] ?? '') !== '') {
+                $fields[$fcid][(string) $f['name']] = (string) $f['str_value'];
+            }
+        }
+
+        $tz = 0;
+        try {
+            $tz = (int) \Widget\Options::alloc()->timezone;
+        } catch (\Throwable $e) {
+            $tz = 0;
+        }
+        $options = sg_options();
+        $fallbackCover = (string) sg_opt('sgDefaultCover', sg_theme_url('dist/img/cover-default.svg'));
+
+        $out = [];
+        foreach ($posts as $row) {
+            $rcid = (int) ($row['cid'] ?? 0);
+            if ($rcid <= 0 || !isset($scored[$rcid])) {
+                continue;
+            }
+            $text = (string) ($row['text'] ?? '');
+            if (strncmp($text, '<!--markdown-->', 15) === 0) {
+                $text = \Utils\Markdown::convert(substr($text, 15));
+            }
+            $cover = trim((string) ($fields[$rcid]['cover'] ?? ''));
+            if ($cover === '') {
+                if (preg_match_all('/<img[^>]+src=["\']([^"\']+)["\']/i', $text, $mm) && !empty($mm[1][0])) {
+                    $cover = trim((string) $mm[1][0]);
+                }
+            }
+            if ($cover === '') {
+                $cover = $fallbackCover;
+            }
+            $path = (string) \Typecho\Router::url('post', [
+                'cid'     => $rcid,
+                'slug'    => (string) ($row['slug'] ?? ''),
+                'created' => (int) ($row['created'] ?? 0),
+                'type'    => 'post',
+            ]);
+            if ($path === '' || $path === '#') {
+                $path = '/archives/' . $rcid . '/';
+            }
+            $modified = (int) ($row['modified'] ?? 0);
+            $out[] = [
+                'url'     => (string) \Typecho\Common::url($path, $options->index),
+                'cover'   => sg_media($cover),
+                'date'    => date('Y-m-d', ($modified > 0 ? $modified : (int) ($row['created'] ?? 0)) + $tz),
+                'title'   => trim((string) ($row['title'] ?? '')),
+                'weight'  => $scored[$rcid],
+                'created' => (int) ($row['created'] ?? 0),
+            ];
+        }
+        usort($out, static function (array $a, array $b): int {
+            return $b['weight'] <=> $a['weight'] ?: $b['created'] <=> $a['created'];
+        });
+        return array_slice($out, 0, max(1, $limit));
+    } catch (\Throwable $e) {
+        return [];
+    }
+}
+
+/**
  * 首页「最新文章」数据源（2026-11-17 第三轮重写，绕开 Widget_Archive）。
  *
  * 线上排查结论：index 查询会把置顶文章前置且在窗口内重复出现，同一篇渲染两张卡；

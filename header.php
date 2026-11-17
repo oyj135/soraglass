@@ -59,7 +59,6 @@ if (!in_array($sgBlur, ['none', 'soft', 'strong'], true)) {
 <?php echo sg_runtime_config(); ?>
 <?php /* 字体 preload 必须排在样式表前面：浏览器是从上往下预扫描的，
         放后面等于没提前，还会跟 CSS 抢同一个连接槽。 */ ?>
-<?php echo sg_font_preload(); ?>
 <?php echo sg_asset(); ?>
 </head>
 <body class="sg-body">
