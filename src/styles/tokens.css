@@ -182,17 +182,17 @@ html.dark {
   /* 底色由 slate-950 #020617 换成深青黑 #0a1618 —— 与签名色同色温。
      纯 slate 底配青瓷，会像把青色贴在一张蓝色的纸上。 */
   --sg-page: #0a1618;
-  --sg-card: rgba(18, 18, 18, .98);         /* 源站 dark card-bg #121212 同档 */
-  --sg-card-strong: rgba(18, 18, 18, .98);
-  --sg-panel: rgba(14, 14, 14, .98);
-  --sg-reading-surface: rgba(16, 16, 16, .98);
+  --sg-card: rgba(30, 41, 45, .98);         /* 第十二轮：比源站 #121212 提亮一档的深青灰（页面底 #0a1618 之上层次更清楚） */
+  --sg-card-strong: rgba(30, 41, 45, .98);
+  --sg-panel: rgba(24, 32, 35, .98);
+  --sg-reading-surface: rgba(28, 38, 41, .98);
   --sg-reading-border: color-mix(in srgb, var(--sg-accent-ink) 20%, transparent);
   --sg-shadow-reading: 0 8px 36px -16px rgb(0 0 0 / .32);
   --sg-album-paper: #e2e8f0;
   --sg-card-border: rgba(255, 255, 255, .10); /* 小卡弱描边 */
   --sg-border-strong: rgba(255, 255, 255, .18); /* 大卡描边（夜间提亮一档） */
   --sg-border: rgba(226, 240, 240, .18);    /* 结构线，比卡面描边亮一档 */
-  --sg-chip: rgba(255, 255, 255, .06);      /* 胶囊底 */
+  --sg-chip: rgba(255, 255, 255, .08);      /* 胶囊底 */
   --sg-text: #f8fafc;                       /* slate-50 */
   --sg-muted: #cbd5e1;                      /* slate-300（原 slate-400，暗底对比 4.6→9.1） */
   --sg-faint: #9aa9bc;                      /* 原 slate-500，暗底仅 3.4:1 */

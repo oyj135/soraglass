@@ -439,17 +439,10 @@ function themeConfig($form): void
     $form->addInput(new Text('sgNavSuffix', null, 'の', _t('导航分隔符'), _t('例：の')));
     $form->addInput(new Text('sgNavAfter', null, '空璃', _t('导航后缀'), _t('例：空璃')));
 
-    /* 背景：共享回退图、日间组、夜间组与可暂停轮播。 */
-    $form->addInput(new Text('sgBg', null, '', _t('背景壁纸（全站最底层）'), _t(
-        '<b>显示位置</b>：全站每个页面最底层的背景 —— 首页、文章页、独立页、归档 / 分类 / 标签页都会铺满这一层。<br>'
-        . '<b>怎么填</b>：直接贴图片地址 —— <code>https://…</code> 外链（推荐，OSS / CDN 都行）、'
-        . '<code>/</code> 开头的站内绝对路径，或 <code>usr/uploads/2026/11/bg.jpg</code> 这种相对路径。<br>'
-        . '<b>留空</b>：使用主题内置的渐变壁纸（<code>dist/img/bg-1.svg</code>），不会去读任何旧配置。<br>'
-        . '<b>单页覆盖</b>：在文章或独立页的自定义字段里加 <code>sgBg</code> 填一张图，只换这一页的背景。'
-    )));
+    /* 背景：日间组、夜间组与可暂停轮播（旧通用壁纸 sgBg 已移除）。 */
     $veilOptions = ['soft' => _t('淡（透出壁纸）'), 'mid' => _t('中（默认）'), 'strong' => _t('浓（文字最清楚）')];
     foreach (['sgBgLight' => '日间', 'sgBgDark' => '夜间'] as $sgBgKey => $sgBgMode) {
-        $form->addInput(new Textarea($sgBgKey, null, '', _t('背景壁纸 · ' . $sgBgMode . '（一行一张，可轮播）'), _t('分别设置' . $sgBgMode . '模式的全站壁纸；最多 12 张，一行一个图片地址。留空沿用上方共享壁纸或内置渐变。单页 sgBg 字段仍覆盖两种模式。') . sg_admin_upload_tools($sgBgKey)));
+        $form->addInput(new Textarea($sgBgKey, null, '', _t('背景壁纸 · ' . $sgBgMode . '（一行一张，可轮播）'), _t('分别设置' . $sgBgMode . '模式的全站壁纸；最多 12 张，一行一个图片地址。留空使用主题内置渐变壁纸。') . sg_admin_upload_tools($sgBgKey)));
     }
     /* 首屏独立图设置已移除（2026-11-17）：首页 100vh 首屏与正文壁纸共用同一张
        （壁纸组第一张），视觉连续、少一次请求；旧 sgFrontImg / sgFrontImgDark

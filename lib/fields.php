@@ -82,22 +82,19 @@ function sg_bg_url(string $value): string
 }
 
 /**
- * 背景图组：后台一个文本框里一行一个地址。
+ * 背景图组：日间 / 夜间两路，各自一行一个地址（后台 sgBgLight / sgBgDark）。
  *
- * 2026-11-13 第二十二轮新增：AI 日报卡片的背景从「一张静态图」升级成「多张轮播」，
- * 用户不需要填 JSON 数组，按行贴地址最不容易出错。
- * 单行（也就是这个设置项的历史值）解析出来就是一张图，行为与改动前完全一致。
+ * 2026-11-17 第十二轮：移除旧的通用壁纸设置 sgBg 与单页覆盖字段 ——
+ * 日间 / 夜间两路已覆盖全部场景，不再需要第三条配置；
+ * 两路都留空时回退到主题内置渐变壁纸 dist/img/bg-1.svg。
  *
- * @param string $value 原始设置值，换行或逗号分隔
- * @param int    $limit 最多保留几张，避免一屏几百张图把首页拖死
- * @return string[] 已经过 sg_bg_url() 归一化、去重后的地址列表
+ * @return array{light:string[],dark:string[]} 已经过 sg_bg_url() 归一化、去重后的地址列表
  */
-function sg_wallpapers(string $override = ''): array
+function sg_wallpapers(): array
 {
-    $fallback = sg_bg_url(trim((string) sg_opt('sgBg', ''))) ?: sg_theme_url('dist/img/bg-1.svg');
-    $own = sg_bg_url($override);
-    return ['light' => $own ? [$own] : (sg_bg_list((string) sg_opt('sgBgLight', '')) ?: [$fallback]),
-        'dark' => $own ? [$own] : (sg_bg_list((string) sg_opt('sgBgDark', '')) ?: [$fallback])];
+    $fallback = sg_theme_url('dist/img/bg-1.svg');
+    return ['light' => sg_bg_list((string) sg_opt('sgBgLight', '')) ?: [$fallback],
+        'dark' => sg_bg_list((string) sg_opt('sgBgDark', '')) ?: [$fallback]];
 }
 
 function sg_bg_list(string $value, int $limit = 12): array

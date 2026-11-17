@@ -5,10 +5,8 @@ if (!defined('SG_ROOT')) {
 sg_context($this);
 $sgSplash = sg_opt('sgSplash', 'on') === 'on';
 
-/* 日间与夜间壁纸各自轮播；单页 sgBg 覆盖两组，遮罩/模糊共用。 */
-$sgOwnBg = '';
-try { $sgOwnBg = trim((string) ($this->fields->sgBg ?? '')); } catch (\Throwable $e) { /* 归档页无自定义字段 */ }
-$sgWallpapers = sg_wallpapers($sgOwnBg);
+/* 日间与夜间壁纸各自轮播，遮罩/模糊共用。 */
+$sgWallpapers = sg_wallpapers();
 
 $sgVeil = (string) sg_opt('sgBgVeil', 'mid');
 if (!in_array($sgVeil, ['soft', 'mid', 'strong'], true)) {

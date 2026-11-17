@@ -85,7 +85,7 @@ function sg_runtime_config(): string
     $config = [
         'themeUrl' => sg_theme_url(''),
         // 兼容旧配置；当前壁纸组由 header.php 的 data-bg-mode 输出。
-        'bgImages' => array_values(array_filter([sg_bg_url((string) sg_opt('sgBg', ''))])) ?: [sg_theme_url('dist/img/bg-1.svg')],
+        'bgImages' => sg_wallpapers()['light'], // 兼容旧字段；壁纸组实际由 header.php 的 data-bg-mode 输出,
         'themeColors' => sg_theme_colors(),
         'danmaku' => $danmaku,
         'effects' => sg_opt('sgEffects', 'on') === 'on',
