@@ -3308,49 +3308,14 @@ html.dark .sg-feature-arrow { background: var(--sg-accent-soft); }
   inherits: false;
 }
 
-/* ---------- 玻璃变形按钮（hereitis「CSS玻璃变形按钮悬停特效」同风格） ----------
-   玻璃底（blur + 半透明）常驻；hover 时：液态圆角蠕动（先过渡到第一档
-   不对称圆角，再无限交替变形）+ 高光斜条扫过 + 主题色光晕。 */
-.sg-btn,
-.sg-filter-btn {
-  position: relative;
-  overflow: hidden;
-  -webkit-backdrop-filter: blur(10px) saturate(1.35);
-  backdrop-filter: blur(10px) saturate(1.35);
-}
-.sg-btn::after,
-.sg-filter-btn::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -60%;
-  width: 45%;
-  height: 100%;
-  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .5) 50%, transparent);
-  transform: skewX(-18deg);
-  transition: left .45s ease;
-  pointer-events: none;
-}
-.sg-btn:is(:hover, :focus-visible)::after,
-.sg-filter-btn:is(:hover, :focus-visible)::after { left: 118%; }
-@keyframes sg-btn-morph {
-  from { border-radius: 1.5rem .5rem 1.5rem .5rem / .5rem 1.5rem .5rem 1.5rem; }
-  to   { border-radius: .5rem 1.5rem .5rem 1.5rem / 1.5rem .5rem 1.5rem .5rem; }
-}
-.sg-btn:is(:hover, :focus-visible),
-.sg-filter-btn:is(:hover, :focus-visible) {
-  border-radius: 1.5rem .5rem 1.5rem .5rem / .5rem 1.5rem .5rem 1.5rem;
-  box-shadow: 0 6px 18px -6px color-mix(in srgb, var(--sg-accent) 55%, transparent);
-  animation: sg-btn-morph 1.5s ease-in-out .35s infinite alternate;
-}
-
 /* ---------- 卡片悬停旋转渐变边框（hereitis「CSS鼠标悬停边框动画」同风格） ----------
    conic-gradient 彩虹描边绕卡片旋转（@property 动画自定义角度）；
    不支持 @property 的浏览器退化为静态渐变描边（不影响布局）。
-   应用范围：知识档案/精选文章卡 + 友链卡。 */
+   应用范围：知识档案/精选文章卡 + 友链卡 + 项目卡。
+   注意：项目卡带 data-sg-spotlight，其 ::before 被聚光描边占用，描边走 ::after。 */
 .sg-feature-card::before,
 .sg-flink-item::after,
-.sg-project::before {
+.sg-project::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -3368,7 +3333,7 @@ html.dark .sg-feature-arrow { background: var(--sg-accent-soft); }
 }
 .sg-feature-card:is(:hover, :focus-within)::before,
 .sg-flink-item:is(:hover, :focus-within)::after,
-.sg-project:is(:hover, :focus-within)::before {
+.sg-project:is(:hover, :focus-within)::after {
   opacity: 1;
   animation: sg-border-spin 3s linear infinite;
 }
@@ -3376,9 +3341,7 @@ html.dark .sg-feature-arrow { background: var(--sg-accent-soft); }
 @media (prefers-reduced-motion: reduce) {
   .sg-feature-card:is(:hover, :focus-within)::before,
   .sg-flink-item:is(:hover, :focus-within)::after,
-  .sg-project:is(:hover, :focus-within)::before { animation: none; }
-  .sg-btn:is(:hover, :focus-visible),
-  .sg-filter-btn:is(:hover, :focus-visible) { animation: none; }
+  .sg-project:is(:hover, :focus-within)::after { animation: none; }
 }
 
 .sg-btn {
@@ -4695,8 +4658,7 @@ html.dark .sg-px-month {
    ① 作者卡回形针：源站 paperclip.css 逐参数移植 —— 内联 SVG、18° 倾角、
       针身探出卡片边缘；夜间自动切冰蓝夜光并低幅呼吸。
       挂点：首页右侧作者卡 + 文章页作者卡（::after，不与 spotlight ::before 冲突）。
-   ② 文章页标签彩色胶囊（与档案页彩色标签同一族调色板，hover 轻抬）
-   ③ 正文链接 hover 波浪下划线 + 全站文字选中色
+   ② 正文链接 hover 波浪下划线
    ========================================================================= */
 
 /* ① 回形针 */
@@ -4738,26 +4700,5 @@ html.dark .sg-home-aside .sg-profile::after {
   html.dark .sg-home-aside .sg-profile::after { animation: none; opacity: 1; }
 }
 
-/* ② 文章页标签：五色胶囊轮转 */
-.sg-article-tags { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; }
-.sg-article-tags .sg-tag-link {
-  padding: .28rem .8rem;
-  border: 1px solid var(--sg-border);
-  border-radius: 999px;
-  background: var(--sg-chip);
-  color: var(--sg-muted);
-  font-size: .82rem;
-  line-height: 1.5;
-  text-decoration: none;
-  transition: color .25s, background-color .25s, border-color .25s, transform .25s;
-}
-.sg-article-tags .sg-tag-link:hover { transform: translateY(-2px); }
-.sg-article-tags .sg-tag-link:nth-child(5n+1) { color: #36cfc9; border-color: color-mix(in srgb, currentColor 45%, transparent); background: color-mix(in srgb, currentColor 12%, transparent); }
-.sg-article-tags .sg-tag-link:nth-child(5n+2) { color: #5ba0f0; border-color: color-mix(in srgb, currentColor 45%, transparent); background: color-mix(in srgb, currentColor 12%, transparent); }
-.sg-article-tags .sg-tag-link:nth-child(5n+3) { color: #b37feb; border-color: color-mix(in srgb, currentColor 45%, transparent); background: color-mix(in srgb, currentColor 12%, transparent); }
-.sg-article-tags .sg-tag-link:nth-child(5n+4) { color: #f5b942; border-color: color-mix(in srgb, currentColor 45%, transparent); background: color-mix(in srgb, currentColor 12%, transparent); }
-.sg-article-tags .sg-tag-link:nth-child(5n+5) { color: #4cc38a; border-color: color-mix(in srgb, currentColor 45%, transparent); background: color-mix(in srgb, currentColor 12%, transparent); }
-
-/* ③ 正文链接 hover 波浪下划线；全站文字选中色 */
+/* ② 正文链接 hover 波浪下划线 */
 .sg-prose a:hover { text-decoration-style: wavy; text-decoration-color: var(--sg-accent-ink); text-underline-offset: 4px; }
-::selection { background: color-mix(in srgb, var(--sg-accent) 32%, transparent); }
