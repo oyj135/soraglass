@@ -926,25 +926,6 @@ function sg_is_note(int $cid): bool
 }
 
 /**
- * 首页 100vh 首屏用的两张背景图（日/夜）。
- *
- * 2026-11-17 改版：首屏与全站背景壁纸<b>共用同一张</b> —— 直接取当前生效壁纸组
- * 的第一张（日/夜各自），不再单独设置首屏图（后台 sgFrontImg / sgFrontImgDark
- * 已移除，历史配置值不再读取）。首屏与正文从同一张图无缝衔接，滚动进入正文
- * 后壁纸轮播继续；旧的「首屏图与正文错开、header 去重」方案一并废弃。
- *
- * @return array{light:string, dark:string}
- */
-function sg_front_bg(): array
-{
-    $walls = sg_wallpapers();
-    return [
-        'light' => $walls['light'][0] ?? sg_theme_url('dist/img/bg-1.svg'),
-        'dark'  => $walls['dark'][0] ?? sg_theme_url('dist/img/bg-2.svg'),
-    ];
-}
-
-/**
  * 打了「碎语」标签的全部文章 cid（静态缓存，失败回空数组）。
  * 有的站碎语不走分类而是打标签，首页最新文章列表要把两种写法都剔出去；
  * 标签按 name='碎语' 或 slug='notes' 认，与分类的约定缩略名保持一致。

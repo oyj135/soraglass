@@ -72,7 +72,7 @@ if (!in_array($sgBlur, ['none', 'soft', 'strong'], true)) {
     <?php foreach ($sgWallpapers as $sgMode => $sgImages): ?>
     <div class="sg-bg-mode" data-bg-mode="<?php echo $sgMode; ?>">
       <?php foreach ($sgImages as $sgIndex => $sgImage): ?>
-      <div class="sg-bg-frame<?php echo $sgIndex === 0 ? ' is-active' : ''; ?>"><img src="<?php echo sg_e($sgImage); ?>" alt="" decoding="async" <?php if ($sgIndex > 0) echo 'loading="lazy"'; ?>></div>
+      <div class="sg-bg-frame<?php echo $sgIndex === 0 ? ' is-active' : ''; ?>"><img src="<?php echo sg_e($sgImage); ?>" alt="" decoding="async" <?php echo $sgIndex === 0 ? 'fetchpriority="high"' : 'loading="lazy"'; ?>></div>
       <?php endforeach; ?>
     </div>
     <?php endforeach; ?>

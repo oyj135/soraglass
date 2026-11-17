@@ -27,6 +27,9 @@ html.dark .sg-nav.is-front { background: transparent; border-bottom-color: trans
 /* ---------- 100vh 全屏首屏 ---------- */
 .sg-main--home { padding-top: 0; } /* 首屏自带全高，去掉主容器顶部留白；滚动后由正文区自行留白 */
 
+/* 100vh 全屏首屏：不再自备图片层，直接透出身后 fixed 的全站壁纸（同 fomalhaut
+   full_page 的 background-attachment:fixed）—— 首屏与正文天然共用同一张图，
+   壁纸轮播与昼夜切换自动同步。 */
 .sg-front {
   position: relative;
   isolation: isolate;
@@ -41,17 +44,10 @@ html.dark .sg-nav.is-front { background: transparent; border-bottom-color: trans
   overflow: hidden;
   color: #fff;
 }
-.sg-front-media,
-.sg-front-img,
-.sg-front-veil { position: absolute; inset: 0; width: 100%; height: 100%; }
-.sg-front-media { z-index: -2; }
-.sg-front-img { object-fit: cover; display: block; }
-.sg-front-img--dark { display: none; }
-html.dark .sg-front-img--light { display: none; }
-html.dark .sg-front-img--dark { display: block; }
-/* 遮罩：压暗图片保证白字可读，底部渐变过渡到正文底色。
-   z 必须高于图片：图片是 z:auto 的定位元素，负 z 的遮罩会画到图片下面（2026-11-16 修复）。 */
+/* 遮罩：压暗壁纸保证白字可读，底部渐变过渡到正文底色。 */
 .sg-front-veil {
+  position: absolute;
+  inset: 0;
   z-index: 1;
   background:
     linear-gradient(to bottom, rgba(6, 20, 24, .28) 0%, rgba(6, 20, 24, .34) 60%, rgba(6, 20, 24, .66) 100%),
