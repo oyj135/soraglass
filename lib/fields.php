@@ -645,28 +645,13 @@ function sg_home_articles(int $limit = 2): array
         $db = \Typecho\Db::get();
         $p = $db->getPrefix();
         /* 置顶标记（2026-11-17）：Typecho 原生 contents 表没有 sticky 列，
-           沿用本主题自定义字段约定 —— 文章后台加字段 sticky（值 > 0）即置顶，
-           与 description/cover 同一机制。这里先拉全站置顶 cid=>等级。
-           字段名放宽匹配：不区分大小写，接受 sticky / Sticky / top / 置顶；
-           值接受 1 / 2 / 1.0 / true / 是 等写法（>0 即置顶，数值越大越靠前）。 */
+           沿用本主题自定义字段约定 —— 文章后台填 sticky=1 普通置顶、sticky=2 强置顶，
+           与 description/cover 同一机制。这里先拉全站置顶 cid=>等级。 */
         $stickyMap = [];
-        foreach ($db->fetchAll("SELECT f.cid, f.int_value, f.float_value, f.str_value FROM {$p}fields f WHERE LOWER(f.name) IN ('sticky', 'top', '置顶')") as $f) {
-            $cid = (int) ($f['cid'] ?? 0);
-            if ($cid <= 0) {
-                continue;
-            }
-            $level = (int) ($f['int_value'] ?? 0);
-            if ($level <= 0) {
-                $level = (int) ($f['float_value'] ?? 0);
-            }
-            if ($level <= 0) {
-                $str = strtolower(trim((string) ($f['str_value'] ?? '')));
-                if ($str !== '') {
-                    $level = is_numeric($str) ? (int) $str : 1;
-                }
-            }
-            if ($level > 0 && (!isset($stickyMap[$cid]) || $level > $stickyMap[$cid])) {
-                $stickyMap[$cid] = $level;
+        foreach ($db->fetchAll("SELECT f.cid, f.int_value, f.str_value FROM {$p}fields f WHERE f.name = 'sticky'") as $f) {
+            $level = (int) ($f['int_value'] ?? 0) > 0 ? (int) $f['int_value'] : (int) ($f['str_value'] ?? 0);
+            if ($level > 0) {
+                $stickyMap[(int) ($f['cid'] ?? 0)] = $level;
             }
         }
         /* 按时间取一个足够大的候选池（50 篇），置顶优先排序后截取 ——
