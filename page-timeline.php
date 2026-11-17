@@ -49,9 +49,7 @@ try {
             'date'      => $sgRecent->date->format('Y.m.d'),
             'stamp'     => (int) ($sgRecent->date->timestamp ?? 0),
             'cover'     => sg_cover($sgRecent),
-            'desc'      => sg_field($sgRecent, 'description', '') !== ''
-                ? sg_field($sgRecent, 'description', '')
-                : sg_excerpt($sgRecent, 110),
+            'desc'      => sg_card_desc($sgRecent),
         ];
     }
 } catch (\Throwable $e) {
@@ -177,7 +175,7 @@ $sgHead = [
       <div class="sg-feature-body">
         <h3 class="sg-feature-title"><a href="<?php echo sg_e($sgPost['permalink']); ?>"><?php echo sg_e($sgPost['title']); ?></a></h3>
         <div class="sg-feature-meta">
-          <span><?php echo sg_icon('clock'); ?><time datetime="<?php echo sg_e($sgPost['date']); ?>"><?php echo sg_e($sgAgo !== '' ? '发表于 ' . $sgAgo : '发表于 ' . $sgPost['date']); ?></time></span>
+          <span class="is-date"><?php echo sg_icon('clock'); ?><time datetime="<?php echo sg_e($sgPost['date']); ?>"><?php echo sg_e($sgAgo !== '' ? '发表于 ' . $sgAgo : '发表于 ' . $sgPost['date']); ?></time></span>
         </div>
         <?php if ($sgNames) : ?>
         <div class="sg-feature-tags">

@@ -1,29 +1,40 @@
 <?php
-/** 文章页侧栏作者名片 */
+/** 文章页侧栏作者名片（2026-11-17：内容与首页作者卡完全一致）——
+ *  居中圆头像（链到关于页）+ 名字/简介 + 文章/标签/分类三格统计 + 全宽「关于我」按钮。
+ *  复用首页 card-profile 的类名与样式（sg-profile-top / sg-avatar-ring / sg-stats），
+ *  社交图标与首页作者卡一致地不在此卡输出（首屏社交不受影响）。 */
 $sgAvatar = sg_opt('sgAvatarUrl', sg_theme_url('dist/img/avatar.svg'));
-$sgSocial = sg_json('sgSocial', 'social', []);
+$sgCounts = sg_stats();
 $sgName = sg_opt('sgAuthorName', (string) $this->options->title);
 $sgBio = (string) $this->options->description;
-$sgHome = rtrim((string) $this->options->siteUrl, '/') . '/';
+$sgArchiveUrl = sg_page_url('archives');
+$sgAvatarLink = sg_page_exists('about') ? sg_page_url('about') : rtrim((string) $this->options->siteUrl, '/') . '/';
 ?>
-<section class="sg-glass sg-author-card">
-  <a class="sg-author-avatar" href="<?php echo sg_e($sgHome); ?>">
-    <img src="<?php echo sg_e($sgAvatar); ?>" alt="<?php echo sg_e($sgName); ?>">
-  </a>
-  <h3 class="sg-author-name"><?php echo sg_e($sgName); ?></h3>
-  <?php if ($sgBio !== '') : ?><p class="sg-author-bio"><?php echo sg_e($sgBio); ?></p><?php endif; ?>
-  <?php if ($sgSocial) : ?>
-  <div class="sg-socials">
-    <?php foreach ($sgSocial as $item) : ?>
-    <?php if (!is_array($item)) { continue; } ?>
-    <a class="sg-social" href="<?php echo sg_value($item, 'url', '#'); ?>" target="_blank" rel="noopener noreferrer" title="<?php echo sg_value($item, 'name', '链接'); ?>">
-      <?php echo sg_icon(sg_social_icon($item)); ?>
+<section class="sg-glass sg-card-pad sg-profile sg-author-card">
+  <div class="sg-profile-top">
+    <a class="sg-avatar-ring" href="<?php echo sg_e($sgAvatarLink); ?>">
+      <img src="<?php echo sg_e($sgAvatar); ?>" alt="<?php echo sg_e($sgName); ?>">
     </a>
-    <?php endforeach; ?>
+    <p class="sg-profile-name"><?php echo sg_e($sgName); ?></p>
+    <?php if ($sgBio !== '') : ?><p class="sg-profile-bio"><?php echo sg_e($sgBio); ?></p><?php endif; ?>
   </div>
-  <?php endif; ?>
 
-  <?php /* P1-2：关于我按钮——关于页存在时才出现，避免死链 */ ?>
+  <div class="sg-stats">
+    <a class="sg-stat" href="<?php echo sg_e($sgArchiveUrl); ?>">
+      <span class="sg-stat-label">文章</span>
+      <span class="sg-stat-num"><?php echo sg_e($sgCounts['posts']); ?></span>
+    </a>
+    <a class="sg-stat" href="<?php echo sg_e($sgArchiveUrl); ?>">
+      <span class="sg-stat-label">标签</span>
+      <span class="sg-stat-num"><?php echo sg_e($sgCounts['tags']); ?></span>
+    </a>
+    <a class="sg-stat" href="<?php echo sg_e($sgArchiveUrl); ?>">
+      <span class="sg-stat-label">分类</span>
+      <span class="sg-stat-num"><?php echo sg_e($sgCounts['categories']); ?></span>
+    </a>
+  </div>
+
+  <?php /* 关于我按钮——关于页存在时才出现，避免死链 */ ?>
   <?php if (sg_page_exists('about')) : ?>
   <a class="sg-author-btn" href="<?php echo sg_e(sg_page_url('about')); ?>">
     <?php echo sg_icon('user'); ?>关于我

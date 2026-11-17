@@ -60,18 +60,14 @@ $sgSticky = (int) $this->sticky > 0;
 $sgPrev = sg_adjacent_post($this, 'prev');
 $sgNext = sg_adjacent_post($this, 'next');
 ?>
-<main id="sg-main" class="sg-main sg-main--post" data-sg-page="post" data-sg-origin="<?php echo $sgIsNote ? 'note' : 'article'; ?>">
-  <?php /* 参考 Fomalhaut #page-header.post-bg + post-info（2026-11-17 第五轮）：
-         全宽 400px 头图，标题/元信息压在下部（bottom 100px，居中），
-         遮罩日间 .5 夜间 .7（darkmode.styl 同参数），
-         底部四层白色海浪是日间模式的分割线，夜间整块隐藏。
-         标签移到正文末尾。 */ ?>
-  <header class="sg-post-hero">
-    <img class="sg-post-hero-cover" src="<?php echo sg_e(sg_cover($this)); ?>" alt="" aria-hidden="true">
-    <span class="sg-post-hero-scrim" aria-hidden="true"></span>
-    <div class="sg-post-hero-inner">
-      <h1 class="sg-post-hero-title"><?php echo sg_e($sgArticleTitle !== '' ? $sgArticleTitle : '未命名文章'); ?></h1>
-      <div class="sg-post-hero-meta">
+<main id="sg-main" class="sg-main sg-article-layout" data-sg-page="post" data-sg-origin="<?php echo $sgIsNote ? 'note' : 'article'; ?>">
+  <?php /* 文章页顶部（2026-11-17 第六轮）：背景图移除（用户反馈），回到
+         Fomalhaut not-top-img 的 #post > #post-info 形态 —— 标题左对齐、
+         normal 字重、下缘分隔线；元信息两行 #78818a 灰，图标保留彩色。 */ ?>
+  <article class="sg-glass sg-article sg-reading-surface">
+    <header class="sg-post-head">
+      <h1 class="sg-post-head-title"><?php echo sg_e($sgArticleTitle !== '' ? $sgArticleTitle : '未命名文章'); ?></h1>
+      <div class="sg-post-head-meta">
         <div class="sg-post-meta-line">
           <?php if ($sgSticky) : ?>
           <span class="sg-post-meta-item sg-post-meta-pin" title="置顶"><?php echo sg_icon('bookmark'); ?>置顶</span>
@@ -95,24 +91,8 @@ $sgNext = sg_adjacent_post($this, 'next');
           <span class="sg-post-meta-item is-views"><?php echo sg_icon('eye'); ?>阅读量: <?php if ($sgViews !== '') : ?><?php echo sg_e($sgViews); ?><?php else : ?><span id="busuanzi_value_page_pv">—</span><?php endif; ?></span>
         </div>
       </div>
-    </div>
-    <div class="sg-post-hero-waves" aria-hidden="true">
-      <svg class="sg-waves-svg" viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
-        <defs>
-          <path id="sg-gentle-wave" d="M -160 44 c 30 0 58 -18 88 -18 s 58 18 88 18 s 58 -18 88 -18 s 58 18 88 18 v 44 h -352 Z"/>
-        </defs>
-        <g class="sg-waves-parallax">
-          <use href="#sg-gentle-wave" x="48" y="0"/>
-          <use href="#sg-gentle-wave" x="48" y="3"/>
-          <use href="#sg-gentle-wave" x="48" y="5"/>
-          <use href="#sg-gentle-wave" x="48" y="7"/>
-        </g>
-      </svg>
-    </div>
-  </header>
-  <div class="sg-article-layout">
-    <article class="sg-glass sg-article sg-reading-surface">
-      <div class="sg-article-body">
+    </header>
+    <div class="sg-article-body">
       <a class="sg-back" href="<?php echo sg_e($sgBack); ?>"><?php echo sg_icon('arrow-left'); ?><?php echo sg_e($sgBackLabel); ?></a>
       <?php if ($sgLead !== '') : ?><p class="sg-lead"><?php echo sg_e($sgLead); ?></p><?php endif; ?>
       <div class="sg-prose" data-sg-article><?php echo $sgContent; ?></div>
@@ -178,6 +158,5 @@ $sgNext = sg_adjacent_post($this, 'next');
       <?php $this->need('partials/toc.php'); ?>
     </div>
   </aside>
-  </div>
 </main>
 <?php $this->need('footer.php'); ?>

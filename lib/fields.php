@@ -1254,6 +1254,37 @@ function sg_notes_query(int $limit): array
 }
 
 
+/**
+ * 卡片引号摘要（2026-11-17 新增）：description 自定义字段优先（站长可控），
+ * 没填再从正文提取 —— Recent 组件不查 text，sg_excerpt() 恒空，知识档案卡的
+ * 引号摘要要用它兑底（对齐 Fomalhaut index_post_content 的正文摘录）。
+ * 统一精简到 48 字（两行以内）。
+ */
+function sg_card_desc($archive): string
+{
+    $custom = sg_field($archive, 'description', '');
+    if ($custom !== '') {
+        $quote = trim(strip_tags($custom));
+    } else {
+        try {
+            $db = \Typecho\Db::get();
+            $p = $db->getPrefix();
+            $row = $db->fetchRow('SELECT text FROM ' . $p . 'contents WHERE cid = ' . (int) $archive->cid);
+            $text = (string) ($row['text'] ?? '');
+            if (strncmp($text, '<!--markdown-->', 15) === 0) {
+                $text = \Utils\Markdown::convert(substr($text, 15));
+            }
+            $quote = sg_notes_excerpt($text);
+        } catch (\Throwable $e) {
+            $quote = '';
+        }
+    }
+    if (function_exists('mb_strlen') && mb_strlen($quote, 'UTF-8') > 48) {
+        $quote = mb_substr($quote, 0, 48, 'UTF-8') . '…';
+    }
+    return $quote;
+}
+
 /** 去掉短代码/标签后截一段纯文本，用于「没填摘要」的碎语卡片 */
 function sg_notes_excerpt(string $html): string
 {
