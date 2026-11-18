@@ -116,8 +116,9 @@ for (const rel of docsRequired) {
 }
 
 // 顶层仅允许三件套 + 只读参考源码 + 已有平台/协作元数据目录
-// （.zwork 是宿主会话附件目录，与 .workbuddy/.agents 同类，2026-11-17 登记）
-const allowedTop = new Set(['soraglass', 'docs', 'soraglass.zip', 'plugins', 'SoraglassGallery.zip', 'hexo-theme-fomalhaut', '.workbuddy', '.agents', '.zwork', '.git', '壁纸候选']);
+// （.zwork / .kimi-attachments 都是宿主会话附件目录，与 .workbuddy/.agents 同类，
+//   .zwork 2026-11-17 登记、.kimi-attachments 2026-11-18 登记）
+const allowedTop = new Set(['soraglass', 'docs', 'soraglass.zip', 'plugins', 'SoraglassGallery.zip', 'hexo-theme-fomalhaut', '.workbuddy', '.agents', '.zwork', '.kimi-attachments', '.git', '壁纸候选']);
 for (const entry of fs.readdirSync(workspace)) {
   if (!allowedTop.has(entry)) errors.push(`[顶层结构] 多余条目 ${entry}，顶层只允许三件套及已列明的参考/协作目录`);
   if (entry.endsWith('.md')) errors.push(`[文档归置] 根目录不应有 ${entry}，沉淀文档统一放 docs/`);

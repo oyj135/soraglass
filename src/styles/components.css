@@ -569,6 +569,15 @@ html.dark .sg-profile-social .sg-social { background: var(--sg-chip); color: var
 /* 社交图标 hover 旋转（源站 card-info-social-icons 同款 540°，节奏放缓到 .6s） */
 .sg-profile-social .sg-social svg { transition: transform .6s var(--sg-ease); }
 .sg-profile-social .sg-social:hover svg { transform: rotate(540deg); }
+/* 品牌彩色（2026-11-18 第五轮）：图标走 --sg-brand-* 语义 token，昼夜各一档；
+   color 直接挂在 svg 上，hover 时 .sg-social 的 color:#fff 不会冲掉品牌色。
+   只作用于作者卡社交行，文章页其它 .sg-social 保持原单色皮肤。 */
+.sg-profile-social .sg-social--rss svg      { color: var(--sg-brand-rss); }
+.sg-profile-social .sg-social--github svg   { color: var(--sg-brand-github); }
+.sg-profile-social .sg-social--mail svg     { color: var(--sg-brand-mail); }
+.sg-profile-social .sg-social--bilibili svg { color: var(--sg-brand-bilibili); }
+.sg-profile-social .sg-social--twitter svg  { color: var(--sg-brand-twitter); }
+.sg-profile-social .sg-social--link svg     { color: var(--sg-brand-link); }
 @media (prefers-reduced-motion: reduce) {
   .sg-profile-social .sg-social svg { transition: none; }
   .sg-profile-social .sg-social:hover svg { transform: none; }
@@ -3253,11 +3262,13 @@ html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6)
 /* 封面：底边「双波浪」海浪线（2026-11-17 第十四轮，四款实机对比后用户选定）。
    原为 Fomalhaut multicard 的书签尖（clip-path polygon）——多边形裁不了曲线，
    改用 mask-image + SVG path（preserveAspectRatio='none' 随卡宽拉伸）：
-   直边基线 65%、两侧波峰、中央波谷，与站内海浪母题（雷暴海面壁纸/歌词波形/
+   直边基线 88%、两侧波峰 84%、中央波谷 92%，与站内海浪母题（雷暴海面壁纸/歌词波形/
    文章页通栏波浪）同语言。mask 同时裁 img、暗幕 ::after 与摘要层，边缘平滑无锯齿。
    2026-11-18 动态流动：mask 换成「两个完整周期」的横向平铺 tile（mask-size 200%、
    repeat-x），mask-position 0%→100% 恰好平移一个周期（容器宽），首尾波形与
-   切线完全连续 → 无缝循环；只动画 mask-position，不改动 DOM 与 hover 缩放。 */
+   切线完全连续 → 无缝循环；只动画 mask-position，不改动 DOM 与 hover 缩放。
+   2026-11-18 第五轮「浅波缓动」（用户嫌原波形太深太急）：基线 65→88、
+   波幅 13/7→4，封面少裁约 23%；流动 8s→14s；摘要上移、小三角收窄。 */
 .sg-feature-media {
   position: relative;
   display: flex;
@@ -3267,13 +3278,13 @@ html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6)
   height: 12.5rem;              /* 200px，与 Fomalhaut 封面同高 */
   overflow: hidden;
   background: rgba(148, 163, 184, .15);
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H200V65C187.5 65 187.5 78 175 78C162.5 78 162.5 65 150 65C137.5 65 137.5 58 125 58C112.5 58 112.5 65 100 65C87.5 65 87.5 78 75 78C62.5 78 62.5 65 50 65C37.5 65 37.5 58 25 58C12.5 58 12.5 65 0 65Z' fill='%23fff'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H200V65C187.5 65 187.5 78 175 78C162.5 78 162.5 65 150 65C137.5 65 137.5 58 125 58C112.5 58 112.5 65 100 65C87.5 65 87.5 78 75 78C62.5 78 62.5 65 50 65C37.5 65 37.5 58 25 58C12.5 58 12.5 65 0 65Z' fill='%23fff'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H200V88C187.5 88 187.5 92 175 92C162.5 92 162.5 88 150 88C137.5 88 137.5 84 125 84C112.5 84 112.5 88 100 88C87.5 88 87.5 92 75 92C62.5 92 62.5 88 50 88C37.5 88 37.5 84 25 84C12.5 84 12.5 88 0 88Z' fill='%23fff'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H200V88C187.5 88 187.5 92 175 92C162.5 92 162.5 88 150 88C137.5 88 137.5 84 125 84C112.5 84 112.5 88 100 88C87.5 88 87.5 92 75 92C62.5 92 62.5 88 50 88C37.5 88 37.5 84 25 84C12.5 84 12.5 88 0 88Z' fill='%23fff'/%3E%3C/svg%3E");
   -webkit-mask-size: 200% 100%;
   mask-size: 200% 100%;
   -webkit-mask-repeat: repeat-x;
   mask-repeat: repeat-x;
-  animation: sg-wave-flow 8s linear infinite;
+  animation: sg-wave-flow 14s linear infinite;
 }
 @keyframes sg-wave-flow {
   from { -webkit-mask-position: 0% 0%; mask-position: 0% 0%; }
@@ -3297,14 +3308,16 @@ html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6)
   background: linear-gradient(to top, rgba(4, 18, 24, .60), rgba(4, 18, 24, .42) 45%, rgba(4, 18, 24, .30));
   pointer-events: none;
 }
-/* 引号摘要：覆盖在封面上、垂直居中偏下，hover 与图片同步放大 */
+/* 引号摘要：覆盖在封面上、垂直居中偏下，hover 与图片同步放大。
+   浅波档（2026-11-18 第五轮）基线下移到 88%，摘要上抬、
+   文字远离底边切线，保留下方留白。 */
 .sg-feature-quote {
   position: relative;
   z-index: 1;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-  margin: 0 1.5rem 1.6rem;
+  margin: 0 1.5rem 2.1rem;
   color: #fff;
   font-family: var(--font-serif);
   font-size: 1rem;
@@ -3387,7 +3400,7 @@ html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6)
 @container (max-width: 339px) {
   .sg-feature-title { -webkit-line-clamp: 1; font-size: 1.1875rem; }
   .sg-feature-meta { font-size: .8125rem; }
-  .sg-feature-quote { font-size: .95rem; margin: 0 1.25rem 1.5rem; }
+  .sg-feature-quote { font-size: .95rem; margin: 0 1.25rem 1.9rem; }
   .sg-feature-body { padding: .75rem 1rem 1rem; gap: .4rem; }
 }
 html.dark .sg-feature-card { background: var(--sg-card-strong); }
@@ -3446,14 +3459,15 @@ html.dark .sg-feature-card { background: var(--sg-card-strong); }
 }
 html.dark .sg-sticky-badge { box-shadow: 0 4px 14px rgba(0, 0, 0, .5), inset 0 0 0 1px rgba(255, 255, 255, .34); }
 
-/* 封面三角箭头（fomalhaut recent-post-arrow 同款：20×10 下指小三角 + 3s 弹跳） */
+/* 封面三角箭头（fomalhaut recent-post-arrow 同款下指小三角 + 弹跳）。
+   2026-11-18 第五轮收窄为 14×7，配合浅波：不再抢波浪视觉。 */
 .sg-feature-arrow {
   position: absolute;
-  top: 10px;
+  top: 8px;
   left: 50%;
-  margin-left: -10px;
-  width: 20px;
-  height: 10px;
+  margin-left: -7px;
+  width: 14px;
+  height: 7px;
   background: var(--sg-accent);
   clip-path: polygon(0 0, 100% 0, 50% 100%);
   z-index: 2;
@@ -3462,11 +3476,11 @@ html.dark .sg-sticky-badge { box-shadow: 0 4px 14px rgba(0, 0, 0, .5), inset 0 0
 }
 html.dark .sg-feature-arrow { background: var(--sg-accent-soft); }
 @keyframes sg-arrow-bob {
-  0% { top: 10px; }
-  10% { top: 19px; }
-  20% { top: 10px; }
-  30% { top: 19px; }
-  40%, 100% { top: 10px; }
+  0% { top: 8px; }
+  10% { top: 15px; }
+  20% { top: 8px; }
+  30% { top: 15px; }
+  40%, 100% { top: 8px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .sg-sticky-badge .sg-sticky-shine { animation: none; display: none; }

@@ -82,6 +82,15 @@
   --sg-icon-data: #0590df;   /* 更新 / 浏览 / 评论 / 统计：湖蓝 */
   --sg-icon-mark: #e07050;   /* 星标 / 倒计时等标记：朱砂（与 warm 同族） */
 
+  /* 社交图标品牌色（2026-11-18 第五轮，源站 iconfont 多色 sprite 观感）：
+     作者卡底部社交行按平台名上色，昼夜各一档亮度；与文字对比度无关（装饰色）。 */
+  --sg-brand-rss: #e8632a;
+  --sg-brand-github: #24292f;
+  --sg-brand-mail: #2563eb;
+  --sg-brand-bilibili: #fb7299;
+  --sg-brand-twitter: #1d9bf0;
+  --sg-brand-link: #0d7d86;
+
   /* 前景色与填充色必须分开（这是本轮最关键的一处结构改动）：
      · --sg-accent 只做**填充**（按钮底、标签底、色块），上面永远压白字
        —— 暗色下若把它整体提亮，白字立刻掉到 1.9:1，等于消失
@@ -243,6 +252,14 @@ html.dark {
   --sg-icon-tag: #7fb9ff;
   --sg-icon-data: #5ab3ff;
   --sg-icon-mark: #ff9a7a;
+
+  /* 社交品牌色夜档：压暗卡面要提亮，否则 GitHub 黑在深底上消失 */
+  --sg-brand-rss: #ff9a63;
+  --sg-brand-github: #f0f6fc;
+  --sg-brand-mail: #7fb9ff;
+  --sg-brand-bilibili: #ff9dbb;
+  --sg-brand-twitter: #7fd4f7;
+  --sg-brand-link: var(--sg-accent-soft);
 
   --sg-glow-a: color-mix(in srgb, var(--sg-accent) 22%, transparent);
   --sg-glow-b: color-mix(in srgb, var(--sg-accent-2) 26%, transparent);

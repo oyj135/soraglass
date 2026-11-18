@@ -219,6 +219,8 @@ a.sg-home-cate:hover > svg:last-child { color: #fff; transform: translateX(2px);
 .sg-home-cate-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sg-home-cate-count { color: var(--sg-muted); font-size: .78rem; transition: color .35s var(--sg-ease); }
 .sg-home-cate > svg:last-child { width: .9rem; height: .9rem; flex: none; margin-left: auto; color: var(--sg-faint); transition: color .35s var(--sg-ease), transform .35s var(--sg-ease); }
+/* 箭头 2026-11-18 换源站 fas fa-angle-right 实心细角（icons.php 的 angle-right），
+   fill=currentColor 随文字色走，hover 与计数一样转白并右送。 */
 .sg-home-cates-more {
   display: block;
   margin-top: .9rem;

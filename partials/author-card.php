@@ -58,7 +58,7 @@ $sgProfileSocial = sg_json('sgSocial', 'social', []);
   <div class="sg-profile-social">
     <?php foreach ($sgProfileSocial as $sgProfileItem) : ?>
     <?php if (!is_array($sgProfileItem)) { continue; } ?>
-    <a class="sg-social" href="<?php echo sg_e(sg_value($sgProfileItem, 'url', '#')); ?>" target="_blank" rel="noopener noreferrer" title="<?php echo sg_e(sg_value($sgProfileItem, 'name', '链接')); ?>" aria-label="<?php echo sg_e(sg_value($sgProfileItem, 'name', '链接')); ?>">
+    <a class="sg-social <?php echo sg_e(sg_social_brand_class($sgProfileItem)); ?>" href="<?php echo sg_e(sg_value($sgProfileItem, 'url', '#')); ?>" target="_blank" rel="noopener noreferrer" title="<?php echo sg_e(sg_value($sgProfileItem, 'name', '链接')); ?>" aria-label="<?php echo sg_e(sg_value($sgProfileItem, 'name', '链接')); ?>">
       <?php echo sg_icon(sg_social_icon($sgProfileItem)); ?>
     </a>
     <?php endforeach; ?>

@@ -15,6 +15,8 @@ function sg_icon(string $name, string $class = ''): string
         'settings'    => '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
         'chevron-left'  => '<path d="m15 18-6-6 6-6"/>',
         'chevron-right' => '<path d="m9 18 6-6-6-6"/>',
+        /* 源站 card-more-btn 的 fas fa-angle-right：实心细角（>），比线性 chevron 更贴源码 */
+        'angle-right'   => '<path d="M10.5 6 16 12 10.5 18 9.1 16.6 13.2 12 9.1 7.4Z" fill="currentColor" stroke="none"/>',
         'chevron-down'  => '<path d="m6 9 6 6 6-6"/>',
         'chevron-up'    => '<path d="m18 15-6-6-6 6"/>',
         'prev'        => '<path d="M18 5v14"/><path d="M5 12h11"/><path d="m16 19-7-7 7-7"/>',
@@ -127,4 +129,16 @@ function sg_social_icon(array $item): string
         return 'link';
     }
     return $key;
+}
+
+/**
+ * 社交图标的品牌色 class：图标名 → sg-social--<brand>。
+ * 未收录的图标名退到 link（青瓷），避免 class 拼出 CSS 非法字符；
+ * 与 sg_social_icon() 配套，供作者卡社交行按平台着色（2026-11-18）。
+ */
+function sg_social_brand_class(array $item): string
+{
+    $name = sg_social_icon($item);
+    $brand = in_array($name, ['rss', 'github', 'mail', 'bilibili', 'twitter'], true) ? $name : 'link';
+    return 'sg-social--' . $brand;
 }

@@ -10,14 +10,26 @@ $sgCardTitle = trim((string) $sgCardCtx->title);
 /* 摘要一律走 sg_excerpt()：它内部用 ob 捕获 excerpt() 的输出并返回字符串。
    直接调 $archive->excerpt() 会在独立 widget（首页列表）里把原文 echo 到卡片 DOM 之外。 */
 $sgCardDesc = sg_card_desc($sgCardCtx);
-// date 属性是 Typecho 的时间对象；(string) 转换取到时间戳
+/* date 是 Typecho\Date 对象：时间戳走 timeStamp 属性。旧版用 (string) 强转会抛错，
+   兜底成 0 后 sg_time_ago 恒为空，进而落到下面的 date() 回显分支。 */
 $sgCardStamp = 0;
 try {
-    $sgCardStamp = (int) (string) $sgCardCtx->date;
+    $sgCardStamp = (int) $sgCardCtx->date->timeStamp;
 } catch (\Throwable $e) {
     $sgCardStamp = 0;
 }
-$sgCardAgo   = sg_time_ago($sgCardStamp);
+/* 时区偏移与首页列表（sg_latest_posts）同口径，避免跨时区差一天。 */
+$sgCardTz = 0;
+try {
+    $sgCardTz = (int) \Widget\Options::alloc()->timezone;
+} catch (\Throwable $e) {
+    $sgCardTz = 0;
+}
+$sgCardAgo = sg_time_ago($sgCardStamp);
+/* Typecho 的 $archive->date($format) 是直接 echo、返回 null 的方法（不是取值函数）。
+   拼进字符串会把裸日期打到卡片 DOM 之外，成为栅格的匿名项挤乱三列布局；
+   同时 dateText 只剩「发表于 」。这里改用 date() 计算字符串，与首页列表一致。 */
+$sgCardDateText = $sgCardAgo !== '' ? '发表于 ' . $sgCardAgo : '发表于 ' . date('Y.m.d', $sgCardStamp + $sgCardTz);
 $sgCardCates = [];
 try {
     foreach ((array) $sgCardCtx->categories as $sgCate) {
@@ -42,7 +54,7 @@ echo sg_feature_card_html([
     'cover'    => sg_cover($sgCardCtx),
     'quote'    => $sgCardDesc,
     'title'    => $sgCardTitle,
-    'dateText' => $sgCardAgo !== '' ? '发表于 ' . $sgCardAgo : '发表于 ' . $sgCardCtx->date('Y.m.d'),
+    'dateText' => $sgCardDateText,
     'cates'    => $sgCardCates,
     'tagRows'  => $sgCardTagRows,
     'sticky'   => (int) sg_field($sgCardCtx, 'sticky', '0'),

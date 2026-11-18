@@ -98,7 +98,7 @@ foreach (sg_home_articles($sgHomeListLimit) as $sgHomeCard) {
                 <?php echo sg_icon_color('folder'); ?>
                 <span class="sg-home-cate-name"><?php echo sg_e($sgHomeCate['name']); ?></span>
                 <span class="sg-home-cate-count">(<?php echo (int) $sgHomeCate['count']; ?>)</span>
-                <?php echo sg_icon('chevron-right'); ?>
+                <?php echo sg_icon('angle-right'); ?>
               <?php echo $sgHomeCate['url'] !== '' ? '</a>' : '</span>'; ?>
             <?php endforeach; ?>
           </div>
