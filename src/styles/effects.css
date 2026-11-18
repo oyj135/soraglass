@@ -305,6 +305,10 @@ html[data-sg-veil="strong"] .sg-bg-veil::after {
     background: #fff !important;
     box-shadow: none !important;
   }
+  .sg-post-banner::before { display: none !important; }
+  .sg-post-banner, .sg-post-banner * { color: #000 !important; text-shadow: none !important; animation: none !important; }
+  /* 未滚到的显现元素仍是 opacity:0，打印会整块空白 */
+  .sg-reveal { opacity: 1 !important; transform: none !important; }
 }
 
 /* ---------- 滚动显现 + 交错入场 + 数字递增（第十六轮 P0，源自「16 种 UI 动效」清单） ----------

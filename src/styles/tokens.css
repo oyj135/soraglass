@@ -43,6 +43,11 @@
   /* 壁纸遮罩。2026-11-17 第十一轮：卡面实色化后可读性不再依赖遮罩，
      调回轻盈档 .34 —— 换壁纸后遮罩不再是可读性手段。 */
   --sg-veil: rgba(255, 255, 255, .34);
+  /* 直接压在壁纸上的文字（页头、页脚、相册说明）：逐字光晕充当局部底色，
+     壁纸再花也能读（2026-11-18 实测花图壁纸上无托底小字只剩 1.2–2:1） */
+  --sg-wall-halo: 0 0 2px rgba(255, 255, 255, .95), 0 0 6px rgba(255, 255, 255, .85), 0 0 14px rgba(255, 255, 255, .6);
+  /* 与光晕配对的字色：muted 灰在中间调壁纸上只有 ~2:1，壁纸字统一压到近黑 */
+  --sg-wall-ink: rgba(15, 23, 42, .86);
   --sg-line: rgba(148, 163, 184, .45);      /* 分隔线 */
 
   /* 阴影对齐源站 cardHover：静止 .05，hover 加深到 .09。 */
@@ -242,6 +247,8 @@ html.dark {
   --sg-muted: #c3cdd2;                      /* 暗卡 10.5:1 */
   --sg-faint: #9aa7ad;                      /* 暗卡 6.87:1 */
   --sg-veil: rgba(6, 10, 12, .32);          /* 暗色壁纸遮罩：中性深灰青 */
+  --sg-wall-halo: 0 1px 3px rgba(2, 6, 23, .6), 0 0 14px rgba(2, 6, 23, .42);
+  --sg-wall-ink: var(--sg-muted);
   --sg-line: rgba(230, 240, 245, .15);
 
   --sg-shadow: 0 20px 25px -5px rgb(0 0 0 / .35), 0 8px 10px -6px rgb(0 0 0 / .30);
@@ -257,7 +264,7 @@ html.dark {
   --sg-ring-b: var(--sg-accent-soft);
   --sg-accent-deep: #bfe3e6;                /* 暗色下 deep = 更强对比（正文链接级 12.4:1） */
   --sg-accent-soft: #6fa3a9;                /* 弱化态，暗卡 6.05:1 */
-  --sg-filter-active: #6d70e0;             /* 知识档案选中蓝紫：语义色，白字仍达 4.5:1 */
+  --sg-filter-active: #5f62d6;             /* 知识档案选中蓝紫：语义色，白字 5.0:1（原 #6d70e0 仅 4.16） */
   --sg-scroll-thumb: color-mix(in srgb, var(--sg-accent-soft) 34%, transparent);
   --sg-scroll-thumb-hot: var(--sg-accent-soft);
 

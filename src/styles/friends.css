@@ -5,7 +5,17 @@
    hover 两件事（源站同款）：
      ① ::before 从中心 scale(0)→scale(1) 扫开浅底（.3s ease-out）；
      ② 头像宽度 60→0、margin-left -10px（.3s ease-out），文字让位。 */
-.sg-flink-list { display: flex; flex-wrap: wrap; padding: 10px 10px 0; }
+/* 列表托在卡面上（源站友链位于 #page 卡内）：原先直接压壁纸，花图上简介只剩 2.4:1 */
+.sg-flink-list {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 10px 10px 0;
+  border: 1px solid var(--sg-card-border);
+  border-radius: var(--sg-radius-outer);
+  background-color: var(--sg-card);
+  background-image: var(--sg-card-image);
+  box-shadow: var(--sg-shadow), var(--sg-card-sheen);
+}
 
 .sg-flink-item {
   position: relative;

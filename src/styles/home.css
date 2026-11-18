@@ -12,11 +12,12 @@
 .sg-nav.is-front {
   /* 顶部渐隐 scrim：壁纸上半可能很亮，纯白字压不住；一层自上而下的淡暗幕
      保住对比，又不变成实底条（源站 #nav 无底，但其头图自带暗遮罩） */
-  background: linear-gradient(180deg, rgba(2, 6, 23, .34), rgba(2, 6, 23, 0));
+  /* 2026-11-18 .34 → .5：亮壁纸顶部白字实测只剩 1.5:1 */
+  background: linear-gradient(180deg, rgba(2, 6, 23, .5), rgba(2, 6, 23, 0));
   border-bottom-color: transparent;
   box-shadow: none;
 }
-html.dark .sg-nav.is-front { background: linear-gradient(180deg, rgba(2, 6, 23, .5), rgba(2, 6, 23, 0)); border-bottom-color: transparent; }
+html.dark .sg-nav.is-front { background: linear-gradient(180deg, rgba(2, 6, 23, .56), rgba(2, 6, 23, 0)); border-bottom-color: transparent; }
 .sg-nav.is-front .sg-brand,
 .sg-nav.is-front .sg-brand-accent,
 .sg-nav.is-front .sg-nav-link,

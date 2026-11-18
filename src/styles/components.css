@@ -192,8 +192,9 @@ html.dark .sg-nav-link.is-active { color: var(--sg-accent-ink); }
 .sg-icon-btn:hover { background: var(--sg-indigo); color: #fff; transform: translateY(-1px); }
 .sg-icon-btn svg { width: 1rem; height: 1rem; }
 
-/* 移动端：隐藏顶栏，改用右侧半圆盘（对应源站 md:hidden 的圆盘 + MobileBackButton） */
-@media (max-width: 767px) {
+/* 移动端与平板：隐藏顶栏，改用右侧半圆盘（对应源站 md:hidden 的圆盘 + MobileBackButton）。
+   2026-11-18 断点 768 → 1024：8 个入口 + 图标在 768–1023px 横排放不下，链接压到右侧按钮上。 */
+@media (max-width: 1023.98px) {
   .sg-nav { display: none; }
 }
 
@@ -237,7 +238,7 @@ html.dark .sg-nav-link.is-active { color: var(--sg-accent-ink); }
 .sg-disc-dots { display: flex; flex-direction: column; gap: .375rem; }
 .sg-disc-dots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255, 255, 255, .90); }
 
-@media (min-width: 768px) { .sg-disc { display: none; } }
+@media (min-width: 1024px) { .sg-disc { display: none; } }
 
 .sg-sheet {
   position: fixed;
@@ -1711,7 +1712,7 @@ html.dark .sg-lyric-bar {
 .sg-dot::after {
   content: '';
   position: absolute;
-  inset: -8px -5px;
+  inset: -9px -8px;
 }
 
 .sg-dot:hover { background: rgba(255, 255, 255, .80); }
@@ -1781,10 +1782,11 @@ button.sg-progress:hover { background: var(--sg-indicator-bg-hot); }
 
 .sg-poster-wide img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .9; transition: transform var(--sg-dur-card) var(--sg-ease); }
 .sg-poster-wide:hover img { transform: scale(var(--sg-thumb-zoom)); }
-.sg-poster-wide .sg-veil { position: absolute; inset: 0; background: rgba(0, 0, 0, .30); transition: background-color .5s; }
-html.dark .sg-poster-wide .sg-veil { background: rgba(0, 0, 0, .50); }
+/* 文字压在左下角：均匀 .30 暗幕在浅色封面上标题/摘要只剩 2–2.2:1，改成自下而上加深 */
+.sg-poster-wide .sg-veil { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0, 0, 0, .72), rgba(0, 0, 0, .34) 60%, rgba(0, 0, 0, .18)); transition: background-color .5s; }
+html.dark .sg-poster-wide .sg-veil { background: linear-gradient(to top, rgba(0, 0, 0, .78), rgba(0, 0, 0, .5) 60%, rgba(0, 0, 0, .4)); }
 
-.sg-poster-body { position: absolute; left: 1rem; right: 1.5rem; bottom: 1rem; color: #fff; }
+.sg-poster-body { position: absolute; left: 1rem; right: 1.5rem; bottom: 1rem; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, .55); }
 @media (min-width: 640px) { .sg-poster-body { left: 1.5rem; bottom: 1.5rem; } }
 
 .sg-poster-body h3 {
@@ -1820,7 +1822,8 @@ html.dark .sg-poster-wide .sg-veil { background: rgba(0, 0, 0, .50); }
 }
 .sg-chatter img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .80; transition: transform var(--sg-dur-card) var(--sg-ease); }
 .sg-chatter:hover img { transform: scale(var(--sg-thumb-zoom)); }
-.sg-chatter .sg-veil { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0, 0, 0, .80), rgba(0, 0, 0, .40) 55%, rgba(0, 0, 0, .10)); }
+/* 正文占卡宽 85%，右段原先只剩 .10 暗幕，浅色配图上摘要跌到 1.2:1 */
+.sg-chatter .sg-veil { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0, 0, 0, .82), rgba(0, 0, 0, .58) 55%, rgba(0, 0, 0, .36)); }
 
 .sg-chatter-body {
   position: relative;
@@ -1832,6 +1835,7 @@ html.dark .sg-poster-wide .sg-veil { background: rgba(0, 0, 0, .50); }
   min-height: 12.5rem;
   padding: 1.5rem;
   color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .55);
 }
 
 @media (min-width: 768px) { .sg-chatter-body { padding: 2rem; width: 85%; } }
@@ -1855,7 +1859,7 @@ html.dark .sg-poster-wide .sg-veil { background: rgba(0, 0, 0, .50); }
 
 .sg-chatter-body p {
   font-size: .875rem;
-  color: #cbd5e1;
+  color: rgba(255, 255, 255, .88);
   line-height: 1.7;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -1993,10 +1997,10 @@ html.dark .sg-i-moon { display: inline-flex; }
   align-items: center;
   gap: .6rem;
   padding-right: 9rem;   /* 给右上角期号控件让位，窄屏也不会压到日期 */
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: .2em;
-  color: rgba(255, 255, 255, .75);
+  color: rgba(255, 255, 255, .8);
 }
 
 .sg-briefing-tag {
@@ -2008,7 +2012,7 @@ html.dark .sg-i-moon { display: inline-flex; }
 }
 
 .sg-briefing-date { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .12em; }
-.sg-briefing-label { color: rgba(255, 255, 255, .45); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sg-briefing-label { color: rgba(255, 255, 255, .72); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* 当前主题名：翻页翻的是主题，得让人看见自己停在哪一个 */
 .sg-briefing-theme {
@@ -2398,11 +2402,24 @@ html.dark .sg-i-moon { display: inline-flex; }
    （源站 custom.css 对 h1.post-title 挂 font-weight:bold），夜间霓虹发光；
    元信息两行居中、#78818a 灰（95% 字号）、图标彩色（日历黄、其余蓝）。 */
 .sg-post-banner {
+  position: relative;
+  isolation: isolate;
   flex: 0 0 100%;
   padding: 4.5rem 1.5rem .5rem;
   text-align: center;
 }
 @media (min-width: 768px) { .sg-post-banner { padding: 6.5rem 3rem 1rem; } }
+/* 压壁纸的柔光暗幕：横幅透明、壁纸随机，浅图上白标题与元信息原本只有 1.0–2.7:1；
+   椭圆渐隐到边缘，不形成矩形色块，也不在波浪处留接缝。 */
+.sg-post-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(ellipse 72% 68% at 50% 60%, rgba(2, 6, 23, .5), rgba(2, 6, 23, .26) 56%, rgba(2, 6, 23, 0) 82%);
+  pointer-events: none;
+}
+html.dark .sg-post-banner::before { background: radial-gradient(ellipse 72% 68% at 50% 60%, rgba(2, 6, 23, .42), rgba(2, 6, 23, .2) 56%, rgba(2, 6, 23, 0) 82%); }
 
 /* 彩虹波浪（2026-11-17，源站 main-hero-waves-area 同款 gentle-wave 四层视差）：
    颜色改成彩虹渐变（SVG defs 里的 sg-rainbow，红→橙→黄→绿→青→蓝→紫，
@@ -2435,7 +2452,7 @@ html.dark .sg-post-waves { display: none; }
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  text-shadow: 0 2px 14px rgba(0, 0, 0, .35);
+  text-shadow: 0 1px 3px rgba(2, 6, 23, .45), 0 2px 18px rgba(2, 6, 23, .4);
 }
 /* 夜间发光：与首屏标题同一套霓虹呼吸（keyframes 就近定义，不跨文件依赖） */
 html.dark .sg-post-banner-title { text-shadow: none; animation: sg-post-neon 8s ease-in-out infinite; }
@@ -2445,8 +2462,9 @@ html.dark .sg-post-banner-title { text-shadow: none; animation: sg-post-neon 8s 
 }
 @media (prefers-reduced-motion: reduce) { html.dark .sg-post-banner-title { animation: none; } }
 
-/* 双行元信息（对齐 Fomalhaut #post > #post-meta：#78818a 灰、95% 字号；
-   横幅内居中；图标多色填充，走 --sg-icon-* 语义 token） */
+/* 双行元信息（结构对齐 Fomalhaut #post > #post-meta，95% 字号；横幅内居中；图标多色填充）。
+   源站的 #78818a 灰压在随机壁纸上只有 1.0–1.3:1，改为暗幕上的近白字 + 细投影；
+   夜间用 --sg-muted 冷灰白。 */
 .sg-post-banner-meta { display: flex; flex-direction: column; align-items: center; gap: .35rem; }
 .sg-post-meta-line {
   display: flex;
@@ -2457,15 +2475,19 @@ html.dark .sg-post-banner-title { text-shadow: none; animation: sg-post-neon 8s 
   font-family: var(--font-sans);
   font-size: .95rem;
   line-height: 1.5;
-  color: #78818a;
+  color: rgba(255, 255, 255, .92);
+  text-shadow: 0 1px 3px rgba(2, 6, 23, .6);
 }
-html.dark .sg-post-meta-line { color: #98a2ad; }
+html.dark .sg-post-meta-line { color: var(--sg-muted); }
 .sg-post-meta-item { display: inline-flex; align-items: center; gap: .35rem; }
 .sg-post-meta-item svg { width: .9rem; height: .9rem; flex: none; }
-.sg-post-meta-pin { color: var(--sg-warm-bright); }
+/* 横幅底是暗幕，朱砂亮档文字只有 1.5:1：文字取浅暖色，图钉图标保留朱砂作识别 */
+.sg-post-meta-pin { color: #ffd2bf; }
+.sg-post-meta-pin svg { color: var(--sg-warm-bright); }
 .sg-post-meta-cate { color: inherit; text-decoration: none; border-bottom: 1px dashed transparent; transition: color .25s, border-color .25s; }
-.sg-post-meta-cate:hover { color: var(--sg-accent-ink); border-bottom-color: currentColor; }
-.sg-post-meta-sep { opacity: .45; }
+.sg-post-meta-cate:hover { color: var(--sg-accent-soft); border-bottom-color: currentColor; }
+html.dark .sg-post-meta-cate:hover { color: var(--sg-accent-ink); }
+.sg-post-meta-sep { opacity: .6; }
 @media (max-width: 571.98px) { .sg-post-meta-sep { display: none; } }
 
 /* 相关推荐（2026-11-17，逐参数对齐 Fomalhaut _layout/relatedposts.styl + postImgHover）：
@@ -2489,7 +2511,8 @@ html.dark .sg-post-meta-line { color: #98a2ad; }
   margin: 3px;
   width: calc(33.333% - 6px);
   height: 200px;
-  background: rgba(12, 18, 22, .5);
+  /* 实色深底：半透明底叠在日间白卡上会变灰，.4 透明度的封面再把白字冲到 2.1:1 */
+  background: rgb(12, 18, 22);
   border-radius: 12px;
 }
 @media (max-width: 768px) { .sg-related-cell { margin: 2px; width: calc(50% - 4px); height: 150px; } }
@@ -2512,13 +2535,14 @@ html.dark .sg-post-meta-line { color: #98a2ad; }
   padding: 0 20px;
   width: 100%;
   text-align: center;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .5);
 }
 .sg-related-date {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: .3rem;
-  color: rgba(255, 255, 255, .78);
+  color: rgba(255, 255, 255, .86);
   font-family: var(--font-sans);
   font-size: 90%;
 }
@@ -2634,6 +2658,10 @@ html.dark .sg-prose a { color: var(--sg-indigo-soft); }
 .sg-prose :not(pre) > code { padding: .12rem .35rem; border-radius: .35rem; background: color-mix(in srgb, var(--sg-accent) 15%, transparent); font-size: .9em; }
 .sg-prose table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: .9rem; }
 .sg-prose th, .sg-prose td { padding: .5rem; border: 1px solid var(--sg-border); }
+/* 表头不折行（「状态码」曾被挤成两行）；窄屏表格改为自身横向滚动，
+   不再把首列压到 38px —— .sg-article 有 overflow:hidden，溢出会被直接裁掉 */
+.sg-prose th { white-space: nowrap; }
+@media (max-width: 767.98px) { .sg-prose table { display: block; overflow-x: auto; overscroll-behavior-x: contain; } }
 .sg-prose hr { border: 0; border-top: 1px solid var(--sg-line); margin: 2rem 0; }
 
 /* 侧栏 */
@@ -2670,13 +2698,17 @@ html.dark .sg-prose a { color: var(--sg-indigo-soft); }
 .sg-page-title { font-size: 2.25rem; font-weight: 900; letter-spacing: .1em; line-height: 1.2; }
 @media (min-width: 768px) { .sg-page-title { font-size: 3rem; } }
 
-.sg-page-sub { margin-top: .5rem; font-size: .875rem; font-weight: 500; letter-spacing: .05em; color: var(--sg-muted); }
+.sg-page-sub { margin-top: .5rem; font-size: .875rem; font-weight: 500; letter-spacing: .05em; color: var(--sg-wall-ink); }
 @media (min-width: 768px) { .sg-page-sub { font-size: 1rem; } }
 
-/* 页头直接铺在壁纸上，没有卡片托底。暗色主题下补一层极淡的暗投影，
-   让深色壁纸上的文字也能立起来（只影响这两处，不改全局排版）。 */
-html.dark .sg-page-title,
+/* 页头直接铺在壁纸上，没有卡片托底：日间逐字白光晕，暗色主题下补一层暗投影，
+   让花图/深色壁纸上的文字都能立起来（只影响这两处，不改全局排版）。
+   标题是 background-clip:text 渐变字，text-shadow 会画在渐变之上把字冲白，改用 drop-shadow。 */
+.sg-page-sub { text-shadow: var(--sg-wall-halo); }
+.sg-page-title { filter: drop-shadow(0 0 2px rgba(255, 255, 255, .9)) drop-shadow(0 0 8px rgba(255, 255, 255, .55)); }
+html.dark .sg-page-title { filter: drop-shadow(0 1px 8px rgba(2, 6, 23, .6)); }
 html.dark .sg-page-sub,
+html.dark .sg-page-head .sg-search { text-shadow: 0 1px 18px rgba(2, 6, 23, .55); }
 
 .sg-filter { display: flex; flex-wrap: wrap; gap: .5rem; }
 .sg-filter-btn {
@@ -2941,7 +2973,8 @@ html.dark .sg-project-src { color: var(--sg-indigo-soft); }
   gap: .35rem;
   margin: -.25rem 0 1.25rem;
   font-size: .78rem;
-  color: var(--sg-muted);
+  color: var(--sg-wall-ink);
+  text-shadow: var(--sg-wall-halo);
 }
 .sg-projects-source svg { width: .95rem; height: .95rem; }
 .sg-projects-diag { margin-top: 1rem; font-size: .75rem; line-height: 1.7; text-align: center; color: var(--sg-muted); }
@@ -3000,7 +3033,8 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
   padding: .4375rem .875rem;
   border: 1px solid var(--sg-card-border);
   border-radius: 999px;
-  background: transparent;
+  /* 胶囊托卡面底：筛选条直接压在壁纸上，透明底在花图上只剩 1.7–2.2:1 */
+  background: var(--sg-card);
   color: var(--sg-muted);
   font-size: .8125rem;
   font-weight: 600;
@@ -3012,7 +3046,7 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
 .sg-notes-tag span {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: .6875rem;
-  opacity: .6;
+  opacity: .78;
 }
 
 .sg-notes-tag:hover { color: var(--sg-fg); transform: translateY(-1px); }
@@ -3027,13 +3061,14 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
 
 .sg-notes-tag.is-active span { opacity: .85; }
 
-.sg-notes-count { font-size: .8125rem; color: var(--sg-faint); letter-spacing: .04em; }
+.sg-notes-count { font-size: .8125rem; color: var(--sg-wall-ink); letter-spacing: .04em; text-shadow: var(--sg-wall-halo); }
 
 .sg-notes-sort {
   display: inline-flex;
   padding: 3px;
   border: 1px solid var(--sg-card-border);
   border-radius: 999px;
+  background: var(--sg-card);
   gap: 2px;
 }
 
@@ -3089,7 +3124,15 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
   position: sticky;
   top: 4.25rem;
   z-index: 2;
-  padding: .375rem 0;
+  /* 吸顶后会压在卡片和壁纸上，透明底时文字与卡面文字叠在一起；改成卡面胶囊，
+     负外边距让文字仍与卡片左缘对齐 */
+  width: fit-content;
+  margin-left: -.875rem;
+  padding: .375rem .875rem;
+  border: 1px solid var(--sg-card-border);
+  border-radius: 999px;
+  background: var(--sg-card);
+  box-shadow: var(--sg-shadow);
 }
 
 .sg-tl-month-label b {
@@ -3484,7 +3527,7 @@ html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6)
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(4, 18, 24, .60), rgba(4, 18, 24, .42) 45%, rgba(4, 18, 24, .30));
+  background: linear-gradient(to top, rgba(4, 18, 24, .70), rgba(4, 18, 24, .45) 45%, rgba(4, 18, 24, .30));
   pointer-events: none;
 }
 /* 引号摘要：贴在封面下缘（平缓正弦切线之上），默认常显。
@@ -3619,8 +3662,10 @@ html.dark .sg-feature-card { background: var(--sg-card-strong); }
   height: 26px;
   padding: 0 11px 0 9px;
   border-radius: 999px;
-  background-image: linear-gradient(135deg, #ff9a3d 0%, #ff5f4d 52%, #f5341d 100%);
+  /* 2026-11-18 渐变整体压深一档（源站原值 #ff9a3d→#f5341d 上白字仅 3.1:1），色相不变 */
+  background-image: linear-gradient(135deg, #e8772a 0%, #d9452c 52%, #c22e1a 100%);
   color: #fff;
+  text-shadow: 0 1px 1px rgba(110, 20, 0, .45);
   font-size: 12px;
   font-weight: 700;
   line-height: 1;
@@ -3736,13 +3781,14 @@ html.dark .sg-sticky-badge { box-shadow: 0 4px 14px rgba(0, 0, 0, .5), inset 0 0
 /* 文字直接压在壁纸上，壁纸明暗完全由用户决定：
    暗色（含深色模式）用参考样例的冷白 + 深色阴影；亮色模式反过来用深字 + 浅色阴影，
    否则白字糊在浅色壁纸上（归档页默认壁纸就是浅紫，实测几乎读不出来）。
-   阴影只做对比度补偿，不是光效。 */
+   阴影只做对比度补偿，不是光效；日间 2026-11-18 起改用 --sg-wall-halo（花图壁纸上旧的
+   单层浅影只剩 1.6–3:1）。 */
 .sg-footer {
   padding: .85rem 1.5rem 1rem;
   text-align: center;
   font-family: var(--font-serif);
-  color: rgba(15, 23, 42, .80);
-  text-shadow: 0 1px 2px rgba(255, 255, 255, .55);
+  color: rgba(15, 23, 42, .88);
+  text-shadow: var(--sg-wall-halo);
 }
 
 .sg-footer p { margin: 0; }
@@ -3770,9 +3816,9 @@ html.dark .sg-sticky-badge { box-shadow: 0 4px 14px rgba(0, 0, 0, .5), inset 0 0
   background: #16a34a;
   flex: none;
 }
-/* 时长是这一行唯一的彩色项：亮底退一档用 indigo-600，暗底进一档用 indigo-400 */
-.sg-footer-uptime { font-weight: 900; color: var(--sg-indigo-deep); letter-spacing: .01em; }
-.sg-footer-icp { font-weight: 400; font-size: .8125rem; color: rgba(51, 65, 85, .78); }
+/* 时长是这一行唯一的彩色项：亮底用压暗的主题色（accent-deep 在花图壁纸上只有 1.9:1），暗底进一档用 indigo-400 */
+.sg-footer-uptime { font-weight: 900; color: color-mix(in srgb, var(--sg-accent) 62%, #000); letter-spacing: .01em; }
+.sg-footer-icp { font-weight: 400; font-size: .8125rem; color: var(--sg-wall-ink); }
 
 /* ② 状态行与版权之间的通栏细分隔线（参考图里就是一条 1px 细线） */
 .sg-footer-rule {
@@ -3896,6 +3942,24 @@ html.dark .sg-footer-rule { border-top-color: rgba(226, 232, 240, .18); }
 
 .sg-timeline-link { font-size: .95rem; line-height: 1.6; transition: color .3s, transform .3s; }
 .sg-timeline-item:hover .sg-timeline-link { color: var(--sg-accent-ink); transform: translateX(3px); }
+
+/* 归档列表整块托在卡面上（对齐源站 #archive 卡片）：十几行小字原先直接压在壁纸上，
+   花图壁纸下日期 / 月份对比只剩 1.2–2.2:1。竖轴随内边距平移，位置关系不变。 */
+.sg-main[data-sg-page="archives"] > .sg-timeline {
+  --sg-archive-pad: 1.25rem;
+  padding: var(--sg-archive-pad) var(--sg-archive-pad) var(--sg-archive-pad) calc(var(--sg-archive-pad) + 1.6rem);
+  border: 1px solid var(--sg-card-border);
+  border-radius: var(--sg-radius-outer);
+  background-color: var(--sg-card);
+  background-image: var(--sg-card-image);
+  box-shadow: var(--sg-shadow), var(--sg-card-sheen);
+}
+.sg-main[data-sg-page="archives"] > .sg-timeline::before {
+  left: calc(var(--sg-archive-pad) + .35rem);
+  top: calc(var(--sg-archive-pad) + .4rem);
+  bottom: calc(var(--sg-archive-pad) + .4rem);
+}
+@media (min-width: 768px) { .sg-main[data-sg-page="archives"] > .sg-timeline { --sg-archive-pad: 2rem; } }
 
 /* ---------- 分类总览（partials/views/categories.php） ---------- */
 .sg-term-grid { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr); }
@@ -4410,7 +4474,6 @@ html:not(.dark) .sg-heat-cell[data-level="4"] { background: #35616b; }
   font-weight: 700;
   cursor: default;
 }
-html.dark .sg-page-btn.is-active { color: #04171b; }
 .sg-page-btn--nav svg { width: 1.05rem; height: 1.05rem; }
 .sg-page-btn.is-disabled { opacity: .4; cursor: default; }
 .sg-page-status {
@@ -4621,11 +4684,11 @@ html.dark .sg-archive-tag { color: var(--sg-accent-soft); }
   border: 1px solid rgba(255, 255, 255, .28);
   border-radius: 999px;
   background: rgba(2, 6, 23, .35);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 900;
-  letter-spacing: .16em;
+  letter-spacing: .12em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, .85);
+  color: rgba(255, 255, 255, .95);
 }
 
 .sg-poster-kicker svg { width: .8rem; height: .8rem; }

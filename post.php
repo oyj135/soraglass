@@ -39,21 +39,27 @@ $this->content();
 $sgContent = (string) ob_get_clean();
 $sgRead = sg_reading_stats($sgContent);
 
+/* Typecho 的 $this->date() 直接 echo、返回 null：取值会把裸日期打到 <main> 之外。
+   日期一律用 date() 计算字符串，时区与 card-post.php 同口径。 */
+$sgTz = 0;
+try {
+    $sgTz = (int) \Widget\Options::alloc()->timezone;
+} catch (\Throwable $e) {
+    $sgTz = 0;
+}
+$sgCreated = (int) $this->created;
+$sgModified = (int) $this->modified;
+$sgCreatedDate = $sgCreated > 0 ? date('Y-m-d', $sgCreated + $sgTz) : '';
 $sgUpdated = '';
 $sgUpdatedAgo = '';
-try {
-    if (!empty($this->modified) && (int) $this->modified !== (int) $this->created) {
-        $sgUpdated = $this->date('Y-m-d', (int) $this->modified);
-        $sgUpdatedAgo = sg_time_ago((int) $this->modified);
-    }
-} catch (\Throwable $e) {
-    $sgUpdated = '';
-    $sgUpdatedAgo = '';
+if ($sgModified > 0 && $sgModified !== $sgCreated) {
+    $sgUpdated = date('Y-m-d', $sgModified + $sgTz);
+    $sgUpdatedAgo = sg_time_ago($sgModified);
 }
 /* 头图元信息（参考 Fomalhaut post-info 的信息完整度）：
    发表于 / 更新于走相对时间；字数与阅读时长复用正文统计；阅读量优先自定义字段 views，
    没有时交给页脚 busuanzi 镜像回写 #busuanzi_value_page_pv，加载失败保留占位「—」。 */
-$sgPostedAgo = sg_time_ago((int) $this->created);
+$sgPostedAgo = sg_time_ago($sgCreated);
 $sgViews = sg_field($this, 'views', '');
 $sgSticky = (int) sg_field($this, 'sticky', '0') > 0;
 
@@ -74,7 +80,7 @@ $sgNext = sg_adjacent_post($this, 'next');
         <span class="sg-post-meta-item sg-post-meta-pin" title="精选"><?php echo sg_icon('pin'); ?>精选</span>
         <span class="sg-post-meta-sep" aria-hidden="true">|</span>
         <?php endif; ?>
-        <time class="sg-post-meta-item is-date" datetime="<?php $this->date('c'); ?>" title="<?php $this->date('Y-m-d H:i'); ?>"><?php echo sg_icon_color('calendar'); ?>发表于 <?php echo sg_e($sgPostedAgo !== '' ? $sgPostedAgo : $this->date('Y-m-d')); ?></time>
+        <time class="sg-post-meta-item is-date" datetime="<?php $this->date('c'); ?>" title="<?php $this->date('Y-m-d H:i'); ?>"><?php echo sg_icon_color('calendar'); ?>发表于 <?php echo sg_e($sgPostedAgo !== '' ? $sgPostedAgo : $sgCreatedDate); ?></time>
         <?php if ($sgUpdated !== '') : ?>
         <span class="sg-post-meta-sep" aria-hidden="true">|</span>
         <span class="sg-post-meta-item is-updated" title="更新于 <?php echo sg_e($sgUpdated); ?>"><?php echo sg_icon_color('update'); ?>更新于 <?php echo sg_e($sgUpdatedAgo !== '' ? $sgUpdatedAgo : $sgUpdated); ?></span>

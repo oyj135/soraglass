@@ -221,7 +221,8 @@ html.dark .sg-nav { background: var(--sg-card); border-bottom-color: var(--sg-re
   padding-top: 0;
   border-top: 0;
   border-radius: var(--sg-radius-outer);
-  background: color-mix(in srgb, var(--sg-accent-deep) 88%, #000);
+  /* 走填充色 accent：夜间 accent-deep 是亮青 #bfe3e6，混出来的浅底让白字只剩 2.5:1 */
+  background: color-mix(in srgb, var(--sg-accent) 72%, #000);
 }
 
 .sg-post-nav-item {
@@ -257,13 +258,14 @@ html.dark .sg-nav { background: var(--sg-card); border-bottom-color: var(--sg-re
   width: 100%;
   padding: 1.25rem 2.5rem;
   transform: translateY(-50%);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .5);
 }
 
 .sg-post-nav-item.is-next .sg-post-nav-info { text-align: right; }
 
 .sg-post-nav-info em {
   display: block;
-  color: rgba(255, 255, 255, .72);
+  color: rgba(255, 255, 255, .85);
   font-family: var(--font-sans);
   font-size: .8125rem;
   font-style: normal;
