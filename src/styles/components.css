@@ -150,9 +150,7 @@ html.dark .sg-nav-link::after { background: var(--sg-accent-ink); }
 .sg-nav-link:is(:hover, :focus-visible)::after { transform: scaleX(1); }
 @media (prefers-reduced-motion: reduce) { .sg-nav-link::after { transition: none; } }
 .sg-nav-more-link, .sg-sheet-link { display: flex; align-items: center; gap: .45rem; }
-/* 下拉 / 抽屉条目：源站 menus_item_child 的「整条填色」hover，填主题色压白字 */
-.sg-nav-more-link { padding: .35rem .6rem; margin-inline: -.6rem; border-radius: .5rem; transition: background-color .25s linear, color .25s linear; }
-.sg-nav-more-link:is(:hover, :focus-visible) { background: var(--sg-accent); color: #fff; }
+/* 下拉条目横排后的尺寸/hover/选中态统一在 editorial.css 的「更多」下拉段维护 */
 .sg-sheet-link { padding: .45rem .7rem; margin-inline: -.7rem; border-radius: 10px; transition: background-color .25s linear, color .25s linear, opacity .25s linear; }
 .sg-sheet-link:is(:hover, :focus-visible) { background: var(--sg-accent); color: #fff; opacity: 1; }
 /* 导航图标彩色（2026-11-17，对齐源站彩色图标的观感）：每个入口一个专属色，
@@ -3256,7 +3254,10 @@ html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6)
    原为 Fomalhaut multicard 的书签尖（clip-path polygon）——多边形裁不了曲线，
    改用 mask-image + SVG path（preserveAspectRatio='none' 随卡宽拉伸）：
    直边基线 65%、两侧波峰、中央波谷，与站内海浪母题（雷暴海面壁纸/歌词波形/
-   文章页通栏波浪）同语言。mask 同时裁 img、暗幕 ::after 与摘要层，边缘平滑无锯齿。 */
+   文章页通栏波浪）同语言。mask 同时裁 img、暗幕 ::after 与摘要层，边缘平滑无锯齿。
+   2026-11-18 动态流动：mask 换成「两个完整周期」的横向平铺 tile（mask-size 200%、
+   repeat-x），mask-position 0%→100% 恰好平移一个周期（容器宽），首尾波形与
+   切线完全连续 → 无缝循环；只动画 mask-position，不改动 DOM 与 hover 缩放。 */
 .sg-feature-media {
   position: relative;
   display: flex;
@@ -3266,12 +3267,17 @@ html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6)
   height: 12.5rem;              /* 200px，与 Fomalhaut 封面同高 */
   overflow: hidden;
   background: rgba(148, 163, 184, .15);
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H100V65C85 78 72 80 61 70C54 63.5 46 63.5 39 70C28 80 15 78 0 65Z' fill='%23fff'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H100V65C85 78 72 80 61 70C54 63.5 46 63.5 39 70C28 80 15 78 0 65Z' fill='%23fff'/%3E%3C/svg%3E");
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H200V65C187.5 65 187.5 78 175 78C162.5 78 162.5 65 150 65C137.5 65 137.5 58 125 58C112.5 58 112.5 65 100 65C87.5 65 87.5 78 75 78C62.5 78 62.5 65 50 65C37.5 65 37.5 58 25 58C12.5 58 12.5 65 0 65Z' fill='%23fff'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H200V65C187.5 65 187.5 78 175 78C162.5 78 162.5 65 150 65C137.5 65 137.5 58 125 58C112.5 58 112.5 65 100 65C87.5 65 87.5 78 75 78C62.5 78 62.5 65 50 65C37.5 65 37.5 58 25 58C12.5 58 12.5 65 0 65Z' fill='%23fff'/%3E%3C/svg%3E");
+  -webkit-mask-size: 200% 100%;
+  mask-size: 200% 100%;
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
+  animation: sg-wave-flow 8s linear infinite;
+}
+@keyframes sg-wave-flow {
+  from { -webkit-mask-position: 0% 0%; mask-position: 0% 0%; }
+  to { -webkit-mask-position: 100% 0%; mask-position: 100% 0%; }
 }
 .sg-feature-media img {
   position: absolute;
@@ -3367,12 +3373,13 @@ html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6)
   margin-right: .15rem;
   background: var(--sg-line);
 }
-/* 减少动效：去掉封面/摘要缩放与卡面阴影/描边过渡 */
+/* 减少动效：去掉封面/摘要缩放与卡面阴影/描边过渡，海浪停止流动 */
 @media (prefers-reduced-motion: reduce) {
   .sg-feature-card:hover .sg-feature-media img,
   .sg-feature-card:hover .sg-feature-quote { transform: none; }
   .sg-feature-media img, .sg-feature-quote { transition: none; }
   .sg-feature-card { transition: none; }
+  .sg-feature-media { animation: none; }
 }
 /* 窄卡（三列 ≈293px）：对齐源站 multicard 三列档 —— 标题 1 行 19px、
    meta 与摘要略缩、信息区收紧。宽卡（两列/单列）走 base：标题 2 行 1.3rem。

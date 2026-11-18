@@ -676,17 +676,15 @@ html.sg-readmode [data-sg-readmode-toggle] { color: var(--sg-accent-ink); border
 /* ---------- P1-11 导航「更多」下拉 ---------- */
 .sg-nav-more { position: relative; display: inline-flex; }
 
-/* 悬浮桥接（2026-11-16）：菜单定位在 top: calc(100% + .6rem)，按钮与菜单间
-   留了 0.6rem 空隙。没有这层透明桥，鼠标从按钮移向「友链/关于」时会穿过空隙、
-   脱离 .sg-nav-more 的 hover，菜单立刻收起 —— 看起来就像「只能点击展开」。
-   ::after 填满这段空隙并覆盖到菜单宽度，hover 连续，悬浮即可展开并选择；
-   不拦截指针、不影响点击/键盘兜底。 */
-.sg-nav-more::after {
+/* 悬浮桥接（2026-11-16，2026-11-18 改挂菜单侧）：菜单与按钮间留 .6rem 空隙，
+   横排后菜单比按钮宽得多，桥接必须覆盖整个菜单宽度（源站 menus_item_child:before
+   的同款做法），否则斜向移向远端条目时穿过空隙脱离 hover、菜单收起。 */
+.sg-nav-more-menu::before {
   content: '';
   position: absolute;
-  top: 100%;
-  right: 0;
-  width: max(100%, 9rem);
+  top: -.6rem;
+  left: 0;
+  width: 100%;
   height: .6rem;
 }
 
@@ -715,10 +713,16 @@ html.sg-readmode [data-sg-readmode-toggle] { color: var(--sg-accent-ink); border
   right: 0;
   z-index: 120;
   display: none;
-  flex-direction: column;
-  gap: .15rem;
-  min-width: 9rem;
-  padding: .5rem;
+  /* 横排（2026-11-18，源站 custom.css「子菜单横向展示」display:flex 的同款形态）：
+     右对齐锚在「更多」按钮下方向左展开，避免末位栏目居中横排溢出视口；
+     条目过多时换行兜底，任何视口都够得着。 */
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: .25rem;
+  width: max-content;
+  max-width: min(92vw, 36rem);
+  padding: .4rem;
   border: 1px solid var(--sg-border);
   border-radius: var(--sg-radius-inner);
   /* 实底 + 阴影：下拉是浮在壁纸/头图上的菜单，用接近实色的卡面保证文字对比 */
@@ -737,7 +741,8 @@ html.sg-readmode [data-sg-readmode-toggle] { color: var(--sg-accent-ink); border
 
 .sg-nav-more-link {
   position: relative;
-  padding: .5rem .75rem;
+  margin-inline: 0; /* 横排条目不再用竖排时的负 margin 扩命中区，避免行内重叠 */
+  padding: .45rem .8rem;
   border-radius: .5rem;
   color: var(--sg-muted);
   font-size: .9rem;
@@ -749,11 +754,10 @@ html.sg-readmode [data-sg-readmode-toggle] { color: var(--sg-accent-ink); border
 
 .sg-nav-more-link:is(:hover, :focus-visible) {
   color: var(--sg-accent-ink);
-  background: color-mix(in srgb, var(--sg-accent) 16%, transparent);
-  font-weight: 600;
+  background: color-mix(in srgb, var(--sg-accent) 18%, transparent);
 }
 
-/* 选中项（2026-11-16）：实底高对比 + 左侧强调条，暗色下换成深色文字避免浅青底看不清 */
+/* 选中项（2026-11-16）：实底高对比；横排后强调条改压底边（竖排左侧条在行内会误读成分隔线） */
 .sg-nav-more-link.is-active {
   color: #fff;
   font-weight: 700;
@@ -762,13 +766,13 @@ html.sg-readmode [data-sg-readmode-toggle] { color: var(--sg-accent-ink); border
 .sg-nav-more-link.is-active::before {
   content: '';
   position: absolute;
-  left: .2rem;
-  top: 50%;
-  width: 3px;
-  height: 55%;
+  left: 50%;
+  bottom: .18rem;
+  width: 55%;
+  height: 3px;
   border-radius: 2px;
   background: var(--sg-accent-soft);
-  transform: translateY(-50%);
+  transform: translateX(-50%);
 }
 html.dark .sg-nav-more-link.is-active { color: #04171b; background: var(--sg-accent); }
 
