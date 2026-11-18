@@ -41,6 +41,23 @@ try {
             break;
         }
         $sgCids[] = (int) $sgRecent->cid;
+        /* 分类/标签全量 + permalink（第十八轮对齐源站 meta 行，修复「标签不全」） */
+        $sgRowCates = [];
+        try {
+            foreach ((array) $sgRecent->categories as $sgCateRow) {
+                $sgRowCates[] = ['name' => (string) ($sgCateRow['name'] ?? ''), 'url' => (string) ($sgCateRow['permalink'] ?? '')];
+            }
+        } catch (\Throwable $e) {
+            $sgRowCates = [];
+        }
+        $sgRowTags = [];
+        try {
+            foreach ((array) $sgRecent->tags as $sgTagRow) {
+                $sgRowTags[] = ['name' => (string) ($sgTagRow['name'] ?? ''), 'url' => (string) ($sgTagRow['permalink'] ?? '')];
+            }
+        } catch (\Throwable $e) {
+            $sgRowTags = [];
+        }
         $sgAllPosts[] = [
             'cid'       => (int) $sgRecent->cid,
             'title'     => (string) $sgRecent->title,
@@ -51,6 +68,8 @@ try {
             'sticky'    => (int) sg_field($sgRecent, 'sticky', '0'),
             'cover'     => sg_cover($sgRecent),
             'desc'      => sg_card_desc($sgRecent),
+            'cates'     => $sgRowCates,
+            'tagRows'   => $sgRowTags,
         ];
     }
 } catch (\Throwable $e) {
@@ -136,9 +155,7 @@ $sgHead = [
     'center'      => false,
     'placeholder' => '搜寻被封存的知识...',
     // 服务端搜索：提交到本页，用 k（避开 Typecho 占用的 s），保留当前标签，回填关键词
-    'search_action' => '',
     'search_name'   => 'k',
-    'search_hidden' => ($sgActiveTag !== '') ? ['tag' => $sgActiveTag] : [],
     'search_value'  => $sgKeyword,
 ];
 ?>
@@ -184,14 +201,16 @@ $sgHead = [
       </a>
       <div class="sg-feature-body">
         <h3 class="sg-feature-title"><a href="<?php echo sg_e($sgPost['permalink']); ?>"><?php echo sg_e($sgPost['title']); ?></a></h3>
+        <?php /* meta 行对齐源站 post-ui.pug：日期 | 分类链接(' > ') | 标签链接(' • ') */ ?>
         <div class="sg-feature-meta">
-          <span class="is-date"><?php echo sg_icon('clock'); ?><time datetime="<?php echo sg_e($sgPost['date']); ?>"><?php echo sg_e($sgAgo !== '' ? '发表于 ' . $sgAgo : '发表于 ' . $sgPost['date']); ?></time></span>
+          <span class="is-date"><?php echo sg_icon_color('clock'); ?><time datetime="<?php echo sg_e($sgPost['date']); ?>"><?php echo sg_e($sgAgo !== '' ? '发表于 ' . $sgAgo : '发表于 ' . $sgPost['date']); ?></time></span>
+          <?php if (!empty($sgPost['cates'])) : ?>
+          <span class="is-cate"><?php echo sg_icon_color('folder'); ?><?php foreach ($sgPost['cates'] as $sgIdx => $sgCate) : ?><a class="sg-meta-link" href="<?php echo sg_e((string) $sgCate['url']); ?>"><?php echo sg_e((string) $sgCate['name']); ?></a><?php if ($sgIdx < count($sgPost['cates']) - 1) : ?><i class="sg-meta-sep" aria-hidden="true">&gt;</i><?php endif; ?><?php endforeach; ?></span>
+          <?php endif; ?>
+          <?php if (!empty($sgPost['tagRows'])) : ?>
+          <span class="is-tags"><?php echo sg_icon_color('tag'); ?><?php foreach ($sgPost['tagRows'] as $sgIdx => $sgTag) : ?><a class="sg-meta-link" href="<?php echo sg_e((string) $sgTag['url']); ?>"><?php echo sg_e((string) $sgTag['name']); ?></a><?php if ($sgIdx < count($sgPost['tagRows']) - 1) : ?><span class="sg-meta-sep" aria-hidden="true"> • </span><?php endif; ?><?php endforeach; ?></span>
+          <?php endif; ?>
         </div>
-        <?php if ($sgNames) : ?>
-        <div class="sg-feature-tags">
-          <span><?php echo sg_icon('tag'); ?><?php echo sg_e(implode(' · ', $sgNames)); ?></span>
-        </div>
-        <?php endif; ?>
       </div>
     </article>
     <?php endforeach; ?>

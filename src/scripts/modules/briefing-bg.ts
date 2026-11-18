@@ -1,4 +1,4 @@
-import { pageOn, pageTimeout, pageInterval, pageFrame, onPageDispose, pageSignal } from './lifecycle';
+import { pageOn,pageTimeout,onPageDispose } from './lifecycle';
 /**
  * AI 日报卡片的背景轮播。
  *

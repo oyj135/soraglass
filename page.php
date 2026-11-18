@@ -49,7 +49,7 @@ if ($sgView !== '') {
       <header class="sg-article-head">
         <h1><?php $this->title(); ?></h1>
         <div class="sg-meta">
-          <span class="sg-meta-chip"><?php echo sg_icon('clock'); ?>更新于 <?php $this->date('Y-m-d H:i:s'); ?></span>
+          <span class="sg-meta-chip"><?php echo sg_icon_color('update'); ?>更新于 <?php $this->date('Y-m-d H:i:s'); ?></span>
         </div>
       </header>
       <?php if ($sgLead !== '') : ?><p class="sg-lead"><?php echo sg_e($sgLead); ?></p><?php endif; ?>

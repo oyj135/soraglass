@@ -1,14 +1,14 @@
-import { pageOn, pageTimeout, pageInterval, pageFrame, onPageDispose, pageSignal } from './lifecycle';
+import { pageOn,pageTimeout } from './lifecycle';
 /**
  * 首页轮播（封面轮播 + 碎语轮播）。
  * DOM 契约：[data-sg-carousel] / [data-sg-slide] / 可选 [data-sg-dots]，
- * [data-sg-interval] 缺省 6000ms，首页主封面使用 5000ms。
+ * [data-sg-interval] 缺省 6000ms，首页文章轮播使用 8000ms（第十七轮降速）。
  *
  * 自动播放保留源站 wait 节奏：每段淡出 / 淡入 800ms。
  * 桌面调整（>=1024px）：悬停 / 焦点临时暂停、手动切换每段 200ms、
  * 方向键 / Home / End；不新增触摸手势，也不提供暂停按钮。
  */
-import { reducedMotion } from './core';
+import { reducedMotion } from './runtime';
 
 const DEFAULT_INTERVAL = 6000;
 const FADE = 800;
@@ -40,8 +40,6 @@ function setupCarousel(host: HTMLElement): void {
   let requested = index;
   let pending = 0;
   let timer = 0;
-  let hovered = desktop.matches && host.matches(':hover');
-  let focused = desktop.matches && host.contains(document.activeElement);
 
   const dots: HTMLButtonElement[] = [];
   let progressFill: HTMLElement | null = null;
@@ -124,7 +122,8 @@ function setupCarousel(host: HTMLElement): void {
     if (!pending && target === index) return;
     requested = target;
     paintIndicator();
-    const quick = manual && desktop.matches;
+    /* 第十八轮：手动切换与自动播放同节奏（去掉 .2s 快切，观感自然） */
+    const quick = false;
     if (reducedMotion()) {
       jump(target);
       return;
@@ -160,8 +159,9 @@ function setupCarousel(host: HTMLElement): void {
 
   function restart(): void {
     stop();
-    // 桌面悬停 / 焦点进入时临时停表；后台标签页与减少动态效果同样不自动播放。
-    if (document.hidden || (desktop.matches && (hovered || focused)) || reducedMotion()) return;
+    /* 第十八轮：悬停/焦点不再停表（用户要求鼠标在卡片内时也能自动切换）；
+       只保留后台标签页与减少动效两道闸。 */
+    if (document.hidden || reducedMotion()) return;
     timer = pageTimeout(() => {
       timer = 0;
       show(requested + 1);
@@ -174,25 +174,6 @@ function setupCarousel(host: HTMLElement): void {
     restart();
   }
 
-  host.addEventListener('mouseenter', () => {
-    if (!desktop.matches) return;
-    hovered = true;
-    restart();
-  });
-  host.addEventListener('mouseleave', () => {
-    hovered = false;
-    restart();
-  });
-  host.addEventListener('focusin', () => {
-    if (!desktop.matches) return;
-    focused = true;
-    restart();
-  });
-  host.addEventListener('focusout', (event) => {
-    if (event.relatedTarget instanceof Node && host.contains(event.relatedTarget)) return;
-    focused = false;
-    restart();
-  });
   host.addEventListener('keydown', (event) => {
     if (!desktop.matches || event.altKey || event.ctrlKey || event.metaKey) return;
     const target = event.target;
@@ -208,10 +189,20 @@ function setupCarousel(host: HTMLElement): void {
     event.preventDefault();
     manualMove(next);
   });
+  /* 滚轮切换（2026-11-18，对齐源站 swiper mousewheel: true）：指针在卡内时
+     滚轮切换幻灯并拦住页面滚动；阈值 + 冷却防触控板惯性连跳；单张不拦截。 */
+  let wheelLock = 0;
+  host.addEventListener('wheel', (event) => {
+    if (slides.length < 2 || Math.abs(event.deltaY) < 24) return;
+    event.preventDefault();
+    const now = Date.now();
+    if (now - wheelLock < 450) return;
+    wheelLock = now;
+    manualMove(requested + (event.deltaY > 0 ? 1 : -1));
+  }, { passive: false });
+
   pageOn(document, 'visibilitychange', restart);
   pageOn(desktop, 'change', () => {
-    hovered = desktop.matches && host.matches(':hover');
-    focused = desktop.matches && host.contains(document.activeElement);
     if (!desktop.matches) host.classList.remove('is-manual');
     if (pending) jump(requested);
     restart();

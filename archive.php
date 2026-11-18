@@ -40,7 +40,7 @@ $sgCardsHtml = (string) ob_get_clean();
 ?>
 <main id="sg-main" class="sg-main sg-main--pad" data-sg-page="archive">
   <div class="sg-page-head">
-    <div class="sg-page-head-row">
+    <div class="sg-page-head-row is-centered">
       <div>
         <h1 class="sg-page-title"><?php $this->archiveTitle(array(
           'category' => _t('分类 %s'),
@@ -51,10 +51,6 @@ $sgCardsHtml = (string) ob_get_clean();
         ), '', ''); ?></h1>
         <p class="sg-page-sub"><?php echo $sgVisibleCount > 0 ? '本页 ' . $sgVisibleCount . ' 篇记录' : '暂未找到相关内容'; ?></p>
       </div>
-      <form class="sg-search sg-search--sm" role="search" method="get" action="<?php echo sg_e($sgHome); ?>">
-        <span class="sg-search-icon"><?php echo sg_icon('search'); ?></span>
-        <input class="sg-search-input" type="search" name="s" value="<?php echo sg_e($sgKeyword); ?>" placeholder="搜寻标题、描述或标签..." aria-label="站内搜索">
-      </form>
     </div>
   </div>
 
@@ -62,7 +58,8 @@ $sgCardsHtml = (string) ob_get_clean();
     <?php $this->widget('Widget_Metas_Tag_Cloud', 'sort=count&ignoreZeroCount=1&desc=1&limit=16')->to($sgTagCloud); ?>
     <?php if ($sgTagCloud->have()) : ?>
     <div class="sg-filter">
-      <a class="sg-filter-btn<?php echo $this->is('tag') ? '' : ' is-active'; ?>" href="<?php echo sg_e($sgHome); ?>">全部</a>
+      <?php /* 「全部」= 全部文章归档页；分类/标签/日期本身是筛选态，不再误标「全部」为选中 */ ?>
+      <a class="sg-filter-btn" href="<?php echo sg_e(sg_page_url('archives')); ?>">全部</a>
       <?php while ($sgTagCloud->next()) : ?>
       <?php $sgTagPath = parse_url((string) $sgTagCloud->permalink, PHP_URL_PATH); ?>
       <a class="sg-filter-btn<?php echo ($sgTagPath !== null && $sgTagPath === $sgCurrentPath) ? ' is-active' : ''; ?>" href="<?php $sgTagCloud->permalink(); ?>">

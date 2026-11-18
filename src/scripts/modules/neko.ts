@@ -1,5 +1,5 @@
-import { pageOn, pageFrame, pageInterval, onPageDispose } from './lifecycle';
-import { reducedMotion } from './core';
+import { pageOn,pageFrame,pageInterval,onPageDispose } from './lifecycle';
+import { reducedMotion } from './runtime';
 /**
  * 右缘小猫滚动进度（2026-11-16 第三轮，对齐 Fomalhaut cursor.js 的 nekoScroll）：
  *   [data-sg-neko-rope]  右缘竖绳，高度 = 滚动进度 × 0.9 × 视口高

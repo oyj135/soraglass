@@ -78,7 +78,7 @@ if ($sgWeek) {
       <div class="sg-about-panel" data-sg-seg-panel="tab:activity" hidden>
         <section class="sg-heat">
           <h3 class="sg-heat-title">
-            <?php echo sg_icon('activity'); ?>
+            <?php echo sg_icon_color('chart'); ?>
             <span class="sg-heat-count"><?php echo (int) $sgContrib; ?></span> contributions in the last year
           </h3>
 

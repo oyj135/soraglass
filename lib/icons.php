@@ -80,6 +80,39 @@ function sg_icon(string $name, string $class = ''): string
         . 'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $paths[$name] . '</svg>';
 }
 
+/**
+ * 语义信息图标：多色填充（2026-11-18，对齐源站 iconfont 多色 sprite 的观感，
+ * 路径自绘不抄源站）。主色走 --sg-icon-* 语义 token（昼夜各一档），
+ * 副色由 color-mix 叠白派生，白色细节恒 #fff。
+ * 未收录的名字回落线条版 sg_icon，调用点可安全混用。
+ * 用法：<?php echo sg_icon_color('calendar'); ?>
+ */
+function sg_icon_color(string $name, string $class = ''): string
+{
+    /* glyph 内 {m} = 主色、{l} = 副色（主色叠白 55%）；族名对应 tokens.css 的 --sg-icon-*。 */
+    $glyphs = [
+        'clock'    => ['time', '<circle cx="12" cy="12" r="9" fill="{l}"/><circle cx="12" cy="12" r="9" fill="none" stroke="{m}" stroke-width="1.8"/><path d="M12 7v5l3.2 2.2" fill="none" stroke="{m}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>'],
+        'calendar' => ['time', '<rect x="3" y="5" width="18" height="16" rx="3" fill="{l}"/><path d="M3 8a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v2H3z" fill="{m}"/><rect x="7" y="2.5" width="2" height="5" rx="1" fill="{m}"/><rect x="15" y="2.5" width="2" height="5" rx="1" fill="{m}"/><circle cx="8" cy="14" r="1.3" fill="#fff"/><circle cx="12" cy="14" r="1.3" fill="#fff"/><circle cx="16" cy="14" r="1.3" fill="#fff"/><circle cx="8" cy="17.5" r="1.3" fill="#fff"/><circle cx="12" cy="17.5" r="1.3" fill="#fff"/>'],
+        'folder'   => ['cate', '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="{m}"/><path d="M3 10h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="{l}"/>'],
+        'tag'      => ['tag', '<path d="M20.6 13.4 12 22l-9-9V3h10l7.6 7.6a2 2 0 0 1 0 2.8z" fill="{m}"/><path d="M20.6 13.4 12 22l-3-3 8.6-8.6z" fill="{l}"/><circle cx="7.5" cy="7.5" r="1.6" fill="#fff"/>'],
+        'update'   => ['data', '<path d="M20 12a8 8 0 1 1-2.34-5.66" fill="none" stroke="{m}" stroke-width="2.4" stroke-linecap="round"/><path d="M20 3v4h-4" fill="none" stroke="{l}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>'],
+        'eye'      => ['data', '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z" fill="{l}"/><circle cx="12" cy="12" r="3.4" fill="{m}"/><circle cx="12" cy="12" r="1.4" fill="#fff"/>'],
+        'comment'  => ['data', '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" fill="{m}"/><circle cx="8" cy="10.5" r="1.2" fill="#fff"/><circle cx="12" cy="10.5" r="1.2" fill="#fff"/><circle cx="16" cy="10.5" r="1.2" fill="#fff"/>'],
+        'chart'    => ['data', '<rect x="4" y="12" width="4" height="8" rx="1" fill="{l}"/><rect x="10" y="7" width="4" height="13" rx="1" fill="{m}"/><rect x="16" y="10" width="4" height="10" rx="1" fill="{l}"/>'],
+        'type'     => ['data', '<rect x="4" y="4" width="16" height="3" rx="1.5" fill="{m}"/><rect x="10.5" y="4" width="3" height="16" rx="1.5" fill="{m}"/><rect x="8" y="18" width="8" height="2.5" rx="1.25" fill="{l}"/>'],
+        'star'     => ['mark', '<path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" fill="{m}"/><circle cx="18.5" cy="5" r="1.2" fill="{l}"/><circle cx="5.5" cy="18.5" r="1" fill="{l}"/>'],
+    ];
+    if (!isset($glyphs[$name])) {
+        return sg_icon($name, $class);
+    }
+    [$family, $inner] = $glyphs[$name];
+    $main = 'var(--sg-icon-' . $family . ')';
+    $light = 'color-mix(in srgb, var(--sg-icon-' . $family . ') 55%, #fff)';
+    $inner = str_replace(['{m}', '{l}'], [$main, $light], $inner);
+    $cls = 'sg-ci' . ($class !== '' ? ' ' . $class : '');
+    return '<svg class="' . sg_e($cls) . '" viewBox="0 0 24 24" aria-hidden="true">' . $inner . '</svg>';
+}
+
 /** 社交图标名 → 站点图标；未收录时退化为 link 图标 */
 function sg_social_icon(array $item): string
 {

@@ -1,4 +1,4 @@
-import { pageFrame, pageOn } from './lifecycle';
+import { pageFrame,pageOn } from './lifecycle';
 
 /**
  * 手机端自绘滚动条（对齐 Fomalhaut source/js/modules/shell.js 末段）。

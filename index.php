@@ -27,8 +27,9 @@ $sgSlides = sg_home_slides(5);
 
 // 正文文章列表（2026-11-17 第三轮重写）：直接查库（sg_home_articles），
 // 碎语隔离写进 SQL 子查询，绕开 Widget_Archive —— 线上两个问题（置顶碎语重复、
-// 行内过滤失效）都出在 Archive 列表上下文；取固定 4 篇（两行两列，置顶优先）。
-$sgHomeListLimit = 4;
+// 行内过滤失效）都出在 Archive 列表上下文；2026-11-18 视觉改造取 6 篇：
+// 三列两行 / 两列三行 / 移动单列都整行收尾（置顶优先）。
+$sgHomeListLimit = 6;
 $sgHomeListHtml = '';
 foreach (sg_home_articles($sgHomeListLimit) as $sgHomeCard) {
     $sgHomeListHtml .= sg_feature_card_html($sgHomeCard);
@@ -38,10 +39,6 @@ foreach (sg_home_articles($sgHomeListLimit) as $sgHomeCard) {
   <?php /* 100vh 全屏图片首屏：参考 Fomalhaut #page-header.full_page。命名空间 .sg-front*，与首页主区 .sg-hero* 隔离。 */ ?>
   <?php $this->need('partials/home-front.php'); ?>
 
-  <form class="sg-search" role="search" method="get" action="<?php echo sg_e($sgHome); ?>">
-    <span class="sg-search-icon"><?php echo sg_icon('search'); ?></span>
-    <input class="sg-search-input" type="search" name="s" placeholder="搜寻标题、描述或标签..." aria-label="站内搜索">
-  </form>
 
   <?php
   /* 2026-11-16 首页重构：正文两栏 —— 左侧主内容（轮播 / 文章列表 / 歌词 / 三卡 / 日报），
@@ -55,7 +52,7 @@ foreach (sg_home_articles($sgHomeListLimit) as $sgHomeCard) {
         /* 个人刊物：封面轮播全宽，右栏内容已移到旁边的 sg-home-aside。 */
         ?>
         <div class="sg-hero">
-        <section class="sg-glass sg-post-carousel sg-hero-cover" data-sg-carousel data-sg-interval="5000" data-sg-hover>
+        <section class="sg-glass sg-post-carousel sg-hero-cover" data-sg-carousel data-sg-interval="8000" data-sg-hover>
           <?php if ($sgSlides) : ?>
             <?php foreach ($sgSlides as $sgSlideIndex => $sgSlide) : ?>
               <article class="sg-post-slide<?php echo $sgSlideIndex === 0 ? ' is-active' : ''; ?>" data-sg-slide>
@@ -82,6 +79,34 @@ foreach (sg_home_articles($sgHomeListLimit) as $sgHomeCard) {
         </section>
         </div>
 
+        <?php /* 歌词条紧跟轮播作明暗分隔带（2026-11-18 视觉改造：原先压在列表与
+           画廊/碎语之间，与两张暗卡连成 ~510px 暗色连块，打断左栏节奏）。 */ ?>
+        <?php $this->need('partials/lyric-bar.php'); ?>
+
+        <?php /* 分类入口芯片卡（对齐 Fomalhaut 首页分类导航卡）：给首页一个
+           扫视锚点与归档入口，同时补齐主栏高度。无分类时整卡不输出。 */ ?>
+        <?php $sgHomeCates = sg_home_categories(6); ?>
+        <?php if ($sgHomeCates) : ?>
+        <section class="sg-glass sg-home-cates" aria-label="分类入口">
+          <div class="sg-home-cates-grid">
+            <?php foreach ($sgHomeCates as $sgHomeCate) : ?>
+              <?php if ($sgHomeCate['url'] !== '') : ?>
+              <a class="sg-home-cate" href="<?php echo sg_e($sgHomeCate['url']); ?>">
+              <?php else : ?>
+              <span class="sg-home-cate">
+              <?php endif; ?>
+                <?php echo sg_icon_color('folder'); ?>
+                <span class="sg-home-cate-name"><?php echo sg_e($sgHomeCate['name']); ?></span>
+                <span class="sg-home-cate-count">(<?php echo (int) $sgHomeCate['count']; ?>)</span>
+                <?php echo sg_icon('chevron-right'); ?>
+              <?php echo $sgHomeCate['url'] !== '' ? '</a>' : '</span>'; ?>
+            <?php endforeach; ?>
+          </div>
+          <?php /* 查看更多 → 分类总览页（与芯片语义一致）；未建 categories 页时回退归档 */ ?>
+          <a class="sg-home-cates-more" href="<?php echo sg_e(sg_page_exists('categories') ? sg_page_url('categories') : sg_page_url('archives')); ?>">查看更多…</a>
+        </section>
+        <?php endif; ?>
+
         <?php
         /* 首页文章列表：multicard 卡片，形态与归档/分类/标签一致（复用 .sg-feature-card）。 */
         ?>
@@ -96,11 +121,9 @@ foreach (sg_home_articles($sgHomeListLimit) as $sgHomeCard) {
         </section>
         <?php endif; ?>
 
-        <?php $this->need('partials/lyric-bar.php'); ?>
-
         <?php
-        /* 第二行起：相册卡、碎语卡各占整行（2026-11-16 第三轮按用户要求）。
-           昼夜切换卡已移除——模式切换统一在右侧悬浮按钮组里。 */
+        /* 第二行起：相册卡、碎语卡 ≥1024px 并排两列（2026-11-18 视觉改造拆暗色连块），
+           更窄时各占整行。昼夜切换卡已移除——模式切换统一在右侧悬浮按钮组里。 */
         ?>
         <div class="sg-home-stories">
           <a class="sg-poster-wide" href="<?php echo sg_e($sgPoster['link'] !== '' ? $sgPoster['link'] : $sgHome); ?>" data-sg-hover data-sg-spotlight>
@@ -123,7 +146,7 @@ foreach (sg_home_articles($sgHomeListLimit) as $sgHomeCard) {
               <article class="sg-chatter-slide is-active" data-sg-slide>
                 <div class="sg-chatter-body sg-chatter-body--empty">
                   <span class="sg-chatter-meta">
-                    <span class="sg-chip--tag"><?php echo sg_icon('tag'); ?>碎语</span>
+                    <span class="sg-chip--tag"><?php echo sg_icon_color('tag'); ?>碎语</span>
                     <time>空空如也</time>
                   </span>
                   <h3>还没有碎语</h3>

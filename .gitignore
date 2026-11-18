@@ -4,9 +4,8 @@ dist/
 *.log
 .DS_Store
 Thumbs.db
-# 只忽略仓库根目录的构建脚本目录（npm run build/release/fonts 所在的 scripts/），
-# 不能写成 `scripts/`：那种写法会连 `src/scripts/` 一起忽略，整套 TS 源码进不了版本库。
-/scripts/
+# 构建与回归脚本随源码维护，仅忽略点号开头的本地诊断产物。
+/scripts/.*
 
 # 目录职责（详见 ../docs/STRUCTURE.md）：
 #   soraglass/        只放主题源码工程，不落地保留文档与构建产物

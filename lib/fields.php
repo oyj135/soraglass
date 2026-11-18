@@ -183,25 +183,13 @@ function sg_page_head(array $head = []): void
     $title = (string) ($head['title'] ?? '');
     $sub = (string) ($head['sub'] ?? '');
     $back = (bool) ($head['back'] ?? false);
-    $search = (bool) ($head['search'] ?? false);
     $center = (bool) ($head['center'] ?? false);
     /* 2026-11-12 第九轮：允许调用方直接渲染成隐藏状态。
        光影画廊的二级路由（?album=<id>）要在服务端就藏掉页头，否则刷新详情页
        会先闪一下「光影画廊」大标题再被 gallery.ts 收起。 */
     $hidden = (bool) ($head['hidden'] ?? false);
-    $placeholder = (string) ($head['placeholder'] ?? '搜索标题、描述或标签…');
-    /* 服务端分页/筛选（page-timeline.php）：允许把搜索框提交到本页而非首页，
-       并带隐藏字段（如当前标签）与回填值。未传时保持原样——action 仍是首页，
-       其余 9 个调用方不受影响。传空字符串表示提交到当前 URL（GET 会替换 query）。 */
-    $searchAction = array_key_exists('search_action', $head) ? (string) $head['search_action'] : null;
-    $searchHidden = (array) ($head['search_hidden'] ?? []);
-    $searchValue = (string) ($head['search_value'] ?? '');
-    $searchName = (string) ($head['search_name'] ?? 's');
     $options = sg_options();
     $home = is_object($options) ? rtrim((string) $options->siteUrl, '/') . '/' : '/';
-    if ($searchAction === null) {
-        $searchAction = $home;
-    }
     ?>
 <div class="sg-page-head"<?php echo $hidden ? ' hidden' : ''; ?>>
   <?php if ($back) : ?>
@@ -212,15 +200,6 @@ function sg_page_head(array $head = []): void
       <h1 class="sg-page-title"><?php echo sg_e($title); ?></h1>
       <?php if ($sub !== '') : ?><p class="sg-page-sub"><?php echo sg_e($sub); ?></p><?php endif; ?>
     </div>
-    <?php if ($search) : ?>
-    <form class="sg-search sg-search--sm" role="search" method="get" action="<?php echo sg_e($searchAction); ?>">
-      <?php foreach ($searchHidden as $sgHiddenName => $sgHiddenValue) : ?>
-      <input type="hidden" name="<?php echo sg_e((string) $sgHiddenName); ?>" value="<?php echo sg_e((string) $sgHiddenValue); ?>">
-      <?php endforeach; ?>
-      <span class="sg-search-icon"><?php echo sg_icon('search'); ?></span>
-      <input class="sg-search-input" type="search" name="<?php echo sg_e($searchName); ?>" value="<?php echo sg_e($searchValue); ?>" placeholder="<?php echo sg_e($placeholder); ?>" aria-label="站内搜索">
-    </form>
-    <?php endif; ?>
   </div>
 </div>
     <?php
@@ -678,18 +657,21 @@ function sg_home_articles(int $limit = 2): array
             }
         }
         $cats = [];
-        foreach ($db->fetchAll("SELECT r.cid, m.name FROM {$p}relationships r INNER JOIN {$p}metas m ON m.mid = r.mid WHERE r.cid IN ({$in}) AND m.type = 'category'") as $c) {
+        foreach ($db->fetchAll("SELECT r.cid, m.name, m.slug FROM {$p}relationships r INNER JOIN {$p}metas m ON m.mid = r.mid WHERE r.cid IN ({$in}) AND m.type = 'category'") as $c) {
             $cid = (int) ($c['cid'] ?? 0);
-            if ($cid > 0 && !isset($cats[$cid])) {
-                $cats[$cid] = (string) ($c['name'] ?? '');
+            $name = trim((string) ($c['name'] ?? ''));
+            if ($cid > 0 && $name !== '') {
+                $cats[$cid][] = $name;
+                $cats[$cid . ':slug'][] = (string) ($c['slug'] ?? '');
             }
         }
         $tags = [];
-        foreach ($db->fetchAll("SELECT r.cid, m.name FROM {$p}relationships r INNER JOIN {$p}metas m ON m.mid = r.mid WHERE r.cid IN ({$in}) AND m.type = 'tag'") as $t) {
+        foreach ($db->fetchAll("SELECT r.cid, m.name, m.slug FROM {$p}relationships r INNER JOIN {$p}metas m ON m.mid = r.mid WHERE r.cid IN ({$in}) AND m.type = 'tag'") as $t) {
             $cid = (int) ($t['cid'] ?? 0);
             $name = trim((string) ($t['name'] ?? ''));
             if ($cid > 0 && $name !== '') {
                 $tags[$cid][] = $name;
+            $tagSlugs[$cid][] = (string) ($t['slug'] ?? '');
             }
         }
 
@@ -701,6 +683,30 @@ function sg_home_articles(int $limit = 2): array
         }
         $options = sg_options();
         $fallbackCover = (string) sg_opt('sgDefaultCover', sg_theme_url('dist/img/cover-default.svg'));
+
+        /* meta 链接构造（第十八轮对齐源站：分类/标签全部可点）。Router::url 路由表
+           由归档组件初始化；路由缺失或参数不齐时返回 '#'/{占位}，此时降级为纯文本。 */
+        $metaLink = static function (string $type, array $names, array $slugs) use ($options): array {
+            $rows = [];
+            foreach ($names as $i => $name) {
+                $row = ['name' => (string) $name, 'url' => ''];
+                $slug = (string) ($slugs[$i] ?? '');
+                if ($slug !== '') {
+                    try {
+                        $u = \Typecho\Router::url($type, [
+                            'slug' => $slug, 'dir' => '', 'category' => $slug, 'directory' => '',
+                        ], (string) $options->index);
+                        if ($u !== '#' && !str_contains($u, '{')) {
+                            $row['url'] = $u;
+                        }
+                    } catch (\Throwable $e) {
+                        $row['url'] = '';
+                    }
+                }
+                $rows[] = $row;
+            }
+            return $rows;
+        };
 
         $out = [];
         foreach ($rows as $row) {
@@ -748,8 +754,8 @@ function sg_home_articles(int $limit = 2): array
                 'quote'    => $quote,
                 'title'    => trim((string) ($row['title'] ?? '')),
                 'dateText' => $ago !== '' ? '发表于 ' . $ago : '发表于 ' . date('Y.m.d', $stamp + $tz),
-                'cate'     => $cats[$cid] ?? '',
-                'tags'     => isset($tags[$cid]) ? sg_e(implode(' · ', $tags[$cid])) : '',
+                'cates'    => $metaLink('category', $cats[$cid] ?? [], $cats[$cid . ':slug'] ?? []),
+                'tagRows'  => $metaLink('tag', $tags[$cid] ?? [], $tagSlugs[$cid] ?? []),
                 'sticky'   => $stickyMap[$cid] ?? 0,
             ];
         }
@@ -763,6 +769,48 @@ function sg_home_articles(int $limit = 2): array
             return 0;
         });
         return array_slice($out, 0, max(1, $limit));
+    } catch (\Throwable $e) {
+        return [];
+    }
+}
+
+/**
+ * 首页分类入口芯片（对齐 Fomalhaut 首页分类导航卡）：按文章数取前 N 个分类。
+ * 路由缺失时 url 留空，模板降级为纯文本芯片；任何异常回空数组，首页不 500。
+ *
+ * @return array<int,array{name:string,count:int,url:string}>
+ */
+function sg_home_categories(int $limit = 6): array
+{
+    try {
+        $db = \Typecho\Db::get();
+        $rows = $db->fetchAll(
+            $db->select('name', 'slug', 'count')->from('table.metas')
+                ->where('type = ?', 'category')->order('count', \Typecho\Db::SORT_DESC)
+                ->limit($limit)
+        );
+        $options = sg_options();
+        $out = [];
+        foreach ($rows as $row) {
+            $name = trim((string) ($row['name'] ?? ''));
+            $slug = (string) ($row['slug'] ?? '');
+            if ($name === '' || $slug === '') {
+                continue;
+            }
+            $url = '';
+            try {
+                $path = (string) \Typecho\Router::url('category', [
+                    'slug' => $slug, 'dir' => '', 'category' => $slug, 'directory' => '',
+                ]);
+                if ($path !== '' && $path !== '#' && !str_contains($path, '{')) {
+                    $url = (string) \Typecho\Common::url($path, $options->index);
+                }
+            } catch (\Throwable $e) {
+                $url = '';
+            }
+            $out[] = ['name' => $name, 'count' => (int) ($row['count'] ?? 0), 'url' => $url];
+        }
+        return $out;
     } catch (\Throwable $e) {
         return [];
     }
@@ -803,15 +851,33 @@ function sg_feature_card_html(array $card): string
     $html .= '</a>';
     $html .= '<div class="sg-feature-body">';
     $html .= '<h3 class="sg-feature-title"><a href="' . sg_e($url) . '">' . sg_e($title) . '</a></h3>';
+    /* meta 行对齐源站 post-ui.pug .article-meta-wrap：日期 | 分类链接(' > ' 分隔) | 标签链接(' • ' 分隔)。
+       第十八轮修复「标签不全」：旧版合并成一段纯文本且分类只取第一个，现全部渲染为可点击链接。 */
+    $cates = is_array($card['cates'] ?? null) ? $card['cates'] : [];
+    $tagRows = is_array($card['tagRows'] ?? null) ? $card['tagRows'] : [];
     $html .= '<div class="sg-feature-meta">';
-    $html .= '<span class="is-date">' . sg_icon('clock') . sg_e($dateText) . '</span>';
-    if ($cate !== '') {
-        $html .= '<span class="is-cate">' . sg_icon('folder') . sg_e($cate) . '</span>';
+    $html .= '<span class="is-date">' . sg_icon_color('clock') . sg_e($dateText) . '</span>';
+    if ($cates) {
+        $links = [];
+        foreach ($cates as $sgIdx => $sgCate) {
+            $links[] = '<a class="sg-meta-link" href="' . sg_e((string) $sgCate['url']) . '">' . sg_e((string) $sgCate['name']) . '</a>';
+            if ($sgIdx < count($cates) - 1) {
+                $links[] = '<i class="sg-meta-sep" aria-hidden="true">&gt;</i>';
+            }
+        }
+        $html .= '<span class="is-cate">' . sg_icon_color('folder') . implode('', $links) . '</span>';
+    }
+    if ($tagRows) {
+        $links = [];
+        foreach ($tagRows as $sgIdx => $sgTag) {
+            $links[] = '<a class="sg-meta-link" href="' . sg_e((string) $sgTag['url']) . '">' . sg_e((string) $sgTag['name']) . '</a>';
+            if ($sgIdx < count($tagRows) - 1) {
+                $links[] = '<span class="sg-meta-sep" aria-hidden="true"> • </span>';
+            }
+        }
+        $html .= '<span class="is-tags">' . sg_icon_color('tag') . implode('', $links) . '</span>';
     }
     $html .= '</div>';
-    if ($tags !== '') {
-        $html .= '<div class="sg-feature-tags"><span class="is-tag">' . sg_icon('tag') . $tags . '</span></div>';
-    }
     $html .= '</div>';
     $html .= '</article>';
     return $html;
@@ -861,96 +927,6 @@ function sg_home_slides(int $limit = 5): array
     return $slides;
 }
 
-/**
- * One configurable source: a complete Meting-compatible HTTP(S) endpoint.
- * Keep the sgPlaylist option key so existing endpoint settings survive upgrades.
- */
-function sg_playlist(): array
-{
-    $raw = trim((string) sg_opt('sgPlaylist', ''));
-
-    unset($GLOBALS['SG_PLAYLIST_ERROR']);
-    if ($raw === '') {
-        $GLOBALS['SG_PLAYLIST_SOURCE'] = '未配置 Meting 接口';
-        return [];
-    }
-    if (!preg_match('#^https?://#i', $raw) || filter_var($raw, FILTER_VALIDATE_URL) === false) {
-        $GLOBALS['SG_PLAYLIST_SOURCE'] = 'Meting 接口地址无效';
-        $GLOBALS['SG_PLAYLIST_ERROR'] = '请填写完整的 http(s) Meting 接口地址。';
-        return [];
-    }
-    $GLOBALS['SG_PLAYLIST_SOURCE'] = 'Meting · ' . sg_meting_label($raw);
-    return sg_playlist_cap(sg_playlist_media(sg_meting_playlist($raw)));
-}
-
-/**
- * 当前生效的歌单来源，给模板显示用。
- */
-function sg_playlist_source(): string
-{
-    return (string) ($GLOBALS['SG_PLAYLIST_SOURCE'] ?? '未配置 Meting 接口');
-}
-
-/**
- * 最近一次取远程歌单失败的原因；没有失败时是空串。
- */
-function sg_playlist_error(): string
-{
-    return (string) ($GLOBALS['SG_PLAYLIST_ERROR'] ?? '');
-}
-
-/**
- * 音乐页底部的一行诊断：来源 + 条数（+ 失败原因）。
- */
-function sg_playlist_diag(int $count): string
-{
-    $text = sg_playlist_source() . '，共 ' . $count . ' 首';
-    $error = sg_playlist_error();
-    if ($error !== '') {
-        $text .= '；' . $error;
-    }
-    return $text;
-}
-
-/**
- * 把 Meting 地址缩成 `server/type/id`，用于「当前数据源」那一行。
- */
-function sg_meting_label(string $url): string
-{
-    $query = [];
-    $parts = parse_url($url);
-    if (is_array($parts) && isset($parts['query'])) {
-        parse_str((string) $parts['query'], $query);
-    }
-    $bits = [];
-    foreach (['server', 'type', 'id'] as $key) {
-        $value = trim((string) ($query[$key] ?? ''));
-        if ($value !== '') {
-            $bits[] = $value;
-        }
-    }
-
-    return $bits ? implode('/', $bits) : (string) parse_url($url, PHP_URL_HOST);
-}
-
-/**
- * 远程歌单截断。
- *
- * 一个热门网易云歌单动辄几百首：整份塞进 `window.SG.playlist` 与歌单列表，
- * 单页 HTML 会膨胀到 500 KB 以上，而且每一首都带一张懒加载封面。
- * 这里按后台「歌单上限」截断（默认 50，填 0 不截断）。
- *
- * @param array<int,array<string,mixed>> $list
- * @return array<int,array<string,mixed>>
- */
-function sg_playlist_cap(array $list): array
-{
-    $limit = (int) sg_opt('sgPlaylistLimit', '50');
-    if ($limit > 0 && count($list) > $limit) {
-        return array_slice($list, 0, $limit);
-    }
-    return $list;
-}
 
 /**
  * 首页「碎语」轮播的一张。
@@ -1331,302 +1307,8 @@ function sg_notes_excerpt(string $html): string
     return $text;
 }
 
-/**
- * 歌单里的 url / cover 归一化。
- *
- * 自带音源放在 `public/audio/`，打包后在 `dist/audio/`，JSON 里只写相对路径；
- * 不补主题前缀的话浏览器会去站点根找 `/dist/audio/...`，必然 404。
- * 外链（网易云封面、用户自己的图床）原样返回，见 sg_media() 的解析规则。
- */
-function sg_playlist_media(array $list): array
-{
-    foreach ($list as $i => $track) {
-        if (!is_array($track)) {
-            continue;
-        }
-        foreach (['url', 'cover'] as $key) {
-            $value = trim((string) ($track[$key] ?? ''));
-            if ($value !== '') {
-                $list[$i][$key] = sg_media($value);
-            }
-        }
-    }
-    return $list;
-}
 
-/** A deadline covers the complete cURL attempt; bounded calls never retry via PHP streams. */
-function sg_http_timeout_ms(int $timeout, ?float $deadline): int
-{
-    $milliseconds = max(1, $timeout) * 1000;
-    return $deadline === null ? $milliseconds
-        : min($milliseconds, max(0, (int) floor(($deadline - microtime(true)) * 1000)));
-}
 
-/**
- * 一个极简 GET：curl 优先；不带 deadline 的旧调用保留 file_get_contents 回退。
- *
- * 「失败」真的会发生：有些 PHP 构建没配 CA 包，curl 直接报
- * `errno 60 unable to get local issuer certificate`，而 file_get_contents
- * 走的是另一套 CA 配置、常常还能通。带 deadline 的 AI 请求失败直接结束，
- * 避免 PHP 流按读取阶段重新计时、突破整体预算。
- *
- * 只允许 http/https（含重定向），避免配置里出现 file:// 之类的协议被 curl 跟着跑。
- *
- * @param array<int,string> $headers 形如 `Accept: application/json`
- */
-function sg_http_get(string $url, array $headers = [], int $timeout = 6, ?float $deadline = null): string
-{
-    $timeoutMs = sg_http_timeout_ms($timeout, $deadline);
-    if ($timeoutMs === 0 || ($deadline !== null && !function_exists('curl_init'))) {
-        return '';
-    }
-    $ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
-    $headers = array_merge(['User-Agent: ' . $ua], $headers);
-
-    if (function_exists('curl_init')) {
-        $ch = curl_init($url);
-        $opts = [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT_MS        => $timeoutMs,
-            CURLOPT_CONNECTTIMEOUT_MS => min(3000, $timeoutMs),
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_MAXREDIRS      => 3,
-            CURLOPT_HTTPHEADER     => $headers,
-        ];
-        if (defined('CURLOPT_PROTOCOLS')) {
-            $opts[CURLOPT_PROTOCOLS] = CURLPROTO_HTTP | CURLPROTO_HTTPS;
-        }
-        if (defined('CURLOPT_REDIR_PROTOCOLS')) {
-            $opts[CURLOPT_REDIR_PROTOCOLS] = CURLPROTO_HTTP | CURLPROTO_HTTPS;
-        }
-        /* 只有 cainfo 落在 open_basedir 允许的目录里才去看它。
-           宝塔这类环境 curl.cainfo 指向 /etc/pki/tls/certs/ca-bundle.crt，
-           而 open_basedir 只有站点目录 + /tmp，直接 is_file() 会在页面顶部喷
-           「open_basedir restriction in effect」警告（首页/音乐页都会），
-           所以先比对目录前缀，必要时再用 @ 兜一层。 */
-        $cainfo = (string) ini_get('curl.cainfo');
-        if ($cainfo !== '') {
-            $allowed = trim((string) ini_get('open_basedir'));
-            $ok = $allowed === '';
-            if (!$ok) {
-                foreach (explode(PATH_SEPARATOR, $allowed) as $dir) {
-                    $dir = rtrim(trim($dir), '/\\');
-                    if ($dir !== '' && strpos($cainfo, $dir . DIRECTORY_SEPARATOR) === 0) {
-                        $ok = true;
-                        break;
-                    }
-                }
-            }
-            if ($ok && @is_file($cainfo)) {
-                $opts[CURLOPT_CAINFO] = $cainfo;
-            }
-        }
-        curl_setopt_array($ch, $opts);
-        $body = curl_exec($ch);
-        $failed = $body === false || $body === '';
-        curl_close($ch);
-        if (!$failed) {
-            return (string) $body;
-        }
-        if ($deadline !== null) {
-            return '';
-        }
-    }
-
-    $ctx = stream_context_create([
-        'http' => [
-            'timeout'         => $timeout,
-            'header'          => implode("\r\n", $headers) . "\r\n",
-            'follow_location' => 1,
-            'max_redirects'   => 3,
-        ],
-    ]);
-    $body = @file_get_contents($url, false, $ctx);
-    return is_string($body) ? $body : '';
-}
-
-/**
- * POST JSON：AI 接口用。与 sg_http_get() 同样的「curl 失败退 fgc」策略，
- * 同样只放行 http/https，同样按 open_basedir 决定要不要看 curl.cainfo。
- *
- * @param array<string,mixed> $payload
- * @param array<int,string>   $headers
- */
-function sg_http_post_json(string $url, array $payload, array $headers = [], int $timeout = 20, ?float $deadline = null): string
-{
-    $timeoutMs = sg_http_timeout_ms($timeout, $deadline);
-    if ($timeoutMs === 0 || ($deadline !== null && !function_exists('curl_init'))) {
-        return '';
-    }
-    if (preg_match('#^https?://#i', $url) !== 1) {
-        return '';
-    }
-
-    $body = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    if (!is_string($body)) {
-        return '';
-    }
-
-    $ua = 'soraglass/1.0 (+https://github.com/oyj135/soraglass)';
-    $headers = array_merge([
-        'User-Agent: ' . $ua,
-        'Content-Type: application/json',
-        'Accept: application/json',
-        'Content-Length: ' . strlen($body),
-    ], $headers);
-
-    if (function_exists('curl_init')) {
-        $ch = curl_init($url);
-        $opts = [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => $body,
-            CURLOPT_TIMEOUT_MS        => $timeoutMs,
-            CURLOPT_CONNECTTIMEOUT_MS => min(5000, $timeoutMs),
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_MAXREDIRS      => 2,
-            CURLOPT_HTTPHEADER     => $headers,
-        ];
-        if (defined('CURLOPT_PROTOCOLS')) {
-            $opts[CURLOPT_PROTOCOLS] = CURLPROTO_HTTP | CURLPROTO_HTTPS;
-        }
-        if (defined('CURLOPT_REDIR_PROTOCOLS')) {
-            $opts[CURLOPT_REDIR_PROTOCOLS] = CURLPROTO_HTTP | CURLPROTO_HTTPS;
-        }
-        $cainfo = (string) ini_get('curl.cainfo');
-        if ($cainfo !== '') {
-            $allowed = trim((string) ini_get('open_basedir'));
-            $ok = $allowed === '';
-            if (!$ok) {
-                foreach (explode(PATH_SEPARATOR, $allowed) as $dir) {
-                    $dir = rtrim(trim($dir), '/\\');
-                    if ($dir !== '' && strpos($cainfo, $dir . DIRECTORY_SEPARATOR) === 0) {
-                        $ok = true;
-                        break;
-                    }
-                }
-            }
-            if ($ok && @is_file($cainfo)) {
-                $opts[CURLOPT_CAINFO] = $cainfo;
-            }
-        }
-        curl_setopt_array($ch, $opts);
-        $result = curl_exec($ch);
-        $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-        curl_close($ch);
-        if (is_string($result) && $result !== '' && $status >= 200 && $status < 300) {
-            return $result;
-        }
-        if (is_string($result) && $result !== '' && $status >= 400) {
-            /* 4xx/5xx 的响应体常常就是错误说明，交给上层解析比丢一句「没响应」有用 */
-            return $result;
-        }
-        if ($deadline !== null) {
-            return '';
-        }
-    }
-
-    $ctx = stream_context_create([
-        'http' => [
-            'method'          => 'POST',
-            'timeout'         => $timeout,
-            'header'          => implode("\r\n", $headers) . "\r\n",
-            'content'         => $body,
-            'ignore_errors'   => true,
-            'follow_location' => 1,
-            'max_redirects'   => 2,
-        ],
-    ]);
-    $result = @file_get_contents($url, false, $ctx);
-    return is_string($result) ? $result : '';
-}
-
-/**
- * Meting 兼容 API → 歌单数组。
- *
- * Meting 是 APlayer 生态里事实上的后端契约（Typecho 的 `Meting` 插件、MetingJS、
- * 多数主题都吃同一份 JSON），所以这里只实现「读它的 JSON」，不引入 APlayer / 第三方 JS。
- * 字段同时兼容两套命名：
- *   `name / artist / url / pic / lrc`（APlayer 标准）
- *   `title / author / url / pic`（i-meto 老接口）
- *
- * `lrc` 有两副面孔：有的是歌词正文（含 [mm:ss]），有的是纯文本地址（`type=lrc`）。
- * 后者原样交给前端按需 fetch —— 该接口带 `Access-Control-Allow-Origin: *`。
- *
- * 同地址缓存 1 小时；管理员主动 sg-refresh=1 时绕缓存。
- * 更换接口地址使用独立缓存，网络失败可回退该接口的旧缓存。
- */
-function sg_meting_playlist(string $endpoint): array
-{
-    $endpoint = trim($endpoint);
-    if ($endpoint === '' || !preg_match('#^https?://#i', $endpoint)) {
-        return [];
-    }
-
-    /* 2026-11-14 第三十七轮：这两个变量决定「翻一页要等多久」。
-       原来写的是 `$bypass = sg_user_is_admin();` + 600 秒 TTL —— 站长自己浏览时
-       永远是登录态，于是**每一次翻页都绕过缓存直连 Meting**，而 sg_http_get 的
-       超时是 6 秒；接口正常时也要多花 0.3–1s，接口抖动时整页卡住几秒。
-       这就是「页面间跳转很慢」最直接的原因：PHP 在吐第一个字节之前先等了一次外网。
-       现在缓存优先、谁登录都一样，要强制刷新用 `?sg-refresh=1`（仅管理员有效），
-       TTL 10 分钟 → 1 小时。 */
-    $bypass = isset($_GET['sg-refresh']) && sg_user_is_admin();
-    $ttl = 3600;
-    $cacheFile = sg_cache_file('meting-' . md5($endpoint) . '.json');
-
-    if (!$bypass && $cacheFile !== '' && is_file($cacheFile) && (time() - (int) filemtime($cacheFile)) < $ttl) {
-        $cached = json_decode((string) file_get_contents($cacheFile), true);
-        if (is_array($cached) && $cached) {
-            return $cached;
-        }
-    }
-
-    $body = sg_http_get($endpoint, ['Accept: application/json']);
-    $rows = $body !== '' ? json_decode($body, true) : null;
-    if (!is_array($rows)) {
-        /* 拿不到就退回上一份缓存，总比音乐页空着强；失败原因照样报到页面上 */
-        $stale = is_file($cacheFile) ? json_decode((string) file_get_contents($cacheFile), true) : null;
-        if (is_array($stale) && $stale) {
-            $GLOBALS['SG_PLAYLIST_ERROR'] = '接口这次没返回可解析的 JSON，先用的是上次缓存。';
-            return $stale;
-        }
-        $GLOBALS['SG_PLAYLIST_ERROR'] = '接口没有返回可解析的 JSON（检查地址是否可达、是否需要换一个公共实例）。';
-        return [];
-    }
-
-    $out = [];
-    foreach ($rows as $row) {
-        if (!is_array($row)) {
-            continue;
-        }
-        $title = trim((string) ($row['name'] ?? $row['title'] ?? ''));
-        $url = trim((string) ($row['url'] ?? ''));
-        if ($title === '' || $url === '') {
-            continue;   // 没有播放地址的条目直接丢掉，点了没反应比不显示更糟
-        }
-        $cover = trim((string) ($row['pic'] ?? $row['cover'] ?? ''));
-        $out[] = [
-            'title'  => $title,
-            'artist' => trim((string) ($row['artist'] ?? $row['author'] ?? '')),
-            'album'  => trim((string) ($row['album'] ?? '')),
-            'cover'  => $cover !== '' ? $cover : sg_theme_url('dist/img/cover-default.svg'),
-            'url'    => $url,
-            'lrc'    => trim((string) ($row['lrc'] ?? '')),
-            'lyric'  => '',
-        ];
-    }
-
-    if (!$out) {
-        $GLOBALS['SG_PLAYLIST_ERROR'] = '接口返回的条目里没有可播放地址（公共实例可能限制了该歌单）。';
-        return [];
-    }
-
-    if ($cacheFile !== '') {
-        @file_put_contents($cacheFile, json_encode($out, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-    }
-
-    return $out;
-}
 
 /**
  * 文章字数与预计阅读时长。

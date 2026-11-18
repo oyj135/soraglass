@@ -13,7 +13,7 @@
  *
  * prefers-reduced-motion 下不动：直接按模板写好的位置静态排好。
  */
-import { isSmallScreen, reducedMotion } from './core';
+import { isSmallScreen,reducedMotion } from './runtime';
 
 interface Print {
   el: HTMLElement;

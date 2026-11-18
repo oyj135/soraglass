@@ -46,7 +46,7 @@ $sgHead = [
     <?php foreach ($sgTags as $sgTag) : ?>
     <?php $sgWeight = $sgMax > 1 ? ($sgTag['count'] / $sgMax) : 1; ?>
     <a class="sg-tag-chip" href="<?php echo sg_e($sgTag['url']); ?>" style="--sg-weight:<?php echo round(0.6 + $sgWeight * 0.4, 3); ?>">
-      <?php echo sg_icon('tag'); ?><?php echo sg_e($sgTag['name']); ?><span class="sg-tag-chip-count"><?php echo $sgTag['count']; ?></span>
+      <?php echo sg_icon_color('tag'); ?><?php echo sg_e($sgTag['name']); ?><span class="sg-tag-chip-count"><?php echo $sgTag['count']; ?></span>
     </a>
     <?php endforeach; ?>
   </div>

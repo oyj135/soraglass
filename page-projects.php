@@ -102,7 +102,7 @@ $sgHead = [
         <span class="sg-project-lang"><i></i><?php echo sg_e($sgLang); ?></span>
         <?php endif; ?>
         <?php if ($sgStars > 0) : ?>
-        <span class="sg-project-star"><?php echo sg_icon('star'); ?><?php echo (int) $sgStars; ?></span>
+        <span class="sg-project-star"><?php echo sg_icon_color('star'); ?><?php echo (int) $sgStars; ?></span>
         <?php endif; ?>
         <?php if ($sgForks > 0) : ?>
         <span class="sg-project-fork"><?php echo sg_icon('fork'); ?><?php echo (int) $sgForks; ?></span>

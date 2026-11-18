@@ -52,7 +52,7 @@ $sgHead = [
       <span class="sg-term-card-count"><b><?php echo $sgRow['count']; ?></b> 篇文章</span>
       <?php if ($sgLatest) : ?>
       <a class="sg-term-card-latest" href="<?php echo sg_e($sgLatest['url']); ?>">
-        <?php echo sg_icon('clock'); ?>
+        <?php echo sg_icon_color('clock'); ?>
         <span><?php echo sg_e($sgLatest['title'] !== '' ? $sgLatest['title'] : '未命名文章'); ?></span>
         <time><?php echo sg_e($sgLatest['date']); ?></time>
       </a>

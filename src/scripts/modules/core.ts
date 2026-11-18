@@ -1,92 +1,11 @@
-import { pageOn, pageTimeout, pageInterval, pageFrame, onPageDispose, pageSignal } from './lifecycle';
-/**
- * 全局核心：运行时配置、提示条、昼夜切换、导航抽屉、背景栈、开屏。
- * 这里不做 SPA 化，Typecho 保持整页导航，只做观感补偿。
- */
+import { pageOn,pageTimeout,pageFrame,onPageDispose,pageSignal } from './lifecycle';
+import { readStore,writeStore } from './runtime';
+import { toast } from './feedback';
+import { initTheme } from './theme';
+import { initNav,initNavMore } from './navigation-ui';
+import { initBackground,initImageFallback } from './media';
 
-const DEFAULTS: SGConfig = {
-  themeUrl: '',
-  bgImages: [],
-  themeColors: ['#a18cd1', '#fbc2eb', '#a1c4fd', '#c2e9fb'],
-  danmaku: [],
-  effects: true,
-  clickEffect: true,
-  season: 'none',
-  playlist: [],
-  nav: [],
-  placeholder: '',
-};
-
-const THEME_KEY = 'sg-theme';
 const SPLASH_MIN = 600;
-
-export const config = (): SGConfig => ({ ...DEFAULTS, ...(window.SG ?? {}) });
-
-export const reducedMotion = (): boolean => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-export const isSmallScreen = (): boolean => window.innerWidth < 900;
-
-/** 本地存储读写都包一层，隐私模式下 silent fail */
-export function readStore<T>(key: string, fallback: T): T {
-  try {
-    const raw = window.localStorage.getItem(key);
-    return raw === null ? fallback : (JSON.parse(raw) as T);
-  } catch {
-    return fallback;
-  }
-}
-
-export function writeStore(key: string, value: unknown): void {
-  try {
-    window.localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    /* 隐私模式忽略 */
-  }
-}
-
-let toastTimer = 0;
-
-export function toast(message: string): void {
-  const el = document.querySelector<HTMLElement>('[data-sg-toast]');
-  if (!el) return;
-  el.textContent = message;
-  el.classList.add('is-visible');
-  window.clearTimeout(toastTimer);
-  toastTimer = pageTimeout(() => el.classList.remove('is-visible'), 2200);
-}
-
-const isDark = (): boolean => document.documentElement.classList.contains('dark');
-
-/** 首页昼夜卡的文案随主题切换（圆盘与配色由 CSS 的 html.dark 驱动） */
-function syncThemeCopy(): void {
-  const dark = isDark();
-  document.querySelectorAll<HTMLElement>('[data-sg-theme-title]').forEach((el) => {
-    el.textContent = dark ? '日间模式' : '夜间模式';
-  });
-  document.querySelectorAll<HTMLElement>('[data-sg-theme-sub]').forEach((el) => {
-    el.textContent = dark ? '樱花漫舞的白昼' : '流萤飞舞的深空';
-  });
-}
-
-export function toggleTheme(): void {
-  const dark = !isDark();
-  document.documentElement.classList.toggle('dark', dark);
-  // header.php 的内联脚本按裸字符串读取，这里必须写裸值，不能 JSON 序列化
-  try {
-    window.localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light');
-  } catch {
-    /* 隐私模式忽略 */
-  }
-  syncThemeCopy();
-  toast(dark ? '已切换到夜间模式' : '已切换到日间模式');
-}
-
-function initTheme(): void {
-  syncThemeCopy();
-  document.querySelectorAll<HTMLElement>('[data-sg-theme-toggle]').forEach((btn) => {
-    pageOn(btn, 'click', toggleTheme);
-  });
-}
 
 /** 所有现有检索入口共用清除行为；派发原 input/search 事件复用各页筛选。 */
 function initSearchControls(): void {
@@ -116,127 +35,6 @@ function initSearchControls(): void {
   });
 }
 
-function initNav(): void {
-  const nav = document.querySelector<HTMLElement>('[data-sg-nav]');
-  const sheet = document.querySelector<HTMLElement>('[data-sg-sheet]');
-
-  const setSheet = (open: boolean): void => {
-    if (!sheet) return;
-    sheet.classList.toggle('is-open', open);
-    sheet.setAttribute('aria-hidden', open ? 'false' : 'true');
-    document.documentElement.classList.toggle('sg-lock', open);
-    // 入口按钮同步展开态，读屏能念出「已展开 / 已收起」
-    document.querySelectorAll<HTMLElement>('[data-sg-sheet-open]').forEach((btn) => {
-      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-    });
-  };
-
-  document.querySelectorAll<HTMLElement>('[data-sg-sheet-open]').forEach((btn) => {
-    pageOn(btn, 'click', () => setSheet(!sheet?.classList.contains('is-open')));
-  });
-
-  sheet && pageOn(sheet, 'click', (event) => {
-    if (event.target === sheet) {
-      setSheet(false);
-    }
-  });
-
-  pageOn(document, 'keydown', (event) => {
-    if (event.key === 'Escape') {
-      setSheet(false);
-    }
-  });
-
-  if (!nav) return;
-  let last = window.scrollY;
-  let ticking = false;
-  pageOn(window, 'scroll', () => {
-    if (ticking) return;
-    ticking = true;
-    pageFrame(() => {
-      const y = window.scrollY;
-      nav.classList.toggle('is-hidden', y > last && y > 120);
-      last = y;
-      ticking = false;
-    });
-  }, { passive: true });
-}
-
-/**
- * P1-11：导航「更多」下拉。
- *
- * 悬停由 CSS 处理，这里补点击 / 键盘可达：点按钮开合，
- * 点外面或按 Esc 收起；同一时刻只开一个。
- */
-function initNavMore(): void {
-  const groups = Array.from(document.querySelectorAll<HTMLElement>('[data-sg-nav-more]'));
-  if (!groups.length) return;
-
-  const closeAll = (except?: HTMLElement): void => {
-    groups.forEach((group) => {
-      if (group === except) return;
-      group.classList.remove('is-open');
-      group.querySelector('.sg-nav-more-btn')?.setAttribute('aria-expanded', 'false');
-    });
-  };
-
-  groups.forEach((group) => {
-    const btn = group.querySelector<HTMLButtonElement>('.sg-nav-more-btn');
-    if (!btn) return;
-    pageOn(btn, 'click', (event) => {
-      event.stopPropagation();
-      const open = !group.classList.contains('is-open');
-      closeAll(group);
-      group.classList.toggle('is-open', open);
-      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-    });
-  });
-
-  pageOn(document, 'click', (event) => {
-    if (!(event.target instanceof Element) || !event.target.closest('[data-sg-nav-more]')) closeAll();
-  });
-  pageOn(document, 'keydown', (event) => {
-    if (event.key === 'Escape') closeAll();
-  });
-}
-
-/**
- * P1-10：搜索快捷键。
- *
- * 按 `/` 聚焦当前页可见的站内搜索框；正在输入时不拦截。
- * 同时给每个搜索表单注入一个 `/` 键位提示，聚焦后隐去。
- */
-function initSearchShortcut(): void {
-  const visibleInput = (): HTMLInputElement | undefined =>
-    Array.from(document.querySelectorAll<HTMLInputElement>('.sg-search-input')).find(
-      (input) => input.offsetParent !== null,
-    );
-
-  pageOn(document, 'keydown', (event) => {
-    if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey) return;
-    const target = event.target as HTMLElement | null;
-    if (
-      target &&
-      (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable)
-    ) {
-      return;
-    }
-    const input = visibleInput();
-    if (!input) return;
-    event.preventDefault();
-    input.focus();
-    input.select();
-  });
-
-  document.querySelectorAll<HTMLFormElement>('form.sg-search').forEach((form) => {
-    if (form.querySelector('.sg-search-kbd')) return;
-    const kbd = document.createElement('kbd');
-    kbd.className = 'sg-search-kbd';
-    kbd.textContent = '/';
-    kbd.setAttribute('aria-hidden', 'true');
-    form.appendChild(kbd);
-  });
-}
 
 /**
  * P1-9：阅读模式。
@@ -246,7 +44,10 @@ function initSearchShortcut(): void {
  */
 function initReadMode(): void {
   const buttons = Array.from(document.querySelectorAll<HTMLElement>('[data-sg-readmode-toggle]'));
-  if (!buttons.length) return;
+  if (!buttons.length) {
+    document.documentElement.classList.remove('sg-readmode');
+    return;
+  }
 
   const KEY = 'sg-readmode';
   const apply = (on: boolean): void => {
@@ -309,7 +110,7 @@ function initSegments(): void {
         try {
           const url = new URL(window.location.href);
           url.searchParams.set(name || 'tab', value);
-          window.history.replaceState(null, '', url.toString());
+          window.history.replaceState(window.history.state, '', url.toString());
         } catch {
           /* file:// 或受限环境下静默跳过 */
         }
@@ -334,53 +135,13 @@ function initSegments(): void {
 
     // 字体加载完宽度会变，指示器要跟着重算，否则停在半截
     if (document.fonts?.ready) {
-      void document.fonts.ready.then(syncIndicator);
+      const signal = pageSignal();
+      void document.fonts.ready.then(() => { if (!signal.aborted) syncIndicator(); });
     }
     pageOn(window, 'resize', syncIndicator, { passive: true });
   });
 }
 
-/**
- * 指针聚光描边：只写两个 CSS 变量，绘制全交给 CSS 的 radial-gradient。
- * 触屏设备（hover: none）与 reduced-motion 直接不挂监听。
- */
-function initSpotlight(): void {
-  if (reducedMotion() || window.matchMedia('(hover: none)').matches) return;
-
-  document.querySelectorAll<HTMLElement>('[data-sg-spotlight]').forEach((el) => {
-    pageOn(el, 'pointermove', (event) => {
-      const rect = el.getBoundingClientRect();
-      el.style.setProperty('--sg-mx', `${event.clientX - rect.left}px`);
-      el.style.setProperty('--sg-my', `${event.clientY - rect.top}px`);
-    }, { passive: true });
-  });
-}
-
-/** 日间/夜间独立壁纸组；隐藏或减少动效时暂停轮播。 */
-function initBackground(): void {
-  const cfg = config();
-  const wall = document.querySelector<HTMLElement>('[data-sg-bg]');
-  if (wall) {
-    const delay = Number(wall.dataset.interval || 9000); let timer = 0, dark = isDark();
-    const start = (): void => {
-      clearTimeout(timer); if (document.hidden || reducedMotion() || delay <= 0) return;
-      const group = wall.querySelector<HTMLElement>(`[data-bg-mode="${isDark() ? 'dark' : 'light'}"]`);
-      const frames = group ? [...group.querySelectorAll<HTMLElement>('.sg-bg-frame')] : [];
-      if (frames.length < 2) return;
-      timer = pageTimeout(() => { const index = (frames.findIndex(frame => frame.classList.contains('is-active')) + 1) % frames.length; frames.forEach((frame, n) => frame.classList.toggle('is-active', n === index)); start(); }, Math.max(3000, delay));
-    };
-    const observer = new MutationObserver(() => { if (dark !== isDark()) { dark = isDark(); start(); } });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] }); onPageDispose(() => observer.disconnect());
-    pageOn(document, 'visibilitychange', start); pageOn(matchMedia('(prefers-reduced-motion: reduce)'), 'change', start);
-    wall.querySelectorAll<HTMLImageElement>('img').forEach(img => img.addEventListener('error', () => { if (!img.dataset.fallback) { img.dataset.fallback = '1'; img.src = cfg.themeUrl + 'dist/img/bg-1.svg'; } }));
-    start();
-  }
-
-  const gradient = document.querySelector<HTMLElement>('[data-sg-gradient]');
-  if (gradient && cfg.themeColors.length >= 2) {
-    gradient.style.backgroundImage = `linear-gradient(-45deg, ${cfg.themeColors.join(', ')})`;
-  }
-}
 
 /**
  * 开屏收尾。
@@ -478,132 +239,16 @@ function initHeat(): void {
   });
 }
 
-/**
- * 图片兜底：外链图挂了 / 悬住不回就换成内置占位图。
- *
- * 2026-11-12 第九轮（用户报「内容都出来了，标签页还在转圈」）：
- * 根因不是主题的加载状态没重置 —— 浏览器要等文档里**所有** <img> 的请求结束
- * 才派发 load，标签页的转圈动画就是 load 的指示灯。外链图床（picsum）「连上了
- * 但不回数据」时请求会一直挂着，load 永远不来，转圈也就永远不停。
- * 上一版看门狗只处理「视口内」的图，而首页那几张图全挂在首屏下方
- * （实测 top 1083~1505px），被 `rect.top > viewport` 直接跳过 —— 于是内容看得见、
- * 转圈停不下来。实测佐证：把这几张图的 src 换成本地占位图后 readyState 立刻
- * 由 interactive 变 complete、load 补发。
- *
- * 现在的三级止损：
- *   ① 判定「请求已发出」（armed）：非 lazy 图解析即发；lazy 图进入 3000px 预取距离
- *      才发（Chrome 的懒加载预取上限是 1250px，留了余量）。只有已发出的请求才拖得住
- *      load，所以先只救这一批，不误伤还没轮到的懒加载图。
- *   ② 6s 看门狗：仍未完成就换占位图。换 src 会让浏览器中止旧请求，load 立刻走完。
- *   ③ 12s 死线：文档还是 interactive 就全量换（含还没开始下载的），保证转圈有尽头。
- * 换掉不等于放弃：原地址记在 data-sg-origin，图滚回视口时用游离 Image 探一次，
- * 成功再换回来 —— 那时 load 已结束，游离请求不影响任何计时。
- *
- * 例外：带 data-sg-fallback 的图片（播放器封面）有自己的专用兜底图，交给 player.ts。
- */
-const RESCUE_MS = 6000;
-const DEADLINE_MS = 12000;
-const ARM_DISTANCE = 3000;
-
-function initImageFallback(): void {
-  const { placeholder } = config();
-  if (!placeholder) return;
-
-  const sameOrigin = window.location.origin;
-  const remote = (url: string): boolean =>
-    /^https?:\/\//i.test(url) && !url.startsWith(`${sameOrigin}/`);
-
-  /** 被换掉的图滚回视口时再试一次（只试一次，失败就认占位图） */
-  const observer = typeof IntersectionObserver === 'undefined'
-    ? null
-    : new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          const img = entry.target as HTMLImageElement;
-          if (!entry.isIntersecting) return;
-          observer?.unobserve(img);
-          const origin = img.dataset.sgOrigin ?? '';
-          if (origin === '' || img.dataset.sgRetry === '1') return;
-          // 刚换掉的那几秒还在超时窗口里，别立刻又打一枪；图本来就在视口内时
-          // IO 不会再回调，所以这里用定时器补齐，不能只靠「再次进入视口」。
-          const wait = Math.max(0, 4000 - (Date.now() - Number(img.dataset.sgRescueAt ?? '0')));
-          pageTimeout(() => {
-            if (img.dataset.sgRetry === '1') return;
-            img.dataset.sgRetry = '1';
-            // 游离 Image 先探路：成功再写回，失败就安静地留着占位图（不会破图）
-            const probe = new Image();
-            probe.decoding = 'async';
-            probe.onload = () => { img.src = origin; };
-            probe.src = origin;
-          }, wait);
-        });
-      }, { rootMargin: '400px 0px' });
-
-  /**
-   * 换占位图 + 记住原地址。
-   * retryable=false 用于「已经明确 error」的图：地址本身坏了，不用再试。
-   */
-  onPageDispose(() => observer?.disconnect());
-  const rescue = (img: HTMLImageElement, retryable = true): void => {
-    const src = img.getAttribute('src') ?? '';
-    if (src === '' || src === placeholder) return;
-    if (img.dataset.sgRescue === '1') return;
-    img.dataset.sgRescue = '1';
-    img.dataset.sgOrigin = src;
-    img.dataset.sgRescueAt = String(Date.now());
-    if (!retryable) img.dataset.sgRetry = '1';
-    img.src = placeholder;
-    if (retryable) observer?.observe(img);
-  };
-
-  /** 懒加载图是否已经发出请求：非 lazy 一律算已发；lazy 看是否进入预取距离 */
-  const armed = (img: HTMLImageElement): boolean => {
-    if (img.loading !== 'lazy') return true;
-    return img.getBoundingClientRect().top < window.innerHeight + ARM_DISTANCE;
-  };
-
-  const sweep = (force: boolean): void => {
-    document.querySelectorAll<HTMLImageElement>('img').forEach((img) => {
-      if (img.hasAttribute('data-sg-fallback')) return;
-      if (img.dataset.sgRescue === '1') return;
-      if (img.complete && img.naturalWidth > 0) return;
-      if (!remote(img.getAttribute('src') ?? '')) return;
-      if (!force && !armed(img)) return;
-      rescue(img);
-    });
-  };
-
-  // ① 首屏已经失败的图（error 在脚本执行前就派发完了）
-  document.querySelectorAll<HTMLImageElement>('img').forEach((img) => {
-    if (img.hasAttribute('data-sg-fallback')) return;
-    if (img.complete && img.naturalWidth === 0) rescue(img, false);
-  });
-
-  // ② 之后才失败的图（含灯箱、歌词封面等动态插入的节点）
-  pageOn(document, 'error', (event) => {
-    const target = event.target;
-    if (!(target instanceof HTMLImageElement)) return;
-    if (target.hasAttribute('data-sg-fallback')) return;
-    rescue(target, false);
-  }, true);
-
-  // ③ 两级止损：常规 6s，卡死 12s
-  pageTimeout(() => sweep(false), RESCUE_MS);
-  pageTimeout(() => {
-    if (document.readyState !== 'complete') sweep(true);
-  }, DEADLINE_MS);
-}
 
 export function initCore(): void {
   initTheme();
   initSearchControls();
-  initSearchShortcut();
   initNav();
   initNavMore();
   initReadMode();
   initBackground();
   initSplash();
   initSegments();
-  initSpotlight();
   initHeat();
   initImageFallback();
 }

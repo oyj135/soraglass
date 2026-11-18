@@ -16,7 +16,7 @@
   display: none;
   place-items: center;
   background: var(--sg-page);
-  transition: opacity .45s ease, visibility .45s;
+  transition: opacity .45s var(--sg-ease), visibility .45s;
 }
 
 html.sg-splash-pending .sg-splash { display: grid; }
@@ -49,15 +49,12 @@ html.sg-splash-pending .sg-splash { animation: sg-splash-auto .45s ease 1.2s for
   position: absolute;
   inset: 0;
   opacity: 0;
-  transition: opacity 2s ease-in-out;
+  transition: opacity 2s var(--sg-ease);
   will-change: opacity;
 }
 
 .sg-bg-frame.is-active { opacity: 1; }
 .sg-bg-mode{position:absolute;inset:0}.sg-bg-mode[data-bg-mode="dark"]{display:none}html.dark .sg-bg-mode[data-bg-mode="light"]{display:none}html.dark .sg-bg-mode[data-bg-mode="dark"]{display:block}
-html.sg-navigating::after{content:"";position:fixed;inset:0 auto auto 0;width:100%;height:2px;background:var(--sg-accent);z-index:10000;animation:sg-navigation-progress 1s ease-in-out infinite;transform-origin:left}
-@keyframes sg-navigation-progress{from{transform:scaleX(.15)}to{transform:scaleX(.9)}}
-@media(prefers-reduced-motion:reduce){.sg-bg-frame{transition:none}html.sg-navigating::after{animation:none}}
 
 .sg-bg-frame img {
   position: absolute;
@@ -308,4 +305,88 @@ html[data-sg-veil="strong"] .sg-bg-veil::after {
     background: #fff !important;
     box-shadow: none !important;
   }
+}
+
+/* ---------- 滚动显现 + 交错入场 + 数字递增（第十六轮 P0，源自「16 种 UI 动效」清单） ----------
+   隐藏态只挂在 html.sg-ready 下（head 内联脚本同步打标）—— JS 禁用/爬虫/无 JS 时内容始终可见。
+   交错步进 55ms、上限 10 步（--stagger-i 由 reveal.ts 按同批元素视口内 top 排好）。 */
+html.sg-ready .sg-reveal {
+  transition:
+    opacity .48s var(--sg-ease) calc(var(--stagger-i, 0) * 55ms),
+    transform .48s var(--sg-ease) calc(var(--stagger-i, 0) * 55ms);
+}
+html.sg-ready .sg-reveal:not(.is-revealed) {
+  opacity: 0;
+  transform: translateY(24px);
+}
+html.sg-ready .sg-reveal.is-revealed {
+  opacity: 1;
+  transform: none;
+}
+/* 数字递增期间数字位宽不抖动 */
+.sg-hinfo-num,
+.sg-hcd-num,
+.sg-hinfo-bar-n {
+  font-variant-numeric: tabular-nums;
+}
+/* 懒加载占位：图片未换装前的流光扫过（第 8 项 Shimmer）——
+   lazyload 换装时移除 data-lazy-src，流光随之停止；加载完成另有 .is-lazy-in 淡入。 */
+img[data-lazy-src] {
+  background:
+    linear-gradient(100deg, transparent 40%, var(--sg-shimmer, rgba(148, 163, 184, .22)) 50%, transparent 60%) no-repeat,
+    rgba(148, 163, 184, .12);
+  background-size: 220% 100%;
+  animation: sg-shimmer 1.6s var(--sg-ease) infinite;
+}
+html.dark img[data-lazy-src] {
+  --sg-shimmer: rgba(142, 197, 201, .13);  /* 暗底上高光降一档，色相贴青瓷夜 */
+}
+@keyframes sg-shimmer {
+  from { background-position: 140% 0; }
+  to { background-position: -140% 0; }
+}
+/* ---------- Spotlight 鼠标聚光灯（第十六轮 P1，第十七轮扩面 + 昼夜分案）----------
+   落点：全部文章卡 .sg-feature-card（首页 / 知识档案）+ 项目卡 .sg-project
+   + 音乐页双面板 .sg-music-panel / .sg-music-side。
+   昼夜分开设计（用户反馈同款参数看不清）：
+   · 白天（近白卡面）：压暗外圈提供明暗差，光标核心换签名色暖光——白底上白光不可见
+   · 夜间（深靛卡面）：改「提亮聚光」——白色亮核心 + 靛紫光晕定位光标，
+     外围压暗加深补足轮廓；深底上黑色压暗圈本身不可见，靠提亮表达
+   JS 只写 --spot-x/--spot-y 两个变量（rAF 节流）；仅 pointer:fine 且非减少动效时启用。 */
+.sg-spotlight { position: relative; }
+.sg-spotlight::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .35s var(--sg-ease);
+  background:
+    radial-gradient(circle 90px at var(--spot-x, 50%) var(--spot-y, 50%),
+      color-mix(in srgb, var(--sg-accent) 22%, transparent), color-mix(in srgb, var(--sg-accent) 0%, transparent) 75%),
+    radial-gradient(circle at var(--spot-x, 50%) var(--spot-y, 50%),
+      rgba(0, 0, 0, 0) 0 120px, rgba(0, 0, 0, .45) 340px);
+}
+html.dark .sg-spotlight::after {
+  background:
+    radial-gradient(circle 90px at var(--spot-x, 50%) var(--spot-y, 50%),
+      rgba(255, 255, 255, .28), rgba(255, 255, 255, 0) 75%),
+    radial-gradient(circle 220px at var(--spot-x, 50%) var(--spot-y, 50%),
+      color-mix(in srgb, var(--sg-ink) 26%, transparent), color-mix(in srgb, var(--sg-ink) 0%, transparent) 80%),
+    radial-gradient(circle at var(--spot-x, 50%) var(--spot-y, 50%),
+      rgba(0, 0, 0, 0) 0 120px, rgba(0, 0, 0, .62) 340px);
+}
+.sg-spotlight:hover::after { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .sg-spotlight::after { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html.sg-ready .sg-reveal {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+  img[data-lazy-src] { animation: none; }
 }

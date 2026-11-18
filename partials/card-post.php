@@ -18,19 +18,32 @@ try {
     $sgCardStamp = 0;
 }
 $sgCardAgo   = sg_time_ago($sgCardStamp);
-$sgCardCate  = sg_first_category($sgCardCtx, '');
-$sgCardTags  = '';
-ob_start();
-$sgCardCtx->tags(' · ', false, '');
-$sgCardTags = trim((string) ob_get_clean());
+$sgCardCates = [];
+try {
+    foreach ((array) $sgCardCtx->categories as $sgCate) {
+        $sgCardCates[] = ['name' => (string) ($sgCate['name'] ?? ''), 'url' => (string) ($sgCate['permalink'] ?? '')];
+    }
+} catch (\Throwable $e) {
+    $sgCardCates = [];
+}
+$sgCardTagRows = [];
+try {
+    foreach ((array) $sgCardCtx->tags as $sgTag) {
+        $sgCardTagRows[] = ['name' => (string) ($sgTag['name'] ?? ''), 'url' => (string) ($sgTag['permalink'] ?? '')];
+    }
+} catch (\Throwable $e) {
+    $sgCardTagRows = [];
+}
 
 echo sg_feature_card_html([
-    'url'      => (string) $sgCardCtx->permalink(),
+    /* permalink 属性返回 URL 字符串；permalink() 方法会直接 echo，
+       用在字符串里会把裸链接打印到卡片 DOM 之外（2026-11-18 分类页裸链接 bug）。 */
+    'url'      => (string) $sgCardCtx->permalink,
     'cover'    => sg_cover($sgCardCtx),
     'quote'    => $sgCardDesc,
     'title'    => $sgCardTitle,
     'dateText' => $sgCardAgo !== '' ? '发表于 ' . $sgCardAgo : '发表于 ' . $sgCardCtx->date('Y.m.d'),
-    'cate'     => $sgCardCate,
-    'tags'     => $sgCardTags,
+    'cates'    => $sgCardCates,
+    'tagRows'  => $sgCardTagRows,
     'sticky'   => (int) sg_field($sgCardCtx, 'sticky', '0'),
 ]);

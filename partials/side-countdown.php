@@ -23,7 +23,7 @@ $sgCdWeekPct = (int) round(((int) $sgCdNow->format('w')) / 7 * 100);
 ?>
 <section class="sg-hcard sg-hcd" aria-label="春节倒计时" data-sg-countdown data-sg-cd-target="<?php echo $sgCdTarget->format('Y-m-d'); ?>">
   <div class="sg-hcard-head">
-    <span class="sg-hcard-title"><?php echo sg_icon('star'); ?>春节倒计时</span>
+    <span class="sg-hcard-title"><?php echo sg_icon_color('star'); ?>春节倒计时</span>
     <span class="sg-hcd-date" data-sg-cd-date><?php echo $sgCdTarget->format('Y-m-d'); ?></span>
   </div>
   <div class="sg-hcd-main">

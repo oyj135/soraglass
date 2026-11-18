@@ -5,10 +5,8 @@ import { initCarousels } from './modules/carousel';
 import { initPlayer } from './modules/player';
 import { initBriefing } from './modules/briefing';
 import { initBriefingBg } from './modules/briefing-bg';
-import { initFilters } from './modules/filter';
 import { initArchive } from './modules/archive';
 import { initGallery } from './modules/gallery';
-import { initParallax } from './modules/parallax';
 import { initArticle } from './modules/article';
 import { initNotes } from './modules/notes';
 import { initNavigation } from './modules/navigation';
@@ -17,6 +15,9 @@ import { initRightside } from './modules/rightside';
 import { initNeko } from './modules/neko';
 import { initScrollbar } from './modules/scrollbar';
 import { initLazyload } from './modules/lazyload';
+import { initReveal } from './modules/reveal';
+import { initStatsCache } from './modules/stats-cache';
+import { initSpotlight } from './modules/spotlight';
 
 /**
  * 单独兜住每个模块的异常。
@@ -43,10 +44,8 @@ function mountPage(): void {
   /* 背景轮播要先监听，briefing 初始化时就会派发第一次「当前期」事件 */
   safe('briefing-bg', initBriefingBg);
   safe('briefing', initBriefing);
-  safe('filter', initFilters);
   safe('archive', initArchive);
   safe('gallery', initGallery);
-  safe('parallax', initParallax);
   safe('article', initArticle);
   safe('notes', initNotes);
   safe('home', initHome);
@@ -54,6 +53,9 @@ function mountPage(): void {
   safe('neko', initNeko);
   safe('scrollbar', initScrollbar);
   safe('lazyload', initLazyload);
+  safe('reveal', initReveal);
+  safe('stats-cache', initStatsCache);
+  safe('spotlight', initSpotlight);
 }
 function boot(): void {
   mountPage(); safe('effects', initEffects); initNavigation(mountPage);

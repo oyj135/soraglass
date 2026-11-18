@@ -114,7 +114,7 @@ $sgAvatar = sg_media((string) sg_opt('sgAvatarUrl', ''), sg_theme_url('dist/img/
               <div class="sg-tl-who">
                 <b><?php echo sg_e($sgAuthor); ?></b>
                 <span class="sg-tl-when">
-                  <?php echo sg_icon('clock'); ?>
+                  <?php echo sg_icon_color('clock'); ?>
                   <time datetime="<?php echo sg_e(date('c', $sgTs)); ?>"><?php echo sg_e((string) ($sgNote['date'] ?? '')); ?><?php if ((string) ($sgNote['time'] ?? '') !== '') : ?> <?php echo sg_e((string) $sgNote['time']); ?><?php endif; ?></time>
                 </span>
               </div>

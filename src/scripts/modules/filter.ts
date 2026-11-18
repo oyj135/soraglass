@@ -1,4 +1,4 @@
-import { pageOn, pageTimeout, pageInterval, pageFrame, onPageDispose, pageSignal } from './lifecycle';
+import { pageTimeout } from './lifecycle';
 /**
  * 页内即时筛选：在已渲染的卡片上按关键词过滤，不发起请求。
  * DOM 契约：[data-sg-filter-grid] 容器 + 子项 [data-sg-filter-item data-keywords="..."]。

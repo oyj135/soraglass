@@ -9,7 +9,7 @@
   /* 2026-11-12 第四轮：原卡片只有 30–40% 白、次要文字用 slate-500/400，
      压在亮壁纸上直接糊成一片（用户反馈「看不清」）。当时把卡面提到 55%，
      但真正的原因是入场动画把 backdrop-filter 的采样根锁死了（见 effects.css
-     .sg-main 的注释）——毛玻璃根本没生效，只剩一层半透明底在硬撑。
+     的注释）——毛玻璃根本没生效，只剩一层半透明底在硬撑。
      2026-11-13 修好采样根后，卡面/描边回到源站 bg-white/40 + border-white/40。 */
   /* 2026-11-13 第三十四轮：底色由 slate-50 #f8fafc 换成月白 #f2f5f6。
      slate-50 带一点蓝，是所有 Tailwind 站点的默认底，本身就是「模板感」来源之一；
@@ -17,9 +17,16 @@
   /* 2026-11-17 第十一轮：全局去毛玻璃，卡面实色化（完整复刻源站卡片）。
      源站卡面是 JS 注入的 rgba(250,250,250,98%) / rgba(28,28,28,98%)，
      不依赖 backdrop-filter；实色后可读性不随壁纸变化，换壁纸自由。 */
+  /* 2026-11-17 第十四轮：卡面质感——日间回落实色近白，
+     夜间由 --sg-card-image 顶光渐变 + --sg-card-sheen 内高光提供「被照亮」的层次
+     （光从上打下来，与项目卡同一设计语言），见 html.dark 块。 */
   --sg-page: #f2f5f6;                       /* 月白 */
   --sg-card: rgba(250, 250, 250, .98);      /* 卡面：源站 --trans-light 98% */
   --sg-card-strong: rgba(250, 250, 250, .98); /* 文章卡 / 弹窗，同步实色 */
+  /* 卡面质感（2026-11-17 第十四轮）：夜间给卡面加顶光渐变（image 层）与顶部 1px 内高光
+     （sheen），白天两张都回落到「无」—— 实色决策不变，只是夜里把光还给卡面。 */
+  --sg-card-image: none;
+  --sg-card-sheen: 0 0 0 transparent;
   --sg-panel: #ffffff;                      /* 阅读弹窗 */
   /* 个人刊物：阅读表面与实色辅助卡分工，明暗主题同一条 token 路径。 */
   --sg-reading-surface: rgba(250, 253, 253, .98);
@@ -63,9 +70,17 @@
   --sg-accent-2: #55868f;                 /* 渐变端点：同色相浅一档，用来替掉原来的紫色 */
   --sg-accent-pale: #cde8ea;              /* 最浅档：只给深色歌词条上的五根波形与光标 */
   --sg-warm-bright: #e07050;              /* 朱砂亮档：压在图片/深底上才够看（海报标题下划线） */
-  --sg-warm-bright: #e07050;              /* 朱砂亮档：压在图片/深底上才够看（海报标题下划线） */
   --sg-warm: #b4472e;                     /* 朱砂：只给「最新 / 原文」这类标记，≤3 处。
                                              强调色的价值来自稀缺，哪都放就不再是强调 */
+
+  /* 语义图标色（2026-11-18 源站多色填充图标）：五个语义族，昼夜各一档亮度。
+     图标恒与文字标签并排，属装饰色，不受正文对比度约束；副色由渲染器
+     color-mix 叠白派生。导航 / 播放等功能图标保持线条风格，走 --sg-accent-ink。 */
+  --sg-icon-time: #f28b8b;   /* 日期 / 发表：粉 */
+  --sg-icon-cate: #2fbf9a;   /* 分类：薄荷绿 */
+  --sg-icon-tag: #2f77f1;    /* 标签：蓝 */
+  --sg-icon-data: #0590df;   /* 更新 / 浏览 / 评论 / 统计：湖蓝 */
+  --sg-icon-mark: #e07050;   /* 星标 / 倒计时等标记：朱砂（与 warm 同族） */
 
   /* 前景色与填充色必须分开（这是本轮最关键的一处结构改动）：
      · --sg-accent 只做**填充**（按钮底、标签底、色块），上面永远压白字
@@ -73,11 +88,6 @@
      · --sg-accent-ink 做**前景**（文字 / 图标 / 描边），暗色下必须提亮才看得见
      亮色下两者同值，看不出差别；暗色下 ink 变亮青、accent 保持深青，各自达标。 */
   --sg-accent-ink: var(--sg-accent);
-
-  /* 头像/图标块的环形描边：亮色要醒目（深青→中青），暗色下同一组会亮成一条白圈，
-     所以单独一对，暗色块里换成中青→浅青。 */
-  --sg-ring-a: var(--sg-accent);
-  --sg-ring-b: var(--sg-accent-2);
 
   /* 头像/图标块的环形描边：亮色要醒目（深青→中青），暗色下同一组会亮成一条白圈，
      所以单独一对，暗色块里换成中青→浅青。 */
@@ -96,7 +106,7 @@
   --sg-green: #22c55e;    /* 状态绿：页脚「已稳定运行」的点，属语义色，不随签名色改 */
 
   --sg-glow-a: rgba(255, 255, 255, .40);
-  --sg-glow-b: color-mix(in srgb, var(--sg-accent-soft) 26%, transparent);
+  --sg-glow-b: transparent;
 
   /* 滚动条：原来写死 rgba(99,102,241,…) 在 base 层，换色会漏掉这一处 */
   --sg-scroll-thumb: color-mix(in srgb, var(--sg-accent) 32%, transparent);
@@ -112,7 +122,7 @@
   --sg-hero-ink-soft: rgba(255, 255, 255, .78);
   --sg-hero-ic-update: var(--sg-warm-bright);
 
-  --sg-gradient-opacity: .6;
+  --sg-gradient-opacity: 0;
 
   /* 交互：全站共用一套时长与缓动，改这里即全局生效。
      2026-11-16 第三轮：卡片 hover 位移/缩放已按用户要求全部移除，
@@ -120,6 +130,8 @@
   --sg-dur-card: 320ms;
   --sg-dur-fast: 140ms;
   --sg-ease: cubic-bezier(.22, .61, .36, 1);
+  /* 弹簧过冲曲线（第十六轮预留：弹窗出现 / 图标反馈的轻微回弹） */
+  --sg-ease-spring: cubic-bezier(.34, 1.56, .64, 1);
   --sg-thumb-zoom: 1.06;   /* 卡内图片缩放 */
 
   --sg-ring: #ffffff;      /* 关于页头像白描边 */
@@ -165,63 +177,82 @@
   --sg-proj-tag-border: color-mix(in srgb, var(--sg-accent) 22%, transparent);
   --sg-proj-tag-fg: var(--sg-accent-deep);      /* 胶囊里的字要压得住 */
 
-  /* 贡献热力图（2026-11-13 第三十四轮：绿色 → 青瓷单色梯度）。
-     原来是 GitHub 同款绿。留着它就是全站第二个「主色」，签名色立刻失效 ——
-     频次热力本质是明度梯度，不必绑定绿色；改完后全站只剩青瓷一个色相 + 朱砂点缀。
+  /* 贡献热力图（2026-11-13 第三十四轮：绿色 → 签名色单色梯度；
+     2026-11-18：暗色档随「青瓷夜」换回青瓷明度四档，与通用夜底同色域）。
+     频次热力本质是明度梯度，不必绑定绿色。
      :root 给的是暗色档（深→亮），亮色档由 components.css 的 html:not(.dark) 覆盖。 */
   --sg-heat-0: color-mix(in srgb, var(--sg-accent-soft) 14%, transparent);
-  --sg-heat-1: #1b3a3f;
-  --sg-heat-2: #2b5860;
-  --sg-heat-3: #468289;
-  --sg-heat-4: #7fbcc2;
+  --sg-heat-1: #1e3d44;
+  --sg-heat-2: #2a545e;
+  --sg-heat-3: #3d7480;
+  --sg-heat-4: #7fb9c0;
 }
 
 html.dark {
   color-scheme: dark;
 
-  /* 底色由 slate-950 #020617 换成深青黑 #0a1618 —— 与签名色同色温。
-     纯 slate 底配青瓷，会像把青色贴在一张蓝色的纸上。 */
-  --sg-page: #0a1618;
-  --sg-card: rgba(30, 41, 45, .98);         /* 第十二轮：比源站 #121212 提亮一档的深青灰（页面底 #0a1618 之上层次更清楚） */
-  --sg-card-strong: rgba(30, 41, 45, .98);
-  --sg-panel: rgba(24, 32, 35, .98);
-  --sg-reading-surface: rgba(28, 38, 41, .98);
+  /* 「青瓷夜 · 通用底」（2026-11-18）：中性深灰蓝底（H210 低饱和），
+     不跟任何壁纸取色 —— 换壁纸只换图，配色恒定；签名色昼夜同走青瓷族，
+     夜间只调亮度档（填充压深保白字、前景提亮保对比）。
+     表面四级阶梯：page(16,20,24) → panel(22,27,32) → card(24,29,34) → reading(26,31,37)，
+     卡面质感仍由 --sg-card-image 顶光渐变 + --sg-card-sheen 内高光提供。
+     对比度实测（暗卡 #181d22）：填充白字 7.09 / ink 8.89 / deep 12.4 / soft 6.05 / faint 6.87。 */
+  --sg-page: #101418;                        /* 中性深灰蓝底 */
+  --sg-card: rgba(24, 29, 34, .98);          /* 卡面：比页面底亮一档，卡感成立 */
+  --sg-card-strong: rgba(24, 29, 34, .98);
+  /* 顶光渐变：顶部被「照亮」、底部沉入页面底；底色仍是上面的实色卡
+     （切换昼夜只过渡颜色，永不透底）。源站暗色卡死平 #1c1c1c 全靠描边撑质感，
+     这里保留实色化决策（可读性不依赖壁纸、零性能开销）但把光还给卡面。 */
+  --sg-card-image: linear-gradient(180deg, rgba(32, 38, 44, .99) 0%, rgba(26, 31, 37, .98) 36%, rgba(20, 24, 29, .99) 100%);
+  --sg-card-sheen: inset 0 1px 0 rgba(255, 255, 255, .10);
+  --sg-panel: rgba(22, 27, 32, .98);
+  --sg-reading-surface: rgba(26, 31, 37, .98);
   --sg-reading-border: color-mix(in srgb, var(--sg-accent-ink) 20%, transparent);
   --sg-shadow-reading: 0 8px 36px -16px rgb(0 0 0 / .32);
-  --sg-album-paper: #e2e8f0;
-  --sg-card-border: rgba(255, 255, 255, .10); /* 小卡弱描边 */
-  --sg-border-strong: rgba(255, 255, 255, .18); /* 大卡描边（夜间提亮一档） */
-  --sg-border: rgba(226, 240, 240, .18);    /* 结构线，比卡面描边亮一档 */
+  --sg-album-paper: #e6e9ea;                /* 拍立得相纸：白里带一丝灰青 */
+  --sg-card-border: rgba(210, 220, 225, .26); /* 小卡弱描边（源站思路：描边是夜间卡面定义的主手段，提到可见档） */
+  --sg-border-strong: rgba(210, 220, 225, .48);  /* 大卡描边：对齐源站 rgba(169,169,169,.7) 的可见度 */
+  --sg-border: rgba(230, 240, 245, .16);    /* 结构线，比卡面描边亮一档 */
   --sg-chip: rgba(255, 255, 255, .08);      /* 胶囊底 */
-  --sg-text: #f8fafc;                       /* slate-50 */
-  --sg-muted: #cbd5e1;                      /* slate-300（原 slate-400，暗底对比 4.6→9.1） */
-  --sg-faint: #9aa9bc;                      /* 原 slate-500，暗底仅 3.4:1 */
-  --sg-veil: rgba(2, 10, 12, .30);          /* 暗色壁纸遮罩（实色卡后调轻盈） */
-  --sg-line: rgba(226, 240, 240, .16);
+  --sg-text: #f2f6f7;                       /* 冷白正文 */
+  --sg-muted: #c3cdd2;                      /* 暗卡 10.5:1 */
+  --sg-faint: #9aa7ad;                      /* 暗卡 6.87:1 */
+  --sg-veil: rgba(6, 10, 12, .32);          /* 暗色壁纸遮罩：中性深灰青 */
+  --sg-line: rgba(230, 240, 245, .15);
 
   --sg-shadow: 0 20px 25px -5px rgb(0 0 0 / .35), 0 8px 10px -6px rgb(0 0 0 / .30);
   --sg-shadow-strong: 0 25px 50px -12px rgb(0 0 0 / .45);
 
-  /* 签名色：填充保持深青（白字 7.3:1），前景/描边提到亮青（暗卡 8.65:1）。
-     这是「一个 token 同时当底色和当字色」的必然分裂，见 :root 里 accent-ink 的注释。 */
-  --sg-accent-ink: #8ec5c9;
+  /* 签名色青瓷夜档：填充压深（白字 7.09:1），前景/描边提亮（暗卡 8.89:1）。
+     分裂逻辑见 :root 里 accent-ink 的注释。 */
+  --sg-accent: #2e5f68;                     /* 填充：青瓷压深，白字 7.09:1 */
+  --sg-accent-2: #477982;                   /* 渐变端点 / 播放主键暗色底 */
+  --sg-accent-pale: #cde8ea;                /* 最浅档（歌词条波形）：与昼同值 */
+  --sg-accent-ink: #8ec5c9;                 /* 前景：亮青，暗卡 8.89:1 */
   --sg-ring-a: var(--sg-accent-2);
   --sg-ring-b: var(--sg-accent-soft);
-  --sg-accent-deep: #a8d8db;                /* 暗色下 deep = 更强对比（不是更深） */
-  --sg-accent-soft: #6fb0b6;                /* 压一档，用于弱化态，避免全站同一亮度没层次 */
-  --sg-filter-active: #6d70e0;             /* 暗色下蓝紫提亮一档，白字仍达 4.5:1 */
+  --sg-accent-deep: #bfe3e6;                /* 暗色下 deep = 更强对比（正文链接级 12.4:1） */
+  --sg-accent-soft: #6fa3a9;                /* 弱化态，暗卡 6.05:1 */
+  --sg-filter-active: #6d70e0;             /* 知识档案选中蓝紫：语义色，白字仍达 4.5:1 */
   --sg-scroll-thumb: color-mix(in srgb, var(--sg-accent-soft) 34%, transparent);
   --sg-scroll-thumb-hot: var(--sg-accent-soft);
+
+  /* 语义图标夜档：同色相提亮，压暗卡仍鲜亮（装饰色，见 :root 注释） */
+  --sg-icon-time: #ffa8a8;
+  --sg-icon-cate: #56e5be;
+  --sg-icon-tag: #7fb9ff;
+  --sg-icon-data: #5ab3ff;
+  --sg-icon-mark: #ff9a7a;
 
   --sg-glow-a: color-mix(in srgb, var(--sg-accent) 22%, transparent);
   --sg-glow-b: color-mix(in srgb, var(--sg-accent-2) 26%, transparent);
   --sg-gradient-opacity: .2;
 
-  /* 头像描边跟着卡片底色走，暗色下用深青才不刺眼 */
-  --sg-ring: #1a2c30;
+  /* 头像描边跟着卡片底色走，暗色下用深灰青才不刺眼 */
+  --sg-ring: #14181d;
 
-  /* 歌词栏暗色再压深一档 */
-  --sg-lyric-bg: rgba(5, 12, 14, .98);
+  /* 歌词栏暗色换中性墨青（波形/辉光走 accent 族自动跟随） */
+  --sg-lyric-bg: rgba(8, 12, 14, .98);
   --sg-lyric-border: rgba(255, 255, 255, .10);
   --sg-lyric-text: #fff;
   --sg-lyric-wave-a: var(--sg-accent-soft);
@@ -231,15 +262,15 @@ html.dark {
   --sg-lyric-text-shadow: 0 0 8px color-mix(in srgb, var(--sg-accent) 80%, transparent);
   --sg-lyric-shadow: 0 25px 50px -12px rgb(0 0 0 / .25);
 
-  /* 图片浮层控件：暗色下不改值，它是「压在图片上」的独立层 */
-  --sg-indicator-bg: rgba(8, 20, 22, .44);
-  --sg-indicator-bg-hot: rgba(8, 20, 22, .64);
+  /* 图片浮层控件：独立层，只把色温贴到中性墨青，透明度不动 */
+  --sg-indicator-bg: rgba(8, 12, 14, .44);
+  --sg-indicator-bg-hot: rgba(8, 12, 14, .64);
   --sg-indicator-track: rgba(255, 255, 255, .30);
 
   /* 项目卡：暗色下渐变改成「上偏青灰、下透明」，靠浅档微光提起上边缘；
      图标 / 胶囊统一走 accent-soft，深底上才够对比。全部从签名色派生，换色不用再手算。 */
   --sg-proj-face-a: color-mix(in srgb, var(--sg-accent-soft) 10%, transparent);
-  --sg-proj-face-b: rgba(12, 26, 29, 0);
+  --sg-proj-face-b: rgba(16, 20, 24, 0);
   --sg-proj-border: rgba(255, 255, 255, .12);
   --sg-proj-border-hot: rgba(255, 255, 255, .24);
   --sg-proj-tint: color-mix(in srgb, var(--sg-accent-soft) 14%, transparent);

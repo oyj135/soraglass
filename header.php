@@ -23,7 +23,7 @@ if (!in_array($sgBlur, ['none', 'soft', 'strong'], true)) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?php
-    /* 「杂谈」「说说」两个旧页现在渲染的是「碎语」流（§21），
+    /* 「杂谈」「说说」两个旧页现在渲染的是「碎语」流（1），
        标题标签跟着统一，别让浏览器标签页还写着旧名字。 */
     $sgDocSlug = sg_current_slug($this);
     if (in_array($sgDocSlug, ['chatter', 'moments'], true)) {

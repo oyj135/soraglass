@@ -1,5 +1,7 @@
 import { disposePage } from './lifecycle';
+import { closeNavigationUI } from './navigation-ui';
 let render: (() => void) | null = null, active: AbortController | null = null, version = 0;
+let pendingHref: string | null = null;
 const key = 'sg-navigation';
 const routeKey = (url: URL): string => { const copy = new URL(url); copy.searchParams.delete('album'); return copy.pathname + copy.search; };
 let currentRoute = routeKey(new URL(location.href));
@@ -11,19 +13,26 @@ function position(url: URL, y = 0): void {
   if (target) target.scrollIntoView(); else window.scrollTo(0, y);
 }
 function cancelNavigation(): void {
-  active?.abort(); active = null; version++;
+  active?.abort(); active = null; pendingHref = null; version++;
   document.documentElement.classList.remove('sg-navigating');
   document.querySelector('#sg-main')?.removeAttribute('aria-busy');
 }
 export async function navigate(href: string, push = true, y = 0): Promise<void> {
   const url = new URL(href, location.href);
   if (!render || !eligible(url)) { location.assign(url.href); return; }
-  if (local(url) && push) {
-    cancelNavigation(); history.replaceState({ ...history.state, [key]: true, y: scrollY }, '', location.href);
-    history.pushState({ [key]: true, y }, '', url); position(url, y); return;
+  closeNavigationUI();
+  // popstate changes the address before the corresponding page has rendered.
+  if (local(url) && currentRoute === routeKey(url) && push) {
+    cancelNavigation();
+    if (url.href !== location.href) {
+      history.replaceState({ ...history.state, [key]: true, y: scrollY }, '', location.href);
+      history.pushState({ [key]: true, y }, '', url);
+    }
+    position(url, y); return;
   }
-  active?.abort(); const controller = new AbortController(); active = controller; const id = ++version;
-  const timeout = window.setTimeout(() => controller.abort(), 20000);
+  if (active && pendingHref === url.href) return;
+  active?.abort(); const controller = new AbortController(); active = controller; pendingHref = url.href; const id = ++version;
+  const timeout = window.setTimeout(() => controller.abort(), 8000);
   document.documentElement.classList.add('sg-navigating');
   document.querySelector('#sg-main')?.setAttribute('aria-busy', 'true');
   try {
@@ -34,10 +43,15 @@ export async function navigate(href: string, push = true, y = 0): Promise<void> 
     const runtime = next.querySelector('[data-sg-config]'), style = next.querySelector('[data-sg-style]');
     if (!main || !current || !runtime || !eligible(new URL(response.url)) || !style || style.getAttribute('href') !== document.querySelector('[data-sg-style]')?.getAttribute('href')) throw new Error('Full navigation required');
     const cfg = JSON.parse(runtime.textContent || '{}') as Partial<SGConfig>;
-    if (push) { history.replaceState({ ...history.state, [key]: true, y: scrollY }, '', location.href); history.pushState({ [key]: true, y: 0 }, '', response.url || url.href); }
+    const destination = new URL(response.url || url.href);
+    if (!destination.hash) destination.hash = url.hash;
+    if (push && destination.href !== location.href) {
+      history.replaceState({ ...history.state, [key]: true, y: scrollY }, '', location.href);
+      history.pushState({ [key]: true, y: 0 }, '', destination);
+    }
     disposePage();
-    document.querySelectorAll('.sg-lightbox').forEach(n => n.remove()); document.documentElement.classList.remove('sg-lock');
-    document.querySelector('[data-sg-sheet]')?.classList.remove('is-open');
+    document.querySelectorAll('.sg-lightbox').forEach(n => n.remove());
+    closeNavigationUI();
     current.replaceWith(main); window.SG = cfg; document.querySelector('[data-sg-config]')?.replaceWith(runtime); document.title = next.title; currentRoute = routeKey(new URL(location.href));
     for (const name of ['description', 'keywords', 'robots']) {
       document.querySelector(`meta[name="${name}"]`)?.remove(); const meta = next.querySelector(`meta[name="${name}"]`); if (meta) document.head.append(meta);
@@ -47,22 +61,28 @@ export async function navigate(href: string, push = true, y = 0): Promise<void> 
     }
     for (const attr of ['data-sg-veil', 'data-sg-blur']) { const value = next.documentElement.getAttribute(attr); if (value) document.documentElement.setAttribute(attr, value); }
     const bg = document.querySelector('[data-sg-bg]'), newBg = next.querySelector('[data-sg-bg]'); if (bg && newBg) bg.replaceWith(newBg);
-    const nav = document.querySelector('[data-sg-nav]'), newNav = next.querySelector('[data-sg-nav]'); if (nav && newNav) nav.replaceWith(newNav);
+    for (const selector of ['[data-sg-nav]', '[data-sg-sheet]', '[data-sg-rightside]']) {
+      const previous = document.querySelector(selector), replacement = next.querySelector(selector);
+      if (previous && replacement) previous.replaceWith(replacement);
+    }
     render(); main.setAttribute('tabindex', '-1'); (main as HTMLElement).focus({ preventScroll: true }); position(new URL(location.href), y);
     document.dispatchEvent(new CustomEvent('sg:navigated'));
   } catch {
     if (id === version) location.assign(url.href);
   } finally {
-    clearTimeout(timeout); if (id === version) { active = null; document.documentElement.classList.remove('sg-navigating'); document.querySelector('#sg-main')?.removeAttribute('aria-busy'); }
+    clearTimeout(timeout); if (id === version) { active = null; pendingHref = null; document.documentElement.classList.remove('sg-navigating'); document.querySelector('#sg-main')?.removeAttribute('aria-busy'); }
   }
 }
 export function initNavigation(mount: () => void): void {
   render = mount; history.replaceState({ ...history.state, [key]: true, y: scrollY }, '', location.href); history.scrollRestoration = 'manual';
   document.addEventListener('click', event => {
     if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
-    const link = (event.target as Element)?.closest<HTMLAnchorElement>('a[href]');
+    const link = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href]') : null;
     if (!link || link.target && link.target !== '_self' || link.hasAttribute('download') || link.hasAttribute('data-no-navigation') || link.closest('[contenteditable]')) return;
-    const url = new URL(link.href, location.href); if (!eligible(url) || (local(url) && url.hash) || /\.[a-z0-9]{1,8}$/i.test(url.pathname) && !/\.(html?|php)$/i.test(url.pathname)) return;
+    const url = new URL(link.href, location.href); if (!eligible(url) || /\.[a-z0-9]{1,8}$/i.test(url.pathname) && !/\.(html?|php)$/i.test(url.pathname)) return;
+    if (local(url) && url.hash && currentRoute === routeKey(url)) {
+      cancelNavigation(); closeNavigationUI(); return;
+    }
     event.preventDefault(); void navigate(url.href);
   });
   window.addEventListener('popstate', event => {

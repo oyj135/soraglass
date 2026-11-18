@@ -91,12 +91,9 @@ function sg_runtime_config(): string
         'effects' => sg_opt('sgEffects', 'on') === 'on',
         'clickEffect' => sg_opt('sgClickEffect', 'on') === 'on',
         'season' => sg_opt('sgSeason', 'none'),
-        // 歌单三层回退（后台 JSON → 网易云 ID → dist/data）：和 page-music.php 共用同一个函数，
-        // 否则首页卡与音乐页会拿到两份不一样的数据
+        // 首页与音乐页共用 Meting 歌单，避免两份来源不一致。
         'playlist' => sg_playlist(),
-        // 前端 <img> 外链失败时的兜底图（见 core.ts initImageFallback）。
-        // 必须指向主题内置文件：不能再调 sg_placeholder() —— 那是 picsum 外链，
-        // 外链挂掉时兜底图自己也加载不出来，等于没有兜底。
+        // 图片救援必须使用内置资源，避免依赖同样可能失败的外链。
         'placeholder' => sg_theme_url('dist/img/ph-1.svg'),
         'nav' => [],
     ];

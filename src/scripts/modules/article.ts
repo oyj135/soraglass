@@ -1,9 +1,10 @@
-import { pageOn, pageTimeout, pageInterval, pageFrame, onPageDispose, pageSignal } from './lifecycle';
+import { pageOn,pageTimeout,pageFrame,onPageDispose } from './lifecycle';
 /**
  * 文章增强：目录高亮、代码高亮、公式渲染、图片灯箱。
  * highlight.js / katex 走动态 import，只会在真的有代码块 / 公式的页面下载。
  */
-import { reducedMotion, toast } from './core';
+import { reducedMotion } from './runtime';
+import { toast } from './feedback';
 
 function initTOC(): void {
   const article = document.querySelector<HTMLElement>('[data-sg-article]');

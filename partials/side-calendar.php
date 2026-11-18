@@ -14,7 +14,7 @@ $sgCalWeekNames = ['日', '一', '二', '三', '四', '五', '六'];
 ?>
 <section class="sg-hcard sg-hcal" aria-label="本月日历">
   <div class="sg-hcard-head">
-    <span class="sg-hcard-title"><?php echo sg_icon('calendar'); ?>日历</span>
+    <span class="sg-hcard-title"><?php echo sg_icon_color('calendar'); ?>日历</span>
     <span class="sg-hcal-ym"><?php echo $sgCalYear; ?> 年 <?php echo $sgCalMonth; ?> 月</span>
   </div>
   <div class="sg-hcal-grid" role="grid" aria-label="<?php echo $sgCalYear; ?>年<?php echo $sgCalMonth; ?>月">

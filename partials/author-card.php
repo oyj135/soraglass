@@ -1,20 +1,33 @@
 <?php
-/** 文章页侧栏作者名片（2026-11-17：内容与首页作者卡完全一致）——
- *  居中圆头像（链到关于页）+ 名字/简介 + 文章/标签/分类三格统计 + 全宽「关于我」按钮。
- *  复用首页 card-profile 的类名与样式（sg-profile-top / sg-avatar-ring / sg-stats），
- *  社交图标与首页作者卡一致地不在此卡输出（首屏社交不受影响）。 */
+/** 文章页侧栏作者名片（2026-11-18：与首页作者卡完全一致）——
+ *  极光横幅 + 呼吸发光圆头像（链到关于页）+ 可展开状态徽章 + 马克笔名字/宽字距简介
+ *  + 文章/标签/分类三格统计（分别链到归档/标签页/分类页）+ 全宽药丸「关于我」按钮
+ *  + 底部社交图标行。复用首页 card-profile 的类名与样式。 */
 $sgAvatar = sg_opt('sgAvatarUrl', sg_theme_url('dist/img/avatar.svg'));
 $sgCounts = sg_stats();
 $sgName = sg_opt('sgAuthorName', (string) $this->options->title);
 $sgBio = (string) $this->options->description;
+$sgStatus = trim((string) sg_opt('sgAuthorStatus', ''));
 $sgArchiveUrl = sg_page_url('archives');
+$sgTagsUrl = sg_page_exists('label') ? sg_page_url('label') : $sgArchiveUrl;
+$sgCatesUrl = sg_page_exists('categories') ? sg_page_url('categories') : $sgArchiveUrl;
 $sgAvatarLink = sg_page_exists('about') ? sg_page_url('about') : rtrim((string) $this->options->siteUrl, '/') . '/';
+$sgProfileSocial = sg_json('sgSocial', 'social', []);
 ?>
 <section class="sg-glass sg-card-pad sg-profile sg-author-card">
+  <div class="sg-profile-banner" aria-hidden="true"></div>
   <div class="sg-profile-top">
-    <a class="sg-avatar-ring" href="<?php echo sg_e($sgAvatarLink); ?>">
-      <img src="<?php echo sg_e($sgAvatar); ?>" alt="<?php echo sg_e($sgName); ?>">
-    </a>
+    <div class="sg-avatar-wrap">
+      <a class="sg-avatar-ring" href="<?php echo sg_e($sgAvatarLink); ?>">
+        <img src="<?php echo sg_e($sgAvatar); ?>" alt="<?php echo sg_e($sgName); ?>">
+      </a>
+      <?php if ($sgStatus !== '') : ?>
+      <span class="sg-status-bubble" title="<?php echo sg_e($sgStatus); ?>">
+        <?php echo sg_icon('message'); ?>
+        <span class="sg-status-text"><?php echo sg_e($sgStatus); ?></span>
+      </span>
+      <?php endif; ?>
+    </div>
     <p class="sg-profile-name"><?php echo sg_e($sgName); ?></p>
     <?php if ($sgBio !== '') : ?><p class="sg-profile-bio"><?php echo sg_e($sgBio); ?></p><?php endif; ?>
   </div>
@@ -24,11 +37,11 @@ $sgAvatarLink = sg_page_exists('about') ? sg_page_url('about') : rtrim((string) 
       <span class="sg-stat-label">文章</span>
       <span class="sg-stat-num"><?php echo sg_e($sgCounts['posts']); ?></span>
     </a>
-    <a class="sg-stat" href="<?php echo sg_e($sgArchiveUrl); ?>">
+    <a class="sg-stat" href="<?php echo sg_e($sgTagsUrl); ?>">
       <span class="sg-stat-label">标签</span>
       <span class="sg-stat-num"><?php echo sg_e($sgCounts['tags']); ?></span>
     </a>
-    <a class="sg-stat" href="<?php echo sg_e($sgArchiveUrl); ?>">
+    <a class="sg-stat" href="<?php echo sg_e($sgCatesUrl); ?>">
       <span class="sg-stat-label">分类</span>
       <span class="sg-stat-num"><?php echo sg_e($sgCounts['categories']); ?></span>
     </a>
@@ -39,5 +52,16 @@ $sgAvatarLink = sg_page_exists('about') ? sg_page_url('about') : rtrim((string) 
   <a class="sg-author-btn" href="<?php echo sg_e(sg_page_url('about')); ?>">
     <?php echo sg_icon('user'); ?>关于我
   </a>
+  <?php endif; ?>
+
+  <?php if ($sgProfileSocial) : ?>
+  <div class="sg-profile-social">
+    <?php foreach ($sgProfileSocial as $sgProfileItem) : ?>
+    <?php if (!is_array($sgProfileItem)) { continue; } ?>
+    <a class="sg-social" href="<?php echo sg_e(sg_value($sgProfileItem, 'url', '#')); ?>" target="_blank" rel="noopener noreferrer" title="<?php echo sg_e(sg_value($sgProfileItem, 'name', '链接')); ?>" aria-label="<?php echo sg_e(sg_value($sgProfileItem, 'name', '链接')); ?>">
+      <?php echo sg_icon(sg_social_icon($sgProfileItem)); ?>
+    </a>
+    <?php endforeach; ?>
+  </div>
   <?php endif; ?>
 </section>

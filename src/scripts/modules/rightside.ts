@@ -1,5 +1,5 @@
-import { pageOn, pageFrame, pageTimeout, onPageDispose } from './lifecycle';
-import { reducedMotion } from './core';
+import { pageOn,pageFrame,pageTimeout,onPageDispose } from './lifecycle';
+import { reducedMotion } from './runtime';
 /**
  * 右侧悬浮按钮组 + 顶部胶囊加载条（对齐 Fomalhaut rightside / reading.js / pace）。
  * DOM 契约（partials/rightside.php）：

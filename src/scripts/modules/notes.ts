@@ -1,4 +1,4 @@
-import { pageOn, pageTimeout, pageInterval, pageFrame, onPageDispose, pageSignal } from './lifecycle';
+import { pageTimeout } from './lifecycle';
 /**
  * 碎语时间轴：搜索 / 标签筛选 / 正倒序 / 长文展开。
  *

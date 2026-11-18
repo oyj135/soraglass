@@ -1,4 +1,4 @@
-import { pageOn, pageTimeout, pageInterval, pageFrame, onPageDispose, pageSignal } from './lifecycle';
+import { pageOn,pageTimeout,pageInterval } from './lifecycle';
 /**
  * 每日选刊：期号切换 + 展开目录 + 收藏过滤 + 条目阅读弹窗。
  *
@@ -163,7 +163,7 @@ export function initBriefing(): void {
     }
 
     if (elMeta) {
-      elMeta.innerHTML = '';
+      elMeta.replaceChildren();
       channels.forEach((channel) => {
         const node = document.createElement('span');
         node.innerHTML = `${channel.name}<b>${pad(channel.count)}</b>`;
@@ -318,7 +318,7 @@ export function initBriefing(): void {
       if (readerMeta) readerMeta.textContent = [data.source, data.sourceDate && `原文 ${data.sourceDate}`].filter(Boolean).join(' · ');
       if (readerSummary) readerSummary.textContent = data.summary ?? '';
       if (readerHighlights) {
-        readerHighlights.innerHTML = '';
+        readerHighlights.replaceChildren();
         points.forEach((point, i) => {
           const row = document.createElement('p');
           row.className = 'sg-reader-point';
@@ -334,7 +334,7 @@ export function initBriefing(): void {
         readerNote.textContent = data.note ?? '';
       }
       if (readerTags) {
-        readerTags.innerHTML = '';
+        readerTags.replaceChildren();
         tags.forEach((tag) => {
           const chip = document.createElement('span');
           chip.textContent = `#${tag}`;

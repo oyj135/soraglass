@@ -11,9 +11,10 @@
  *
  * 站内导航保留音频节点，重新绑定页面控件；完整刷新仍用 localStorage 续播。
  */
-import { config, readStore, writeStore, toast } from './core';
+import { config,readStore,writeStore } from './runtime';
+import { toast } from './feedback';
 import { navigate } from './navigation';
-import { pageOn, onPageDispose } from './lifecycle';
+import { pageOn,onPageDispose } from './lifecycle';
 import { createPlayerVisuals } from './player-visuals';
 let mountPlayer: (() => void) | null = null;
 
@@ -282,6 +283,7 @@ export function initPlayer(): void {
     lyricTargets.forEach((el) => { el.textContent = '歌单暂未准备好'; });
     roots.forEach((root) => { const status = q(root, '[data-sg-playback-status]'); if (status) status.textContent = '暂无曲目'; });
     roots.forEach((root) => {
+      root.classList.add('is-empty');
       root.querySelectorAll<HTMLButtonElement>('button').forEach((btn) => {
         btn.disabled = true;
       });

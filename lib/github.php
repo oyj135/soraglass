@@ -60,7 +60,7 @@ function sg_github_fail(string $message): void
  */
 function sg_github_cache_file(string $user, string $token): string
 {
-    $key = md5($user . '|' . substr(md5($token), 0, 8));
+    $key = hash('sha256', SG_ROOT . '|' . $user . '|' . $token);
     return sg_cache_file('github-' . $key . '.json');
 }
 

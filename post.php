@@ -74,22 +74,22 @@ $sgNext = sg_adjacent_post($this, 'next');
         <span class="sg-post-meta-item sg-post-meta-pin" title="精选"><?php echo sg_icon('pin'); ?>精选</span>
         <span class="sg-post-meta-sep" aria-hidden="true">|</span>
         <?php endif; ?>
-        <time class="sg-post-meta-item is-date" datetime="<?php $this->date('c'); ?>" title="<?php $this->date('Y-m-d H:i'); ?>"><?php echo sg_icon('calendar'); ?>发表于 <?php echo sg_e($sgPostedAgo !== '' ? $sgPostedAgo : $this->date('Y-m-d')); ?></time>
+        <time class="sg-post-meta-item is-date" datetime="<?php $this->date('c'); ?>" title="<?php $this->date('Y-m-d H:i'); ?>"><?php echo sg_icon_color('calendar'); ?>发表于 <?php echo sg_e($sgPostedAgo !== '' ? $sgPostedAgo : $this->date('Y-m-d')); ?></time>
         <?php if ($sgUpdated !== '') : ?>
         <span class="sg-post-meta-sep" aria-hidden="true">|</span>
-        <span class="sg-post-meta-item is-updated" title="更新于 <?php echo sg_e($sgUpdated); ?>"><?php echo sg_icon('history'); ?>更新于 <?php echo sg_e($sgUpdatedAgo !== '' ? $sgUpdatedAgo : $sgUpdated); ?></span>
+        <span class="sg-post-meta-item is-updated" title="更新于 <?php echo sg_e($sgUpdated); ?>"><?php echo sg_icon_color('update'); ?>更新于 <?php echo sg_e($sgUpdatedAgo !== '' ? $sgUpdatedAgo : $sgUpdated); ?></span>
         <?php endif; ?>
         <?php foreach ($sgCats as $sgCat) : ?>
         <span class="sg-post-meta-sep" aria-hidden="true">|</span>
-        <a class="sg-post-meta-item is-cate sg-post-meta-cate" href="<?php echo sg_e($sgCat['permalink']); ?>"><?php echo sg_icon('tag'); ?><?php echo sg_e($sgCat['name']); ?></a>
+        <a class="sg-post-meta-item is-cate sg-post-meta-cate" href="<?php echo sg_e($sgCat['permalink']); ?>"><?php echo sg_icon_color('folder'); ?><?php echo sg_e($sgCat['name']); ?></a>
         <?php endforeach; ?>
       </div>
       <div class="sg-post-meta-line">
-        <span class="sg-post-meta-item is-word"><?php echo sg_icon('type'); ?>字数总计: <?php echo (int) $sgRead['chars']; ?></span>
+        <span class="sg-post-meta-item is-word"><?php echo sg_icon_color('type'); ?>字数总计: <?php echo (int) $sgRead['chars']; ?></span>
         <span class="sg-post-meta-sep" aria-hidden="true">|</span>
-        <span class="sg-post-meta-item is-time"><?php echo sg_icon('clock'); ?>阅读时长: <?php echo (int) $sgRead['minutes']; ?>分钟</span>
+        <span class="sg-post-meta-item is-time"><?php echo sg_icon_color('clock'); ?>阅读时长: <?php echo (int) $sgRead['minutes']; ?>分钟</span>
         <span class="sg-post-meta-sep" aria-hidden="true">|</span>
-        <span class="sg-post-meta-item is-views"><?php echo sg_icon('eye'); ?>阅读量: <?php if ($sgViews !== '') : ?><?php echo sg_e($sgViews); ?><?php else : ?><span id="busuanzi_value_page_pv">—</span><?php endif; ?></span>
+        <span class="sg-post-meta-item is-views"><?php echo sg_icon_color('eye'); ?>阅读量: <?php if ($sgViews !== '') : ?><?php echo sg_e($sgViews); ?><?php else : ?><span id="busuanzi_value_page_pv">—</span><?php endif; ?></span>
       </div>
     </div>
   </header>
@@ -164,7 +164,7 @@ $sgNext = sg_adjacent_post($this, 'next');
             <a class="sg-related-item" href="<?php echo sg_e($sgRel['url']); ?>" title="<?php echo sg_e($sgRel['title']); ?>">
               <img src="<?php echo sg_e($sgRel['cover']); ?>" alt="" loading="lazy" referrerpolicy="no-referrer">
               <div class="sg-related-content">
-                <div class="sg-related-date"><?php echo sg_icon('history'); ?><time><?php echo sg_e($sgRel['date']); ?></time></div>
+                <div class="sg-related-date"><?php echo sg_icon_color('clock'); ?><time><?php echo sg_e($sgRel['date']); ?></time></div>
                 <div class="sg-related-title"><?php echo sg_e($sgRel['title'] !== '' ? $sgRel['title'] : '未命名文章'); ?></div>
               </div>
             </a>

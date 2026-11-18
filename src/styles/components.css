@@ -7,10 +7,13 @@
 /* ---------- 通用卡 ---------- */
 .sg-glass {
   position: relative;
-  background: var(--sg-card);
+  /* 底色恒为实色卡（昼夜切换时 1s 平滑过渡、永不透底），
+     渐变质感走 background-image：夜间由 --sg-card-image 提供顶光渐变，白天回落 none。 */
+  background-color: var(--sg-card);
+  background-image: var(--sg-card-image, none);
   border: 1px solid var(--sg-card-border);
   border-radius: var(--sg-radius);
-  box-shadow: var(--sg-shadow);
+  box-shadow: var(--sg-card-sheen, 0 0 0 transparent), var(--sg-shadow);
   /* 配色过渡保持 1s（后台「保存即生效」的昼夜渐变靠它），transform 单独走卡片时长。
      不补 transform 的话，任何卡片位移都会瞬跳而不是滑过去。 */
   transition:
@@ -25,6 +28,18 @@
   box-shadow: var(--sg-shadow-strong);
 }
 
+/* 「青瓷夜」夜间卡面质感（2026-11-17 第十四轮起，2026-11-18 换通用底）：参考源站 fomalhaut 暗色卡实测 ——
+   源站夜间卡是死平的 rgba(28,28,28,.98)，全靠一条可见灰描边 rgba(169,169,169,.7) 撑质感。
+   这里把 strong 系卡面也接上顶光渐变（底色保持实色卡，只有 image 变），并保留 sheen 内高光；
+   描边已在 tokens 的 dark 块按源站思路提到可见档。 */
+html.dark .sg-glass-strong,
+html.dark .sg-article.sg-glass,
+html.dark .sg-feature-card {
+  background-color: var(--sg-card-strong);
+  background-image: var(--sg-card-image, none);
+  box-shadow: var(--sg-card-sheen), var(--sg-shadow-strong);
+}
+
 /* 卡片 hover 反馈对齐源站 cardHover：阴影 .05 → .09（无位移，交给各卡自己的动效） */
 .sg-glass:is(:hover) { box-shadow: var(--sg-shadow-strong); }
 /* 侧栏小卡：源站 aside card-widget 是 8px 圆角档（大容器 20px、首页文章卡 25px） */
@@ -37,14 +52,20 @@
 
 .sg-divider { border: 0; border-top: 1px solid var(--sg-line); margin: 0; }
 
-/* ---------- 导航 ---------- */
+/* ---------- 导航 ----------
+   复刻源站 fomalhaut head.styl 的导航行为（第十七轮）：
+   · 展开缓 .5s / 收起快 .2s（transition 取目标态规则：加 .is-hidden 走快收，移除走缓展）
+   · 滚过 56px 进入固定态补源站同款阴影（nav-fixed box-shadow 0 5px 6px -5px）
+   · 载入淡入（源站 #nav opacity 0 → .show，.5s）
+   · 「更多」下拉 = 源站 sub_menus .3s .1s both（editorial.css），箭头旋转 .3s */
 .sg-nav {
   position: fixed;
   inset: 0 0 auto;
   z-index: 50;
   background: rgba(250, 250, 250, .98);
   border-bottom: 1px solid rgba(169, 169, 169, .28);
-  transition: transform .5s, background-color 1s, border-color 1s;
+  transition: transform .5s var(--sg-ease), background-color 1s, border-color 1s,
+    box-shadow .3s var(--sg-ease);
 }
 
 html.dark .sg-nav {
@@ -52,7 +73,23 @@ html.dark .sg-nav {
   border-bottom-color: rgba(255, 255, 255, .10);
 }
 
-.sg-nav.is-hidden { transform: translateY(-105%); }
+.sg-nav.is-hidden {
+  transform: translateY(-105%);
+  transition: transform .2s var(--sg-ease), background-color 1s, border-color 1s,
+    box-shadow .3s var(--sg-ease);
+}
+
+/* 固定态阴影（源站 head.styl nav-fixed） */
+.sg-nav.is-scrolled { box-shadow: 0 5px 6px -5px rgba(133, 133, 133, .6); }
+html.dark .sg-nav.is-scrolled { box-shadow: 0 5px 6px -5px rgba(0, 0, 0, .55); }
+
+/* 载入淡入（sg-ready 由 head 内联脚本打标；无 JS 时导航始终可见） */
+html.sg-ready .sg-nav { animation: sg-nav-in .5s var(--sg-ease) both; }
+@keyframes sg-nav-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  html.sg-ready .sg-nav { animation: none; }
+  .sg-nav, .sg-nav.is-hidden { transition: none; }
+}
 
 .sg-nav-inner {
   display: flex;
@@ -93,18 +130,31 @@ html.dark .sg-nav {
 .sg-nav-link:hover { color: var(--sg-accent-ink); opacity: 1; }
 
 /* 导航条目图标（2026-11-17）：内联 SVG 与文字同行，激活态随链接色走。
-   悬浮背景胶囊（2026-11-17，对齐 Fomalhaut 菜单项 hover 背景）：
-   加水平 padding + 负 margin，背景胶囊外扩但布局间距不变。 */
-.sg-nav-link { display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .65rem; margin-inline: -.65rem; border-radius: .5rem; transition: color .3s, opacity .3s, background-color .25s linear; }
-.sg-nav-link:is(:hover, :focus-visible) { background: color-mix(in srgb, var(--sg-accent) 14%, transparent); }
-html.dark .sg-nav-link:is(:hover, :focus-visible) { background: color-mix(in srgb, var(--sg-accent-soft) 16%, transparent); }
+   悬浮下划线（2026-11-18，对齐源站 #nav .site-page:after 的「从左长出」下划线）：
+   水平 padding 保住命中区，下划线用 scaleX(0→1) 从左展开，只动合成层。 */
+.sg-nav-link { display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .65rem; margin-inline: -.65rem; border-radius: .5rem; transition: color .3s, opacity .3s; }
+.sg-nav-link::after {
+  content: '';
+  position: absolute;
+  left: .65rem;
+  right: .65rem;
+  bottom: .05rem;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--sg-accent-soft);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform .3s ease-in-out;
+}
+html.dark .sg-nav-link::after { background: var(--sg-accent-ink); }
+.sg-nav-link:is(:hover, :focus-visible)::after { transform: scaleX(1); }
+@media (prefers-reduced-motion: reduce) { .sg-nav-link::after { transition: none; } }
 .sg-nav-more-link, .sg-sheet-link { display: flex; align-items: center; gap: .45rem; }
-.sg-nav-more-link { padding: .35rem .6rem; margin-inline: -.6rem; border-radius: .5rem; transition: background-color .25s linear; }
-.sg-nav-more-link:is(:hover, :focus-visible) { background: color-mix(in srgb, var(--sg-accent) 14%, transparent); }
-html.dark .sg-nav-more-link:is(:hover, :focus-visible) { background: color-mix(in srgb, var(--sg-accent-soft) 16%, transparent); }
-.sg-sheet-link { padding: .45rem .7rem; margin-inline: -.7rem; border-radius: 10px; transition: background-color .25s linear; }
-.sg-sheet-link:is(:hover, :focus-visible) { background: color-mix(in srgb, var(--sg-accent) 14%, transparent); }
-html.dark .sg-sheet-link:is(:hover, :focus-visible) { background: color-mix(in srgb, var(--sg-accent-soft) 16%, transparent); }
+/* 下拉 / 抽屉条目：源站 menus_item_child 的「整条填色」hover，填主题色压白字 */
+.sg-nav-more-link { padding: .35rem .6rem; margin-inline: -.6rem; border-radius: .5rem; transition: background-color .25s linear, color .25s linear; }
+.sg-nav-more-link:is(:hover, :focus-visible) { background: var(--sg-accent); color: #fff; }
+.sg-sheet-link { padding: .45rem .7rem; margin-inline: -.7rem; border-radius: 10px; transition: background-color .25s linear, color .25s linear, opacity .25s linear; }
+.sg-sheet-link:is(:hover, :focus-visible) { background: var(--sg-accent); color: #fff; opacity: 1; }
 /* 导航图标彩色（2026-11-17，对齐源站彩色图标的观感）：每个入口一个专属色，
    与卡片段色一致（日期黄/分类橙/标签绿的同族扩展）。 */
 .sg-nav-ico { flex: none; width: 1em; height: 1em; display: inline-flex; }
@@ -116,7 +166,8 @@ html.dark .sg-sheet-link:is(:hover, :focus-visible) { background: color-mix(in s
 .sg-nav-link.is-active { color: var(--sg-accent-ink); opacity: 1; }
 html.dark .sg-nav-link.is-active { color: var(--sg-accent-ink); }
 
-.sg-nav-link.is-active::after {
+/* 激活态小圆点走 ::before（::after 已让位给 hover 下划线） */
+.sg-nav-link.is-active::before {
   position: absolute;
   left: 50%;
   bottom: -.25rem;
@@ -194,14 +245,44 @@ html.dark .sg-nav-link.is-active { color: var(--sg-accent-ink); }
   position: fixed;
   inset: 0;
   z-index: 70;
-  display: none;
+  /* 开关动画（第十六轮）：display:none 换成 visibility 过渡 —— 开启 0.22s 淡入、
+     关闭也有淡出；抽屉面板配合 20px 滑入。reduced-motion 直接跳变。 */
+  display: block;
   background: rgba(2, 6, 23, .55);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .22s var(--sg-ease), visibility .22s var(--sg-ease);
 }
 
-.sg-sheet.is-open { display: block; }
+.sg-sheet.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.sg-sheet .sg-sheet-panel {
+  transform: translateX(24px);
+  transition: transform .28s var(--sg-ease);
+}
+.sg-sheet.is-open .sg-sheet-panel {
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sg-sheet, .sg-sheet .sg-sheet-panel { transition: none; transform: none; }
+}
 
 /* 抽屉打开时锁滚动，关闭后立即释放，避免影响 bfcache 返回 */
 html.sg-lock, html.sg-lock body { overflow: hidden; }
+
+/* 导航抽屉夜间毛玻璃（2026-11-17 第十四轮用户拍板）：全站唯一一处 backdrop-filter。
+   只夜间启用——抽屉打开时背后必是壁纸，磨砂收益确定；白天维持实色卡。
+   .72 透明度是实测档：壁纸亮云透过模糊后菜单白字/亮紫字对比仍 ≥7:1。
+   打开时才采样一次，无滚动重采样开销。 */
+html.dark .sg-sheet-panel {
+  background: rgba(30, 32, 62, .72);
+  -webkit-backdrop-filter: blur(18px) saturate(1.25);
+  backdrop-filter: blur(18px) saturate(1.25);
+  border-left-color: rgba(199, 201, 235, .28);
+}
 
 .sg-sheet-panel {
   position: absolute;
@@ -217,7 +298,7 @@ html.sg-lock, html.sg-lock body { overflow: hidden; }
 
 .sg-sheet-link { display: inline-flex; align-items: center; gap: .5rem; font-size: 1rem; font-weight: 700; text-align: left; opacity: .85; }
 .sg-sheet-link svg { width: 1.05rem; height: 1.05rem; }
-.sg-sheet-link:hover { color: var(--sg-accent-ink); opacity: 1; }
+.sg-sheet-link:hover { opacity: 1; }
 .sg-sheet-link.is-active { color: var(--sg-accent-ink); opacity: 1; }
 
 /* ---------- 左下悬浮工具箱 ---------- */
@@ -312,7 +393,7 @@ html.sg-lock, html.sg-lock body { overflow: hidden; }
   z-index: 2000;
   pointer-events: none;
   opacity: 0;
-  transition: opacity .3s ease;
+  transition: opacity .3s var(--sg-ease);
 }
 .sg-pace.is-active { opacity: 1; }
 .sg-pace.is-done { opacity: 0; }
@@ -321,7 +402,7 @@ html.sg-lock, html.sg-lock body { overflow: hidden; }
   inset: 0;
   width: 100%;
   transform: translateX(-100%);
-  transition: transform .2s ease;
+  transition: transform .2s var(--sg-ease);
   background: linear-gradient(-45deg, var(--sg-warm-bright), var(--sg-accent), var(--sg-accent-2), var(--sg-accent-soft));
   background-size: 300% 300%;
   animation: sg-pace-gradient 2s ease infinite;
@@ -380,61 +461,32 @@ html.sg-lock, html.sg-lock body { overflow: hidden; }
 @media (max-width: 768px) { .sg-neko, .sg-neko-rope { display: none; } }
 @media (prefers-reduced-motion: reduce) { .sg-neko, .sg-neko-msg { transition: none; } }
 
-/* ---------- 搜索 ---------- */
-.sg-search {
-  position: relative;
-  z-index: 100;
-  width: 100%;
-  /* 42rem → 36rem（第三十六轮）：首屏主角交给封面，搜索退成一条检索入口，
-     再宽就变成压在内容上的一道横杠。 */
-  max-width: 36rem;
-  margin: 0 auto 2rem;
-}
 
-.sg-search-input {
-  width: 100%;
-  padding: 1rem 1.5rem 1rem 3.5rem;
-  border: 1px solid rgba(255, 255, 255, .40);
-  border-radius: var(--sg-radius);
-  background: rgba(255, 255, 255, .50);
-  box-shadow: var(--sg-shadow);
-  color: inherit;
-  outline: none;
-  transition: box-shadow .3s, background-color 1s, border-color 1s;
-}
+/* ---------- 作者卡（2026-11-18 改版，借 Fomalhaut card_author 的形态、保留 Soraglass 材质）：
+   极光横幅 + 压横幅的呼吸发光头像 + 可展开状态徽章 + 马克笔名字 + 宽字距简介
+   + 杂志式三格统计 + 全宽药丸按钮 + 社交图标行 ---------- */
+.sg-profile { display: flex; flex-direction: column; align-items: center; gap: .9rem; text-align: center; overflow: hidden; }
 
-html.dark .sg-search-input {
-  background: rgba(30, 41, 59, .50);
-  border-color: rgba(255, 255, 255, .10);
-}
-
-.sg-search-input:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--sg-accent) 55%, transparent); }
-.sg-search-input::placeholder { color: var(--sg-muted); }
-
-.sg-search-icon {
+/* 顶部极光横幅：纯 CSS 渐变（不引外部图），mask 下缘渐隐接回卡面；
+   头像压在横幅下缘，复刻源站「上图下玻璃」的层次但不抄它的照片。 */
+.sg-profile-banner {
   position: absolute;
-  left: 1.25rem;
-  top: 50%;
-  /* 输入框带 backdrop-filter，会自成一个 z-index:0 的层；图标必须显式抬高才不会被盖住 */
-  z-index: 2;
-  transform: translateY(-50%);
-  color: var(--sg-muted);
+  inset: 0 0 auto;
+  height: 7rem;
   pointer-events: none;
-  display: flex;
+  background:
+    radial-gradient(130% 95% at 12% -12%, color-mix(in srgb, var(--sg-accent-soft) 52%, transparent), transparent 62%),
+    radial-gradient(130% 105% at 88% -6%, color-mix(in srgb, var(--sg-ring-b) 44%, transparent), transparent 66%),
+    linear-gradient(160deg, color-mix(in srgb, var(--sg-accent) 26%, transparent), color-mix(in srgb, var(--sg-accent-2) 12%, transparent));
+  -webkit-mask-image: linear-gradient(180deg, #000 42%, transparent);
+  mask-image: linear-gradient(180deg, #000 42%, transparent);
 }
-
-.sg-search-icon svg { width: 1.25rem; height: 1.25rem; }
-
-.sg-search--sm { max-width: 20rem; margin: 0; }
-.sg-search--sm .sg-search-input { padding: .625rem 1rem .625rem 2.5rem; border-radius: 999px; font-size: .875rem; }
-.sg-search--sm .sg-search-icon { left: .875rem; }
-.sg-search--sm .sg-search-icon svg { width: 1rem; height: 1rem; }
-
-/* ---------- 作者卡（对齐 Fomalhaut card_author：居中头像 + 名字/简介 + 三格统计 + 全宽按钮） ---------- */
-.sg-profile { display: flex; flex-direction: column; align-items: center; gap: .9rem; text-align: center; }
-.sg-profile-top { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 10; }
+.sg-profile-top { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 10; padding-top: 1.4rem; }
 
 .sg-avatar-ring {
+  /* block 化：外层 .sg-avatar-wrap 是普通 div，inline 的 <a> 会丢掉宽高 */
+  display: block;
+  position: relative;
   flex-shrink: 0;
   width: 6.875rem;
   height: 6.875rem;
@@ -455,35 +507,140 @@ html.dark .sg-search-input {
 
 /* 头像动画只在图片本身 hover 时触发（卡片本体无动画） */
 .sg-avatar-ring:hover img { transform: rotate(360deg); }
-@media (prefers-reduced-motion: reduce) { .sg-avatar-ring img { transition: none; } .sg-avatar-ring:hover img { transform: none; } }
 
-.sg-profile-name {
-  margin: .6rem 0 0;
-  font-size: 1.4rem;
-  font-weight: 700;
-  letter-spacing: .025em;
-  line-height: 1.35;
+/* 呼吸灯（首页 / 文章页共用，fomalhaut avatar-glow 同款 4s 节奏）：
+   ::after 光晕层呼吸 opacity，不占用静态 box-shadow；日间往白里调才看得见。 */
+.sg-profile .sg-avatar-ring::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  box-shadow: 0 0 6px 4px color-mix(in srgb, var(--sg-accent) 32%, transparent);
+  opacity: .25;
+  animation: sg-avatar-glow 4s ease-in-out infinite;
+  pointer-events: none;
+}
+html.dark .sg-profile .sg-avatar-ring::after { box-shadow: 0 0 6px 4px color-mix(in srgb, var(--sg-accent-soft) 42%, transparent); }
+@keyframes sg-avatar-glow { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .sg-avatar-ring img { transition: none; }
+  .sg-avatar-ring:hover img { transform: none; }
+  .sg-profile .sg-avatar-ring::after { animation: none; opacity: .5; }
 }
 
+/* 状态徽章（借源站 author-status-box 的展开交互）：常态是头像右下角一枚圆徽，
+   hover 横向展开露出完整状态文字；sgAuthorStatus 留空时整块不输出。 */
+.sg-avatar-wrap { position: relative; }
+.sg-status-bubble {
+  position: absolute;
+  right: -.45rem;
+  bottom: .2rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  height: 1.75rem;
+  max-width: 1.75rem;
+  padding: 0 .42rem;
+  border-radius: 999px;
+  background: var(--sg-card);
+  border: 1px solid var(--sg-card-border);
+  box-shadow: var(--sg-shadow);
+  overflow: hidden;
+  cursor: default;
+  transition: max-width .4s var(--sg-ease);
+}
+.sg-status-bubble > svg { width: .9rem; height: .9rem; flex: none; color: var(--sg-accent-ink); }
+.sg-status-text {
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-family: var(--font-sans);
+  font-size: .72rem;
+  line-height: 1.6;
+  color: var(--sg-muted);
+  transition: max-width .4s var(--sg-ease);
+}
+.sg-status-bubble:hover { max-width: 10rem; }
+.sg-status-bubble:hover .sg-status-text { max-width: 8rem; }
+
+/* 卡底社交行（复用 sgSocial 与 .sg-social 按钮皮肤，尺寸收一档适配侧栏） */
+.sg-profile-social { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; margin-top: -.15rem; }
+.sg-profile-social .sg-social { width: 2rem; height: 2rem; background: var(--sg-chip); }
+html.dark .sg-profile-social .sg-social { background: var(--sg-chip); color: var(--sg-muted); }
+/* 社交图标 hover 旋转（源站 card-info-social-icons 同款 540°，节奏放缓到 .6s） */
+.sg-profile-social .sg-social svg { transition: transform .6s var(--sg-ease); }
+.sg-profile-social .sg-social:hover svg { transform: rotate(540deg); }
+@media (prefers-reduced-motion: reduce) {
+  .sg-profile-social .sg-social svg { transition: none; }
+  .sg-profile-social .sg-social:hover svg { transform: none; }
+}
+
+/* 名字：马克笔高亮条（源站是黄条，这里随签名色派生），display:table 保证宽侧栏下仍居中独占一行 */
+.sg-profile-name {
+  position: relative;
+  display: table;
+  max-width: 100%;
+  margin: .85rem auto 0;
+  padding: .05em .28em .1em;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  line-height: 1.3;
+}
+.sg-profile-name::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: .12em;
+  right: .12em;
+  bottom: .14em;
+  height: .52em;
+  border-radius: .12em;
+  background: color-mix(in srgb, var(--sg-accent) 20%, transparent);
+}
+html.dark .sg-profile-name::before { background: color-mix(in srgb, var(--sg-accent-ink) 24%, transparent); }
+
+/* 简介：小号大写 + 宽字距（源站杂志式排印） */
 .sg-profile-bio {
-  margin: .2rem 0 0;
-  font-size: .85rem;
-  font-weight: 500;
+  margin: .3rem 0 0;
+  max-width: 16rem;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .26em;
+  text-transform: uppercase;
   line-height: 1.7;
   color: var(--sg-muted);
-  max-width: 16rem;
 }
 
-/* 三格统计：上行标签下行数字，整块可点（对齐参考站 site-data 表格布局） */
-.sg-stats { display: table; width: 100%; table-layout: fixed; margin-top: .15rem; }
-.sg-stat { display: table-cell; text-align: center; padding: .25rem 0; text-decoration: none; }
-.sg-stat-label { display: block; font-size: .8rem; color: var(--sg-muted); transition: color .3s; }
-.sg-stat-num { display: block; margin-top: -.1em; font-size: 1.35rem; font-weight: 800; color: var(--sg-accent-ink); transition: color .3s; }
+/* 三格统计：上下细线 + 竖分隔（源站 card-info-data 杂志式），整块可点，
+   文章→归档 / 标签→标签页 / 分类→分类页。 */
+.sg-stats {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  margin-top: .2rem;
+  padding: .6rem 0;
+  border-top: 1px solid var(--sg-line);
+  border-bottom: 1px solid var(--sg-line);
+}
+.sg-stat { position: relative; flex: 1 1 0; display: block; padding: .15rem 0; text-align: center; text-decoration: none; }
+.sg-stat + .sg-stat::before { content: ''; position: absolute; left: 0; top: 10%; bottom: 10%; width: 1px; background: var(--sg-line); }
+.sg-stat-label { display: block; font-size: .7rem; font-weight: 600; letter-spacing: .22em; color: var(--sg-muted); transition: color .3s; }
+.sg-stat-num { display: block; margin-top: .05em; font-size: 1.5rem; font-weight: 800; line-height: 1.2; color: var(--sg-text); font-variant-numeric: tabular-nums; transition: color .3s; }
 .sg-stat:hover .sg-stat-label,
-.sg-stat:hover .sg-stat-num { color: var(--sg-accent); }
+.sg-stat:hover .sg-stat-num { color: var(--sg-accent-ink); }
 
-/* 首页作者卡的「关于我」全宽（文章页 author-card 仍用 editorial.css 的内联胶囊版） */
-.sg-profile .sg-author-btn { width: 100%; margin-top: .15rem; }
+/* 「关于我」药丸按钮：玻璃底描边，hover 填主题色压白字（源站 #card-info-btn 同款交互）；
+   passing 图标动画沿用 editorial.css 的 sg-btn-passing。 */
+.sg-profile .sg-author-btn { width: 100%; margin-top: .2rem; padding: .55rem 1.1rem; background: var(--sg-chip); border-color: var(--sg-card-border); font-weight: 600; letter-spacing: .06em; }
+.sg-profile .sg-author-btn:is(:hover, :focus-visible) {
+  background: var(--sg-accent);
+  border-color: transparent;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px -12px color-mix(in srgb, var(--sg-accent) 70%, transparent);
+}
 
 .sg-socials { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; }
 @media (min-width: 768px) { .sg-socials { justify-content: flex-end; gap: .75rem; } }
@@ -556,6 +713,16 @@ html.dark .sg-player-card { --sg-spark: rgba(255, 255, 255, .55); }
   min-width: 0;
   cursor: pointer;
 }
+
+/* 空歌单压缩（2026-11-18 视觉改造 P1-1）：player.ts 判定歌单为空时给根节点加 .is-empty，
+   隐藏唱片 / 波形 / 歌词 / 进度 / 控制，只留状态行与曲名区，首页副栏不再被无内容播放器撑出空腔。
+   :has() 特异性高于 .sg-hero-side .sg-player-card，顺带解除副栏 12rem 最小高度。 */
+.sg-player.is-empty .sg-album-art,
+.sg-player.is-empty .sg-player-wave,
+.sg-player.is-empty .sg-player-lyric,
+.sg-player.is-empty .sg-player-progress,
+.sg-player.is-empty .sg-player-controls { display: none; }
+.sg-player-card:has(.sg-player.is-empty) { min-height: 0; }
 
 /* 曲名与歌手沿中轴居中。站内正文就是宋体（Noto Serif SC），
    与华为那版衬线歌名天然同一路，不用另换字族。 */
@@ -1280,13 +1447,14 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
 }
 @media (min-width: 768px) { .sg-post-carousel { height: 17rem; min-height: 0; } }
 
-/* 切换动画：0.7s 与 carousel.ts 的节奏配合，入场带 2.5rem 右移 */
-.sg-post-slide { position: absolute; inset: 0; display: flex; align-items: center; opacity: 0; transform: translateX(2.5rem); pointer-events: none; transition: opacity .7s ease, transform .7s ease; }
+/* 切换动画：1s 缓切换 + 8000ms 停留（第十七轮用户反馈太快；源站无轮播，
+   按观感定档：切换 .7s→1s，停留 5000→8000ms），入场带 2.5rem 右移 */
+.sg-post-slide { position: absolute; inset: 0; display: flex; align-items: center; opacity: 0; transform: translateX(2.5rem); pointer-events: none; transition: opacity 1s var(--sg-ease), transform 1s var(--sg-ease); }
 .sg-post-slide.is-active { opacity: 1; transform: translateX(0); pointer-events: auto; }
 
 /* 左侧封面：36% 宽、内缩 1.25rem、圆角 18px（源站 custom.css 对 blog-slider__img 的同款圆角） */
 .sg-slide-media { display: block; flex: 0 0 36%; height: 100%; padding: 1.25rem 0 1.25rem 1.25rem; }
-.sg-slide-cover { width: 100%; height: 100%; object-fit: cover; border-radius: 18px; transition: transform .6s ease-in-out; }
+.sg-slide-cover { width: 100%; height: 100%; object-fit: cover; border-radius: 18px; transition: transform .6s var(--sg-ease); }
 .sg-post-slide:hover .sg-slide-cover { transform: scale(1.06); }
 
 .sg-slide-body {
@@ -1318,14 +1486,21 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
 .sg-post-carousel .sg-dot:hover { background: color-mix(in srgb, var(--sg-muted) 80%, transparent); }
 .sg-post-carousel .sg-dot.is-active { width: 8px; height: 1.7rem; background: var(--sg-accent-2); }
 
+/* 极窄屏（<572）：轮播改竖排 —— 全宽封面在上、文案在下、圆点横排底部居中。
+   横排时 36% 封面在 390px 屏只剩 ≈120px 宽，图与文案互相挤压；竖排恢复封面可读宽度。 */
+@media (max-width: 571.98px) {
+  .sg-post-carousel { height: 21rem; min-height: 0; }
+  .sg-post-slide { flex-direction: column; align-items: stretch; }
+  .sg-slide-media { flex: none; width: 100%; height: 10rem; padding: 1rem 1rem 0; }
+  .sg-slide-body { flex: 1; height: auto; justify-content: flex-start; gap: .5rem; padding: .9rem 1.25rem 2.6rem; }
+  .sg-post-carousel .sg-dots { flex-direction: row; right: auto; left: 50%; top: auto; bottom: .9rem; transform: translateX(-50%); }
+  .sg-post-carousel .sg-dot.is-active { width: 1.7rem; height: 8px; }
+}
+
 .sg-dots { position: absolute; right: 1.5rem; bottom: 1rem; z-index: 30; display: flex; align-items: center; gap: .5rem; }
 /* 杂谈卡圆点比封面卡低一档：源站是 posts bottom-4 / chatter bottom-5 */
 .sg-chatter .sg-dots { bottom: 1.25rem; }
 
-/* 桌面手动切换用短过渡；圆点 / 进度轨保持原样，不向窄屏加入新操作。 */
-@media (min-width: 1024px) {
-  [data-sg-carousel].is-manual [data-sg-slide] { transition-duration: .2s; }
-}
 
 .sg-dot {
   position: relative;
@@ -2077,7 +2252,7 @@ html.dark .sg-post-banner-title { text-shadow: none; animation: sg-post-neon 8s 
 @media (prefers-reduced-motion: reduce) { html.dark .sg-post-banner-title { animation: none; } }
 
 /* 双行元信息（对齐 Fomalhaut #post > #post-meta：#78818a 灰、95% 字号；
-   横幅内居中；图标彩色：日历黄、其余蓝） */
+   横幅内居中；图标多色填充，走 --sg-icon-* 语义 token） */
 .sg-post-banner-meta { display: flex; flex-direction: column; align-items: center; gap: .35rem; }
 .sg-post-meta-line {
   display: flex;
@@ -2093,12 +2268,6 @@ html.dark .sg-post-banner-title { text-shadow: none; animation: sg-post-neon 8s 
 html.dark .sg-post-meta-line { color: #98a2ad; }
 .sg-post-meta-item { display: inline-flex; align-items: center; gap: .35rem; }
 .sg-post-meta-item svg { width: .9rem; height: .9rem; flex: none; }
-.sg-post-meta-item.is-date svg { color: #f5b942; }
-.sg-post-meta-item.is-updated svg,
-.sg-post-meta-item.is-cate svg,
-.sg-post-meta-item.is-word svg,
-.sg-post-meta-item.is-time svg,
-.sg-post-meta-item.is-views svg { color: #5ba0f0; }
 .sg-post-meta-pin { color: var(--sg-warm-bright); }
 .sg-post-meta-cate { color: inherit; text-decoration: none; border-bottom: 1px dashed transparent; transition: color .25s, border-color .25s; }
 .sg-post-meta-cate:hover { color: var(--sg-accent-ink); border-bottom-color: currentColor; }
@@ -2215,7 +2384,7 @@ html.dark .sg-cover { background: rgba(51, 65, 85, .60); }
 html.dark .sg-meta-chip { color: var(--sg-accent-ink); }
 .sg-meta-chip.is-pink { color: var(--sg-warm); }
 html.dark .sg-meta-chip.is-pink { color: var(--sg-warm-bright); }
-.sg-meta-chip svg { width: .875rem; height: .875rem; opacity: .8; }
+.sg-meta-chip svg { width: .875rem; height: .875rem; }
 
 .sg-lead {
   margin: 0 0 1.5rem;
@@ -2275,25 +2444,8 @@ html.dark .sg-prose a { color: var(--sg-indigo-soft); }
 
 /* 侧栏 */
 /* 文章页作者卡：内容与首页 card-profile 完全一致（复用 sg-profile/sg-avatar-ring/
-   sg-stats 类名），本类名只保留容器身份（呼吸灯作用域）；内边距用 sg-card-pad。 */
+   sg-stats 类名，呼吸灯已并入 .sg-profile 共用段）；内边距用 sg-card-pad。 */
 .sg-author-card { text-align: center; }
-.sg-author-card .sg-avatar-ring { position: relative; }
-/* 头像呼吸灯（2026-11-17，fomalhaut avatar-glow 同款节奏 4s ease-in-out）：
-   用 ::after 光晕层呼吸 opacity，不占用静态 box-shadow；颜色从青瓷 token 派生，
-   日间往白里调（压在白卡上才看得见），夜间用原色。 */
-.sg-author-card .sg-avatar-ring::after {
-  content: '';
-  position: absolute;
-  inset: -4px;
-  border-radius: 50%;
-  box-shadow: 0 0 6px 4px color-mix(in srgb, var(--sg-accent) 32%, transparent);
-  opacity: .25;
-  animation: sg-avatar-glow 4s ease-in-out infinite;
-  pointer-events: none;
-}
-html.dark .sg-author-card .sg-avatar-ring::after { box-shadow: 0 0 6px 4px color-mix(in srgb, var(--sg-accent-soft) 42%, transparent); }
-@keyframes sg-avatar-glow { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
-@media (prefers-reduced-motion: reduce) { .sg-author-card .sg-avatar-ring::after { animation: none; opacity: .5; } }
 
 /* 三格统计在侧栏卡里的字号（首页 hero 侧栏另有压缩档） */
 .sg-author-card .sg-stat-num { font-size: 1.25rem; }
@@ -2331,7 +2483,6 @@ html.dark .sg-author-card .sg-avatar-ring::after { box-shadow: 0 0 6px 4px color
    让深色壁纸上的文字也能立起来（只影响这两处，不改全局排版）。 */
 html.dark .sg-page-title,
 html.dark .sg-page-sub,
-html.dark .sg-page-head .sg-search { text-shadow: 0 1px 18px rgba(2, 6, 23, .55); }
 
 .sg-filter { display: flex; flex-wrap: wrap; gap: .5rem; }
 .sg-filter-btn {
@@ -2342,9 +2493,20 @@ html.dark .sg-page-head .sg-search { text-shadow: 0 1px 18px rgba(2, 6, 23, .55)
   color: var(--sg-muted);
   font-size: .8125rem;
   font-weight: 700;
-  transition: background-color .3s, color .3s, border-color .3s;
+  /* 第十七轮：弹性强调——选中上浮（spring），按下收缩（Ease-Out 族缓动原则） */
+  transition: background-color .3s var(--sg-ease), color .3s var(--sg-ease),
+    border-color .3s var(--sg-ease), transform .3s var(--sg-ease-spring);
 }
-.sg-filter-btn:hover { color: var(--sg-accent-ink); }
+.sg-filter-btn:not(.is-active):hover {
+  color: var(--sg-accent-ink);
+  border-color: color-mix(in srgb, var(--sg-accent) 45%, transparent);
+  background: color-mix(in srgb, var(--sg-accent) 10%, var(--sg-card));
+}
+/* 归档/分类/标签页的筛选条跟页头一起居中（2026-11-18 布局调整） */
+.sg-main[data-sg-page="archive"] .sg-filter { justify-content: center; margin-bottom: 2rem; }
+.sg-filter-btn.is-active { transform: translateY(-1px); }
+.sg-filter-btn:active { transform: scale(.95); }
+@media (prefers-reduced-motion: reduce) { .sg-filter-btn { transition: none; transform: none; } }
 /* 选中态（2026-11-16）：加深为实底、白字加粗并给足描边/阴影，避免浅底高光冲淡文字。 */
 .sg-filter-btn.is-active {
   background: var(--sg-accent-deep);
@@ -2362,6 +2524,7 @@ html.dark .sg-filter-btn.is-active {
   box-shadow: 0 2px 10px rgba(0, 0, 0, .35);
 }
 .sg-filter-count { opacity: .7; margin-left: .25rem; font-weight: 500; }
+
 
 /* 页内即时筛选：用独立类名，避免与导航的 .sg-nav.is-hidden（位移动画）冲突 */
 .sg-filtered-out { display: none !important; }
@@ -2819,7 +2982,6 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
 .sg-tl-when svg {
   width: .875rem;
   height: .875rem;
-  opacity: .8;
 }
 
 /* 标签贴着右侧，心情胶囊再靠外一点 */
@@ -3029,7 +3191,6 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
 .sg-notfound h1 { font-size: 1.5rem; }
 .sg-notfound p { max-width: 32rem; font-size: .9rem; line-height: 1.8; color: var(--sg-muted); }
 .sg-notfound-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; margin-top: .75rem; }
-.sg-notfound form.sg-search { width: 100%; }
 
 /* ---------- 列表文章卡（归档 / 分类 / 杂谈，带封面） ---------- */
 .sg-post-card {
@@ -3064,8 +3225,8 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
 
 /* ---------- 文章卡（2026-11-16 第二十轮）：形态对齐 Fomalhaut multicard，材质保留 Soraglass ----------
    用于归档/分类/标签/搜索列表（card-post.php）与知识档案（page-timeline.php）。
-   形态取自参考主题 source/css/_index_card_style/multicard.styl：
-     · 封面固定 200px，clip-path 底边中央「向下凸三角」（书签尖），两侧凹进露出卡面
+   形态源自参考主题 source/css/_index_card_style/multicard.styl：
+     · 封面固定 200px；底边过渡第十四轮由「书签尖」改为「双波浪」海浪线（见下方注释）
      · 摘要层用同一裁切覆盖封面（半透明深底 + 白色「」引号），hover 与图片同步 scale(1.08)
      · 信息区居中标题/元信息/标签
    保留 Soraglass 的 tokens 配色、玻璃阅读面、宋体与 20/8/28 圆角制度 —— 只借形态，不换皮。 */
@@ -3075,13 +3236,27 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
   flex-direction: column;
   padding: 0;
   overflow: hidden;
+  /* 卡内排版按卡自身宽度自适应（三列窄卡 / 两列宽卡 / 单列），不跟视口断点走 */
+  container-type: inline-size;
   background: var(--sg-reading-surface);
   border: 1px solid var(--sg-reading-border);
   border-radius: var(--sg-radius-outer);
   box-shadow: var(--sg-shadow);
+  transition: box-shadow var(--sg-dur-card) var(--sg-ease), border-color var(--sg-dur-card) var(--sg-ease);
 }
+/* 整卡 hover（2026-11-18，对齐源站 multicard .recent-post-content:hover）：
+   指针落在卡片任意位置都触发封面 + 引号摘要同步放大，阴影加深、描边染主题色。 */
+.sg-feature-card:hover {
+  box-shadow: var(--sg-shadow-strong);
+  border-color: color-mix(in srgb, var(--sg-accent) 38%, var(--sg-reading-border));
+}
+html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6); }
 
-/* 封面：底边中央向下凸出三角尖（100% 处），左右两侧到 130px 后斜向尖点。 */
+/* 封面：底边「双波浪」海浪线（2026-11-17 第十四轮，四款实机对比后用户选定）。
+   原为 Fomalhaut multicard 的书签尖（clip-path polygon）——多边形裁不了曲线，
+   改用 mask-image + SVG path（preserveAspectRatio='none' 随卡宽拉伸）：
+   直边基线 65%、两侧波峰、中央波谷，与站内海浪母题（雷暴海面壁纸/歌词波形/
+   文章页通栏波浪）同语言。mask 同时裁 img、暗幕 ::after 与摘要层，边缘平滑无锯齿。 */
 .sg-feature-media {
   position: relative;
   display: flex;
@@ -3091,7 +3266,12 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
   height: 12.5rem;              /* 200px，与 Fomalhaut 封面同高 */
   overflow: hidden;
   background: rgba(148, 163, 184, .15);
-  clip-path: polygon(0 8.125rem, 0 0, 100% 0, 100% 8.125rem, 50% 100%);
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H100V65C85 78 72 80 61 70C54 63.5 46 63.5 39 70C28 80 15 78 0 65Z' fill='%23fff'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H100V65C85 78 72 80 61 70C54 63.5 46 63.5 39 70C28 80 15 78 0 65Z' fill='%23fff'/%3E%3C/svg%3E");
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
 }
 .sg-feature-media img {
   position: absolute;
@@ -3101,12 +3281,14 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
   object-fit: cover;
   transition: all .6s ease-in-out;
 }
-/* 摘要覆盖层：与封面同裁切（父级 clip-path 已裁），半透明深底承托白字 */
+/* 摘要覆盖层：与封面同裁切（父级 clip-path 已裁），半透明深底承托白字。
+   2026-11-18 视觉改造：改底部加重渐变 —— 引号摘要落在封面下缘，
+   浅色封面（默认渐变图）在均匀 .42 暗幕下白字对比不足。 */
 .sg-feature-media::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(4, 18, 24, .42);
+  background: linear-gradient(to top, rgba(4, 18, 24, .60), rgba(4, 18, 24, .42) 45%, rgba(4, 18, 24, .30));
   pointer-events: none;
 }
 /* 引号摘要：覆盖在封面上、垂直居中偏下，hover 与图片同步放大 */
@@ -3127,12 +3309,13 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
   overflow: hidden;
   transition: all .6s ease-in-out;
 }
-/* 卡片本体 hover 无动画；只有指针落在图片区时封面与摘要同步放大（对齐参考站取舍） */
-.sg-feature-media:hover img,
-.sg-feature-media:hover .sg-feature-quote { transform: scale(1.08); }
+/* 封面与摘要随整卡 hover 同步放大（源站 multicard 取舍：hover 卡片即触发） */
+.sg-feature-card:hover .sg-feature-media img,
+.sg-feature-card:hover .sg-feature-quote { transform: scale(1.08); }
 
-/* 信息区：约 150px，居中排布（标题 / 元信息 / 标签）。封面凸三角两侧露出的
-   区域由卡面背景承接，与下方信息区同色，形成 Fomalhaut 的折纸咬合观感。 */
+/* 信息区：高度由内容驱动（typography 指南：含文本容器不设固定 height）。
+   栅格行内卡片默认 stretch 对齐，flex:1 让信息区吃掉行高差，
+   justify-content:center 保持内容垂直居中，短摘要卡不再留固定空腔。 */
 .sg-feature-body {
   position: relative;
   display: flex;
@@ -3140,7 +3323,6 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
   flex-direction: column;
   justify-content: center;
   gap: .55rem;
-  min-height: 9.375rem;         /* 150px */
   padding: 1rem 1.25rem 1.25rem;
   color: var(--sg-text);
 }
@@ -3171,15 +3353,13 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
   font-family: var(--font-sans);
   font-size: .78rem;
 }
-.sg-feature-meta > span,
-.sg-feature-tags > span { display: inline-flex; align-items: center; gap: .3rem; }
-.sg-feature-meta svg,
-.sg-feature-tags svg { width: .9rem; height: .9rem; flex: none; color: var(--sg-accent-ink); }
-/* 元信息彩色图标 + 竖线分隔（2026-11-17 再调，对齐源站彩色 meta 图标）：
-   日期琥珀黄、分类朱橙、标签青绿；竖线只在相邻项之间出现。 */
-.sg-feature-meta > .is-date svg { color: #f5b942; }
-.sg-feature-meta > .is-cate svg { color: #ff8f4d; }
-.sg-feature-tags > .is-tag svg { color: #4cc38a; }
+.sg-feature-meta > span { display: inline-flex; align-items: center; gap: .3rem; }
+.sg-feature-meta svg { width: .9rem; height: .9rem; flex: none; }
+/* 元信息图标为多色填充（sg_icon_color，2026-11-18）：颜色走 --sg-icon-* 语义 token，
+   昼夜自动换档，这里不再收敛单色；竖线只在相邻项之间出现。 */
+.sg-feature-meta .sg-meta-link { color: inherit; transition: color .25s var(--sg-ease); }
+.sg-feature-meta .sg-meta-link:hover { color: var(--sg-accent-ink); }
+.sg-feature-meta .sg-meta-sep { font-style: normal; opacity: .7; margin-inline: .15rem; }
 .sg-feature-meta > span + span::before {
   content: "";
   width: 1px;
@@ -3187,19 +3367,28 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
   margin-right: .15rem;
   background: var(--sg-line);
 }
-/* 减少动效：去掉封面/摘要缩放 */
+/* 减少动效：去掉封面/摘要缩放与卡面阴影/描边过渡 */
 @media (prefers-reduced-motion: reduce) {
-  .sg-feature-media:hover img,
-  .sg-feature-media:hover .sg-feature-quote { transform: none; }
+  .sg-feature-card:hover .sg-feature-media img,
+  .sg-feature-card:hover .sg-feature-quote { transform: none; }
   .sg-feature-media img, .sg-feature-quote { transition: none; }
+  .sg-feature-card { transition: none; }
+}
+/* 窄卡（三列 ≈293px）：对齐源站 multicard 三列档 —— 标题 1 行 19px、
+   meta 与摘要略缩、信息区收紧。宽卡（两列/单列）走 base：标题 2 行 1.3rem。
+   按卡自身宽度判定（card 指南），列数变化不再连带改卡内排版。 */
+@container (max-width: 339px) {
+  .sg-feature-title { -webkit-line-clamp: 1; font-size: 1.1875rem; }
+  .sg-feature-meta { font-size: .8125rem; }
+  .sg-feature-quote { font-size: .95rem; margin: 0 1.25rem 1.5rem; }
+  .sg-feature-body { padding: .75rem 1rem 1rem; gap: .4rem; }
 }
 html.dark .sg-feature-card { background: var(--sg-card-strong); }
 
 /* 置顶角标（fomalhaut post-sticky-badge 逐参数复刻：左上角红橙渐变胶囊 + 图钉 + 流光）。
-   卡片本体对齐源站 recent-post-item：25px 圆角 + 1px 灰描边（--border-style）。 */
+   卡片圆角统一走 --sg-radius-outer（20px，2026-11-18 P2-1），描边对齐源站 --border-style。 */
 .sg-feature-card {
   position: relative;
-  border-radius: 1.5625rem;
   border-color: var(--sg-border-strong);
 }
 .sg-sticky-badge {
@@ -3305,7 +3494,7 @@ html.dark .sg-feature-arrow { background: var(--sg-accent-soft); }
           mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
           mask-composite: exclude;
   opacity: 0;
-  transition: opacity .3s ease;
+  transition: opacity .3s var(--sg-ease);
   pointer-events: none;
 }
 .sg-feature-card:is(:hover, :focus-within)::before,
@@ -3524,10 +3713,13 @@ html.dark .sg-footer-rule { border-top-color: rgba(226, 232, 240, .18); }
   padding: 1.35rem;
   transition:
     transform var(--sg-dur-card) var(--sg-ease),
-    box-shadow var(--sg-dur-card) var(--sg-ease);
+    box-shadow var(--sg-dur-card) var(--sg-ease),
+    border-color var(--sg-dur-card) var(--sg-ease);
 }
+.sg-term-card:hover { border-color: color-mix(in srgb, var(--sg-accent) 42%, var(--sg-card-border)); }
 .sg-term-card-top { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
-.sg-term-card-name { font-size: 1.1rem; font-weight: 700; }
+.sg-term-card-name { font-size: 1.1rem; font-weight: 700; transition: color .3s; }
+.sg-term-card:hover .sg-term-card-name { color: var(--sg-accent-ink); }
 .sg-term-card-arrow { display: flex; color: var(--sg-muted); transition: transform .3s, color .3s; }
 .sg-term-card:hover .sg-term-card-arrow { color: var(--sg-accent-ink); transform: translate(2px, -2px); }
 
@@ -3556,8 +3748,6 @@ html.dark .sg-footer-rule { border-top-color: rgba(226, 232, 240, .18); }
   transition: color .3s, border-color .3s, transform .3s;
 }
 .sg-tag-chip:hover { color: var(--sg-accent-ink); border-color: var(--sg-accent-ink); transform: translateY(-1px); }
-.sg-tag-chip svg { opacity: .7; }
-
 .sg-tag-chip-count {
   font-size: .7rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -3854,7 +4044,7 @@ html.dark .sg-footer-rule { border-top-color: rgba(226, 232, 240, .18); }
   letter-spacing: -.01em;
 }
 
-.sg-heat-title svg { width: 1.15rem; height: 1.15rem; color: var(--sg-accent-ink); }
+.sg-heat-title svg { width: 1.15rem; height: 1.15rem; }
 .sg-heat-count { color: var(--sg-text); }
 
 .sg-heat-scroll { overflow-x: auto; padding-bottom: .5rem; }

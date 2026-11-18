@@ -3,7 +3,7 @@
  * 全部合到单个 canvas + 单个 rAF，避免多层 DOM 叠加导致滚动掉帧。
  * 移动端与 prefers-reduced-motion 下整体关闭（CSS 也同步隐藏）。
  */
-import { config, isSmallScreen, reducedMotion } from './core';
+import { config,isSmallScreen,reducedMotion } from './runtime';
 
 interface Particle {
   x: number;

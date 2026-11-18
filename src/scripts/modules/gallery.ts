@@ -1,4 +1,4 @@
-import { pageOn, pageTimeout, pageInterval, pageFrame, onPageDispose, pageSignal } from './lifecycle';
+import { pageOn,pageTimeout,onPageDispose,pageSignal } from './lifecycle';
 /** Public paged albums and on-demand photos; all mutations stay in the admin API. */
 import { initLightbox } from './article';
 interface Photo { id: string; album: string; url: string; thumb: string; caption: string; date: string; preview: boolean; width: number; height: number }

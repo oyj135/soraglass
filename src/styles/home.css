@@ -19,7 +19,10 @@ html.dark .sg-nav.is-front { background: transparent; border-bottom-color: trans
 .sg-nav.is-front .sg-brand-accent,
 .sg-nav.is-front .sg-nav-link,
 .sg-nav.is-front .sg-nav-more-btn { color: #fff !important; opacity: .95; text-shadow: 0 1px 8px rgba(0, 0, 0, .45); }
-.sg-nav.is-front .sg-nav-link.is-active::after { background: #fff; }
+.sg-nav.is-front .sg-nav-link.is-active::before { background: #fff; }
+/* 首屏透明导航：hover 文字与下划线都压白（源站 #nav 在头图上 hover 变白） */
+.sg-nav.is-front .sg-nav-link:hover { color: #fff; }
+.sg-nav.is-front .sg-nav-link::after { background: #fff; }
 .sg-nav.is-front .sg-nav-more-menu { color: var(--sg-text); }
 
 /* ---------- 100vh 全屏首屏 ---------- */
@@ -42,8 +45,23 @@ html.dark .sg-nav.is-front { background: transparent; border-bottom-color: trans
   overflow: hidden;
   color: #fff;
 }
-/* 遮罩已移除（2026-11-17）：首屏直接透出全站壁纸，不再压暗 —— 文字可读性
-   交给 .sg-front-inner 的 text-shadow。 */
+/* 首屏遮罩（2026-11-17 第十六轮恢复，对齐源站 #page-header:before 的
+   alpha($dark-black, .3) = rgba(0,0,0,.3)）：
+   第十一轮曾移除改由 text-shadow 保可读，本轮按用户要求恢复源站式遮罩 ——
+   遮罩只盖首屏 100vh，压在壁纸与文字之间；深度走 --sg-front-veil，
+   滚动时由 home.ts 视差逻辑加深（0.30 → 0.50），减少动效/触屏保持静态。 */
+.sg-front::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: rgba(0, 0, 0, var(--sg-front-veil, .3));
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce), (pointer: coarse), (max-width: 899px) {
+  .sg-front::before { background: rgba(0, 0, 0, .3); }
+}
+/* 文字可读性双保险：遮罩之上仍有 text-shadow（日间轻投影 / 夜间霓虹发光） */
 .sg-front-inner {
   position: relative;
   z-index: 1;
@@ -127,7 +145,8 @@ html.dark .sg-front-title, html.dark .sg-front-sub { text-shadow: none; animatio
 @media (prefers-reduced-motion: reduce) { .sg-front-next svg { animation: none; } }
 
 /* ---------- 正文两栏（74% : 26%） ---------- */
-.sg-home-body { display: flex; flex-direction: column; gap: 1.5rem; }
+/* 首屏 100vh 与正文之间留呼吸（2026-11-18 视觉改造，源站 .layout padding-top 40px） */
+.sg-home-body { display: flex; flex-direction: column; gap: 1.5rem; padding-top: 2.5rem; }
 .sg-home-main { min-width: 0; flex: 1; }
 .sg-home-main .sg-hero { display: block; } /* 轮播容器全宽，不再是 7:5 grid 的 7 列 */
 .sg-home-main .sg-hero-cover { width: 100%; }
@@ -143,7 +162,11 @@ html.dark .sg-front-title, html.dark .sg-front-sub { text-shadow: none; animatio
   .sg-home-body { flex-direction: row; align-items: flex-start; gap: 2rem; }
   .sg-home-aside { width: 20rem; flex: 0 0 20rem; }
 }
-@media (min-width: 1280px) { .sg-home-aside { width: 21rem; flex-basis: 21rem; } }
+@media (min-width: 1280px) {
+  .sg-home-aside { width: 21rem; flex-basis: 21rem; }
+  /* 三列卡需要源站同款主栏宽度（≈912px → 卡宽 ≈293px）；只放宽首页，其余页保持 72rem */
+  .sg-main--home { max-width: 80rem; }
+}
 
 /* ---------- 首页文章列表区 ---------- */
 .sg-home-latest { scroll-margin-top: 5rem; margin-top: -.5rem; }
@@ -151,24 +174,70 @@ html.dark .sg-front-title, html.dark .sg-front-sub { text-shadow: none; animatio
 .sg-home-section-title { display: inline-flex; align-items: center; gap: .5rem; margin: 0; font-size: 1.25rem; font-weight: 700; }
 .sg-home-section-title svg { width: 1.15rem; height: 1.15rem; color: var(--sg-accent-ink); }
 
-/* 首页文章栅格：断点与卡尺寸对齐参考站 multicard.styl（≥1069 两栏 / 572–1068 两栏 / <572 单栏；
-   封面 200px + 信息区 150px）。
-   2026-11-17 起首页最新文章只展示 2 篇，桌面也用两栏，不再留第三列空位。
-   卡片形态仍用已定稿的 .sg-feature-card（凸三角封面 + 引号摘要 + 图片区 hover 1.08）。 */
-.sg-home-grid { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr); align-items: stretch; }
+/* 首页文章栅格（2026-11-18 视觉改造）：≥1280 三列（卡宽 ≈293px，同源站 multicard）、
+   572–1279 两列、更窄单列；6 篇在三种列数下都整行收尾。行/列间距同源站 20px。
+   卡内标题/元信息行数改由容器查询按卡宽决定（components.css），不再按视口 override。 */
+.sg-home-grid { display: grid; gap: 1.25rem; grid-template-columns: minmax(0, 1fr); align-items: stretch; }
 @media (min-width: 572px) { .sg-home-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (min-width: 1069px) {
-  .sg-home-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .sg-home-grid .sg-feature-title { -webkit-line-clamp: 1; font-size: 1.1875rem; }
-  .sg-home-grid .sg-feature-body { min-height: 9.375rem; padding: .5rem 1.25rem .625rem; gap: .4rem; }
-  .sg-home-grid .sg-feature-meta,
-  .sg-home-grid .sg-feature-tags { font-size: .8125rem; }
-  .sg-home-grid .sg-feature-quote { font-size: .95rem; margin: 0 1.25rem 1.5rem; }
+@media (min-width: 1280px) { .sg-home-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* ---------- 分类入口芯片卡（对齐 Fomalhaut 首页分类导航卡） ---------- */
+.sg-home-cates { padding: 1.25rem 1.5rem; }
+.sg-home-cates-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: .75rem; }
+@media (min-width: 640px) { .sg-home-cates-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.sg-home-cate {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  min-width: 0;
+  padding: .6rem .9rem;
+  border-radius: var(--sg-radius-inner);
+  background: var(--sg-chip);
+  color: var(--sg-text);
+  font-family: var(--font-sans);
+  font-size: .875rem;
+  transition: background-color .35s var(--sg-ease), color .35s var(--sg-ease),
+    padding .35s var(--sg-ease), box-shadow .35s var(--sg-ease);
+}
+/* 悬浮：源站侧栏分类列表同款「填色 + 左内边距外扩」，整条染主题色压白字，
+   箭头右送；计数与图标随底换色。 */
+a.sg-home-cate:hover {
+  background: var(--sg-accent);
+  color: #fff;
+  padding-left: 1.2rem;
+  box-shadow: 0 6px 16px -8px color-mix(in srgb, var(--sg-accent) 65%, transparent);
+}
+a.sg-home-cate:hover .sg-home-cate-count { color: rgba(255, 255, 255, .78); }
+a.sg-home-cate:hover > svg:last-child { color: #fff; transform: translateX(2px); }
+.sg-home-cate > svg:first-child { width: .95rem; height: .95rem; flex: none; }
+.sg-home-cate-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sg-home-cate-count { color: var(--sg-muted); font-size: .78rem; transition: color .35s var(--sg-ease); }
+.sg-home-cate > svg:last-child { width: .9rem; height: .9rem; flex: none; margin-left: auto; color: var(--sg-faint); transition: color .35s var(--sg-ease), transform .35s var(--sg-ease); }
+.sg-home-cates-more {
+  display: block;
+  margin-top: .9rem;
+  text-align: center;
+  font-family: var(--font-sans);
+  font-size: .8125rem;
+  letter-spacing: .1em;
+  color: var(--sg-muted);
+  transition: color .25s var(--sg-ease);
+}
+/* 查看更多 hover：源站 card-more-btn 的左右轻摆（more-btn-move 同款 1s 循环） */
+.sg-home-cates-more:hover { color: var(--sg-accent-ink); animation: sg-more-nudge 1s ease-in-out infinite; }
+@keyframes sg-more-nudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(3px); } }
+@media (prefers-reduced-motion: reduce) {
+  .sg-home-cate, .sg-home-cate > svg:last-child, .sg-home-cate-count { transition: none; }
+  a.sg-home-cate:hover { padding-left: .9rem; }
+  a.sg-home-cate:hover > svg:last-child { transform: none; }
+  .sg-home-cates-more:hover { animation: none; }
 }
 
-/* 相册 / 碎语 / AI 日报三张卡同高（2026-11-17）：高度对齐 .sg-briefing-banner
-   的 13rem（移动）/ 12.5rem（≥768px），不再各写各的。 */
+/* 相册 / 碎语两卡（2026-11-18 视觉改造）：≥1024 并排两列，把原先 ~510px 的
+   暗色连块（歌词+海报+碎语）拆成独立暗块；更窄时各占整行。
+   高度对齐 .sg-briefing-banner 的 13rem（移动）/ 12.5rem（≥768px）。 */
 .sg-home-stories { display: flex; flex-direction: column; gap: 1.25rem; margin-top: 0; }
+@media (min-width: 1024px) { .sg-home-stories { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .sg-home-stories .sg-poster-wide { min-height: 13rem; }
 .sg-home-stories .sg-chatter { min-height: 13rem; }
 @media (min-width: 640px) {
@@ -187,7 +256,7 @@ html.dark .sg-front-title, html.dark .sg-front-sub { text-shadow: none; animatio
 html.dark .sg-hcard { background: var(--sg-card); }
 .sg-hcard-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .9rem; }
 .sg-hcard-title { display: inline-flex; align-items: center; gap: .45rem; font-size: .9rem; font-weight: 700; color: var(--sg-text); }
-.sg-hcard-title svg { width: .95rem; height: .95rem; color: var(--sg-accent-ink); }
+.sg-hcard-title svg { width: .95rem; height: .95rem; }
 
 /* ---------- 日历卡 ---------- */
 .sg-hcal-ym { font-family: var(--font-sans); font-size: .7rem; color: var(--sg-faint); letter-spacing: .02em; }

@@ -3,18 +3,7 @@
  * 首页封面 / 文章 / 原生归档是版式改造范围，音乐与相纸墙保留独立形态。
  */
 
-/* 共享检索：低层级、稳定尺寸，清除按钮只在 JS 增强后出现。 */
-.sg-search { z-index: 2; margin-bottom: .75rem; }
-.sg-search-input,
-html.dark .sg-search-input {
-  border-color: var(--sg-reading-border);
-  background: var(--sg-card-strong);
-  box-shadow: var(--sg-shadow-reading);
-  font-family: var(--font-sans);
-  font-size: .875rem;
-}
-.sg-search-input { padding-block: .875rem; }
-.sg-search-input:focus { border-color: var(--sg-accent-ink); }
+/* 歌单搜索等 JS 增强容器（清除按钮由 core.ts 注入；站内搜索框已于第十七轮移除） */
 .sg-search-field { position: relative; }
 .sg-search-field input[type="search"] { padding-right: 3rem; }
 .sg-search-field input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
@@ -72,7 +61,6 @@ html.dark .sg-search-input {
   -webkit-text-fill-color: currentColor;
 }
 .sg-main[data-sg-page="archive"] .sg-page-sub { font-family: var(--font-sans); font-size: .875rem; letter-spacing: 0; }
-.sg-main[data-sg-page="archive"] .sg-search--sm { max-width: 24rem; margin: 0; }
 /* 2026-11-16 第二十轮：列表卡已统一为 .sg-feature-card 栅格（栅格定义在 components.css），
    overflow 不能用 hidden，否则会裁掉卡片 hover 的上浮与阴影。下方 .sg-post-card 系列
    是旧行式结构的规则，对现在的卡片已不生效，保留仅为兼容历史，不再参与布局。 */
@@ -533,6 +521,19 @@ html.dark .sg-nav { background: var(--sg-card); border-bottom-color: var(--sg-re
   transform: translateY(-1px);
 }
 
+/* passing 图标动画（2026-11-18 融合源站 faa-passing）：hover 时图标向右穿出、
+   左侧穿回，一次播完不循环；减少动效下不播。 */
+.sg-author-btn:is(:hover, :focus-visible) svg { animation: sg-btn-passing .9s var(--sg-ease); }
+@keyframes sg-btn-passing {
+  0% { transform: translateX(0); opacity: 1; }
+  45% { transform: translateX(1.1em); opacity: 0; }
+  55% { transform: translateX(-1.1em); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sg-author-btn:is(:hover, :focus-visible) svg { animation: none; }
+}
+
 /* ---------- P1-4 分类卡「最新 1 条」 ---------- */
 /* 卡片从 <a> 改成 <div> 后，顶栏链接需要显式去掉下划线并继承字色 */
 .sg-term-card-top { color: inherit; text-decoration: none; }
@@ -553,7 +554,7 @@ html.dark .sg-nav { background: var(--sg-card); border-bottom-color: var(--sg-re
   transition: color var(--sg-dur-fast) var(--sg-ease);
 }
 
-.sg-term-card-latest svg { flex: none; width: .85rem; height: .85rem; color: var(--sg-faint); }
+.sg-term-card-latest svg { flex: none; width: .85rem; height: .85rem; }
 
 .sg-term-card-latest span {
   flex: 1;
@@ -700,9 +701,11 @@ html.sg-readmode [data-sg-readmode-toggle] { color: var(--sg-accent-ink); border
   cursor: pointer;
 }
 
-.sg-nav-more-btn svg { width: .85rem; height: .85rem; transition: transform var(--sg-dur-fast) var(--sg-ease); }
+.sg-nav-more-btn svg { width: .85rem; height: .85rem; transition: transform .3s var(--sg-ease); }
 
-.sg-nav-more.is-open .sg-nav-more-btn svg { transform: rotate(180deg); }
+.sg-nav-more.is-open .sg-nav-more-btn svg,
+/* 源站 menus_item:hover 即转箭头（head.styl &:hover & > a > i:last-child rotate .3s） */
+.sg-nav-more:is(:hover, :focus-within) .sg-nav-more-btn svg { transform: rotate(180deg); }
 
 .sg-nav-more.is-active .sg-nav-more-btn { color: var(--sg-accent-ink); }
 
@@ -721,7 +724,14 @@ html.sg-readmode [data-sg-readmode-toggle] { color: var(--sg-accent-ink); border
   /* 实底 + 阴影：下拉是浮在壁纸/头图上的菜单，用接近实色的卡面保证文字对比 */
   background: var(--sg-card-strong);
   box-shadow: var(--sg-shadow-strong);
+  /* 复刻源站 sub_menus .3s .1s ease both：display:none→flex 重显示时动画重放，收起瞬时 */
+  animation: sg-sub-menu .3s var(--sg-ease) .1s both;
 }
+@keyframes sg-sub-menu {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) { .sg-nav-more-menu { animation: none; } }
 
 .sg-nav-more:is(:hover, :focus-within, .is-open) .sg-nav-more-menu { display: flex; }
 
@@ -762,33 +772,5 @@ html.sg-readmode [data-sg-readmode-toggle] { color: var(--sg-accent-ink); border
 }
 html.dark .sg-nav-more-link.is-active { color: #04171b; background: var(--sg-accent); }
 
-/* ---------- P1-10 搜索键位提示 ---------- */
-.sg-search-kbd {
-  position: absolute;
-  top: 50%;
-  right: 1rem;
-  transform: translateY(-50%);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 1.4rem;
-  height: 1.4rem;
-  padding: 0 .35rem;
-  border: 1px solid var(--sg-border);
-  border-radius: .35rem;
-  background: var(--sg-card);
-  color: var(--sg-faint);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: .72rem;
-  pointer-events: none;
-  transition: opacity var(--sg-dur-fast) var(--sg-ease);
-}
-
-.sg-search:focus-within .sg-search-kbd { opacity: 0; }
-
-/* 带清除按钮的搜索框：键位提示左移，避免与清除按钮重叠 */
-.sg-search.sg-search-field .sg-search-kbd { right: 2.75rem; }
-
 @media (hover: none) {
-  .sg-search-kbd { display: none; }
 }

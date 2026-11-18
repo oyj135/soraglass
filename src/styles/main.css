@@ -14,6 +14,7 @@
 /* Tailwind 4 必须显式扫描 PHP 模板，否则模板里的工具类不会生成 */
 @source "../../**/*.php";
 @source "../**/*.ts";
+@source not "../../scripts";
 
 /* 全局字体对齐 Fomalhaut（2026-11-17 修复）：霞鹜文楷 LXGW WenKai 自托管，
    （lxgw-wenkai-webfont 按unicode-range切片，浏览器只拉用到的分片）——
@@ -42,8 +43,18 @@
   navigation: auto;
 }
 
-::view-transition-old(root),
+/* 页面跳转动画（第十六轮，参考源站 pjax 的「无刷新局部替换」观感）：
+   旧页轻微上移淡出、新页自下方 12px 淡入，Ease-Out 收尾；
+   方向感的转场比裸 cross-fade 更接近 pjax 站点的切换体验。 */
+::view-transition-old(root) {
+  animation: sg-vt-out .25s var(--sg-ease) both;
+}
 ::view-transition-new(root) {
-  animation-duration: .28s;
-  animation-timing-function: ease;
+  animation: sg-vt-in .38s var(--sg-ease) both;
+}
+@keyframes sg-vt-out {
+  to { opacity: 0; transform: translateY(-10px); }
+}
+@keyframes sg-vt-in {
+  from { opacity: 0; transform: translateY(12px); }
 }

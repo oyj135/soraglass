@@ -15,7 +15,7 @@ $sgWiFriendsLink = sg_page_exists('friends') ? sg_page_url('friends') : '';
 ?>
 <section class="sg-hcard sg-hinfo" aria-label="小站资讯">
   <div class="sg-hcard-head">
-    <span class="sg-hcard-title"><?php echo sg_icon('activity'); ?>小站资讯</span>
+    <span class="sg-hcard-title"><?php echo sg_icon_color('chart'); ?>小站资讯</span>
   </div>
   <div class="sg-hinfo-kpi">
     <div class="sg-hinfo-kpi-item"><span class="sg-hinfo-num"><?php echo sg_e($sgWi['words']); ?></span><span class="sg-hinfo-label">总字数</span></div>
