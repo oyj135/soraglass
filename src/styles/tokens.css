@@ -160,19 +160,24 @@
 
   /* 独立通栏歌词卡（2026-11-17 用户指定）：昼夜都用夜间配方 —— 深色底 + 青色波纹
      与文字辉光，不再跟随日间变浅色。 */
-  --sg-lyric-bg: rgba(5, 12, 14, .98);
-  --sg-lyric-border: rgba(255, 255, 255, .10);
-  --sg-lyric-text: #fff;
-  --sg-lyric-wave-a: var(--sg-accent-soft);
-  --sg-lyric-wave-b: var(--sg-accent-pale);
-  --sg-lyric-wave-c: var(--sg-accent-2);
-  --sg-lyric-icon: var(--sg-accent-soft);
-  --sg-lyric-text-shadow: 0 0 8px color-mix(in srgb, var(--sg-accent) 80%, transparent);
-  --sg-lyric-shadow: 0 25px 50px -12px rgb(0 0 0 / .25);
+  /* 歌词条（2026-11-18 第十五轮）：日间不再是黑条，改为与音乐卡日间同构的浅色卡 ——
+     卡面取 --sg-card，字走正文墨色，五根波形/音符落到深青三档（浅底上浅青等于没画）。
+     原 `0 0 8px` 主色发光只服务于深底，浅底上会糊成一团，日间直接关掉。 */
+  --sg-lyric-bg: var(--sg-card);
+  --sg-lyric-border: rgba(13, 43, 51, .10);
+  --sg-lyric-text: var(--sg-text);
+  --sg-lyric-wave-a: var(--sg-accent);
+  --sg-lyric-wave-b: var(--sg-accent-2);
+  --sg-lyric-wave-c: var(--sg-accent-deep);
+  --sg-lyric-icon: var(--sg-accent);
+  --sg-lyric-text-shadow: none;
+  --sg-lyric-shadow: 0 8px 24px -16px rgb(7 17 27 / .22);
 
   /* 歌词条的星空层（2026-11-18 第十四轮）不再自带 token：改为复用音乐卡的
-     `--sg-spark-dots`（9 颗星点坐标，声明在 components.css 的 .sg-player-card/.sg-lyric-bar）
-     + 两团冷蓝星云，星点取白光。第十三轮的 --sg-starfield 已删除，别再新增重复的星场配方。 */
+     `--sg-spark-dots`（9 颗星点坐标，声明在 components.css 的 .sg-player-card/.sg-lyric-bar）。
+     第十五轮起它跟音乐卡一样分昼夜两档：日间主色微光 + 主色光晕，暗色白光星点 + 冷蓝星云，
+     配方写在 .sg-lyric-bar 与 html.dark .sg-lyric-bar 两处。第十三轮的 --sg-starfield 已删除，
+     别再新增重复的星场配方。 */
 
   /* 图片上的浮层控件（轮播进度轨，2026-11-13 第三十二轮）。
      和歌词栏同理：压在封面图上的东西必须自带深底，不能跟随页面主题 ——

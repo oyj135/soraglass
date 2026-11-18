@@ -1419,8 +1419,9 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
 /* 通栏歌词：左声波、中央歌词、右音符；全部色彩由昼夜 --sg-lyric-* token 驱动。 */
 .sg-lyric-bar {
   position: relative;
-  /* 歌词条恒为夜色：星点固定用白光，不跟昼夜 --sg-spark 走 */
-  --sg-spark: rgba(255, 255, 255, .55);
+  /* 星点取色跟昼夜走（2026-11-18 第十五轮）：日间是浅卡，白点等于没画，只能做主色微光 ——
+     与 .sg-player-card 同一条规则；暗色下面这条被 html.dark 覆写成白光，才是真正的星点。 */
+  --sg-spark: color-mix(in srgb, var(--sg-accent) 60%, transparent);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1431,24 +1432,35 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
   margin-top: -.625rem;
   border: 1px solid var(--sg-lyric-border);
   border-radius: var(--sg-radius);
-  /* 星空层（2026-11-18 第十四轮，覆盖第十三轮的 --sg-starfield）：**与音乐卡暗色版
-     用同一份配方** —— 同样的 9 颗星点坐标（--sg-spark-dots）+ 两团冷蓝星云薄雾
-     + 一层主色光晕，只把光晕色从「封面取色」换成 --sg-accent。歌词条本来就是恒定夜间配方
-     （深底 + 青色波纹），所以星点直接用白光，不受昼夜 --sg-spark 影响。
+  /* 星空层（2026-11-18 第十四轮起，第十五轮拆昼夜）：**与音乐卡同配方、同昼夜分档** ——
+     日间：9 颗主色微光点 + 两团主色光晕（等同 .sg-player-card::after 日间那三层）；
+     暗色：9 颗白光星点 + 两团冷蓝星云 + 一层主色光晕（等同 html.dark .sg-player-card::after）。
+     星点坐标 `--sg-spark-dots` 由上方 .sg-player-card 并列选择器共用一份，不重复维护。
      走 background-image 而非伪元素：内容层天然压在背景之上，不必补 z-index。 */
   background-color: var(--sg-lyric-bg);
   background-image:
     var(--sg-spark-dots),
-    radial-gradient(70% 52% at 12% 8%, rgba(43, 77, 112, .34) 0, transparent 68%),
-    radial-gradient(64% 46% at 92% 88%, rgba(31, 71, 99, .30) 0, transparent 66%),
+    radial-gradient(88% 58% at 90% 94%,
+      color-mix(in srgb, var(--sg-accent) 14%, transparent) 0, transparent 66%),
     radial-gradient(125% 88% at 50% 24%,
-      color-mix(in srgb, var(--sg-accent) 22%, transparent) 0, transparent 64%);
+      color-mix(in srgb, var(--sg-accent) 26%, transparent) 0, transparent 64%);
   background-repeat: no-repeat;
   background-size: 100% 100%;
   box-shadow: var(--sg-lyric-shadow);
   color: var(--sg-lyric-text);
   overflow: hidden;
   transition: background-color 1s, border-color 1s, box-shadow .5s;
+}
+
+/* 暗色：卡面回到夜色，此时才叠真正的星云薄雾，星点也转为白光 */
+html.dark .sg-lyric-bar {
+  --sg-spark: rgba(255, 255, 255, .55);
+  background-image:
+    var(--sg-spark-dots),
+    radial-gradient(70% 52% at 12% 8%, rgba(43, 77, 112, .34) 0, transparent 68%),
+    radial-gradient(64% 46% at 92% 88%, rgba(31, 71, 99, .30) 0, transparent 66%),
+    radial-gradient(125% 88% at 50% 24%,
+      color-mix(in srgb, var(--sg-accent) 22%, transparent) 0, transparent 64%);
 }
 
 /* 声波：静止 4px，播放时 8px ↔ 28px。用 scaleY 代替源站的 height 动画，
@@ -1474,7 +1486,8 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
   transition: transform .5s ease-out, background-color 1s;
 }
 
-/* 五根波形：原为 indigo/purple 交替，改成青瓷由浅到深的同一族（压在深色歌词条上必须是亮档） */
+/* 五根波形：青瓷由浅到深的同一族。色值由 --sg-lyric-wave-* 昼夜两档给出：
+   夜间必须是亮档（压在深底上），日间落到深青档（压在浅卡上）。 */
 .sg-lyric-wave i:nth-child(1) { background: var(--sg-lyric-wave-a); }
 .sg-lyric-wave i:nth-child(2) { background: var(--sg-lyric-wave-b); }
 .sg-lyric-wave i:nth-child(3) { background: var(--sg-lyric-wave-c); }
