@@ -3259,16 +3259,13 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
 }
 html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6); }
 
-/* 封面：底边「双波浪」海浪线（2026-11-17 第十四轮，四款实机对比后用户选定）。
-   原为 Fomalhaut multicard 的书签尖（clip-path polygon）——多边形裁不了曲线，
-   改用 mask-image + SVG path（preserveAspectRatio='none' 随卡宽拉伸）：
-   直边基线 88%、两侧波峰 84%、中央波谷 92%，与站内海浪母题（雷暴海面壁纸/歌词波形/
-   文章页通栏波浪）同语言。mask 同时裁 img、暗幕 ::after 与摘要层，边缘平滑无锯齿。
-   2026-11-18 动态流动：mask 换成「两个完整周期」的横向平铺 tile（mask-size 200%、
-   repeat-x），mask-position 0%→100% 恰好平移一个周期（容器宽），首尾波形与
-   切线完全连续 → 无缝循环；只动画 mask-position，不改动 DOM 与 hover 缩放。
-   2026-11-18 第五轮「浅波缓动」（用户嫌原波形太深太急）：基线 65→88、
-   波幅 13/7→4，封面少裁约 23%；流动 8s→14s；摘要上移、小三角收窄。 */
+/* 封面：底边「柔和正弦缓波」静态分割（2026-11-18 第六轮重做）。
+   旧版每 25 单位重复一个规则小波，控制点带垂直切线形成平顶/平底（方波感），
+   再叠加 14s 匀速平移 + 弹跳小三角，机械生硬。现改为单幅平滑正弦：
+   基线 90%、一峰一谷（峰 85 / 谷 95 单位），每段三次贝塞尔两端切线水平，
+   曲线连续无折角；去掉横向流动与弹跳三角，静态、自然、简洁。
+   preserveAspectRatio='none' + mask-size 100% 仍随卡宽拉伸，布局与响应式不变；
+   mask 同时裁 img、暗幕 ::after 与摘要层，边缘平滑无锯齿。 */
 .sg-feature-media {
   position: relative;
   display: flex;
@@ -3278,17 +3275,12 @@ html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6)
   height: 12.5rem;              /* 200px，与 Fomalhaut 封面同高 */
   overflow: hidden;
   background: rgba(148, 163, 184, .15);
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H200V88C187.5 88 187.5 92 175 92C162.5 92 162.5 88 150 88C137.5 88 137.5 84 125 84C112.5 84 112.5 88 100 88C87.5 88 87.5 92 75 92C62.5 92 62.5 88 50 88C37.5 88 37.5 84 25 84C12.5 84 12.5 88 0 88Z' fill='%23fff'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H200V88C187.5 88 187.5 92 175 92C162.5 92 162.5 88 150 88C137.5 88 137.5 84 125 84C112.5 84 112.5 88 100 88C87.5 88 87.5 92 75 92C62.5 92 62.5 88 50 88C37.5 88 37.5 84 25 84C12.5 84 12.5 88 0 88Z' fill='%23fff'/%3E%3C/svg%3E");
-  -webkit-mask-size: 200% 100%;
-  mask-size: 200% 100%;
-  -webkit-mask-repeat: repeat-x;
-  mask-repeat: repeat-x;
-  animation: sg-wave-flow 14s linear infinite;
-}
-@keyframes sg-wave-flow {
-  from { -webkit-mask-position: 0% 0%; mask-position: 0% 0%; }
-  to { -webkit-mask-position: 100% 0%; mask-position: 100% 0%; }
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H200V90C183.3 90 183.3 85 150 85C116.7 85 116.7 90 100 90C83.3 90 83.3 95 50 95C16.7 95 16.7 90 0 90Z' fill='%23fff'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H200V90C183.3 90 183.3 85 150 85C116.7 85 116.7 90 100 90C83.3 90 83.3 95 50 95C16.7 95 16.7 90 0 90Z' fill='%23fff'/%3E%3C/svg%3E");
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
 }
 .sg-feature-media img {
   position: absolute;
@@ -3298,9 +3290,9 @@ html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6)
   object-fit: cover;
   transition: all .6s ease-in-out;
 }
-/* 摘要覆盖层：与封面同裁切（父级 clip-path 已裁），半透明深底承托白字。
-   2026-11-18 视觉改造：改底部加重渐变 —— 引号摘要落在封面下缘，
-   浅色封面（默认渐变图）在均匀 .42 暗幕下白字对比不足。 */
+/* 摘要覆盖层：与封面同裁切，半透明深底承托白字。
+   2026-11-18 第六轮：暗幕基础态满值（触屏/无 hover 设备常显）；
+   精确指针设备下默认压到 .62 让封面更干净，hover/focus 恢复到 1 承托淡入的文字。 */
 .sg-feature-media::after {
   content: '';
   position: absolute;
@@ -3308,9 +3300,8 @@ html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6)
   background: linear-gradient(to top, rgba(4, 18, 24, .60), rgba(4, 18, 24, .42) 45%, rgba(4, 18, 24, .30));
   pointer-events: none;
 }
-/* 引号摘要：覆盖在封面上、垂直居中偏下，hover 与图片同步放大。
-   浅波档（2026-11-18 第五轮）基线下移到 88%，摘要上抬、
-   文字远离底边切线，保留下方留白。 */
+/* 引号摘要：贴在封面下缘（平缓正弦切线之上），默认常显。
+   仅精确指针设备下改为隐藏 + hover 淡入，见下方渐进增强块。 */
 .sg-feature-quote {
   position: relative;
   z-index: 1;
@@ -3326,11 +3317,18 @@ html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6)
   letter-spacing: .01em;
   text-shadow: 1px 2px 3px rgba(0, 0, 0, .65);
   overflow: hidden;
-  transition: all .6s ease-in-out;
+  transition: opacity .5s var(--sg-ease), transform .6s var(--sg-ease);
 }
-/* 封面与摘要随整卡 hover 同步放大（源站 multicard 取舍：hover 卡片即触发） */
-.sg-feature-card:hover .sg-feature-media img,
-.sg-feature-card:hover .sg-feature-quote { transform: scale(1.08); }
+/* 封面文字 hover 渐进显示（参考 eurkon 封面观感，2026-11-18 第六轮）。
+   仅对「真 hover + 精确指针」生效：触屏没有 hover，隐藏规则不套用，摘要保持常显；
+   :focus-within 让键盘聚焦标题链接时同样浮现。图片与摘要同步轻微放大。 */
+@media (hover: hover) and (pointer: fine) {
+  .sg-feature-media::after { opacity: .62; transition: opacity .5s var(--sg-ease); }
+  .sg-feature-quote { opacity: 0; transform: translateY(10px); }
+  .sg-feature-card:is(:hover, :focus-within) .sg-feature-media::after { opacity: 1; }
+  .sg-feature-card:is(:hover, :focus-within) .sg-feature-quote { opacity: 1; transform: translateY(0) scale(1.06); }
+  .sg-feature-card:is(:hover, :focus-within) .sg-feature-media img { transform: scale(1.06); }
+}
 
 /* 信息区：高度由内容驱动（typography 指南：含文本容器不设固定 height）。
    栅格行内卡片默认 stretch 对齐，flex:1 让信息区吃掉行高差，
@@ -3386,13 +3384,14 @@ html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6)
   margin-right: .15rem;
   background: var(--sg-line);
 }
-/* 减少动效：去掉封面/摘要缩放与卡面阴影/描边过渡，海浪停止流动 */
+/* 减少动效：摘要仍可显隐（瞬时切换），但去掉位移/缩放与过渡；
+   波浪已是静态，无需再停动画。 */
 @media (prefers-reduced-motion: reduce) {
-  .sg-feature-card:hover .sg-feature-media img,
-  .sg-feature-card:hover .sg-feature-quote { transform: none; }
-  .sg-feature-media img, .sg-feature-quote { transition: none; }
+  .sg-feature-quote,
+  .sg-feature-card:is(:hover, :focus-within) .sg-feature-quote { transform: none; }
+  .sg-feature-card:is(:hover, :focus-within) .sg-feature-media img { transform: none; }
+  .sg-feature-media img, .sg-feature-quote, .sg-feature-media::after { transition: none; }
   .sg-feature-card { transition: none; }
-  .sg-feature-media { animation: none; }
 }
 /* 窄卡（三列 ≈293px）：对齐源站 multicard 三列档 —— 标题 1 行 19px、
    meta 与摘要略缩、信息区收紧。宽卡（两列/单列）走 base：标题 2 行 1.3rem。
@@ -3459,33 +3458,11 @@ html.dark .sg-feature-card { background: var(--sg-card-strong); }
 }
 html.dark .sg-sticky-badge { box-shadow: 0 4px 14px rgba(0, 0, 0, .5), inset 0 0 0 1px rgba(255, 255, 255, .34); }
 
-/* 封面三角箭头（fomalhaut recent-post-arrow 同款下指小三角 + 弹跳）。
-   2026-11-18 第五轮收窄为 14×7，配合浅波：不再抢波浪视觉。 */
-.sg-feature-arrow {
-  position: absolute;
-  top: 8px;
-  left: 50%;
-  margin-left: -7px;
-  width: 14px;
-  height: 7px;
-  background: var(--sg-accent);
-  clip-path: polygon(0 0, 100% 0, 50% 100%);
-  z-index: 2;
-  pointer-events: none;
-  animation: sg-arrow-bob 3s linear infinite;
-}
-html.dark .sg-feature-arrow { background: var(--sg-accent-soft); }
-@keyframes sg-arrow-bob {
-  0% { top: 8px; }
-  10% { top: 15px; }
-  20% { top: 8px; }
-  30% { top: 15px; }
-  40%, 100% { top: 8px; }
-}
+/* 封面小三角（fomalhaut recent-post-arrow）已于 2026-11-18 第六轮随静态正弦分割一起移除，
+   避免弹跳三角形与平滑曲线冲突；这里仅保留置顶角标的减少动效规则。 */
 @media (prefers-reduced-motion: reduce) {
   .sg-sticky-badge .sg-sticky-shine { animation: none; display: none; }
   .sg-sticky-badge { animation: none; transform: rotate(-3deg); }
-  .sg-feature-arrow { animation: none; }
 }
 
 /* ---------- 通用按钮 ---------- */

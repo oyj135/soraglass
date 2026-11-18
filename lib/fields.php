@@ -846,8 +846,8 @@ function sg_feature_card_html(array $card): string
     if ($quote !== '') {
         $html .= '<span class="sg-feature-quote">「' . sg_e($quote) . '」</span>';
     }
-    /* 封面 V 缺口尖上的小三角（fomalhaut recent-post-arrow 同款 20×10 + 弹跳） */
-    $html .= '<span class="sg-feature-arrow" aria-hidden="true"></span>';
+    /* 2026-11-18 第六轮：静态柔和正弦分割取代旧「书签尖 + 弹跳小三角」，
+       小三角元素一并移除，避免与平滑曲线冲突。 */
     $html .= '</a>';
     $html .= '<div class="sg-feature-body">';
     $html .= '<h3 class="sg-feature-title"><a href="' . sg_e($url) . '">' . sg_e($title) . '</a></h3>';
