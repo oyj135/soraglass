@@ -3317,17 +3317,26 @@ html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6)
   letter-spacing: .01em;
   text-shadow: 1px 2px 3px rgba(0, 0, 0, .65);
   overflow: hidden;
-  transition: opacity .5s var(--sg-ease), transform .6s var(--sg-ease);
+  /* 2026-11-18 第七轮：改用 ease-in-out（慢起—匀—慢收），不用快出的 --sg-ease，
+     避免文字在 hover 头一瞬间就几乎全显现；时长 .8s 对齐参考站绵长观感。 */
+  transition: opacity .8s ease-in-out, transform .8s ease-in-out;
 }
-/* 封面文字 hover 渐进显示（参考 eurkon 封面观感，2026-11-18 第六轮）。
+/* 封面文字 hover 渐进显示（对齐 eurkon recent-post-item 观感，2026-11-18 第七轮）。
+   参考站配方：暗幕 opacity 0→1 用 .6s ease-in-out；摘要上浮（top -6rem→-8rem，约 32px）
+   + 淡入，图片 scale 1→1.1。这里把位移放大到 1.8rem、去掉文字 scale，
+   并让暗幕先铺开、文字错峰 .12s 后浮现，整体更从容。
    仅对「真 hover + 精确指针」生效：触屏没有 hover，隐藏规则不套用，摘要保持常显；
-   :focus-within 让键盘聚焦标题链接时同样浮现。图片与摘要同步轻微放大。 */
+   :focus-within 让键盘聚焦标题链接时同样浮现。 */
 @media (hover: hover) and (pointer: fine) {
-  .sg-feature-media::after { opacity: .62; transition: opacity .5s var(--sg-ease); }
-  .sg-feature-quote { opacity: 0; transform: translateY(10px); }
+  .sg-feature-media::after { opacity: .62; transition: opacity .6s ease-in-out; }
+  .sg-feature-quote { opacity: 0; transform: translateY(1.8rem); }
   .sg-feature-card:is(:hover, :focus-within) .sg-feature-media::after { opacity: 1; }
-  .sg-feature-card:is(:hover, :focus-within) .sg-feature-quote { opacity: 1; transform: translateY(0) scale(1.06); }
-  .sg-feature-card:is(:hover, :focus-within) .sg-feature-media img { transform: scale(1.06); }
+  .sg-feature-card:is(:hover, :focus-within) .sg-feature-quote {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: .12s;
+  }
+  .sg-feature-card:is(:hover, :focus-within) .sg-feature-media img { transform: scale(1.1); }
 }
 
 /* 信息区：高度由内容驱动（typography 指南：含文本容器不设固定 height）。
@@ -3389,6 +3398,8 @@ html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6)
 @media (prefers-reduced-motion: reduce) {
   .sg-feature-quote,
   .sg-feature-card:is(:hover, :focus-within) .sg-feature-quote { transform: none; }
+  /* hover 态新增 .12s 错峰延迟特异性更高（0,3,0），须同级清除，否则仍会延迟显现 */
+  .sg-feature-card:is(:hover, :focus-within) .sg-feature-quote { transition-delay: 0s; }
   .sg-feature-card:is(:hover, :focus-within) .sg-feature-media img { transform: none; }
   .sg-feature-media img, .sg-feature-quote, .sg-feature-media::after { transition: none; }
   .sg-feature-card { transition: none; }
