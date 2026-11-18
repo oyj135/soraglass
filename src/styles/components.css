@@ -890,7 +890,7 @@ html.dark .sg-player-card::after {
 .sg-player.is-empty .sg-player-controls { display: none; }
 .sg-player-card:has(.sg-player.is-empty) { min-height: 0; }
 
-/* 曲名与歌手沿中轴居中。站内正文就是宋体（Noto Serif SC），
+/* 曲名与歌手沿中轴居中。站内正文就是霞鹜文楷（LXGW WenKai），
    与华为那版衬线歌名天然同一路，不用另换字族。 */
 .sg-player-info { width: 100%; min-width: 0; text-align: center; }
 
@@ -4745,7 +4745,8 @@ html.dark .sg-about-title h1 {
 .sg-chatter-body:active { transform: scale(.985); transition: transform .08s; }
 
 /* ---------- 小字号元信息改用无衬线（2026-11-13 第三十二轮） ----------
-   站点正文字体是 Noto Serif SC，衬线体在 9–12px 上的中文笔画会糊成一片，
+   站点正文字体是霞鹜文楷（LXGW WenKai），笔画细、字怀松，中文在 9–12px 上
+   极易糊成一片；
    受影响最明显的是 .sg-stat-label（9px）、.sg-project-badge（.62rem）、
    .sg-briefing-kicker（10px）。这批元素承载日期、计数、标签，属于
    「读得清比好看重要」的信息层，统一走系统无衬线；标题 / 正文 / 导航

@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "./font.css";
 @import "./tokens.css";
 @import "./layout.css";
 @import "./components.css";
@@ -16,18 +15,22 @@
 @source "../**/*.ts";
 @source not "../../scripts";
 
-/* 全局字体对齐 Fomalhaut（2026-11-17 修复）：霞鹜文楷 LXGW WenKai 自托管，
-   （lxgw-wenkai-webfont 按unicode-range切片，浏览器只拉用到的分片）——
+/* 全局字体对齐 Fomalhaut：**只保留源站那一套霞鹜文楷 LXGW WenKai**（2026-11-18 第十七轮清理）。
+   （lxgw-wenkai-webfont 按 unicode-range 切片，浏览器只拉用到的分片）
    jsDelivr 在国内不稳定，自托管才能保证字体真的生效。
-   未命中字形回落自托管思源宋体，再回落系统黑体。 */
+   源站没有自托管任何中文 Webfont，LXGW 缺字形时同样回落到系统字体，我们保持同一行为：
+   原来那套自托管思源宋体（Noto Serif SC，101 分片 / 6.1 MB）已删除，不再有第二套字体文件。 */
 @import "lxgw-wenkai-webfont/lxgwwenkai-regular.css";
 @import "lxgw-wenkai-webfont/lxgwwenkai-bold.css";
 
 @theme {
-  --font-serif: "LXGW WenKai", -apple-system, 'Quicksand', 'PingFang SC', 'Hiragino Sans GB', "Noto Serif SC", 'Microsoft Yahei', sans-serif;
+  /* 与源站 _config.fomalhaut.yml 的 font.font-family 逐项一致（源站首位是 var(--global-font)，
+     面板注入 LXGW；我们直接写死同名 family，回退链照抄，含 'Nimbus Roman No9 L' / 'Noto Serif SC'
+     这些**系统字体名**——它们不加载任何文件，只是缺字时的兜底顺序）。 */
+  --font-serif: "LXGW WenKai", -apple-system, 'Quicksand', 'Nimbus Roman No9 L', 'PingFang SC', 'Hiragino Sans GB', "Noto Serif SC", 'Microsoft Yahei', 'WenQuanYi Micro Hei', 'ST Heiti', sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   /* 无衬线族（2026-11-13 第三十二轮）：仅供 9–12px 的元信息使用。
-     全部走系统字体，不新增网络请求 —— 自托管的只有 Noto Serif SC，
+     全部走系统字体，不新增网络请求 —— 站内自托管的只有 LXGW WenKai，
      为了几个小标签再切一套中文 Webfont 不划算。 */
   --font-sans: ui-sans-serif, -apple-system, "SF Pro SC", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", "Source Han Sans SC", sans-serif;
   /* Tailwind 侧的签名色（模板里用到 text-sg-indigo 之类时才生效） */
