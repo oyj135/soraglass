@@ -24,12 +24,12 @@ $sgProfileSocial = sg_json('sgSocial', 'social', []);
     <a class="sg-avatar-ring" href="<?php echo sg_e($sgAvatarLink); ?>">
       <img src="<?php echo sg_e($sgAvatar); ?>" alt="<?php echo sg_e($sgName); ?>">
     </a>
-    <?php if ($sgStatus !== '') : ?>
-    <span class="sg-status-bubble" title="<?php echo sg_e($sgStatus); ?>">
-      <?php echo sg_icon('message'); ?>
-      <span class="sg-status-text"><?php echo sg_e($sgStatus); ?></span>
+    <?php /* 头像右下角常驻青瓷装饰星（源站 author-status-box 展开交互，Soraglass 化）：
+             无 sgStatus 时是一枚静态青瓷星；填了状态则 hover 横向展开露出文字。 */ ?>
+    <span class="sg-status-bubble<?php echo $sgStatus === '' ? ' sg-status-bubble--deco' : ''; ?>"<?php echo $sgStatus !== '' ? ' title="' . sg_e($sgStatus) . '"' : ' aria-hidden="true"'; ?>>
+      <?php echo sg_icon('star'); ?>
+      <?php if ($sgStatus !== '') : ?><span class="sg-status-text"><?php echo sg_e($sgStatus); ?></span><?php endif; ?>
     </span>
-    <?php endif; ?>
   </div>
   <h1 class="sg-profile-name"><?php echo sg_e($sgName); ?></h1>
   <?php if ($sgBio !== '') : ?><p class="sg-profile-bio"><?php echo sg_e($sgBio); ?></p><?php endif; ?>

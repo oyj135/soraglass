@@ -465,21 +465,40 @@ html.dark .sg-sheet-panel {
    + 杂志式三格统计 + 全宽药丸按钮 + 社交图标行 ---------- */
 .sg-profile { display: flex; flex-direction: column; align-items: center; gap: .9rem; text-align: center; overflow: hidden; }
 
-/* 顶部极光横幅：纯 CSS 渐变（不引外部图），mask 下缘渐隐接回卡面；
-   头像压在横幅下缘，复刻源站「上图下玻璃」的层次但不抄它的照片。 */
+/* 顶部「夜航星海」横幅（2026-11-18 第八轮，Soraglass 独有，不抄源站绿色极光）：
+   纯 CSS 夜景 —— 深青夜色 + 稀疏星点 + 一道斜向流星 + 顶部柔光，昼夜共用夜间配方
+   （像独立歌词卡那样，亮色卡上由 mask 自然淡出，不跟随主题变浅）。
+   底缘 mask 用与文章卡同款的正弦波（峰/谷切线水平、单幅平滑），代替原来的直线渐隐：
+   既是站内海浪母题的延续，也让横幅接回玻璃卡面时是柔和曲线而非硬切。纯静态无动画。 */
 .sg-profile-banner {
   position: absolute;
   inset: 0 0 auto;
-  height: 7rem;
+  height: 8.25rem;
   pointer-events: none;
   background:
-    radial-gradient(130% 95% at 12% -12%, color-mix(in srgb, var(--sg-accent-soft) 52%, transparent), transparent 62%),
-    radial-gradient(130% 105% at 88% -6%, color-mix(in srgb, var(--sg-ring-b) 44%, transparent), transparent 66%),
-    linear-gradient(160deg, color-mix(in srgb, var(--sg-accent) 26%, transparent), color-mix(in srgb, var(--sg-accent-2) 12%, transparent));
-  -webkit-mask-image: linear-gradient(180deg, #000 42%, transparent);
-  mask-image: linear-gradient(180deg, #000 42%, transparent);
+    /* 流星：一道斜向窄光带 */
+    linear-gradient(112deg, transparent 42%, var(--sg-sky-beam) 50%, transparent 57%),
+    /* 星点阵：大小不一，散在两侧避开居中的头像 */
+    radial-gradient(1.5px 1.5px at 14% 24%, var(--sg-sky-star), transparent 100%),
+    radial-gradient(1px 1px at 26% 62%, var(--sg-sky-star), transparent 100%),
+    radial-gradient(2px 2px at 76% 20%, var(--sg-sky-star), transparent 100%),
+    radial-gradient(1px 1px at 88% 55%, var(--sg-sky-star), transparent 100%),
+    radial-gradient(1.5px 1.5px at 66% 74%, var(--sg-sky-star), transparent 100%),
+    radial-gradient(1px 1px at 38% 84%, var(--sg-sky-star), transparent 100%),
+    /* 夜空基底 + 顶部柔光 */
+    radial-gradient(120% 90% at 50% -18%, color-mix(in srgb, var(--sg-sky-mid) 90%, transparent), transparent 68%),
+    linear-gradient(165deg, var(--sg-sky-deep), var(--sg-sky-mid) 78%);
+  /* 底缘正弦波：与文章卡同款单幅平滑 path（基线 88 / 峰 85 / 谷 91，波幅 3，
+     横幅矮故更浅），切线水平、首尾闭合，随卡宽拉伸；横幅底色与深色卡面相近，
+     波浪裁切后自然融合，无需再叠渐隐层（避免 mask-composite 的浏览器差异）。 */
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H200V88C183.3 88 183.3 85 150 85C116.7 85 116.7 88 100 88C83.3 88 83.3 91 50 91C16.7 91 16.7 88 0 88Z' fill='%23fff'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H200V88C183.3 88 183.3 85 150 85C116.7 85 116.7 88 100 88C83.3 88 83.3 91 50 91C16.7 91 16.7 88 0 88Z' fill='%23fff'/%3E%3C/svg%3E");
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
 }
-.sg-profile-top { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 10; padding-top: 1.4rem; }
+.sg-profile-top { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 10; padding-top: 1.9rem; }
 
 .sg-avatar-ring {
   /* block 化：外层 .sg-avatar-wrap 是普通 div，inline 的 <a> 会丢掉宽高 */
@@ -547,7 +566,12 @@ html.dark .sg-profile .sg-avatar-ring::after { box-shadow: 0 0 6px 4px color-mix
   cursor: default;
   transition: max-width .4s var(--sg-ease);
 }
-.sg-status-bubble > svg { width: .9rem; height: .9rem; flex: none; color: var(--sg-accent-ink); }
+.sg-status-bubble > svg { width: .95rem; height: .95rem; flex: none; color: var(--sg-accent-ink); }
+/* 常驻青瓷星（无状态文字）：只做一枚静态描边青瓷星，不展开、不响应 hover 宽度；
+   落在头像右下角像一枚徽章（源站 author-status-box 形态，Soraglass 换成青瓷星）。 */
+.sg-status-bubble--deco { justify-content: center; padding: 0; }
+.sg-status-bubble--deco > svg { color: var(--sg-accent-ink); }
+html.dark .sg-status-bubble--deco { background: var(--sg-card); }
 .sg-status-text {
   max-width: 0;
   overflow: hidden;
@@ -559,28 +583,45 @@ html.dark .sg-profile .sg-avatar-ring::after { box-shadow: 0 0 6px 4px color-mix
   color: var(--sg-muted);
   transition: max-width .4s var(--sg-ease);
 }
-.sg-status-bubble:hover { max-width: 10rem; }
+.sg-status-bubble:not(.sg-status-bubble--deco):hover { max-width: 10rem; }
 .sg-status-bubble:hover .sg-status-text { max-width: 8rem; }
 
 /* 卡底社交行（复用 sgSocial 与 .sg-social 按钮皮肤，尺寸收一档适配侧栏） */
 .sg-profile-social { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; margin-top: -.15rem; }
-.sg-profile-social .sg-social { width: 2rem; height: 2rem; background: var(--sg-chip); }
-html.dark .sg-profile-social .sg-social { background: var(--sg-chip); color: var(--sg-muted); }
-/* 社交图标 hover 旋转（源站 card-info-social-icons 同款 540°，节奏放缓到 .6s） */
-.sg-profile-social .sg-social svg { transition: transform .6s var(--sg-ease); }
-.sg-profile-social .sg-social:hover svg { transform: rotate(540deg); }
-/* 品牌彩色（2026-11-18 第五轮）：图标走 --sg-brand-* 语义 token，昼夜各一档；
-   color 直接挂在 svg 上，hover 时 .sg-social 的 color:#fff 不会冲掉品牌色。
-   只作用于作者卡社交行，文章页其它 .sg-social 保持原单色皮肤。 */
-.sg-profile-social .sg-social--rss svg      { color: var(--sg-brand-rss); }
-.sg-profile-social .sg-social--github svg   { color: var(--sg-brand-github); }
-.sg-profile-social .sg-social--mail svg     { color: var(--sg-brand-mail); }
-.sg-profile-social .sg-social--bilibili svg { color: var(--sg-brand-bilibili); }
-.sg-profile-social .sg-social--twitter svg  { color: var(--sg-brand-twitter); }
-.sg-profile-social .sg-social--link svg     { color: var(--sg-brand-link); }
+/* 品牌微光底（2026-11-18 第八轮）：每枚图标用自身品牌色派生一层 10% 淡底 + 18% inset 描边，
+   静置即带品牌色相，hover 填品牌色实底 + 图标转白（源站无底彩色图标的 Soraglass 变体：
+   保留彩色识别，但用玻璃卡语言重新包裹，不照搬它的裸图标）。
+   每个品牌 class 只声明 --sg-social-brand，共用规则统一引用，昼夜亮度沿用 --sg-brand-*。 */
+/* 特意挂 .sg-profile 提到 (0,3,0)：压过文件后面通用 html.dark .sg-social (0,2,0)，
+   否则暗色下品牌淡底/图标色会被通用灰底覆盖。 */
+.sg-profile .sg-profile-social .sg-social {
+  width: 2rem;
+  height: 2rem;
+  color: var(--sg-social-brand, var(--sg-brand-link));
+  background: color-mix(in srgb, var(--sg-social-brand, var(--sg-brand-link)) 10%, var(--sg-card));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sg-social-brand, var(--sg-brand-link)) 18%, transparent);
+  transition: background-color .35s var(--sg-ease), color .35s var(--sg-ease), box-shadow .35s var(--sg-ease), transform .35s var(--sg-ease);
+}
+.sg-profile-social .sg-social--rss      { --sg-social-brand: var(--sg-brand-rss); }
+.sg-profile-social .sg-social--github   { --sg-social-brand: var(--sg-brand-github); }
+.sg-profile-social .sg-social--mail     { --sg-social-brand: var(--sg-brand-mail); }
+.sg-profile-social .sg-social--bilibili { --sg-social-brand: var(--sg-brand-bilibili); }
+.sg-profile-social .sg-social--twitter  { --sg-social-brand: var(--sg-brand-twitter); }
+.sg-profile-social .sg-social--link     { --sg-social-brand: var(--sg-brand-link); }
+/* 图标色继承按钮 color（品牌色）；hover 填品牌实底、图标转白，保留 540° 旋转。
+   color 挂在 svg 上，避免被通用 .sg-social 规则干扰。 */
+.sg-profile-social .sg-social svg { transition: transform .6s var(--sg-ease), color .35s var(--sg-ease); }
+.sg-profile-social .sg-social:is(:hover, :focus-visible) {
+  background: var(--sg-social-brand, var(--sg-brand-link));
+  color: #fff;
+  box-shadow: 0 8px 18px -10px color-mix(in srgb, var(--sg-social-brand, var(--sg-brand-link)) 70%, transparent);
+  transform: translateY(-2px);
+}
+.sg-profile-social .sg-social:is(:hover, :focus-visible) svg { color: #fff; transform: rotate(540deg); }
 @media (prefers-reduced-motion: reduce) {
+  .sg-profile-social .sg-social { transition: none; }
   .sg-profile-social .sg-social svg { transition: none; }
-  .sg-profile-social .sg-social:hover svg { transform: none; }
+  .sg-profile-social .sg-social:is(:hover, :focus-visible) svg { transform: none; }
 }
 
 /* 名字：马克笔高亮条（源站是黄条，这里随签名色派生），display:table 保证宽侧栏下仍居中独占一行 */

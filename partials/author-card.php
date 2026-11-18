@@ -21,12 +21,11 @@ $sgProfileSocial = sg_json('sgSocial', 'social', []);
       <a class="sg-avatar-ring" href="<?php echo sg_e($sgAvatarLink); ?>">
         <img src="<?php echo sg_e($sgAvatar); ?>" alt="<?php echo sg_e($sgName); ?>">
       </a>
-      <?php if ($sgStatus !== '') : ?>
-      <span class="sg-status-bubble" title="<?php echo sg_e($sgStatus); ?>">
-        <?php echo sg_icon('message'); ?>
-        <span class="sg-status-text"><?php echo sg_e($sgStatus); ?></span>
+      <?php /* 头像右下角常驻青瓷装饰星（同首页 card-profile）；无状态为静态星，有状态 hover 展开 */ ?>
+      <span class="sg-status-bubble<?php echo $sgStatus === '' ? ' sg-status-bubble--deco' : ''; ?>"<?php echo $sgStatus !== '' ? ' title="' . sg_e($sgStatus) . '"' : ' aria-hidden="true"'; ?>>
+        <?php echo sg_icon('star'); ?>
+        <?php if ($sgStatus !== '') : ?><span class="sg-status-text"><?php echo sg_e($sgStatus); ?></span><?php endif; ?>
       </span>
-      <?php endif; ?>
     </div>
     <p class="sg-profile-name"><?php echo sg_e($sgName); ?></p>
     <?php if ($sgBio !== '') : ?><p class="sg-profile-bio"><?php echo sg_e($sgBio); ?></p><?php endif; ?>
