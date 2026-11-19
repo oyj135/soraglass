@@ -1911,7 +1911,7 @@ html.dark .sg-poster-wide .sg-veil { background: linear-gradient(to top, rgba(0,
 @media (min-width: 768px) { .sg-chatter-body { padding: 2rem; width: 85%; } }
 
 .sg-chatter-meta { display: flex; align-items: flex-end; gap: .5rem; margin-bottom: .5rem; }
-.sg-chatter-meta .sg-chip--tag { color: var(--sg-accent-soft); background: rgba(0, 0, 0, .30); border: 1px solid rgba(255, 255, 255, .10); letter-spacing: .18em; }
+.sg-chatter-meta .sg-chip--tag { color: var(--sg-accent-soft); letter-spacing: .18em; }
 .sg-chatter-meta time { font-size: 11px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: #cbd5e1; }
 
 .sg-chatter-body h3 {
