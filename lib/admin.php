@@ -464,6 +464,19 @@ function themeConfig($form): void
     $form->addInput(new Radio('sgSplash', $effectOptions, 'on', _t('开屏动画'), _t('每个会话首次进入时约 0.6 秒的品牌遮罩，站内切页不再重放')));
 
     /* ---------------- 文章页与侧栏 ---------------- */
+    $form->addInput(new Radio('sgCalendarDetail', $effectOptions, 'on', _t('首页详细日期'), _t('显示大日期、农历、生肖、节气与年内第几天。公历月历和春节倒计时始终保留。')));
+    $form->addInput(new Text('sgCalendarTimezone', null, 'Asia/Shanghai', _t('日历时区'), _t('公历、农历、春节与进度条共同使用的时区，例如 Asia/Shanghai；无效值回退上海时区。')));
+    $form->addInput(new Select('sgSidebarLocation', ['off' => _t('关闭欢迎卡'), 'site' => _t('站长城市'), 'visitor' => _t('访客 IP 归属地')], 'site', _t('首页欢迎信息'), _t('站长城市模式不查询访客位置；访客模式通过服务端定位，默认不显示 IP 地址。定位失败时显示通用欢迎，天气回退站长城市。')));
+    $form->addInput(new Text('sgSiteCity', null, '', _t('站长城市'), _t('用于欢迎、天气回退和距离基点。留空不输出虚构城市，例如填写自己的城市名称。')));
+    $form->addInput(new Text('sgSiteLatitude', null, '', _t('站长城市纬度'), _t('十进制度数，范围 -90 到 90；使用城市代表位置的 WGS84 坐标，不需要精确住址。')));
+    $form->addInput(new Text('sgSiteLongitude', null, '', _t('站长城市经度'), _t('十进制度数，范围 -180 到 180；与纬度共同填写，用于估算距离及日出日落。')));
+    $form->addInput(new Text('sgSiteTimezone', null, 'Asia/Shanghai', _t('站长城市时区'), _t('例如 Asia/Shanghai。日出日落按对应城市时区显示，独立于日历时区。')));
+    $sgGeoDescription = '腾讯位置服务 WebService Key，仅用于访客模式，密钥留服务端。可在腾讯控制台限制到服务器出口 IP；代理部署须由 Nginx real_ip 还原 REMOTE_ADDR，主题不信任客户端转发头。';
+    if (sg_opt('sgSidebarLocation', 'site') === 'visitor' && sg_sidebar_private_dir() === '') $sgGeoDescription .= ' 当前无法使用站点之外的私有临时缓存目录，访客定位将停用；请放行 PHP 临时目录写入，不使用公开 dist 目录。';
+    $form->addInput(new Text('sgGeoKey', null, '', _t('访客定位密钥'), _t($sgGeoDescription)));
+    $form->addInput(new Radio('sgWeather', $effectOptions, 'off', _t('首页天气'), _t('开启后在日历底部显示城市天气、温度、湿度与更新时间；需填写下面的和风 Host 和密钥。未配置或失败时显示「天气暂不可用」。')));
+    $form->addInput(new Text('sgWeatherHost', null, '', _t('和风 API Host'), _t('填写和风控制台的专属域名，例如 abc123.qweatherapi.com，仅域名、不含 https:// 或路径。使用当前实时天气产品和 GeoAPI 城市查询。')));
+    $form->addInput(new Text('sgWeatherKey', null, '', _t('和风 API Key'), _t('服务端使用 X-QW-Api-Key 请求头认证，不下发浏览器。需开通当前实时天气与城市查询；天气成功缓存 15 分钟，失败时保留带时间的最近记录。')));
     $form->addInput(new Textarea('sgNotice', null, '', _t('侧栏公告'), _t('显示在文章页与独立页右侧栏的公告卡；留空则不输出该卡。支持换行，按纯文本处理。')));
     $form->addInput(new Text('sgSidebar', null, 'notice', _t('侧栏卡片与顺序'), _t(
         '文章页侧栏固定为「作者卡 / 公告 / 目录」三张。此项仅 <code>notice</code> 生效（控制公告卡是否显示，'

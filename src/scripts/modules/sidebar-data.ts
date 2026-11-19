@@ -1,0 +1,256 @@
+import { pageOn, pageInterval, pageSignal, onPageDispose } from './lifecycle';
+import { civilDate, dateKey, dayOrdinal, calendarFacts, fallbackFestival, loadCalendarLibrary, lunarFacts, DAY_MS } from './calendar-data';
+
+type SidebarConfig = { timezone: string; detail: boolean; mode: 'off' | 'site' | 'visitor'; weather: boolean; endpoint: string; fallbackDates: string[]; initial: Context };
+type LocationData = { status: string; label?: string; observedAt?: number; stale?: boolean; distance?: number | null; source?: string };
+type WeatherData = { status: string; city?: string; condition?: string; temperature?: number; humidity?: number; icon?: string; observedAt?: string; fetchedAt?: number; stale?: boolean; attributions?: string[] };
+type SunData = { status: string; date?: string; timezone?: string; city?: string; rise?: string; set?: string };
+type Context = { location: LocationData; weather: WeatherData; sun: SunData; generatedAt: number };
+const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六'];
+const put = (root: ParentNode, selector: string, value: string): void => {
+  const el = root.querySelector<HTMLElement>(selector);
+  if (el && el.textContent !== value) el.textContent = value;
+};
+const validContext = (value: unknown): value is Context => {
+  if (!value || typeof value !== 'object') return false;
+  const data = value as Partial<Context>;
+  return !!data.location && !!data.weather && !!data.sun && typeof data.generatedAt === 'number'
+    && typeof data.location.status === 'string' && typeof data.weather.status === 'string' && typeof data.sun.status === 'string';
+};
+
+function weatherIcon(code: string): string {
+  const number = Number(code);
+  if (number >= 300 && number < 400) return 'rain';
+  if (number >= 400 && number < 500) return 'snow';
+  if (number >= 500 && number < 600) return 'fog';
+  return number === 100 || number === 150 ? 'sun' : 'cloud';
+}
+
+export function initSidebarData(): void {
+  const root = document.querySelector<HTMLElement>('[data-sg-sidebar-data]');
+  const script = root?.querySelector('[data-sg-sidebar-config]');
+  if (!root || !script) return;
+  let cfg: SidebarConfig;
+  try { cfg = JSON.parse(script.textContent ?? ''); civilDate(new Date(), cfg.timezone); }
+  catch { return; }
+  const signal = pageSignal();
+  const calendar = root.querySelector<HTMLElement>('[data-sg-calendar]');
+  const countdown = root.querySelector<HTMLElement>('[data-sg-countdown]');
+  const welcome = root.querySelector<HTMLElement>('[data-sg-welcome]');
+  const refreshButton = root.querySelector<HTMLButtonElement>('[data-sg-location-refresh]');
+  const weather = root.querySelector<HTMLElement>('[data-sg-weather]');
+  let lastDay = '';
+  let calendarLibrary: Awaited<ReturnType<typeof loadCalendarLibrary>> | null = null;
+  let libraryLoading = false;
+  let active = false;
+  let fetching = false;
+  let nextFetch = 0;
+  let context: Context = cfg.initial;
+  const cacheKey = `sg:sidebar-location:${cfg.endpoint}:${cfg.mode}`;
+
+  const paintLocation = (location: LocationData, cached = false): void => {
+    if (!welcome) return;
+    if (location.status === 'ok' && typeof location.label === 'string') {
+      put(welcome, '[data-sg-welcome-location]', `来自${location.label}的朋友，欢迎来访`);
+      put(welcome, '[data-sg-welcome-meta]', `${cached || location.stale ? '上次定位 · ' : ''}IP归属地${typeof location.distance === 'number' ? ` · 与站长约 ${location.distance} 公里` : ''}`);
+    } else if (location.status === 'site' && typeof location.label === 'string') {
+      put(welcome, '[data-sg-welcome-location]', `来自${location.label}的一声问候`);
+      put(welcome, '[data-sg-welcome-meta]', '站长所在城市');
+    } else {
+      put(welcome, '[data-sg-welcome-location]', '来自远方的朋友，欢迎来访');
+      put(welcome, '[data-sg-welcome-meta]', cfg.mode === 'visitor' ? '位置暂不可用' : '愿你在这里找到喜欢的文字');
+    }
+  };
+
+  const paintContext = (data: Context): void => {
+    paintLocation(data.location);
+    const sun = root.querySelector<HTMLElement>('[data-sg-sun]');
+    if (sun) {
+      sun.hidden = data.sun.status !== 'ok';
+      if (!sun.hidden) {
+        sun.title = `${data.sun.city ?? ''} · ${data.sun.timezone ?? ''} · ${data.sun.date ?? ''} · 天文估算`;
+        put(sun, '[data-sg-sun-city]', data.sun.city ?? '');
+        put(sun, '[data-sg-sun-rise]', `日出 ${data.sun.rise ?? '—'}`);
+        put(sun, '[data-sg-sun-set]', `日落 ${data.sun.set ?? '—'}`);
+      }
+    }
+    if (!weather) return;
+    const current = data.weather;
+    const valid = current.status === 'ok' && typeof current.temperature === 'number' && typeof current.humidity === 'number' && typeof current.condition === 'string';
+    put(weather, '[data-sg-weather-main]', valid ? `${current.city ?? ''} · ${current.condition} ${current.temperature}°C` : '天气暂不可用');
+    let update = '';
+    if (valid) {
+      const time = new Date(current.observedAt || (current.fetchedAt ?? 0) * 1000);
+      update = Number.isNaN(time.getTime()) ? '' : new Intl.DateTimeFormat('zh-CN', { timeZone: data.sun.timezone || cfg.timezone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(time);
+    }
+    put(weather, '[data-sg-weather-meta]', valid ? `湿度 ${current.humidity}%${update ? ` · ${current.stale ? '最近记录' : '更新于'} ${update}` : ''}` : '稍后会自动重试');
+    weather.dataset.state = valid ? (current.stale ? 'stale' : 'ready') : 'error';
+    weather.querySelectorAll<HTMLElement>('[data-sg-weather-icon]').forEach(icon => { icon.hidden = !valid || icon.dataset.sgWeatherIcon !== weatherIcon(current.icon ?? ''); });
+    const credits = weather.querySelector<HTMLElement>('[data-sg-weather-attributions]');
+    if (credits) {
+      credits.replaceChildren();
+      (current.attributions ?? []).forEach((url, index) => {
+        if (typeof url !== 'string' || !url.startsWith('https://')) return;
+        const link = document.createElement('a'); link.href = url; link.target = '_blank'; link.rel = 'noopener noreferrer';
+        link.textContent = index === 0 ? '数据声明' : `声明 ${index + 1}`;
+        credits.append(link);
+      });
+    }
+  };
+
+  const paintDates = (): void => {
+    if (signal.aborted || !root.isConnected) return;
+    const now = new Date();
+    const date = civilDate(now, cfg.timezone);
+    const key = dateKey(date);
+    const facts = calendarFacts(date);
+    if (calendar && key !== lastDay) {
+      put(calendar, '[data-sg-calendar-day]', String(date.day));
+      put(calendar, '[data-sg-calendar-ym]', `${date.year} 年 ${date.month} 月`);
+      put(calendar, '[data-sg-calendar-week]', `第${facts.week}周 · 周${WEEKDAYS[facts.weekday]}`);
+      put(calendar, '[data-sg-calendar-doy]', `第 ${facts.dayOfYear} 天`);
+      put(calendar, '[data-sg-calendar-today]', `今天 · ${date.month} 月 ${date.day} 日`);
+      put(calendar, '[data-sg-calendar-weekday]', `星期${WEEKDAYS[facts.weekday]}`);
+      const table = calendar.querySelector<HTMLTableElement>('.sg-hcal-grid');
+      const tbody = table?.tBodies[0];
+      if (tbody) {
+        table!.setAttribute('aria-label', `${date.year}年${date.month}月，${cfg.timezone}`);
+        const first = new Date(dayOrdinal(date.year, date.month, 1) * DAY_MS).getUTCDay();
+        const days = dayOrdinal(date.year, date.month + 1, 1) - dayOrdinal(date.year, date.month, 1);
+        const fragment = document.createDocumentFragment();
+        for (let row = 0; row < Math.ceil((first + days) / 7); row++) {
+          const tr = document.createElement('tr');
+          for (let col = 0; col < 7; col++) {
+            const day = row * 7 + col - first + 1;
+            const cell = document.createElement('td'); cell.className = 'sg-hcal-cell';
+            if (day < 1 || day > days) cell.classList.add('is-empty');
+            else { cell.textContent = String(day); if (day === date.day) { cell.classList.add('is-today'); cell.setAttribute('aria-current', 'date'); } }
+            tr.append(cell);
+          }
+          fragment.append(tr);
+        }
+        tbody.replaceChildren(fragment);
+      }
+    }
+    let target = fallbackFestival(date, cfg.fallbackDates);
+    if (calendarLibrary) {
+      try {
+        const lunar = lunarFacts(date, calendarLibrary);
+        if (cfg.detail && calendar) {
+          put(calendar, '[data-sg-calendar-lunar]', lunar.label);
+          put(calendar, '[data-sg-calendar-term]', lunar.term);
+        }
+        target = lunar.festival ?? target;
+      } catch {
+        if (calendar) { put(calendar, '[data-sg-calendar-lunar]', '农历暂不可用'); put(calendar, '[data-sg-calendar-term]', ''); }
+      }
+    }
+    if (countdown) {
+      put(countdown, '[data-sg-cd-date]', target?.date ?? '日期待更新');
+      put(countdown, '[data-sg-cd-days]', target ? String(target.days) : '—');
+      countdown.dataset.sgCdTarget = target?.date ?? '';
+      countdown.querySelectorAll<HTMLElement>('.sg-hcd-row').forEach((row, index) => {
+        const progress = facts.progress[index];
+        const bar = row.querySelector<HTMLElement>('.sg-hcd-bar i');
+        if (bar) bar.style.width = `${progress.percent}%`;
+        put(row, 'em', `${progress.percent}%`);
+        put(row, '[data-sg-cd-remaining]', `剩 ${progress.remaining} 天`);
+      });
+    }
+    lastDay = key;
+    if (welcome) {
+      const hour = now.getHours();
+      put(welcome, '[data-sg-welcome-greeting]', hour >= 5 && hour < 11 ? '上午好' : hour < 13 && hour >= 11 ? '中午好' : hour < 18 && hour >= 13 ? '下午好' : hour >= 18 ? '晚上好' : '夜深了');
+    }
+  };
+
+  const fetchContext = async (force = false): Promise<void> => {
+    if ((!active && !force) || document.hidden || fetching || signal.aborted || (!force && Date.now() < nextFetch)) return;
+    const url = new URL(cfg.endpoint, location.href);
+    if (url.origin !== location.origin) return;
+    if (force) url.searchParams.set('refresh', '1');
+    const controller = new AbortController();
+    const abort = (): void => controller.abort();
+    signal.addEventListener('abort', abort, { once: true });
+    const timeout = window.setTimeout(abort, 8500);
+    fetching = true;
+    if (refreshButton) { refreshButton.disabled = true; refreshButton.setAttribute('aria-busy', 'true'); }
+    if (weather) weather.setAttribute('aria-busy', 'true');
+    nextFetch = Date.now() + 60000;
+    try {
+      // Unsupported browsers ignore priority; explicit user refresh keeps normal priority.
+      const init: RequestInit & { priority?: 'low' } = { signal: controller.signal, cache: 'no-store', headers: { Accept: 'application/json' } };
+      if (!force) init.priority = 'low';
+      const response = await fetch(url, init);
+      if (!response.ok) throw new Error('sidebar-response');
+      const data: unknown = await response.json();
+      if (signal.aborted || !root.isConnected) return;
+      if (!validContext(data)) throw new Error('sidebar-payload');
+      context = data; paintContext(data);
+      nextFetch = Date.now() + (cfg.weather && data.weather.status !== 'ok' ? 60000 : cfg.weather ? Math.max(60000, 900000 - (Date.now() - (data.weather.fetchedAt ?? 0) * 1000)) : 43200000);
+      if (data.location.status === 'ok') {
+        try { localStorage.setItem(cacheKey, JSON.stringify({ at: (data.location.observedAt ?? data.generatedAt) * 1000, location: data.location })); } catch { /* optional */ }
+      }
+      if (force && welcome) put(welcome, '[data-sg-welcome-feedback]', data.location.status === 'ok' || data.location.status === 'site' ? '位置信息已更新' : '位置暂不可用，请稍后重试');
+    } catch {
+      if (signal.aborted || !root.isConnected) return;
+      const oldWeather = context.weather;
+      const recent = oldWeather.status === 'ok' && Date.now() - (oldWeather.fetchedAt ?? 0) * 1000 <= 7200000;
+      const oldSun = context.sun;
+      const sameSunDay = oldSun.status === 'ok' && oldSun.date && oldSun.timezone && dateKey(civilDate(new Date(), oldSun.timezone)) === oldSun.date;
+      context = { ...context, location: { ...context.location, stale: true },
+        weather: recent ? { ...oldWeather, stale: true } : { status: cfg.weather ? 'unavailable' : 'disabled' },
+        sun: sameSunDay ? oldSun : { status: 'unavailable' } };
+      paintContext(context);
+      if (force && welcome) put(welcome, '[data-sg-welcome-feedback]', '更新失败，请稍后重试');
+    } finally {
+      clearTimeout(timeout); signal.removeEventListener('abort', abort); fetching = false;
+      if (!signal.aborted && root.isConnected) {
+        if (refreshButton) { refreshButton.disabled = false; refreshButton.removeAttribute('aria-busy'); }
+        weather?.removeAttribute('aria-busy');
+      }
+    }
+  };
+
+  const activate = (): void => {
+    if (signal.aborted || !root.isConnected) return;
+    active = true;
+    if (!libraryLoading) {
+      libraryLoading = true;
+      void loadCalendarLibrary().then(library => {
+        if (!signal.aborted && root.isConnected) { calendarLibrary = library; paintDates(); }
+      }).catch(() => { if (!signal.aborted && calendar) put(calendar, '[data-sg-calendar-lunar]', '农历暂不可用'); });
+    }
+    if (cfg.mode === 'visitor' || cfg.weather) void fetchContext();
+  };
+  paintContext(context); paintDates();
+  if (cfg.mode === 'visitor') {
+    try {
+      const cached = JSON.parse(localStorage.getItem(cacheKey) ?? 'null');
+      if (cached && typeof cached.at === 'number' && Date.now() - cached.at < 43200000 && cached.location?.status === 'ok') paintLocation(cached.location, true);
+    } catch { /* optional */ }
+  }
+  if (refreshButton) pageOn(refreshButton, 'click', () => { put(root, '[data-sg-welcome-feedback]', '正在更新位置'); void fetchContext(true); });
+  const watches = [calendar, welcome, weather].filter((node): node is HTMLElement => !!node);
+  if (typeof IntersectionObserver !== 'undefined') {
+    const visible = new Set<Element>();
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => { if (entry.isIntersecting) visible.add(entry.target); else visible.delete(entry.target); });
+      active = visible.size > 0;
+      if (active) activate();
+    }, { rootMargin: '150px' });
+    watches.forEach(node => observer.observe(node)); onPageDispose(() => observer.disconnect());
+  } else activate();
+  const refresh = (): void => {
+    if (document.hidden || signal.aborted) return;
+    paintDates();
+    const sun = context.sun;
+    if (sun.status === 'ok' && sun.timezone && sun.date && dateKey(civilDate(new Date(), sun.timezone)) !== sun.date) nextFetch = 0;
+    if (active && (cfg.mode === 'visitor' || cfg.weather || sun.status === 'ok')) void fetchContext();
+  };
+  pageInterval(refresh, 60000);
+  pageOn(document, 'visibilitychange', () => { if (!document.hidden) { nextFetch = Math.min(nextFetch, Date.now()); refresh(); } });
+  pageOn(window, 'pageshow', refresh);
+  pageOn(window, 'focus', () => { nextFetch = Math.min(nextFetch, Date.now()); refresh(); });
+  pageOn(window, 'online', () => { nextFetch = 0; refresh(); });
+}

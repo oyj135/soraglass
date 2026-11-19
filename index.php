@@ -169,8 +169,23 @@ foreach (sg_home_articles($sgHomeListLimit) as $sgHomeCard) {
     <aside class="sg-home-aside" aria-label="站点侧栏">
       <section class="sg-glass sg-card-pad sg-profile" data-sg-hover><?php $this->need('partials/card-profile.php'); ?></section>
       <section class="sg-glass sg-player-card" data-sg-hover><?php $this->need('partials/player.php'); ?></section>
+      <div class="sg-sidebar-data" data-sg-sidebar-data>
+      <?php
+      $sgSideCfg = sg_sidebar_cfg();
+      $sgSidePublic = [
+          'timezone' => $sgSideCfg['timezone'], 'detail' => $sgSideCfg['detail'],
+          'mode' => $sgSideCfg['mode'], 'weather' => $sgSideCfg['weather'],
+          'endpoint' => sg_sidebar_endpoint(), 'fallbackDates' => sg_sidebar_date()['fallbackDates'],
+          'initial' => ['location' => $sgSideCfg['mode'] === 'site' && $sgSideCfg['site'] ? ['status' => 'site', 'label' => $sgSideCfg['site']['label']] : ['status' => 'unavailable'],
+              'weather' => ['status' => $sgSideCfg['weather'] ? 'unavailable' : 'disabled'],
+              'sun' => sg_sidebar_sun($sgSideCfg['site']), 'generatedAt' => time()],
+      ];
+      ?>
+      <script type="application/json" data-sg-sidebar-config><?php echo json_encode($sgSidePublic, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG); ?></script>
       <?php $this->need('partials/side-calendar.php'); ?>
       <?php $this->need('partials/side-countdown.php'); ?>
+      <?php $this->need('partials/side-welcome.php'); ?>
+      </div>
       <?php $this->need('partials/side-webinfo.php'); ?>
     </aside>
   </div>

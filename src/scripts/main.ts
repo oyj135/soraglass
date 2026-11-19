@@ -17,6 +17,7 @@ import { initScrollbar } from './modules/scrollbar';
 import { initLazyload } from './modules/lazyload';
 import { initReveal } from './modules/reveal';
 import { initStatsCache } from './modules/stats-cache';
+import { initSidebarData } from './modules/sidebar-data';
 import { initUniverse } from './modules/universe';
 
 /**
@@ -49,6 +50,7 @@ function mountPage(): void {
   safe('article', initArticle);
   safe('notes', initNotes);
   safe('home', initHome);
+  safe('sidebar-data', initSidebarData);
   safe('rightside', initRightside);
   safe('neko', initNeko);
   safe('scrollbar', initScrollbar);

@@ -4,6 +4,7 @@ if (!defined('SG_ROOT')) {
 }
 require_once __DIR__ . '/lib/config.php';
 require_once __DIR__ . '/lib/http.php';
+require_once __DIR__ . '/lib/sidebar-data.php';
 require_once __DIR__ . '/lib/fields.php';
 require_once __DIR__ . '/lib/playlist.php';
 require_once __DIR__ . '/lib/gallery.php';
@@ -22,6 +23,8 @@ function themeInit($archive): void
     if (!($archive instanceof \Widget\Archive)) {
         return;
     }
+
+    sg_sidebar_dispatch();
 
     // 模板不输出分页条；0 表示沿用 Typecho 阅读设置的每页文章数。
     $size = (int) sg_opt('sgPageSize', '200');

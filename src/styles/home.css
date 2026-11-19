@@ -342,6 +342,14 @@ html.dark .sg-hcard { background-color: var(--sg-card); background-image: var(--
 .sg-hcard-title svg { width: .95rem; height: .95rem; }
 
 /* ---------- 日历卡 ---------- */
+.sg-sidebar-data { display: flex; flex-direction: column; gap: 1.5rem; min-width: 0; }
+.sg-hcal [hidden], .sg-hweather [hidden] { display: none; }
+.sg-hcal-summary { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; min-height: 5rem; }
+.sg-hcal-day { flex: none; min-width: 1.4em; color: var(--sg-accent-ink); font-size: 3rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.sg-hcal-summary > div { display: flex; flex-direction: column; gap: .3rem; min-width: 0; }
+.sg-hcal-month { font-size: .86rem; color: var(--sg-text); }
+.sg-hcal-doy, .sg-hcal-lunar { font-size: .72rem; color: var(--sg-muted); }
+.sg-hcal-lunar { min-height: 1.5em; }
 .sg-hcal-ym { font-family: var(--font-sans); font-size: .7rem; color: var(--sg-faint); letter-spacing: .02em; }
 .sg-hcal-grid { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: .15rem; text-align: center; }
 .sg-hcal-wd { font-family: var(--font-sans); font-size: .66rem; font-weight: 400; color: var(--sg-faint); padding-bottom: .35rem; }
@@ -363,6 +371,29 @@ html.dark .sg-hcard { background-color: var(--sg-card); background-image: var(--
 .sg-hcal-foot { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-top: .85rem; padding-top: .7rem; border-top: 1px solid var(--sg-line); font-family: var(--font-sans); font-size: .7rem; color: var(--sg-muted); }
 .sg-hcal-today { color: var(--sg-accent-ink); font-weight: 600; }
 
+.sg-hcal-term { min-height: 1.5em; margin-top: .65rem; font-size: .78rem; color: var(--sg-accent-ink); }
+.sg-hcal-sun { display: flex; flex-wrap: wrap; gap: .3rem .55rem; margin-top: .45rem; font-size: .72rem; color: var(--sg-muted); }
+.sg-hcal-sun > :first-child { flex-basis: 100%; color: var(--sg-text); }
+.sg-hweather { margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--sg-line); min-height: 6rem; }
+.sg-hweather-main { display: flex; align-items: center; gap: .35rem; font-size: .85rem; color: var(--sg-text); }
+.sg-hweather-icon { flex: none; display: inline-flex; width: 1.35rem; height: 1.35rem; }
+.sg-hweather-icon svg { width: 100%; height: 100%; }
+.sg-hweather-meta { margin: .35rem 0; font-size: .72rem; color: var(--sg-muted); }
+.sg-hweather-source, .sg-hweather-source [data-sg-weather-attributions] { display: flex; flex-wrap: wrap; gap: .3rem .55rem; font-size: .68rem; }
+.sg-hweather-source a { color: var(--sg-faint); text-decoration: underline; text-underline-offset: 3px; }
+.sg-hweather-source a:hover { color: var(--sg-accent-ink); }
+.sg-hweather-source a:focus-visible { outline: 2px solid var(--sg-accent); outline-offset: 3px; }
+.sg-hwelcome-greeting { color: var(--sg-accent-ink); font-size: .78rem; }
+.sg-hwelcome-location { margin: 0; font-size: .88rem; color: var(--sg-text); line-height: 1.8; min-height: 3.6em; overflow-wrap: anywhere; }
+.sg-hwelcome-meta { margin: .35rem 0 0; font-size: .72rem; line-height: 1.8; color: var(--sg-muted); min-height: 3.6em; }
+.sg-hwelcome-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .45rem; margin-top: .65rem; }
+.sg-hwelcome-refresh { flex: none; min-height: 2.75rem; padding: .4rem .75rem; border: 1px solid var(--sg-line); border-radius: var(--sg-radius-inner); background: var(--sg-chip); color: var(--sg-accent-ink); font: inherit; font-size: .76rem; cursor: pointer; }
+.sg-hwelcome-refresh:hover { background: var(--sg-accent-soft); color: var(--sg-text); }
+.sg-hwelcome-refresh:active { background: var(--sg-chip); }
+.sg-hwelcome-refresh:focus-visible { outline: 2px solid var(--sg-accent); outline-offset: 3px; }
+.sg-hwelcome-refresh:disabled { opacity: .6; cursor: default; }
+[data-sg-welcome-feedback] { color: var(--sg-muted); font-size: .72rem; line-height: 1.6; }
+
 /* ---------- 春节倒计时卡 ---------- */
 .sg-hcd-date { font-family: var(--font-sans); font-size: .7rem; color: var(--sg-faint); }
 .sg-hcd-main { display: flex; align-items: center; gap: .75rem; }
@@ -373,7 +404,8 @@ html.dark .sg-hcard { background-color: var(--sg-card); background-image: var(--
 .sg-hcd-num { font-size: 2em; font-weight: 700; line-height: 1.1; color: var(--sg-accent-ink); font-variant-numeric: tabular-nums; }
 .sg-hcd-unit { font-size: .7rem; color: var(--sg-muted); margin-left: .15rem; }
 .sg-hcd-rows { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .4rem; }
-.sg-hcd-row { display: flex; align-items: center; gap: .4rem; font-family: var(--font-sans); font-size: .68rem; color: var(--sg-muted); }
+.sg-hcd-row { display: flex; align-items: center; flex-wrap: wrap; gap: .2rem .4rem; font-family: var(--font-sans); font-size: .68rem; color: var(--sg-muted); }
+.sg-hcd-remaining { flex-basis: 100%; text-align: end; font-size: .65rem; color: var(--sg-faint); }
 .sg-hcd-rlabel { flex: 0 0 2.2em; }
 .sg-hcd-bar { flex: 1; height: .5rem; border-radius: .35rem; background: var(--sg-chip); overflow: hidden; }
 .sg-hcd-bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--sg-accent-deep), var(--sg-accent-soft)); }
