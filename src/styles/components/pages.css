@@ -110,7 +110,7 @@ html.dark .sg-waves-parallax > use:nth-child(4) { fill: #161930; }
   padding: .85rem 1.5rem 1rem;
   text-align: center;
   font-family: var(--font-serif);
-  color: rgba(15, 23, 42, .88);
+  color: rgba(15, 23, 42, .97);
   text-shadow: var(--sg-wall-halo);
 }
 
@@ -128,7 +128,7 @@ html.dark .sg-waves-parallax > use:nth-child(4) { fill: #161930; }
   font-size: .875rem;
   font-weight: 600;
   line-height: 1.6;
-  color: rgba(15, 23, 42, .90);
+  color: rgba(15, 23, 42, .98);
 }
 
 .sg-footer-run { display: inline-flex; align-items: center; gap: .4rem; }
@@ -140,13 +140,13 @@ html.dark .sg-waves-parallax > use:nth-child(4) { fill: #161930; }
   flex: none;
 }
 /* 时长是这一行唯一的彩色项：亮底用压暗的主题色（accent-deep 在花图壁纸上只有 1.9:1），暗底进一档用 indigo-400 */
-.sg-footer-uptime { font-weight: 900; color: color-mix(in srgb, var(--sg-accent) 62%, #000); letter-spacing: .01em; }
+.sg-footer-uptime { font-weight: 900; color: color-mix(in srgb, var(--sg-accent) 45%, #000); letter-spacing: .01em; }
 .sg-footer-icp { font-weight: 400; font-size: .8125rem; color: var(--sg-wall-ink); }
 
 /* ② 状态行与版权之间的通栏细分隔线（参考图里就是一条 1px 细线） */
 .sg-footer-rule {
   border: 0;
-  border-top: 1px solid rgba(15, 23, 42, .14);
+  border-top: 1px solid rgba(15, 23, 42, .28);
   margin: .9rem 0 0;
   text-shadow: none;
 }
@@ -154,9 +154,9 @@ html.dark .sg-waves-parallax > use:nth-child(4) { fill: #161930; }
 /* ③ 版权两行：13px / 12px，只用字重区分主次 */
 .sg-footer-copy { margin-top: .9rem; font-size: .8125rem; font-weight: 500; line-height: 1.6; letter-spacing: .01em; }
 .sg-footer-powered { margin-top: .25rem; font-size: .75rem; line-height: 1.6; padding-bottom: 3.2rem; }
-/* A4 心跳：版权行里的一颗朱砂心（动画 sg-heartbeat 在 effects.css） */
-.sg-footer-copy .sg-heart { color: #e8654a; }
-
+/* 日间页脚压在用户壁纸上：去掉低对比的半透明灰，版权两行加实一档；夜间仍走下方 html.dark 那套 */
+html:not(.dark) .sg-footer-copy { font-weight: 600; }
+html:not(.dark) .sg-footer-powered { font-weight: 500; }
 /* 深色模式 = 用户截图里的那版：冷白字 + 靛蓝时长 + 亮分隔线 */
 html.dark .sg-footer {
   color: rgba(255, 255, 255, .76);

@@ -45,7 +45,7 @@ if ($sgName === '') {
 
     <hr class="sg-footer-rule">
 
-    <p class="sg-footer-copy">&copy; <?php echo date('Y'); ?> <?php echo sg_e($sgName); ?> · <?php echo sg_icon('heart', 'sg-heart'); ?> 保留所有权利</p>
+    <p class="sg-footer-copy">&copy; <?php echo date('Y'); ?> <?php echo sg_e($sgName); ?></p>
     <p class="sg-footer-powered">Powered by Typecho · Theme Soraglass 空璃</p>
   </div>
 </footer>
