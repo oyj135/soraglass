@@ -261,13 +261,34 @@ a.sg-home-cate:hover > svg:last-child { color: #fff; transform: translateX(2px);
 .sg-hcard {
   border: 1px solid var(--sg-line);
   border-radius: var(--sg-radius-card, var(--sg-radius));
-  background: var(--sg-card);
-  box-shadow: var(--sg-shadow-soft);
+  /* 2026-11-19 视觉优化第一阶段：底色与渐变拆开写（background 简写会重置 image）。
+     夜间由 --sg-card-image 顶光渐变 + --sg-card-sheen 内高光提供「被照亮」的层次，
+     与文章卡/作者卡同一套材质语言；日间两者回落 none / 透明。原 --sg-shadow-soft
+     无 token 定义等于无阴影，这里补成真实 --sg-shadow。 */
+  background-color: var(--sg-card);
+  background-image: var(--sg-card-image, none);
+  box-shadow: var(--sg-card-sheen, 0 0 0 transparent), var(--sg-shadow);
   padding: 1.15rem 1.25rem;
+  transition: border-color .35s var(--sg-ease), box-shadow .35s var(--sg-ease);
 }
-html.dark .sg-hcard { background: var(--sg-card); }
+html.dark .sg-hcard { background-color: var(--sg-card); background-image: var(--sg-card-image, none); }
+/* hover 描边染主题色：与 .sg-feature-card 的悬浮语言对齐；只染色不加位移，
+   避免日历/倒计时这类纯展示卡被误认为可点击。 */
+.sg-hcard:is(:hover) {
+  border-color: color-mix(in srgb, var(--sg-accent) 30%, var(--sg-line));
+  box-shadow: var(--sg-card-sheen, 0 0 0 transparent), var(--sg-shadow-strong);
+}
 .sg-hcard-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .9rem; }
 .sg-hcard-title { display: inline-flex; align-items: center; gap: .45rem; font-size: .9rem; font-weight: 700; color: var(--sg-text); }
+/* 卡头品牌色微型标识条：四张卡统一的视觉锚点，青瓷渐变竖条，跟随标题 flex 排布。 */
+.sg-hcard-title::before {
+  content: '';
+  width: 3px;
+  height: 1rem;
+  flex: none;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--sg-accent), var(--sg-accent-2));
+}
 .sg-hcard-title svg { width: .95rem; height: .95rem; }
 
 /* ---------- 日历卡 ---------- */
@@ -299,13 +320,15 @@ html.dark .sg-hcard { background: var(--sg-card); }
 .sg-hcd-main { display: flex; align-items: center; gap: .75rem; }
 .sg-hcd-left { flex: 0 0 30%; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; text-align: center; }
 .sg-hcd-label { flex: 0 0 100%; font-size: .72rem; color: var(--sg-muted); }
-.sg-hcd-num { font-size: 2em; font-weight: 700; line-height: 1.1; color: var(--sg-accent-ink); }
+/* 2026-11-19 第二阶段：进度条与数字仪表化——数字统一等宽字形，进度条走
+   青瓷渐变，与年度柱状 .sg-hinfo-bar-track i 同一套语言。 */
+.sg-hcd-num { font-size: 2em; font-weight: 700; line-height: 1.1; color: var(--sg-accent-ink); font-variant-numeric: tabular-nums; }
 .sg-hcd-unit { font-size: .7rem; color: var(--sg-muted); margin-left: .15rem; }
 .sg-hcd-rows { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .4rem; }
 .sg-hcd-row { display: flex; align-items: center; gap: .4rem; font-family: var(--font-sans); font-size: .68rem; color: var(--sg-muted); }
 .sg-hcd-rlabel { flex: 0 0 2.2em; }
 .sg-hcd-bar { flex: 1; height: .5rem; border-radius: .35rem; background: var(--sg-chip); overflow: hidden; }
-.sg-hcd-bar i { display: block; height: 100%; border-radius: inherit; background: var(--sg-accent); }
+.sg-hcd-bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--sg-accent-deep), var(--sg-accent-soft)); }
 .sg-hcd-row em { flex: 0 0 2.4em; text-align: right; font-style: normal; }
 
 /* ---------- 小站资讯卡（对齐 Fomalhaut card_webinfo 新版：KPI + 时间条 + 年度产出柱状） ---------- */
@@ -313,7 +336,7 @@ html.dark .sg-hcard { background: var(--sg-card); }
 .sg-hinfo-kpi-item { display: flex; flex-direction: column; align-items: center; gap: .2rem; padding: .6rem .2rem; border-radius: .6rem; background: var(--sg-chip); text-decoration: none; }
 a.sg-hinfo-kpi-item { transition: background-color .2s var(--sg-ease); }
 a.sg-hinfo-kpi-item:hover { background: var(--sg-line); }
-.sg-hinfo-num { font-size: 1.15rem; font-weight: 700; color: var(--sg-accent-ink); line-height: 1.1; }
+.sg-hinfo-num { font-size: 1.15rem; font-weight: 700; color: var(--sg-accent-ink); line-height: 1.1; font-variant-numeric: tabular-nums; }
 .sg-hinfo-label { font-family: var(--font-sans); font-size: .66rem; color: var(--sg-muted); }
 .sg-hinfo-time { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .45rem; margin-top: .9rem; padding-top: .75rem; border-top: 1px solid var(--sg-line); font-size: .72rem; color: var(--sg-muted); }
 .sg-hinfo-time-item { display: inline-flex; align-items: center; gap: .3rem; }
