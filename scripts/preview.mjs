@@ -160,6 +160,7 @@ ${js ? `<script type="module" src="${js}"></script>` : ''}
 `;
 
 const foot = (readmode = false) => `
+<div class="sg-footer-zone">
 <footer class="sg-footer-wrap">
   <div class="sg-footer">
     <div class="sg-footer-status">
@@ -171,10 +172,11 @@ const foot = (readmode = false) => `
       <span class="sg-footer-icp">京ICP备00000000号</span>
     </div>
     <hr class="sg-footer-rule">
-    <p class="sg-footer-copy">&copy; 2026 Xinghuisama · 保留所有权利</p>
+    <p class="sg-footer-copy">&copy; 2026 Xinghuisama</p>
     <p class="sg-footer-powered">Powered by Typecho · Theme Soraglass 空璃</p>
   </div>
 </footer>
+</div>
 <div class="sg-toolbox">
   <a class="sg-tool" href="#" aria-label="音乐馆">${icons.music}</a>
 </div>

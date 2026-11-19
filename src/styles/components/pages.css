@@ -66,7 +66,10 @@
    只剩居中两行衬线文案直接压在壁纸上（第一行版权、第二行 Powered by）。
    时钟节点与 modules/dashboard.ts 一起下线，页面上不再有任何 1s 定时器。 */
 /* 页脚区（2026-11-19 第三轮，用户要求去掉波浪）：只剩一层底纱给无卡托底的页脚文字
-   连续底色，不再有波浪 DOM。纱从底部起、到 62% 淡出，边界仍是渐隐的软边。 */
+   连续底色，不再有波浪 DOM。纱从底部起、到 62% 淡出，边界仍是渐隐的软边。
+   2026-11-19 延长：原渐变在 62% 就到 0，而状态行（运行时长 / 备案号）正好落在纱区之外、
+   裸压壁纸。终点改 100% 并把底部提到 .72、中间补一档，让三段文字都在同一层纱上；
+   仍是通栏 + 四边羽化，不形成被否掉的「圆角矩形边界」。 */
 .sg-footer-zone { position: relative; margin-top: 2.5rem; }
 .sg-footer-zone::before {
   content: "";
@@ -74,7 +77,7 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: linear-gradient(to top, rgba(255, 255, 255, .62), rgba(255, 255, 255, 0) 62%);
+  background: linear-gradient(to top, rgba(255, 255, 255, .72), rgba(255, 255, 255, .4) 55%, rgba(255, 255, 255, 0) 100%);
 }
 html.dark .sg-footer-zone::before { background: linear-gradient(to top, rgba(10, 13, 28, .58), rgba(10, 13, 28, 0) 62%); }
 
