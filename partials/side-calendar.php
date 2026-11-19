@@ -17,16 +17,26 @@ $sgCalWeekNames = ['日', '一', '二', '三', '四', '五', '六'];
     <span class="sg-hcard-title"><?php echo sg_icon_color('calendar'); ?>日历</span>
     <span class="sg-hcal-ym"><?php echo $sgCalYear; ?> 年 <?php echo $sgCalMonth; ?> 月</span>
   </div>
-  <div class="sg-hcal-grid" role="grid" aria-label="<?php echo $sgCalYear; ?>年<?php echo $sgCalMonth; ?>月">
+  <table class="sg-hcal-grid" aria-label="<?php echo $sgCalYear; ?>年<?php echo $sgCalMonth; ?>月">
+    <thead><tr>
     <?php foreach ($sgCalWeekNames as $sgCalW) : ?>
-    <span class="sg-hcal-wd" role="columnheader"><?php echo $sgCalW; ?></span>
+    <th class="sg-hcal-wd" scope="col"><?php echo $sgCalW; ?></th>
     <?php endforeach; ?>
-    <?php for ($sgCalI = 0; $sgCalI < $sgCalFirstWeekday; $sgCalI++) : ?>
-    <span class="sg-hcal-cell is-empty" aria-hidden="true"></span>
+    </tr></thead>
+    <tbody>
+    <?php for ($sgCalRow = 0; $sgCalRow < (int) ceil(($sgCalFirstWeekday + $sgCalDaysInMonth) / 7); $sgCalRow++) : ?>
+    <tr>
+      <?php for ($sgCalCol = 0; $sgCalCol < 7; $sgCalCol++) : ?>
+      <?php $sgCalD = $sgCalRow * 7 + $sgCalCol - $sgCalFirstWeekday + 1; ?>
+      <?php if ($sgCalD < 1 || $sgCalD > $sgCalDaysInMonth) : ?>
+      <td class="sg-hcal-cell is-empty"></td>
+      <?php else : ?>
+      <td class="sg-hcal-cell<?php echo $sgCalD === $sgCalToday ? ' is-today' : ''; ?>"<?php echo $sgCalD === $sgCalToday ? ' aria-current="date"' : ''; ?>><?php echo $sgCalD; ?></td>
+      <?php endif; ?>
+      <?php endfor; ?>
+    </tr>
     <?php endfor; ?>
-    <?php for ($sgCalD = 1; $sgCalD <= $sgCalDaysInMonth; $sgCalD++) : ?>
-    <span class="sg-hcal-cell<?php echo $sgCalD === $sgCalToday ? ' is-today' : ''; ?>"<?php echo $sgCalD === $sgCalToday ? ' aria-current="date"' : ''; ?>><?php echo $sgCalD; ?></span>
-    <?php endfor; ?>
-  </div>
+    </tbody>
+  </table>
   <div class="sg-hcal-foot"><span class="sg-hcal-today">今天 · <?php echo $sgCalMonth; ?> 月 <?php echo $sgCalToday; ?> 日</span><span class="sg-hcal-week">星期<?php echo $sgCalWeekNames[(int) $sgCalNow->format('w')]; ?></span></div>
 </section>

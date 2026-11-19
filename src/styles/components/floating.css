@@ -1,8 +1,8 @@
 /* ---------- 左下悬浮工具箱 ---------- */
 .sg-toolbox {
   position: fixed;
-  left: 1.5rem;
-  bottom: 1.5rem;
+  left: calc(1.5rem + env(safe-area-inset-left, 0px));
+  bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
   z-index: 90;
   display: flex;
   flex-direction: column;
@@ -25,15 +25,15 @@
 .sg-tool svg { width: 1.125rem; height: 1.125rem; }
 
 @media (max-width: 767.98px) {
-  .sg-toolbox { left: .75rem; bottom: 1rem; gap: .5rem; }
-  .sg-tool { width: 2.5rem; height: 2.5rem; }
+  .sg-toolbox { left: calc(.75rem + env(safe-area-inset-left, 0px)); bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); gap: .5rem; }
+  .sg-tool { width: 2.75rem; height: 2.75rem; }
 }
 
 /* ---------- 右侧悬浮按钮组（对齐 Fomalhaut #rightside，AI 助手不加） ---------- */
 .sg-rightside {
   position: fixed;
-  right: 1.5rem;
-  bottom: 1.5rem;
+  right: calc(1.5rem + env(safe-area-inset-right, 0px));
+  bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
   z-index: 90;
   display: flex;
   flex-direction: column;
@@ -42,6 +42,7 @@
 }
 .sg-rightside-hidden { display: none; flex-direction: column; align-items: center; gap: .5rem; }
 .sg-rightside-hidden.is-open { display: flex; animation: sg-rightside-in .25s var(--sg-ease); }
+.sg-rightside-hidden .sg-rightside-down { display: none; }
 @keyframes sg-rightside-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .sg-rightside-btn {
   width: 2.375rem;
@@ -67,7 +68,13 @@
 .sg-go-up:hover svg { display: block !important; }
 .sg-go-up:hover .sg-go-up-percent { display: none !important; }
 @media (max-width: 767.98px) {
-  .sg-rightside { right: .75rem; bottom: 1rem; }
+  .sg-rightside { right: calc(.75rem + env(safe-area-inset-right, 0px)); bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); }
+}
+@media (max-width: 1023.98px), (pointer: coarse) {
+  .sg-rightside-btn, .sg-tool { min-width: 2.75rem; min-height: 2.75rem; }
+  .sg-rightside > .sg-rightside-down { display: none; }
+  .sg-rightside-hidden .sg-rightside-down { display: flex; }
+  html { scroll-padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px)); }
 }
 @media (prefers-reduced-motion: reduce) {
   .sg-rightside-hidden.is-open { animation: none; }

@@ -93,9 +93,9 @@
 
 /* 右缘竖排圆点：源站 swiper 竖向 pagination —— 灰色小圆点，当前页拉长成青色胶囊 */
 .sg-post-carousel .sg-dots { flex-direction: column; right: 1.25rem; top: 50%; bottom: auto; transform: translateY(-50%); }
-.sg-post-carousel .sg-dot { width: 8px; height: 8px; background: color-mix(in srgb, var(--sg-muted) 45%, transparent); }
-.sg-post-carousel .sg-dot:hover { background: color-mix(in srgb, var(--sg-muted) 80%, transparent); }
-.sg-post-carousel .sg-dot.is-active { width: 8px; height: 1.7rem; background: var(--sg-accent-2); }
+.sg-post-carousel .sg-dot::before { width: 8px; height: 8px; background: color-mix(in srgb, var(--sg-muted) 65%, transparent); }
+.sg-post-carousel .sg-dot:hover::before { background: var(--sg-muted); }
+.sg-post-carousel .sg-dot.is-active::before { width: 8px; height: 1.7rem; background: var(--sg-accent-2); }
 
 /* 极窄屏（<572）：轮播改竖排 —— 全宽封面在上、文案在下、圆点横排底部居中。
    横排时 36% 封面在 390px 屏只剩 ≈120px 宽，图与文案互相挤压；竖排恢复封面可读宽度。 */
@@ -105,7 +105,7 @@
   .sg-slide-media { flex: none; width: 100%; height: 10rem; padding: 1rem 1rem 0; }
   .sg-slide-body { flex: 1; height: auto; justify-content: flex-start; gap: .5rem; padding: .9rem 1.25rem 2.6rem; }
   .sg-post-carousel .sg-dots { flex-direction: row; right: auto; left: 50%; top: auto; bottom: .9rem; transform: translateX(-50%); }
-  .sg-post-carousel .sg-dot.is-active { width: 1.7rem; height: 8px; }
+  .sg-post-carousel .sg-dot.is-active::before { width: 1.7rem; height: 8px; }
 }
 
 .sg-dots { position: absolute; right: 1.5rem; bottom: 1rem; z-index: 30; display: flex; align-items: center; gap: .5rem; }
@@ -115,28 +115,81 @@
 
 .sg-dot {
   position: relative;
-  width: 8px;
-  height: 6px;
+  width: 24px;
+  height: 24px;
+  flex: none;
   border: 0;
   border-radius: 999px;
-  background: rgba(255, 255, 255, .40);
-  transition: width .5s, background-color .5s;
+  background: transparent;
+  cursor: pointer;
 }
 
-/* 视觉只有 8×6px，命中区要撑到 22px 高才算点得中（WCAG 2.5.8 的 24px 目标）。
-   用伪元素扩展不占布局，按钮之间也不会互相挤压。 */
-.sg-dot::after {
+/* 视觉圆点与命中区分离，按钮之间不会出现重叠的隐形热区。 */
+.sg-dot::before {
   content: '';
   position: absolute;
-  inset: -9px -8px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 6px;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, .6);
+  transition: width .5s, height .5s, background-color .5s;
 }
 
-.sg-dot:hover { background: rgba(255, 255, 255, .80); }
-.sg-dot.is-active { width: 1.5rem; background: var(--sg-indigo-soft); }
+.sg-dot:hover::before { background: rgba(255, 255, 255, .90); }
+.sg-dot.is-active::before { width: 1.5rem; background: var(--sg-indigo-soft); }
+
+.sg-carousel-toggle {
+  position: absolute;
+  top: .65rem;
+  right: .65rem;
+  z-index: 31;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: .4rem;
+  border: 1px solid var(--sg-border);
+  border-radius: var(--sg-radius-inner);
+  background: var(--sg-card-strong);
+  color: var(--sg-text);
+  font-family: var(--font-sans);
+  font-size: .75rem;
+  cursor: pointer;
+}
+.sg-carousel-toggle[hidden] { display: none; }
+.sg-carousel-toggle:is(:hover, :focus-visible) { color: var(--sg-accent-ink); }
+.sg-post-carousel .sg-carousel-toggle { left: 1.8rem; right: auto; top: 1.8rem; }
+.sg-chatter.has-carousel-controls .sg-chatter-body { padding-right: 4.5rem; }
+.sg-carousel-wheel-hint {
+  display: none;
+  position: absolute;
+  left: 1.25rem;
+  bottom: .5rem;
+  z-index: 31;
+  padding: .2rem .4rem;
+  border-radius: var(--sg-radius-inner);
+  background: var(--sg-card-strong);
+  color: var(--sg-muted);
+  font-family: var(--font-sans);
+  font-size: .7rem;
+  pointer-events: none;
+}
+@media (min-width: 1024px) and (pointer: fine) {
+  [data-sg-carousel]:is(:hover, :focus-within) .sg-carousel-wheel-hint { display: block; }
+}
+@media (pointer: coarse) {
+  .sg-dot { width: 44px; height: 44px; }
+  .sg-dots { gap: .25rem; }
+}
 
 /* 进度轨指示器：轮播超过 6 张时由 carousel.ts 换成这套（原来 15 个点会横占 232px）。
    整块是按钮，min-height 1.5rem 保证 24px 命中区。 */
 .sg-dots.is-progress { right: 1rem; bottom: .85rem; }
+.sg-post-carousel .sg-dots.is-progress { left: auto; right: 1rem; top: auto; bottom: .85rem; transform: none; flex-direction: row; }
+@media (max-width: 571.98px) {
+  .sg-post-carousel .sg-dots.is-progress { left: 50%; right: auto; transform: translateX(-50%); }
+}
 
 button.sg-progress {
   display: flex;
@@ -158,6 +211,9 @@ button.sg-progress {
 }
 
 button.sg-progress:hover { background: var(--sg-indicator-bg-hot); }
+@media (pointer: coarse) {
+  button.sg-progress { min-width: 44px; min-height: 44px; }
+}
 
 .sg-progress-track {
   display: block;

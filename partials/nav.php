@@ -159,8 +159,12 @@ foreach ($sgNavMore as $sgMorePage) {
   <span class="sg-disc-dots" aria-hidden="true"><i></i><i></i><i></i></span>
 </button>
 
-<div class="sg-sheet" id="sg-sheet" data-sg-sheet aria-hidden="true">
+<dialog class="sg-sheet" id="sg-sheet" data-sg-sheet aria-labelledby="sg-sheet-title">
   <div class="sg-sheet-panel">
+    <div class="sg-sheet-head">
+      <h2 id="sg-sheet-title">站点导航</h2>
+      <button class="sg-sheet-close" type="button" data-sg-sheet-close aria-label="关闭导航" autofocus>关闭</button>
+    </div>
     <a class="sg-sheet-link<?php echo $sgActive === 'index' ? ' is-active' : ''; ?>"<?php echo $sgActive === 'index' ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgHome); ?>"><span class="sg-nav-ico" style="color:#ff6b6b"><?php echo sg_icon('home'); ?></span>首页</a>
     <?php foreach ($sgNavItems as $sgPage) : ?>
     <a class="sg-sheet-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>"<?php echo $sgActiveKey === $sgPage['slug'] ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgPage['url']); ?>"<?php echo isset($sgNavHints[$sgPage['slug']]) ? ' title="' . sg_e($sgNavHints[$sgPage['slug']]) . '"' : ''; ?>><?php echo $sgNavIcon($sgPage['slug']); ?><?php echo sg_e($sgPage['title']); ?></a>
@@ -168,4 +172,4 @@ foreach ($sgNavMore as $sgMorePage) {
     <hr class="sg-divider">
     <button class="sg-sheet-link" type="button" data-sg-theme-toggle><?php echo sg_icon('sun', 'sg-i-sun'); ?><?php echo sg_icon('moon', 'sg-i-moon'); ?> 切换昼夜</button>
   </div>
-</div>
+</dialog>

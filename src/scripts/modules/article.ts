@@ -18,7 +18,7 @@ function initTOC(): void {
   toc.hidden = false;
   if (!toc.id) toc.id = 'sg-toc-panel';
 
-  /* 移动端目录开关：目录在窄屏默认收起，由右下角浮动按钮打开；
+  /* 移动端目录开关：目录在窄屏默认收起，由底部居中按钮打开；
      桌面端按钮由 CSS 隐藏，目录保持吸顶。 */
   const fab = document.createElement('button');
   fab.type = 'button';
@@ -29,16 +29,28 @@ function initTOC(): void {
   document.body.appendChild(fab);
   onPageDispose(() => fab.remove());
 
-  const setOpen = (open: boolean): void => {
+  const setOpen = (open: boolean, restoreFocus = true): void => {
     toc.classList.toggle('is-mobile-open', open);
     fab.setAttribute('aria-expanded', String(open));
     fab.textContent = open ? '收起目录' : '目录';
     if (open) {
       toc.querySelector<HTMLAnchorElement>('.sg-toc-list a')?.focus({ preventScroll: true });
-    } else {
+    } else if (restoreFocus) {
       fab.focus({ preventScroll: true });
     }
   };
+  /* fixed 面板移出正文的入场/层叠上下文，避免被悬浮按钮覆盖。 */
+  const place = document.createComment('sg-toc-desktop-position');
+  toc.before(place);
+  const mobile = window.matchMedia('(max-width: 1023.98px)');
+  const placeTOC = (): void => {
+    setOpen(false, false);
+    if (mobile.matches) document.body.appendChild(toc);
+    else place.after(toc);
+  };
+  placeTOC();
+  pageOn(mobile, 'change', placeTOC);
+  onPageDispose(() => { place.after(toc); place.remove(); });
   pageOn(fab, 'click', () => setOpen(!toc.classList.contains('is-mobile-open')));
   pageOn(document, 'keydown', (event) => {
     if (event.key === 'Escape' && toc.classList.contains('is-mobile-open')) setOpen(false);
@@ -79,7 +91,7 @@ function initTOC(): void {
       head.focus({ preventScroll: true });
       head.scrollIntoView({ behavior: reducedMotion() ? 'instant' : 'smooth', block: 'start' });
       window.history.replaceState(null, '', `#${head.id}`);
-      if (window.matchMedia('(max-width: 1023.98px)').matches) setOpen(false);
+      if (mobile.matches) setOpen(false, false);
     });
     item.appendChild(link);
     list.appendChild(item);
@@ -139,6 +151,9 @@ function initCodeBlocks(): void {
     if (!code) return;
 
     pre.classList.add('sg-codeblock');
+    code.tabIndex = 0;
+    code.setAttribute('role', 'region');
+    code.setAttribute('aria-label', `代码块 ${index + 1}`);
     const match = code.className.match(/language-([\w+#-]+)/);
     const bar = document.createElement('div');
     bar.className = 'sg-code-bar';

@@ -94,10 +94,17 @@ body { overflow-x: clip; }
 /* 文章页：正文 + 320px 侧栏
    2026-11-17：页顶横幅 .sg-post-banner 是 main 的第一个子元素、需独占整行 ——
    否则 ≥1024px 的 row 布局会把它和文章卡/侧栏排进同一行，把正文挤没。 */
-.sg-article-layout { display: flex; flex-direction: column; gap: 1.5rem; flex-wrap: wrap; }
+.sg-article-layout { display: flex; flex-direction: column; gap: 1.5rem; flex-wrap: nowrap; }
+/* 列布局中的 flex:1 不约束横向宽度，长正文会把卡片撑出手机视口。 */
+.sg-article-layout > :is(.sg-article, .sg-post-banner) { width: 100%; flex: 0 0 auto; }
+.sg-article-layout .sg-prose a,
+.sg-article-layout .sg-prose :not(pre) > code { overflow-wrap: anywhere; }
+.sg-article-layout .sg-prose pre { max-width: 100%; overflow-x: auto; }
 
 @media (min-width: 1024px) {
-  .sg-article-layout { flex-direction: row; gap: 2rem; align-items: flex-start; }
+  .sg-article-layout { flex-direction: row; flex-wrap: wrap; gap: 2rem; align-items: flex-start; }
+  .sg-article-layout > .sg-article { width: auto; flex: 1 1 0; }
+  .sg-article-layout > .sg-post-banner { flex: 0 0 100%; }
 }
 
 .sg-aside {

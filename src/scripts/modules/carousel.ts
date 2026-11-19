@@ -1,12 +1,12 @@
-import { pageOn,pageTimeout } from './lifecycle';
+import { pageOn,pageTimeout,onPageDispose } from './lifecycle';
 /**
  * 首页轮播（封面轮播 + 碎语轮播）。
  * DOM 契约：[data-sg-carousel] / [data-sg-slide] / 可选 [data-sg-dots]，
  * [data-sg-interval] 缺省 6000ms，首页文章轮播使用 8000ms（第十七轮降速）。
  *
  * 自动播放保留源站 wait 节奏：每段淡出 / 淡入 800ms。
- * 桌面调整（>=1024px）：悬停 / 焦点临时暂停、手动切换每段 200ms、
- * 方向键 / Home / End；不新增触摸手势，也不提供暂停按钮。
+ * 保留已确认的自动播放与淡入淡出节奏；提供显式暂停 / 继续，
+ * 桌面支持方向键 / Home / End 与滚轮切换，不新增触摸手势。
  */
 import { reducedMotion } from './runtime';
 
@@ -34,12 +34,14 @@ function setupCarousel(host: HTMLElement): void {
 
   const desktop = window.matchMedia('(min-width: 1024px)');
   const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const coarse = window.matchMedia('(pointer: coarse)');
   let index = slides.findIndex((slide) => slide.classList.contains('is-active'));
   if (index < 0) index = 0;
   // 已显示索引与待切入目标分开：连点只改目标，不反复延长退场。
   let requested = index;
   let pending = 0;
   let timer = 0;
+  let paused = false;
 
   const dots: HTMLButtonElement[] = [];
   let progressFill: HTMLElement | null = null;
@@ -52,7 +54,7 @@ function setupCarousel(host: HTMLElement): void {
     host.setAttribute('aria-label', host.classList.contains('sg-chatter') ? '碎语轮播' : '最新文章轮播');
   }
 
-  if (dotsHost && slides.length > DOTS_MAX) {
+  if (dotsHost && (slides.length > DOTS_MAX || (coarse.matches && slides.length > 4))) {
     dotsHost.classList.add('is-progress');
     progressBtn = document.createElement('button');
     progressBtn.type = 'button';
@@ -73,6 +75,38 @@ function setupCarousel(host: HTMLElement): void {
       dots.push(dot);
     });
   }
+
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'sg-carousel-toggle';
+  toggle.dataset.sgCarouselToggle = '';
+  host.classList.add('has-carousel-controls');
+  host.appendChild(toggle);
+  const paintToggle = (): void => {
+    toggle.textContent = paused ? '继续' : '暂停';
+    toggle.setAttribute('aria-label', paused ? '继续自动轮播' : '暂停自动轮播');
+    if (reducedMotion() && document.activeElement === toggle) {
+      if (!host.hasAttribute('tabindex')) host.tabIndex = -1;
+      host.focus({ preventScroll: true });
+    }
+    toggle.hidden = reducedMotion();
+  };
+  pageOn(toggle, 'click', () => {
+    paused = !paused;
+    if (paused && pending) jump(requested);
+    paintToggle();
+    restart();
+  });
+  const hint = document.createElement('span');
+  hint.className = 'sg-carousel-wheel-hint';
+  hint.textContent = '滚轮切换 · 移出卡片滚动页面';
+  host.appendChild(hint);
+  slides.forEach((slide, i) => {
+    slide.setAttribute('role', 'group');
+    slide.setAttribute('aria-roledescription', '幻灯片');
+    slide.setAttribute('aria-label', `第 ${i + 1} 张，共 ${slides.length} 张`);
+  });
+  onPageDispose(() => { toggle.remove(); hint.remove(); host.classList.remove('has-carousel-controls'); });
 
   const paintIndicator = (): void => {
     dots.forEach((dot, i) => {
@@ -159,9 +193,8 @@ function setupCarousel(host: HTMLElement): void {
 
   function restart(): void {
     stop();
-    /* 第十八轮：悬停/焦点不再停表（用户要求鼠标在卡片内时也能自动切换）；
-       只保留后台标签页与减少动效两道闸。 */
-    if (document.hidden || reducedMotion()) return;
+    /* 悬停仍照常切换；用户显式暂停后，手动切页与标签页恢复不会重启。 */
+    if (document.hidden || reducedMotion() || paused) return;
     timer = pageTimeout(() => {
       timer = 0;
       show(requested + 1);
@@ -193,6 +226,7 @@ function setupCarousel(host: HTMLElement): void {
      滚轮切换幻灯并拦住页面滚动；阈值 + 冷却防触控板惯性连跳；单张不拦截。 */
   let wheelLock = 0;
   host.addEventListener('wheel', (event) => {
+    if (!desktop.matches || coarse.matches || (event.target instanceof Element && event.target.closest('button'))) return;
     if (slides.length < 2 || Math.abs(event.deltaY) < 24) return;
     event.preventDefault();
     const now = Date.now();
@@ -209,9 +243,11 @@ function setupCarousel(host: HTMLElement): void {
   });
   pageOn(motion, 'change', () => {
     if (reducedMotion()) jump(requested);
+    paintToggle();
     restart();
   });
 
+  paintToggle();
   jump(index);
   restart();
 }

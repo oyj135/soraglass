@@ -45,7 +45,7 @@ foreach (sg_home_articles($sgHomeListLimit) as $sgHomeCard) {
      右侧五卡（作者 / 音乐 / 日历 / 春节倒计时 / 小站资讯），对齐 Fomalhaut 74% : 26%。
      所有既有模块 HTML 全部保留，只是换到新容器里，不删任何内容。 */
   ?>
-  <div class="sg-home-body">
+  <div class="sg-home-body"<?php echo $sgHomeListHtml === '' ? ' id="sg-home-content" tabindex="-1"' : ''; ?>>
     <div class="sg-home-main">
       <div class="sg-stack">
         <?php
@@ -111,7 +111,7 @@ foreach (sg_home_articles($sgHomeListLimit) as $sgHomeCard) {
         /* 首页文章列表：multicard 卡片，形态与归档/分类/标签一致（复用 .sg-feature-card）。 */
         ?>
         <?php if ($sgHomeListHtml !== '') : ?>
-        <section class="sg-home-latest" id="sg-home-content" aria-label="最新文章">
+        <section class="sg-home-latest" id="sg-home-content" tabindex="-1" aria-label="最新文章">
           <div class="sg-home-section-head">
             <h2 class="sg-home-section-title"><?php echo sg_icon('book-open'); ?>精选</h2>
           </div>

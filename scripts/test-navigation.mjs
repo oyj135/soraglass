@@ -16,6 +16,10 @@ function setup(initial = '/a.html') {
   let timerId = 0, mounted = 0, positioned = null;
   class Element {
     attrs = new Map();
+    open = false;
+    closeCount = 0;
+    showModal() { this.open = true; }
+    close() { this.open = false; this.closeCount++; }
     classes = new Set();
     classList = {
       add: (...names) => names.forEach(name => this.classes.add(name)),
@@ -50,7 +54,6 @@ function setup(initial = '/a.html') {
     doc.querySelector('#sg-main').path = path;
     doc.querySelector('[data-sg-sheet]').path = path;
     doc.querySelector('[data-sg-rightside]').path = path;
-    doc.querySelector('[data-sg-sheet]').setAttribute('aria-hidden', 'true');
     doc.querySelector('[data-sg-config]').textContent = '{}';
     doc.querySelector('[data-sg-style]').setAttribute('href', '/theme.css');
     return doc;
@@ -121,12 +124,13 @@ test('clicking the destination while back navigation loads must not leave old co
 test('a repeated current-page click closes the drawer without adding history', async () => {
   const h = setup();
   const sheet = h.document.querySelector('[data-sg-sheet]');
-  sheet.classList.add('is-open'); sheet.setAttribute('aria-hidden', 'false');
+  sheet.classList.add('is-open'); sheet.showModal();
   h.document.documentElement.classList.add('sg-lock');
   h.document.querySelector('[data-sg-sheet-open]').setAttribute('aria-expanded', 'true');
   h.click('/a.html');
   assert.equal(sheet.classList.contains('is-open'), false);
-  assert.equal(sheet.getAttribute('aria-hidden'), 'true');
+  assert.equal(sheet.open, false);
+  assert.equal(sheet.closeCount, 1);
   assert.equal(h.document.documentElement.classList.contains('sg-lock'), false);
   assert.equal(h.document.querySelector('[data-sg-sheet-open]').getAttribute('aria-expanded'), 'false');
   assert.equal(h.entries.length, 1);

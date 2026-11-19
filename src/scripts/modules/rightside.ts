@@ -57,14 +57,12 @@ function initGoUp(): void {
 }
 
 function initGoDown(): void {
-  const btn = document.querySelector<HTMLButtonElement>('[data-sg-go-down]');
-  if (!btn) return;
-  pageOn(btn, 'click', () => {
+  document.querySelectorAll<HTMLButtonElement>('[data-sg-go-down]').forEach(btn => pageOn(btn, 'click', () => {
     window.scrollTo({
       top: Math.max(document.documentElement.scrollHeight, document.body.scrollHeight),
       behavior: reducedMotion() ? 'instant' : 'smooth',
     });
-  });
+  }));
 }
 
 function initConfig(): void {
@@ -73,6 +71,7 @@ function initConfig(): void {
   if (!btn || !group) return;
 
   const setOpen = (open: boolean): void => {
+    if (!open && group.contains(document.activeElement)) btn.focus({ preventScroll: true });
     group.classList.toggle('is-open', open);
     btn.classList.toggle('is-open', open);
     btn.setAttribute('aria-expanded', open ? 'true' : 'false');

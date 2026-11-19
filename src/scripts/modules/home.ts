@@ -33,9 +33,17 @@ function initFrontNav(): void {
   // 向下按钮：平滑滚到文章列表区（没有则滚到正文顶部）
   const next = front.querySelector<HTMLElement>('[data-sg-front-next]');
   const target = document.querySelector<HTMLElement>('#sg-home-content') ?? document.querySelector<HTMLElement>('.sg-home-body');
-  next?.addEventListener('click', () => {
+  next && pageOn(next, 'click', () => {
     if (!target) return;
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    target.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
+  });
+  const read = front.querySelector<HTMLAnchorElement>('[data-sg-front-read]');
+  read && pageOn(read, 'click', event => {
+    if (!target) return;
+    event.preventDefault();
+    target.tabIndex = -1;
+    target.focus({ preventScroll: true });
+    target.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
   });
 }
 
@@ -79,7 +87,7 @@ function initCountdown(): void {
     标语先整句变成随机字符，再按随机进度从左到右逐字还原；多行标语循环时
     旧句随机化湮灭 → 新句解码进场。参考 Codrops TextScramble 的帧驱动模型。
     随机字符池以全角假名为主（与中文标语等宽，解码抖动最小），可按口味调整。
-    减少动效时保留服务端渲染的静态全文；aria-label 提供完整文本给读屏。 */
+    减少动效时保留服务端渲染的静态全文；静态全文与视觉解码层分开。 */
 const SG_SCRAMBLE_CHARS = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホ<>*+-=#01';
 
 function initScramble(): void {
@@ -91,15 +99,17 @@ function initScramble(): void {
     .filter(s => s !== '');
   if (strings.length === 0) return;
 
-  el.setAttribute('aria-label', strings.join(' '));
   el.textContent = '';
+  const accessibleText = document.createElement('span');
+  accessibleText.className = 'sr-only';
+  accessibleText.textContent = strings.join(' ');
   const text = document.createElement('span');
   text.className = 'sg-front-type-text';
   text.setAttribute('aria-hidden', 'true');
   const caret = document.createElement('span');
   caret.className = 'sg-front-caret';
   caret.setAttribute('aria-hidden', 'true');
-  el.append(text, caret);
+  el.append(accessibleText, text, caret);
 
   const randomChar = (): string => SG_SCRAMBLE_CHARS[Math.floor(Math.random() * SG_SCRAMBLE_CHARS.length)];
   /** str 的第 resolvedFrom 位之前为已还原字符，其余渲染成随机字符（空格保持空格防抖动） */

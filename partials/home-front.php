@@ -28,6 +28,7 @@ $sgFrontSocial = sg_json('sgSocial', 'social', []);
       <?php endforeach; ?>
     </div>
     <?php endif; ?>
+    <a class="sg-front-read" href="#sg-home-content" data-sg-front-read>浏览最新文章</a>
   </div>
   <button class="sg-front-next" type="button" data-sg-front-next aria-label="向下滚动查看正文">
     <span class="sg-front-next-label">向下探索</span>

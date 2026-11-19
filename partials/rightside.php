@@ -18,6 +18,9 @@
       <?php echo sg_icon('book-open'); ?>
     </button>
     <?php endif; ?>
+    <button class="sg-rightside-btn sg-rightside-down" type="button" data-sg-go-down aria-label="直达底部">
+      <?php echo sg_icon('arrow-down'); ?>
+    </button>
   </div>
   <button class="sg-rightside-btn" type="button" data-sg-rightside-config aria-label="展开设置" aria-expanded="false" aria-controls="sg-rightside-hidden">
     <?php echo sg_icon('settings'); ?>
@@ -26,7 +29,7 @@
     <?php echo sg_icon('arrow-up'); ?>
     <span class="sg-go-up-percent" data-sg-go-up-percent>0<span>%</span></span>
   </button>
-  <button class="sg-rightside-btn" type="button" data-sg-go-down aria-label="直达底部">
+  <button class="sg-rightside-btn sg-rightside-down" type="button" data-sg-go-down aria-label="直达底部">
     <?php echo sg_icon('arrow-down'); ?>
   </button>
 </div>
