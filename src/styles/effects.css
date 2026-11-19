@@ -424,19 +424,7 @@ html.sg-ready .sg-post-hero img { animation: sg-imgblur .8s ease-in-out both; }
   .sg-heart { animation: none; }
 }
 
-/* A5 页脚波浪（源站 move-forever：四层错速平移，节奏与延迟逐层拉开） */
-@keyframes sg-waves-move {
-  0% { transform: translate3d(-90px, 0, 0); }
-  100% { transform: translate3d(85px, 0, 0); }
-}
-.sg-waves-parallax > use { animation: sg-waves-move 25s cubic-bezier(.55, .5, .45, .5) infinite; }
-.sg-waves-parallax > use:nth-child(1) { animation-delay: -2s; animation-duration: 7s; }
-.sg-waves-parallax > use:nth-child(2) { animation-delay: -3s; animation-duration: 10s; }
-.sg-waves-parallax > use:nth-child(3) { animation-delay: -4s; animation-duration: 13s; }
-.sg-waves-parallax > use:nth-child(4) { animation-delay: -5s; animation-duration: 20s; }
-@media (prefers-reduced-motion: reduce) {
-  .sg-waves-parallax > use { animation: none; }
-}
+/* A5 页脚波浪已于 2026-11-19 第三轮移除（用户要求），动画与 DOM 一并下线 */
 
 /* C3 夜间星空（2026-11-24 第二十四轮，源站 #universe 的自有版）：
    固定全屏 canvas 垫在壁纸（z -10）之上、内容之下；只在 html.dark 显示，

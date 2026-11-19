@@ -547,19 +547,6 @@ const postPage = `${head('把毛玻璃调成呼吸的频率 - Soraglass')}
           </div>
         </div>
       </div>
-      <div class="sg-post-hero-waves" aria-hidden="true">
-        <svg class="sg-waves-svg" viewBox="0 24 150 28" preserveAspectRatio="none">
-          <defs>
-            <path id="sg-gentle-wave" d="M -160 44 c 30 0 58 -18 88 -18 s 58 18 88 18 s 58 -18 88 -18 s 58 18 88 18 v 44 h -352 Z"/>
-          </defs>
-          <g class="sg-waves-parallax">
-            <use href="#sg-gentle-wave" x="48" y="0"/>
-            <use href="#sg-gentle-wave" x="48" y="3"/>
-            <use href="#sg-gentle-wave" x="48" y="5"/>
-            <use href="#sg-gentle-wave" x="48" y="7"/>
-          </g>
-        </svg>
-      </div>
     </header>
     <div class="sg-article-body">
       <a class="sg-back" href="#">${icons.arrowLeft}返回知识档案</a>

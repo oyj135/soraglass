@@ -65,9 +65,8 @@
 /* 2026-11-12 第七轮：页脚视觉对齐参考样例 —— 没有玻璃卡、没有时钟、没有分隔线，
    只剩居中两行衬线文案直接压在壁纸上（第一行版权、第二行 Powered by）。
    时钟节点与 modules/dashboard.ts 一起下线，页面上不再有任何 1s 定时器。 */
-/* 页脚区（2026-11-19 A5 + 方案一）：波浪全宽容器 + 底纱，给无卡托底的页脚文字连续底色。
-   波浪：四层错速平移（动画在 effects.css），日间瓷白、夜间深靖；实心顶层形成底部色带，
-   页脚文字落在色带上。 */
+/* 页脚区（2026-11-19 第三轮，用户要求去掉波浪）：只剩一层底纱给无卡托底的页脚文字
+   连续底色，不再有波浪 DOM。纱从底部起、到 62% 淡出，边界仍是渐隐的软边。 */
 .sg-footer-zone { position: relative; margin-top: 2.5rem; }
 .sg-footer-zone::before {
   content: "";
@@ -75,28 +74,9 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: linear-gradient(to top, rgba(255, 255, 255, .55), rgba(255, 255, 255, 0) 60%);
+  background: linear-gradient(to top, rgba(255, 255, 255, .62), rgba(255, 255, 255, 0) 62%);
 }
-html.dark .sg-footer-zone::before { background: linear-gradient(to top, rgba(10, 13, 28, .5), rgba(10, 13, 28, 0) 60%); }
-.sg-footer-waves {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -1px;
-  z-index: 1;
-  height: 5.5rem;
-  pointer-events: none;
-}
-.sg-waves-svg { display: block; width: 100%; height: 100%; }
-.sg-waves-parallax > use:nth-child(1) { fill: rgba(247, 249, 254, .74); }
-.sg-waves-parallax > use:nth-child(2) { fill: rgba(247, 249, 254, .51); }
-.sg-waves-parallax > use:nth-child(3) { fill: rgba(247, 249, 254, .22); }
-.sg-waves-parallax > use:nth-child(4) { fill: #f7f9fe; }
-html.dark .sg-waves-parallax > use:nth-child(1) { fill: rgba(22, 25, 48, .78); }
-html.dark .sg-waves-parallax > use:nth-child(2) { fill: rgba(22, 25, 48, .5); }
-html.dark .sg-waves-parallax > use:nth-child(3) { fill: rgba(22, 25, 48, .24); }
-html.dark .sg-waves-parallax > use:nth-child(4) { fill: #161930; }
-@media (max-width: 767.98px) { .sg-footer-waves { height: 3.2rem; } }
+html.dark .sg-footer-zone::before { background: linear-gradient(to top, rgba(10, 13, 28, .58), rgba(10, 13, 28, 0) 62%); }
 
 .sg-footer-wrap { position: relative; z-index: 2; width: 95%; max-width: 72rem; margin-inline: auto; }
 @media (min-width: 768px) { .sg-footer-wrap { width: 90%; } }

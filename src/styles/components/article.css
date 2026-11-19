@@ -292,36 +292,10 @@ html.dark .sg-prose a { color: var(--sg-indigo-soft); }
 
 /* ---------- 独立页页头 ---------- */
 .sg-page-head { position: relative; z-index: 0; margin-bottom: 2.5rem; }
-/* 方案一（2026-11-19）：页头日间压「瓷白纱」、夜间压暗纱 —— 渐变标题/副标题从此有连续底色，
-   不再依赖逐字光晕硬扛高亮壁纸。纱层 z-index:-1 垫在文字底下。
-
-   2026-11-19 第二版：第一版的 mask 椭圆半径（120%×118%、实心到 48%）比盒子本身还大，
-   四边 alpha 恒为 1，被容器直接裁出一个圆角矩形轮廓（左侧壁纸深的地方一条清晰竖边，
-   右侧浅的地方又半隐半现），读起来像贴了张白纸。现在两层都收进盒内：
-   - 底色改「中间白、四周收」的径向，光心从 18% 移到 46%（压在标题块上而非导航下），
-     顺带去掉原来那条上白下透明的水平分界；
-   - mask 用 closest-side，渐变 100% 正好落在盒子四边中点 → 四边必为 0，不再有硬边；
-   - 半径比第一版大一圈（上下各多留 1rem），配合羽化后标题与副标题仍落在纯实心里。
-   仍是同一个 ::before，9 个页头（项目/友链/音乐/画廊/档案/碎语/归档/分类/标签）同步生效。 */
-.sg-page-head::before {
-  content: "";
-  position: absolute;
-  inset: -2rem -1.5rem -2.5rem;
-  z-index: -1;
-  pointer-events: none;
-  background: radial-gradient(70% 82% at 50% 46%,
-    rgba(255, 255, 255, .88),
-    rgba(255, 255, 255, .5) 46%,
-    rgba(255, 255, 255, 0) 72%);
-  -webkit-mask-image: radial-gradient(closest-side at 50% 50%, #000 30%, rgba(0, 0, 0, .55) 62%, transparent 100%);
-  mask-image: radial-gradient(closest-side at 50% 50%, #000 30%, rgba(0, 0, 0, .55) 62%, transparent 100%);
-}
-html.dark .sg-page-head::before {
-  background: radial-gradient(70% 82% at 50% 46%,
-    rgba(10, 14, 26, .62),
-    rgba(10, 14, 26, .34) 46%,
-    rgba(10, 14, 26, 0) 72%);
-}
+/* 2026-11-19 第三版（用户要求）：雾层整体移除。
+   前两版都在解决「边界」，但雾层存在的意义只是让字读得清；既然用户不要这层底，
+   就回到「逐字光晕」方案：标题用 drop-shadow、副标题用 --sg-wall-halo（见下方 365 行附近），
+   不再有第二块表面与壁纸/导航抢层级。9 个页头同时生效。 */
 @media (min-width: 768px) { .sg-page-head { margin-bottom: 4rem; } }
 
 .sg-page-head-row { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
@@ -1146,13 +1120,14 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
 }
 html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6); }
 
-/* 封面：底边「柔和正弦缓波」静态分割（2026-11-18 第六轮重做）。
-   旧版每 25 单位重复一个规则小波，控制点带垂直切线形成平顶/平底（方波感），
-   再叠加 14s 匀速平移 + 弹跳小三角，机械生硬。现改为单幅平滑正弦：
-   基线 90%、一峰一谷（峰 85 / 谷 95 单位），每段三次贝塞尔两端切线水平，
-   曲线连续无折角；去掉横向流动与弹跳三角，静态、自然、简洁。
-   preserveAspectRatio='none' + mask-size 100% 仍随卡宽拉伸，布局与响应式不变；
-   mask 同时裁 img、暗幕 ::after 与摘要层，边缘平滑无锯齿。 */
+/* 封面：底边「单拱缓波」静态分割（2026-11-19 第七轮重做）。
+   按用户给的参考截图量过边界曲线：参考图 630px 宽，界线落差仅约 10px，
+   且形态是一侧近乎水平、另一侧缓缓抬起的单拱，不是有明确峰谷的 S 波。
+   所以这里只取「四分之一个周期」：左端 90、中段 89.5 基本持平、右端 94.5 微微下沉，
+   落差 5 单位（封面高的 5%）；三段贝塞尔两端切线水平，全曲线无折角。
+   旧版（2026-11-18 第六轮）在 200 宽内塞了两个起伏、落差 10 单位，窄卡上斜率翻倍，
+   看起来像锯齿。preserveAspectRatio='none' + mask-size 100% 仍随卡宽拉伸：
+   波长跟卡宽走、落差跟 200px 封面高走；mask 同时裁 img、暗幕 ::after 与摘要层。 */
 .sg-feature-media {
   position: relative;
   display: flex;
@@ -1162,8 +1137,8 @@ html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6)
   height: 12.5rem;              /* 200px，与 Fomalhaut 封面同高 */
   overflow: hidden;
   background: rgba(148, 163, 184, .15);
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H200V90C183.3 90 183.3 85 150 85C116.7 85 116.7 90 100 90C83.3 90 83.3 95 50 95C16.7 95 16.7 90 0 90Z' fill='%23fff'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H200V90C183.3 90 183.3 85 150 85C116.7 85 116.7 90 100 90C83.3 90 83.3 95 50 95C16.7 95 16.7 90 0 90Z' fill='%23fff'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H200V94.5C168 94.5 150 89.5 118 89.5C74 89.5 40 90 0 90Z' fill='%23fff'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H200V94.5C168 94.5 150 89.5 118 89.5C74 89.5 40 90 0 90Z' fill='%23fff'/%3E%3C/svg%3E");
   -webkit-mask-size: 100% 100%;
   mask-size: 100% 100%;
   -webkit-mask-repeat: no-repeat;
