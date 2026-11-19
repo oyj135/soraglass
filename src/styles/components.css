@@ -54,7 +54,8 @@ html.dark .sg-feature-card {
 
 /* ---------- 导航 ----------
    复刻源站 fomalhaut head.styl 的导航行为（第十七轮）：
-   · 展开缓 .5s / 收起快 .2s（transition 取目标态规则：加 .is-hidden 走快收，移除走缓展）
+   · 方向切换（对齐源站「向下标题 / 向上菜单」）：下滑顶栏常驻贴顶、内容切成居中
+     页名，上滑恢复完整菜单；对应源站 nav-fixed/nav-visible 两套 display 开关。
    · 滚过 56px 进入固定态补源站同款阴影（nav-fixed box-shadow 0 5px 6px -5px）
    · 载入淡入（源站 #nav opacity 0 → .show，.5s）
    · 「更多」下拉 = 源站 sub_menus .3s .1s both（editorial.css），箭头旋转 .3s */
@@ -64,8 +65,7 @@ html.dark .sg-feature-card {
   z-index: 50;
   background: var(--sg-card);
   border-bottom: 1px solid var(--sg-card-border);
-  transition: transform .5s var(--sg-ease), background-color 1s, border-color 1s,
-    box-shadow .3s var(--sg-ease);
+  transition: background-color 1s, border-color 1s, box-shadow .3s var(--sg-ease);
 }
 
 html.dark .sg-nav {
@@ -73,10 +73,10 @@ html.dark .sg-nav {
   border-bottom-color: rgba(255, 255, 255, .10);
 }
 
+/* 向下滚（is-hidden）：顶栏常驻贴顶，让位给居中页名（源站向下标题态），
+   不再整条滑出——页名是顶栏子元素，若整条 translateY(-105%) 会一起消失。 */
 .sg-nav.is-hidden {
-  transform: translateY(-105%);
-  transition: transform .2s var(--sg-ease), background-color 1s, border-color 1s,
-    box-shadow .3s var(--sg-ease);
+  transition: background-color 1s, border-color 1s, box-shadow .3s var(--sg-ease);
 }
 
 /* 固定态阴影（源站 head.styl nav-fixed） */
@@ -105,8 +105,9 @@ html.sg-ready .sg-nav { animation: sg-nav-in .5s var(--sg-ease) both; }
 
 @media (min-width: 640px) { .sg-nav-inner { padding-inline: 1.875rem; } }
 
-/* A1（2026-11-19）：滚动后顶栏中央显示当前页名，悬停露「回到顶部」提示并微放大。
-   translate 与 scale 分开写（独立属性），避免源站 #name-container 那个
+/* 当前页名（对齐源站「向下标题 / 向上菜单」的方向切换）：只在向下滚（is-hidden）
+   时浮出；向上滚与顶部一律让位给完整导航菜单，绝不与之同框。
+   translate 与 scale 分开写（独立属性），避开源站 #name-container
    「scale 合成进 translateX(-50%) 导致居中偏移 6.3px」的坑；≤768px 隐藏。 */
 .sg-nav-page {
   position: absolute;
@@ -122,7 +123,10 @@ html.sg-ready .sg-nav { animation: sg-nav-in .5s var(--sg-ease) both; }
   color: var(--sg-text);
   text-decoration: none;
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
+  /* visibility 不入 transition：上滑移除 is-hidden 时标题即时让位，
+     不与 .3s 淡入的菜单同框（opacity/scale 仍保留柔和过渡）。 */
   transition: opacity .3s var(--sg-ease), scale .3s var(--sg-ease);
 }
 .sg-nav-page::after {
@@ -142,8 +146,9 @@ html.sg-ready .sg-nav { animation: sg-nav-in .5s var(--sg-ease) both; }
   opacity: 0;
   transition: opacity .3s var(--sg-ease);
 }
-.sg-nav.is-scrolled .sg-nav-page { opacity: 1; pointer-events: auto; }
-.sg-nav.is-scrolled .sg-nav-page:is(:hover, :focus-visible) { scale: 1.03; }
+/* 向下滚（is-hidden）：顶栏常驻，中央浮出页名作「回到顶部」入口（源站向下标题态）。 */
+.sg-nav.is-hidden .sg-nav-page { opacity: 1; visibility: visible; pointer-events: auto; }
+.sg-nav.is-hidden .sg-nav-page:is(:hover, :focus-visible) { scale: 1.03; }
 .sg-nav-page:is(:hover, :focus-visible)::after { opacity: 1; }
 @media (max-width: 767.98px) { .sg-nav-page { display: none; } }
 
@@ -158,8 +163,10 @@ html.sg-ready .sg-nav { animation: sg-nav-in .5s var(--sg-ease) both; }
 .sg-brand:hover { color: var(--sg-accent-ink); }
 .sg-brand-accent { color: var(--sg-accent-ink); margin-inline: .25rem; }
 
-/* 互斥显示（2026-11-19）：滚动态顶栏中央让位给当前页名，主导航淡出并退出焦点树。
-   visibility 与 opacity 同步过渡，避免隐藏后仍能被键盘 Tab 聚焦到透明链接。 */
+/* 方向切换（2026-11-19，对齐源站「向下标题 / 向上菜单」）：
+   向下滚（is-hidden）顶栏让位给居中页名，主导航淡出并退出焦点树；
+   向上滚与顶部（移除 is-hidden）导航照常可见。visibility 与 opacity 同步过渡，
+   避免隐藏后仍能被键盘 Tab 聚焦到透明链接。 */
 .sg-nav-links {
   display: flex;
   gap: 2rem;
@@ -168,7 +175,7 @@ html.sg-ready .sg-nav { animation: sg-nav-in .5s var(--sg-ease) both; }
   transition: opacity .3s var(--sg-ease), visibility .3s;
 }
 /* :has() 守卫：页名未填充（JS 未移掉 hidden）时保持导航可见，避免空顶栏。 */
-.sg-nav.is-scrolled:has(.sg-nav-page:not([hidden])) .sg-nav-links {
+.sg-nav.is-hidden:has(.sg-nav-page:not([hidden])) .sg-nav-links {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;

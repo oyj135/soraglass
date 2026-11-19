@@ -22,6 +22,9 @@ html.dark .sg-nav.is-front { background: linear-gradient(180deg, rgba(2, 6, 23, 
 .sg-nav.is-front .sg-brand-accent,
 .sg-nav.is-front .sg-nav-link,
 .sg-nav.is-front .sg-nav-more-btn { color: #fff; opacity: 1; text-shadow: 0 1px 10px rgba(0, 0, 0, .55); }
+/* 首屏向下滚时浮出的页名跟站名一起转白，避免深色字压在暗 scrim 上；
+   显隐仍由 is-hidden 控制，这里只改配色。 */
+.sg-nav.is-front .sg-nav-page { color: #fff; text-shadow: 0 1px 10px rgba(0, 0, 0, .55); }
 .sg-nav.is-front .sg-nav-link.is-active::before { background: #fff; }
 /* 首屏 hover（2026-11-18 用户反馈：原来 base 与 hover 都压白、且 !important 锁死，
    悬浮毫无变化）：base 满白保醒目，hover 换青瓷浅色 + 同色下划线，变化一眼可见 */
