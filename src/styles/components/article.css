@@ -293,20 +293,34 @@ html.dark .sg-prose a { color: var(--sg-indigo-soft); }
 /* ---------- 独立页页头 ---------- */
 .sg-page-head { position: relative; z-index: 0; margin-bottom: 2.5rem; }
 /* 方案一（2026-11-19）：页头日间压「瓷白纱」、夜间压暗纱 —— 渐变标题/副标题从此有连续底色，
-   不再依赖逐字光晕硬扛高亮壁纸。纱层 z-index:-1 垫在文字底下，mask 周围羽化不压下方卡片。 */
+   不再依赖逐字光晕硬扛高亮壁纸。纱层 z-index:-1 垫在文字底下。
+
+   2026-11-19 第二版：第一版的 mask 椭圆半径（120%×118%、实心到 48%）比盒子本身还大，
+   四边 alpha 恒为 1，被容器直接裁出一个圆角矩形轮廓（左侧壁纸深的地方一条清晰竖边，
+   右侧浅的地方又半隐半现），读起来像贴了张白纸。现在两层都收进盒内：
+   - 底色改「中间白、四周收」的径向，光心从 18% 移到 46%（压在标题块上而非导航下），
+     顺带去掉原来那条上白下透明的水平分界；
+   - mask 用 closest-side，渐变 100% 正好落在盒子四边中点 → 四边必为 0，不再有硬边；
+   - 半径比第一版大一圈（上下各多留 1rem），配合羽化后标题与副标题仍落在纯实心里。
+   仍是同一个 ::before，9 个页头（项目/友链/音乐/画廊/档案/碎语/归档/分类/标签）同步生效。 */
 .sg-page-head::before {
   content: "";
   position: absolute;
-  inset: -1.1rem -1.75rem -1.4rem;
+  inset: -2rem -1.5rem -2.5rem;
   z-index: -1;
   pointer-events: none;
-  border-radius: 1.5rem;
-  background: linear-gradient(180deg, rgba(255, 255, 255, .92), rgba(255, 255, 255, .55) 55%, rgba(255, 255, 255, 0));
-  -webkit-mask-image: radial-gradient(120% 118% at 50% 18%, #000 48%, transparent 80%);
-  mask-image: radial-gradient(120% 118% at 50% 18%, #000 48%, transparent 80%);
+  background: radial-gradient(70% 82% at 50% 46%,
+    rgba(255, 255, 255, .88),
+    rgba(255, 255, 255, .5) 46%,
+    rgba(255, 255, 255, 0) 72%);
+  -webkit-mask-image: radial-gradient(closest-side at 50% 50%, #000 30%, rgba(0, 0, 0, .55) 62%, transparent 100%);
+  mask-image: radial-gradient(closest-side at 50% 50%, #000 30%, rgba(0, 0, 0, .55) 62%, transparent 100%);
 }
 html.dark .sg-page-head::before {
-  background: linear-gradient(180deg, rgba(10, 14, 26, .68), rgba(10, 14, 26, .42) 55%, rgba(10, 14, 26, 0));
+  background: radial-gradient(70% 82% at 50% 46%,
+    rgba(10, 14, 26, .62),
+    rgba(10, 14, 26, .34) 46%,
+    rgba(10, 14, 26, 0) 72%);
 }
 @media (min-width: 768px) { .sg-page-head { margin-bottom: 4rem; } }
 
