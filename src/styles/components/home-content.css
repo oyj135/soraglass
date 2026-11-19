@@ -1,0 +1,813 @@
+/* ---------- 主编区（2026-11-14 第三十六轮） ----------
+   首屏从「四块等权」改成「一张封面 + 两个副卡」：左 7 列封面轮播当主视觉，
+   右 5 列竖排个人卡与播放器（右栏的分配规则在 layout.css 的 .sg-hero-side）。 */
+
+@media (min-width: 1024px) {
+  /* 封面高度不封顶：右栏「个人卡 + 播放卡」是内容定高，封面靠 grid 的
+     stretch 与它齐平，不会出现音乐卡下探、左侧留白一截的错位。
+     宽屏下的最小高度写在 editorial.css。 */
+
+  /* 2026-11-17：轮播改 blog-slider 形态，旧的窄档覆写已删（见 editorial.css 同段）。 */
+
+  /* 副卡再收一档：内边距、字号、头像都缩，右栏整体变矮，封面随之变矮 */
+  .sg-hero-side .sg-profile { padding: 1rem 1.4rem; gap: .6rem; }
+  .sg-hero-side .sg-profile-name { font-size: 1.2rem; margin-bottom: .2rem; }
+  .sg-hero-side .sg-profile-bio { overflow: hidden; -webkit-line-clamp: 2; }
+  .sg-hero-side .sg-profile-foot { margin-top: .35rem; }
+  .sg-hero-side .sg-stat-num { font-size: 1.05rem; }
+  /* 头像 4.75→4rem，是右栏高度下降的主要来源之一 */
+  .sg-hero-side .sg-avatar-ring { width: 4rem; height: 4rem; }
+
+  /* 音乐卡 15→12rem。唱片是撑高主因：player-art.css 里 .sg-player .sg-album-art
+     max-width:13rem 是全站值，这里只在首页副栏作用域覆盖到 8rem，不改音乐页。
+     内部各段（歌词/波形/进度/控制）本就是 flex space-between，卡矮了会自然收紧。 */
+  .sg-hero-side .sg-player-card {
+    min-height: 12rem;
+    padding: 1rem 1.4rem .8rem;
+  }
+  .sg-hero-side .sg-player .sg-album-art { max-width: 8rem; margin-top: .25rem; margin-bottom: .1rem; }
+  .sg-hero-side .sg-player-wave { height: 18px; }
+}
+
+/* 播放器在副栏里要撑满整卡：五段（唱片 / 曲名歌手 / 歌词 / 进度 / 控制）space-between 分布，
+   否则高度给足内容仍堆在顶上，下面空一大块。只作用于首页副栏，不影响音乐页。 */
+.sg-hero-side .sg-player { justify-content: space-between; }
+
+/* 副栏之外的首页卡（<1024 单列时贴在整行上）：空间反而更宽裕，唱片放大一档 */
+@media (max-width: 1023.98px) {
+  /* 单列布局沿用原内边距。 */
+  .sg-player-card { padding: 1.5rem 1.5rem 1.1rem; }
+}
+
+/* 极窄屏（<400）：模式胶囊只留图标，否则「胶囊 + 三键 + 圆钮」挤成一条 */
+@media (max-width: 399.98px) {
+  .sg-player-controls .sg-player-mode { width: 2.1rem; padding: 0; }
+  .sg-player-controls .sg-player-mode span:last-child { display: none; }
+}
+
+
+/* ---------- 封面轮播（首页主编区）：对齐源站 blog-slider 形态 ----------
+   白色大圆角卡：左 36% 圆角封面图、右侧内容（日期 → 标题 → 两行摘要）、
+   右缘竖排圆点指示器（灰点，当前页拉长成青色胶囊）；
+   切换动画：淡入 + 从右侧轻微滑入，手动切换用短过渡。 */
+.sg-post-carousel {
+  position: relative;
+  overflow: hidden;
+  min-height: 16rem;
+  padding: 0;
+}
+@media (min-width: 768px) { .sg-post-carousel { height: 17rem; min-height: 0; } }
+
+/* 切换动画：1s 缓切换 + 8000ms 停留（第十七轮用户反馈太快；源站无轮播，
+   按观感定档：切换 .7s→1s，停留 5000→8000ms），入场带 2.5rem 右移 */
+.sg-post-slide { position: absolute; inset: 0; display: flex; align-items: center; opacity: 0; transform: translateX(2.5rem); pointer-events: none; transition: opacity 1s var(--sg-ease), transform 1s var(--sg-ease); }
+.sg-post-slide.is-active { opacity: 1; transform: translateX(0); pointer-events: auto; }
+
+/* 左侧封面：36% 宽、内缩 1.25rem、圆角 18px（源站 custom.css 对 blog-slider__img 的同款圆角） */
+.sg-slide-media { display: block; flex: 0 0 36%; height: 100%; padding: 1.25rem 0 1.25rem 1.25rem; }
+.sg-slide-cover { width: 100%; height: 100%; object-fit: cover; border-radius: 18px; transition: transform .6s var(--sg-ease); }
+.sg-post-slide:hover .sg-slide-cover { transform: scale(1.06); }
+
+.sg-slide-body {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: .8rem;
+  padding: 1.5rem 4.5rem 1.5rem 2.25rem;
+  color: var(--sg-text);
+}
+.sg-slide-date { font-family: var(--font-sans); font-size: .95rem; color: var(--sg-muted); letter-spacing: .02em; }
+.sg-slide-title { font-size: clamp(1.2rem, 2vw, 1.55rem); font-weight: 700; line-height: 1.4; margin: 0; }
+.sg-slide-desc {
+  font-size: .95rem;
+  line-height: 1.8;
+  color: var(--sg-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 右缘竖排圆点：源站 swiper 竖向 pagination —— 灰色小圆点，当前页拉长成青色胶囊 */
+.sg-post-carousel .sg-dots { flex-direction: column; right: 1.25rem; top: 50%; bottom: auto; transform: translateY(-50%); }
+.sg-post-carousel .sg-dot { width: 8px; height: 8px; background: color-mix(in srgb, var(--sg-muted) 45%, transparent); }
+.sg-post-carousel .sg-dot:hover { background: color-mix(in srgb, var(--sg-muted) 80%, transparent); }
+.sg-post-carousel .sg-dot.is-active { width: 8px; height: 1.7rem; background: var(--sg-accent-2); }
+
+/* 极窄屏（<572）：轮播改竖排 —— 全宽封面在上、文案在下、圆点横排底部居中。
+   横排时 36% 封面在 390px 屏只剩 ≈120px 宽，图与文案互相挤压；竖排恢复封面可读宽度。 */
+@media (max-width: 571.98px) {
+  .sg-post-carousel { height: 21rem; min-height: 0; }
+  .sg-post-slide { flex-direction: column; align-items: stretch; }
+  .sg-slide-media { flex: none; width: 100%; height: 10rem; padding: 1rem 1rem 0; }
+  .sg-slide-body { flex: 1; height: auto; justify-content: flex-start; gap: .5rem; padding: .9rem 1.25rem 2.6rem; }
+  .sg-post-carousel .sg-dots { flex-direction: row; right: auto; left: 50%; top: auto; bottom: .9rem; transform: translateX(-50%); }
+  .sg-post-carousel .sg-dot.is-active { width: 1.7rem; height: 8px; }
+}
+
+.sg-dots { position: absolute; right: 1.5rem; bottom: 1rem; z-index: 30; display: flex; align-items: center; gap: .5rem; }
+/* 杂谈卡圆点比封面卡低一档：源站是 posts bottom-4 / chatter bottom-5 */
+.sg-chatter .sg-dots { bottom: 1.25rem; }
+
+
+.sg-dot {
+  position: relative;
+  width: 8px;
+  height: 6px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .40);
+  transition: width .5s, background-color .5s;
+}
+
+/* 视觉只有 8×6px，命中区要撑到 22px 高才算点得中（WCAG 2.5.8 的 24px 目标）。
+   用伪元素扩展不占布局，按钮之间也不会互相挤压。 */
+.sg-dot::after {
+  content: '';
+  position: absolute;
+  inset: -9px -8px;
+}
+
+.sg-dot:hover { background: rgba(255, 255, 255, .80); }
+.sg-dot.is-active { width: 1.5rem; background: var(--sg-indigo-soft); }
+
+/* 进度轨指示器：轮播超过 6 张时由 carousel.ts 换成这套（原来 15 个点会横占 232px）。
+   整块是按钮，min-height 1.5rem 保证 24px 命中区。 */
+.sg-dots.is-progress { right: 1rem; bottom: .85rem; }
+
+button.sg-progress {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 1.5rem;
+  padding: .25rem .6rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--sg-indicator-bg);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: .64rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color .3s;
+}
+
+button.sg-progress:hover { background: var(--sg-indicator-bg-hot); }
+
+.sg-progress-track {
+  display: block;
+  width: 3rem;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--sg-indicator-track);
+  overflow: hidden;
+}
+
+.sg-progress-track i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--sg-indigo-soft);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform .5s var(--sg-ease);
+}
+
+.sg-progress-count { min-width: 2.1rem; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---------- 宽幅海报（8 列上） ---------- */
+.sg-poster-wide {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 11rem;
+  overflow: hidden;
+  border-radius: var(--sg-radius);
+  border: 1px solid var(--sg-border);
+  box-shadow: var(--sg-shadow);
+  background: var(--sg-card);
+  transition:
+    transform var(--sg-dur-card) var(--sg-ease),
+    box-shadow var(--sg-dur-card) var(--sg-ease);
+}
+
+.sg-poster-wide img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .9; transition: transform var(--sg-dur-card) var(--sg-ease); }
+.sg-poster-wide:hover img { transform: scale(var(--sg-thumb-zoom)); }
+/* 文字压在左下角：均匀 .30 暗幕在浅色封面上标题/摘要只剩 2–2.2:1，改成自下而上加深 */
+.sg-poster-wide .sg-veil { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0, 0, 0, .72), rgba(0, 0, 0, .34) 60%, rgba(0, 0, 0, .18)); transition: background-color .5s; }
+html.dark .sg-poster-wide .sg-veil { background: linear-gradient(to top, rgba(0, 0, 0, .78), rgba(0, 0, 0, .5) 60%, rgba(0, 0, 0, .4)); }
+
+.sg-poster-body { position: absolute; left: 1rem; right: 1.5rem; bottom: 1rem; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, .55); }
+@media (min-width: 640px) { .sg-poster-body { left: 1.5rem; bottom: 1.5rem; } }
+
+.sg-poster-body h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: .25rem;
+  text-decoration: underline;
+  text-decoration-color: var(--sg-warm-bright);
+  text-underline-offset: 4px;
+}
+
+@media (min-width: 640px) { .sg-poster-body h3 { font-size: 1.875rem; } }
+
+.sg-poster-body p {
+  font-size: .875rem;
+  color: rgba(255, 255, 255, .90);
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ---------- 说说 / 杂谈卡（8 列下） ---------- */
+.sg-chatter {
+  position: relative;
+  overflow: hidden;
+  min-height: 12.5rem;
+  padding: 0;
+  display: block;
+  transition:
+    transform var(--sg-dur-card) var(--sg-ease),
+    box-shadow var(--sg-dur-card) var(--sg-ease);
+}
+.sg-chatter img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .80; transition: transform var(--sg-dur-card) var(--sg-ease); }
+.sg-chatter:hover img { transform: scale(var(--sg-thumb-zoom)); }
+/* 正文占卡宽 85%，右段原先只剩 .10 暗幕，浅色配图上摘要跌到 1.2:1 */
+.sg-chatter .sg-veil { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0, 0, 0, .82), rgba(0, 0, 0, .58) 55%, rgba(0, 0, 0, .36)); }
+
+.sg-chatter-body {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  min-height: 12.5rem;
+  padding: 1.5rem;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .55);
+}
+
+@media (min-width: 768px) { .sg-chatter-body { padding: 2rem; width: 85%; } }
+
+.sg-chatter-meta { display: flex; align-items: flex-end; gap: .5rem; margin-bottom: .5rem; }
+.sg-chatter-meta .sg-chip--tag { color: var(--sg-accent-soft); letter-spacing: .18em; }
+.sg-chatter-meta time { font-size: 11px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: #cbd5e1; }
+
+.sg-chatter-body h3 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-bottom: .75rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: color .3s;
+}
+
+.sg-chatter:hover .sg-chatter-body h3 { color: var(--sg-accent-soft); }
+
+.sg-chatter-body p {
+  font-size: .875rem;
+  color: rgba(255, 255, 255, .88);
+  line-height: 1.7;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 轮播单张：与 .sg-post-slide 同一套淡入逻辑，供 index.php 的杂谈轮播使用 */
+.sg-chatter-slide { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity .8s; }
+.sg-chatter-slide.is-active { opacity: 1; pointer-events: auto; }
+.sg-chatter-slide > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .80; transition: transform var(--sg-dur-card) var(--sg-ease); }
+.sg-chatter:hover .sg-chatter-slide.is-active > img { transform: scale(var(--sg-thumb-zoom)); }
+.sg-chatter-slide .sg-veil { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0, 0, 0, .80), rgba(0, 0, 0, .40) 55%, rgba(0, 0, 0, .10)); }
+.sg-chatter-slide .sg-chatter-body { min-height: 0; }
+
+/* 杂谈空态：没有杂谈文章时不留一块空洞，给一块可点的引导卡 */
+.sg-chatter-slide .sg-chatter-body--empty {
+  background:
+    radial-gradient(120% 120% at 0% 0%, color-mix(in srgb, var(--sg-accent-soft) 22%, transparent), transparent 60%),
+    linear-gradient(135deg, rgba(15, 23, 42, .92), rgba(2, 6, 23, .96));
+}
+
+.sg-chatter-meta .sg-chip--tag svg { width: 12px; height: 12px; margin-right: .3rem; vertical-align: -.12em; }
+
+.sg-chatter-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  margin-top: 1.1rem;
+  font-size: .8125rem;
+  letter-spacing: .08em;
+  color: var(--sg-accent-soft);
+  transition: color .3s, transform .3s;
+}
+
+.sg-chatter-link:hover { color: #c7d2fe; transform: translateX(3px); }
+.sg-chatter-link svg { width: 14px; height: 14px; }
+
+/* 昼夜图标：同一按钮内放日月两枚 SVG，由 html.dark 切换显隐 */
+.sg-i-moon { display: none; }
+html.dark .sg-i-sun { display: none; }
+html.dark .sg-i-moon { display: inline-flex; }
+
+/* ---------- 每日选刊（对齐源站 DailyBriefing.tsx） ---------- */
+.sg-briefing { overflow: hidden; padding: 0; border-radius: var(--sg-radius); }
+
+/* 站长专用：这块没输出时给一行原因（访客看不到） */
+.sg-briefing-diag {
+  margin: 2rem auto 0;
+  max-width: 56rem;
+  padding: .875rem 1.125rem;
+  border: 1px dashed var(--sg-border);
+  border-radius: var(--sg-radius-inner);
+  background: color-mix(in srgb, var(--sg-card) 60%, transparent);
+  color: var(--sg-muted);
+  font-size: .8125rem;
+  line-height: 1.7;
+}
+.sg-briefing-diag b { color: var(--sg-fg); font-weight: 600; }
+
+/* 封面层：每期一张，切期时交叉淡入（源站 transition-opacity duration-1000） */
+.sg-briefing-hero { position: relative; }
+
+.sg-briefing-covers { position: absolute; inset: 0; overflow: hidden; }
+
+.sg-briefing-cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 72% 45%;
+  opacity: 0;
+  transform: scale(1.02);
+  transition: opacity .9s var(--sg-ease);
+  will-change: opacity, transform;
+  backface-visibility: hidden;
+}
+
+/* 当前张淡入的同时缓慢推镜；8 秒走完一程，下一张接力时旧张只负责淡出，
+   所以首尾衔接处看不到回缩，也看不到空白帧。 */
+.sg-briefing-cover.is-active {
+  opacity: 1;
+  animation: sg-bg-drift 8s var(--sg-ease) forwards;
+}
+
+@keyframes sg-bg-drift {
+  from { transform: scale(1.02); }
+  to { transform: scale(1.08); }
+}
+
+/* 关掉动效偏好下：只留极短的透明度切换，不做缩放 */
+@media (prefers-reduced-motion: reduce) {
+  .sg-briefing-cover,
+  .sg-briefing-cover.is-active {
+    animation: none;
+    transform: none;
+    transition: opacity .2s linear;
+    will-change: auto;
+  }
+}
+
+.sg-briefing-scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to right, rgba(2, 6, 23, .88), rgba(2, 6, 23, .45) 58%, rgba(2, 6, 23, .06)),
+    linear-gradient(to top, rgba(2, 6, 23, .45), transparent 55%);
+}
+
+/* 整块横幅就是展开按钮：文字全部放在 <span> 里，避免 button 内出现块级元素 */
+.sg-briefing-banner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  min-height: 13rem;
+  padding: 1.25rem 1.25rem 1.1rem;
+  border: 0;
+  background: none;
+  color: #fff;
+  text-align: left;
+}
+
+@media (min-width: 640px) {
+  .sg-briefing-banner { min-height: 12.5rem; padding: 1.5rem 2rem 1.35rem; }
+}
+
+.sg-briefing-top {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding-right: 9rem;   /* 给右上角期号控件让位，窄屏也不会压到日期 */
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .2em;
+  color: rgba(255, 255, 255, .8);
+}
+
+.sg-briefing-tag {
+  padding: .2rem .5rem;
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: .375rem;
+  background: rgba(255, 255, 255, .10);
+  letter-spacing: .15em;
+}
+
+.sg-briefing-date { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .12em; }
+.sg-briefing-label { color: rgba(255, 255, 255, .72); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 当前主题名：翻页翻的是主题，得让人看见自己停在哪一个 */
+.sg-briefing-theme {
+  color: rgba(255, 255, 255, .72);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sg-briefing-theme::before { content: '· '; color: rgba(255, 255, 255, .35); }
+
+.sg-briefing-mid { display: block; max-width: 82%; }
+
+@media (min-width: 640px) { .sg-briefing-mid { max-width: 68%; } }
+
+.sg-briefing-kicker { display: block; font-size: 10px; letter-spacing: .28em; color: #c7d2fe; }
+
+.sg-briefing-title {
+  display: block;
+  margin-top: .3rem;
+  font-size: 1.55rem;
+  font-weight: 900;
+  line-height: 1.25;
+  letter-spacing: .04em;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, .40);
+}
+
+@media (min-width: 640px) { .sg-briefing-title { font-size: 1.9rem; } }
+
+.sg-briefing-desc {
+  display: block;
+  margin-top: .45rem;
+  font-size: .76rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, .82);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sg-briefing-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; }
+
+.sg-briefing-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem .9rem; font-size: 10px; color: rgba(255, 255, 255, .75); }
+.sg-briefing-meta b { margin-left: .35rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 400; color: #fff; }
+
+.sg-briefing-meta .is-unread { display: inline-flex; align-items: center; gap: .35rem; color: #fbcfe8; }
+.sg-briefing-meta .is-unread i { width: 4px; height: 4px; border-radius: 50%; background: var(--sg-warm); }
+
+.sg-briefing-more { display: inline-flex; align-items: center; gap: .5rem; flex-shrink: 0; font-size: 10px; color: rgba(255, 255, 255, .90); }
+
+.sg-briefing-sign {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid rgba(255, 255, 255, .30);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .10);
+  transition: background-color var(--sg-dur-card) var(--sg-ease), border-color var(--sg-dur-card) var(--sg-ease);
+}
+
+.sg-briefing-banner:hover .sg-briefing-sign { background: rgba(255, 255, 255, .22); border-color: rgba(255, 255, 255, .60); }
+.sg-briefing-sign svg { width: 1rem; height: 1rem; }
+
+.sg-briefing-pager {
+  position: absolute;
+  top: 1.1rem;
+  right: 1.1rem;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: .125rem;
+  padding: .2rem;
+  border: 1px solid rgba(255, 255, 255, .20);
+  border-radius: 999px;
+  background: rgba(2, 6, 23, .28);
+  color: #fff;
+}
+
+@media (min-width: 640px) { .sg-briefing-pager { top: 1.35rem; right: 1.6rem; } }
+
+.sg-briefing-pager button { display: grid; place-items: center; width: 1.9rem; height: 1.9rem; padding: 0; border: 0; border-radius: 50%; background: none; color: #fff; transition: background-color var(--sg-dur-fast) linear; }
+.sg-briefing-pager button:hover { background: rgba(255, 255, 255, .20); }
+.sg-briefing-pager button:disabled { opacity: .3; cursor: default; }
+.sg-briefing-pager span { min-width: 2rem; text-align: center; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; color: rgba(255, 255, 255, .80); }
+.sg-briefing-pager svg { width: .85rem; height: .85rem; }
+
+/* 展开区：默认 hidden，JS 切换；作者写的 display 会盖掉 [hidden]，这里显式声明 */
+/* 展开/收起用 grid-template-rows 过渡（不需要知道内容高度），
+   内容整体再轻微下移淡入，观感比直接 display 切换连贯。 */
+.sg-briefing-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  border-top: 1px solid var(--sg-line);
+  opacity: 0;
+  transition:
+    grid-template-rows .42s cubic-bezier(.22, 1, .36, 1),
+    opacity .3s linear;
+}
+
+.sg-briefing.is-open .sg-briefing-body {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.sg-briefing-body[hidden] { display: none; }
+
+.sg-briefing-inner {
+  display: block;
+  min-height: 0;
+  overflow: hidden;
+  transform: translateY(-.5rem);
+  transition: transform .42s cubic-bezier(.22, 1, .36, 1);
+}
+
+.sg-briefing.is-open .sg-briefing-inner { transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sg-briefing-body,
+  .sg-briefing-inner { transition: none; }
+}
+
+.sg-briefing-subhead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--sg-line);
+}
+
+@media (min-width: 640px) { .sg-briefing-subhead { padding-inline: 1.75rem; } }
+
+.sg-briefing-subtitle { display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap; }
+.sg-briefing-subtitle h2 { font-size: 1rem; letter-spacing: .05em; }
+.sg-briefing-subtitle span { font-size: 10px; color: var(--sg-muted); }
+
+.sg-briefing-tools { display: flex; align-items: center; gap: 1rem; font-size: 11px; }
+.sg-briefing-tools button { display: inline-flex; align-items: center; gap: .35rem; border: 0; background: none; color: var(--sg-muted); transition: color var(--sg-dur-fast) linear; }
+.sg-briefing-tools button:hover,
+.sg-briefing-tools button.is-active { color: var(--sg-accent-ink); }
+.sg-briefing-tools svg { width: .85rem; height: .85rem; }
+
+.sg-briefing-archive {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem;
+  padding: .85rem 1.5rem;
+  border-bottom: 1px solid var(--sg-line);
+  background: var(--sg-chip);
+  font-size: 11px;
+  color: var(--sg-muted);
+}
+
+.sg-briefing-archive[hidden] { display: none; }
+
+.sg-briefing-archive select {
+  padding: .45rem .75rem;
+  border: 1px solid var(--sg-border);
+  border-radius: var(--sg-radius-inner);
+  background: var(--sg-card);
+  color: inherit;
+  font-size: 11px;
+}
+
+.sg-briefing-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  padding: 1.4rem 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .sg-briefing-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem; padding: 1.5rem 1.75rem; }
+  /* 只有一栏时不要留下半屏空白（模型没挑到论文类内容时会出现） */
+  .sg-briefing-cols.is-single { grid-template-columns: minmax(0, 1fr); }
+}
+
+.sg-briefing-cols[hidden] { display: none; }
+
+.sg-briefing-col-head {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding-bottom: .7rem;
+  border-bottom: 1px solid var(--sg-line);
+}
+
+.sg-briefing-col:nth-child(2n) .sg-briefing-col-head i { background: var(--sg-accent-2); }
+.sg-briefing-col-head h3 { font-size: .75rem; font-weight: 500; letter-spacing: .18em; color: var(--sg-muted); }
+.sg-briefing-col-head span { margin-left: auto; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; color: var(--sg-faint); }
+
+.sg-briefing-item {
+  display: flex;
+  gap: .6rem;
+  width: 100%;
+  padding: .85rem 0;
+  border: 0;
+  border-bottom: 1px solid var(--sg-line);
+  background: none;
+  text-align: left;
+  transition: transform var(--sg-dur-fast) var(--sg-ease);
+}
+
+.sg-briefing-item:last-child { border-bottom: 0; }
+.sg-briefing-item:hover { transform: translateX(4px); }
+
+.sg-briefing-num { flex-shrink: 0; margin-top: .15rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9px; color: color-mix(in srgb, var(--sg-accent) 85%, transparent); }
+
+.sg-briefing-item-main { flex: 1; min-width: 0; display: block; }
+
+.sg-briefing-item-title { display: block; font-size: .82rem; font-weight: 700; line-height: 1.6; transition: color var(--sg-dur-fast) linear; }
+.sg-briefing-item:hover .sg-briefing-item-title { color: var(--sg-accent-ink); }
+
+.sg-briefing-item-sum {
+  display: block;
+  margin-top: .3rem;
+  font-size: .72rem;
+  line-height: 1.65;
+  color: var(--sg-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sg-briefing-item-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; margin-top: .4rem; font-size: 9px; color: var(--sg-faint); }
+.sg-briefing-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--sg-accent-2); }
+
+.sg-briefing-item-arrow { flex-shrink: 0; margin-top: .15rem; color: var(--sg-faint); opacity: 0; transition: opacity var(--sg-dur-fast) linear, color var(--sg-dur-fast) linear; }
+.sg-briefing-item:hover .sg-briefing-item-arrow { opacity: 1; color: var(--sg-accent-ink); }
+.sg-briefing-item-arrow svg { width: .9rem; height: .9rem; }
+
+.sg-briefing-none { padding: 1.4rem 0; font-size: .75rem; color: var(--sg-faint); }
+
+.sg-briefing-footnote {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: .9rem 1.5rem;
+  border-top: 1px solid var(--sg-line);
+  font-size: 9px;
+  line-height: 1.7;
+  color: var(--sg-muted);
+}
+
+.sg-briefing-footnote p { max-width: 40rem; }
+.sg-briefing-footnote button { display: inline-flex; align-items: center; gap: .3rem; border: 0; background: none; font-size: 11px; color: var(--sg-text); }
+.sg-briefing-footnote button:hover { color: var(--sg-accent-ink); }
+.sg-briefing-footnote svg { width: .85rem; height: .85rem; }
+
+/* 无障碍播报区：视觉上不可见，但不加 display:none（否则读屏也读不到） */
+.sg-briefing-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* 条目阅读弹窗 */
+.sg-reader {
+  width: min(48rem, calc(100% - 1.5rem));
+  max-height: 88dvh;
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--sg-border);
+  border-radius: var(--sg-radius);
+  background: var(--sg-panel);
+  color: var(--sg-text);
+  box-shadow: var(--sg-shadow-strong);
+  overflow: hidden;
+}
+
+.sg-reader::backdrop { background: rgba(2, 6, 23, .50);   }
+
+.sg-reader-inner { display: flex; flex-direction: column; max-height: 88dvh; }
+
+.sg-reader-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--sg-line);
+}
+
+.sg-reader-kind { font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--sg-accent-ink); }
+
+.sg-reader-close {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: var(--sg-radius-inner);
+  background: var(--sg-chip);
+  color: var(--sg-muted);
+  transition: background-color var(--sg-dur-fast) linear, color var(--sg-dur-fast) linear;
+}
+
+/* 弹窗一打开浏览器会把焦点放在关闭键上，默认 outline 太抢眼 —— 只给键盘留可见环 */
+.sg-reader-close:focus { outline: none; }
+.sg-reader-close:focus-visible { outline: 2px solid var(--sg-accent-ink); outline-offset: 2px; }
+
+.sg-reader-close:hover { background: color-mix(in srgb, var(--sg-accent) 15%, transparent); color: var(--sg-accent-ink); }
+.sg-reader-close svg { width: 1rem; height: 1rem; }
+
+.sg-reader-article { min-height: 0; overflow-y: auto; padding: 1.25rem 1.5rem 1.5rem; }
+
+.sg-reader-meta { font-size: 10px; letter-spacing: .05em; color: var(--sg-faint); }
+.sg-reader-article h2 { margin-top: .6rem; font-size: 1.35rem; line-height: 1.45; }
+
+/* 原文标题（当主标题是中文译名时，它退成一行小字） */
+.sg-reader-sub {
+  margin-top: .45rem;
+  font-size: .78rem;
+  line-height: 1.6;
+  letter-spacing: .01em;
+  color: var(--sg-faint);
+  font-style: italic;
+}
+
+/* 读完之后给的标签 */
+.sg-reader-tags { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: 1.25rem; }
+.sg-reader-tags span {
+  padding: .25rem .6rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sg-accent) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sg-accent) 18%, transparent);
+  font-size: 10px;
+  letter-spacing: .04em;
+  color: var(--sg-indigo-soft, var(--sg-indigo));
+}
+
+.sg-reader-summary {
+  margin-top: 1rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--sg-line);
+  border-bottom: 1px solid var(--sg-line);
+  font-size: .85rem;
+  line-height: 1.85;
+  color: var(--sg-text);
+}
+
+.sg-reader-highlights { display: flex; flex-direction: column; gap: .6rem; margin-top: 1rem; }
+
+.sg-reader-highlights p { display: flex; gap: .6rem; font-size: .82rem; line-height: 1.75; color: var(--sg-muted); }
+.sg-reader-highlights span { flex-shrink: 0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9px; color: var(--sg-accent-ink); }
+
+.sg-reader-note {
+  margin-top: 1.25rem;
+  padding-left: .9rem;
+  border-left: 2px solid rgba(219, 39, 119, .45);
+  font-size: .78rem;
+  line-height: 1.8;
+  color: var(--sg-muted);
+}
+
+.sg-reader-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .9rem 1.5rem;
+  border-top: 1px solid var(--sg-line);
+  background: var(--sg-chip);
+}
+
+.sg-reader-save { display: inline-flex; align-items: center; gap: .4rem; border: 0; background: none; font-size: 11px; color: var(--sg-muted); }
+.sg-reader-save.is-active { color: var(--sg-accent-ink); }
+.sg-reader-save svg { width: .95rem; height: .95rem; }
+
+.sg-reader-link { display: inline-flex; align-items: center; gap: .35rem; padding-bottom: 2px; border-bottom: 1px solid color-mix(in srgb, var(--sg-accent) 55%, transparent); font-size: .8rem; font-weight: 700; color: var(--sg-accent-ink); }
+.sg-reader-link[hidden] { display: none; }
+.sg-reader-link svg { width: .9rem; height: .9rem; }
+
+

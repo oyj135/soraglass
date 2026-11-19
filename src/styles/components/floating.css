@@ -1,0 +1,161 @@
+/* ---------- 左下悬浮工具箱 ---------- */
+.sg-toolbox {
+  position: fixed;
+  left: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+.sg-tool {
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--sg-border);
+  border-radius: 50%;
+  background: var(--sg-card-strong);
+  box-shadow: var(--sg-shadow);
+  transition: transform .3s, background-color .3s, color .3s;
+}
+
+.sg-tool:hover { transform: scale(1.06); background: var(--sg-indigo); color: #fff; }
+.sg-tool svg { width: 1.125rem; height: 1.125rem; }
+
+@media (max-width: 767.98px) {
+  .sg-toolbox { left: .75rem; bottom: 1rem; gap: .5rem; }
+  .sg-tool { width: 2.5rem; height: 2.5rem; }
+}
+
+/* ---------- 右侧悬浮按钮组（对齐 Fomalhaut #rightside，AI 助手不加） ---------- */
+.sg-rightside {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .5rem;
+}
+.sg-rightside-hidden { display: none; flex-direction: column; align-items: center; gap: .5rem; }
+.sg-rightside-hidden.is-open { display: flex; animation: sg-rightside-in .25s var(--sg-ease); }
+@keyframes sg-rightside-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.sg-rightside-btn {
+  width: 2.375rem;
+  height: 2.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--sg-border);
+  border-radius: var(--sg-radius-inner);
+  background: var(--sg-card-strong);
+  box-shadow: var(--sg-shadow);
+  color: var(--sg-text);
+  cursor: pointer;
+  transition: background-color .25s var(--sg-ease), color .25s var(--sg-ease);
+}
+.sg-rightside-btn:hover { background: var(--sg-accent); color: #fff; }
+.sg-rightside-btn svg { width: 1.05rem; height: 1.05rem; transition: transform .25s var(--sg-ease); }
+.sg-rightside-btn.is-open svg { transform: rotate(90deg); }
+/* 回顶：平时显示百分比，≥95% 或 hover 显示箭头（inline display 由 rightside.ts 写，hover 用 !important 覆盖） */
+.sg-go-up svg { display: none; }
+.sg-go-up-percent { display: block; font-weight: 700; font-size: .8rem; line-height: 1; }
+.sg-go-up-percent span { font-size: .6rem; margin-left: -1px; }
+.sg-go-up:hover svg { display: block !important; }
+.sg-go-up:hover .sg-go-up-percent { display: none !important; }
+@media (max-width: 767.98px) {
+  .sg-rightside { right: .75rem; bottom: 1rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sg-rightside-hidden.is-open { animation: none; }
+  .sg-rightside-btn svg { transition: none; }
+}
+
+/* ---------- 顶部胶囊加载条（对齐 Fomalhaut pace：5rem×8px 圆角胶囊 + 四色渐变） ---------- */
+.sg-pace {
+  position: fixed;
+  top: .625rem;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: 5rem;
+  height: .5rem;
+  border-radius: .5rem;
+  border: 1px solid var(--sg-line);
+  background: var(--sg-chip);
+  overflow: hidden;
+  z-index: 2000;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .3s var(--sg-ease);
+}
+.sg-pace.is-active { opacity: 1; }
+.sg-pace.is-done { opacity: 0; }
+.sg-pace-progress {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  transform: translateX(-100%);
+  transition: transform .2s var(--sg-ease);
+  background: linear-gradient(-45deg, var(--sg-warm-bright), var(--sg-accent), var(--sg-accent-2), var(--sg-accent-soft));
+  background-size: 300% 300%;
+  animation: sg-pace-gradient 2s ease infinite;
+}
+@keyframes sg-pace-gradient { 0% { background-position: 0 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+
+/* ---------- 右缘小猫滚动进度（对齐 Fomalhaut nekoScroll：竖绳 + 绳尾小猫 + 时间气泡） ----------
+   放在右侧按钮组（right 1.5rem，宽约 2.5rem）左侧，互不遮挡；z 低于按钮组。 */
+.sg-neko-rope {
+  position: fixed;
+  top: 0;
+  right: 76px;
+  width: 6px;
+  height: 0;
+  z-index: 80;
+  border-radius: 2em;
+  background-color: color-mix(in srgb, var(--sg-accent-deep) 72%, transparent);
+  background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, .16) 0 5px, transparent 5px 10px);
+  cursor: pointer;
+}
+.sg-neko {
+  position: fixed;
+  top: -100px;
+  right: 79px;
+  width: 64px;
+  height: 64px;
+  transform: translateX(50%);
+  z-index: 85;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .3s var(--sg-ease);
+  filter: drop-shadow(0 3px 6px rgba(10, 26, 24, .28));
+}
+.sg-neko.is-on { opacity: 1; }
+.sg-neko img { display: block; width: 100%; height: 100%; }
+.sg-neko-msg {
+  position: absolute;
+  top: 50%;
+  right: calc(100% + .35rem);
+  transform: translateY(-50%) scale(.85);
+  padding: .3rem .6rem;
+  border-radius: .6rem;
+  border: 1px solid var(--sg-line);
+  background: var(--sg-card-strong);
+  color: var(--sg-accent-ink);
+  font-family: var(--font-sans);
+  font-size: .72rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  box-shadow: var(--sg-shadow-soft);
+  opacity: 0;
+  transition: opacity .25s var(--sg-ease), transform .25s var(--sg-ease);
+}
+.sg-neko.is-hover .sg-neko-msg,
+.sg-neko.is-bottom .sg-neko-msg { opacity: 1; transform: translateY(-50%) scale(1); }
+@media (max-width: 767.98px) { .sg-neko, .sg-neko-rope { display: none; } }
+@media (prefers-reduced-motion: reduce) { .sg-neko, .sg-neko-msg { transition: none; } }
+
+

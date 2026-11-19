@@ -1,0 +1,54 @@
+/**
+ * 组件层 —— 类名与源站 Tailwind 数值一一对应（见 docs/VISUAL-SPEC.md）。
+ * 卡片：bg-white/40 + backdrop-blur-md + rounded-3xl + border-white/40 + shadow-xl
+ * 导航 / 搜索 / 文章卡：backdrop-blur-xl + shadow-2xl
+ */
+
+/* ---------- 通用卡 ---------- */
+.sg-glass {
+  position: relative;
+  /* 底色恒为实色卡（昼夜切换时 1s 平滑过渡、永不透底），
+     渐变质感走 background-image：夜间由 --sg-card-image 提供顶光渐变，白天回落 none。 */
+  background-color: var(--sg-card);
+  background-image: var(--sg-card-image, none);
+  border: 1px solid var(--sg-card-border);
+  border-radius: var(--sg-radius);
+  box-shadow: var(--sg-card-sheen, 0 0 0 transparent), var(--sg-shadow);
+  /* 配色过渡保持 1s（后台「保存即生效」的昼夜渐变靠它），transform 单独走卡片时长。
+     不补 transform 的话，任何卡片位移都会瞬跳而不是滑过去。 */
+  transition:
+    background-color 1s,
+    border-color 1s,
+    box-shadow .5s,
+    transform var(--sg-dur-card) var(--sg-ease);
+}
+
+.sg-glass-strong {
+  background: var(--sg-card-strong);
+  box-shadow: var(--sg-shadow-strong);
+}
+
+/* 「青瓷夜」夜间卡面质感（2026-11-17 第十四轮起，2026-11-18 换通用底）：参考源站 fomalhaut 暗色卡实测 ——
+   源站夜间卡是死平的 rgba(28,28,28,.98)，全靠一条可见灰描边 rgba(169,169,169,.7) 撑质感。
+   这里把 strong 系卡面也接上顶光渐变（底色保持实色卡，只有 image 变），并保留 sheen 内高光；
+   描边已在 tokens 的 dark 块按源站思路提到可见档。 */
+html.dark .sg-glass-strong,
+html.dark .sg-article.sg-glass,
+html.dark .sg-feature-card {
+  background-color: var(--sg-card-strong);
+  background-image: var(--sg-card-image, none);
+  box-shadow: var(--sg-card-sheen), var(--sg-shadow-strong);
+}
+
+/* 卡片 hover 反馈对齐源站 cardHover：阴影 .05 → .09（无位移，交给各卡自己的动效） */
+.sg-glass:is(:hover) { box-shadow: var(--sg-shadow-strong); }
+/* 侧栏小卡：源站 aside card-widget 是 8px 圆角档（大容器 20px、首页文章卡 25px） */
+.sg-home-aside .sg-glass,
+.sg-aside .sg-glass { border-radius: var(--sg-radius-inner); }
+
+.sg-card-pad { padding: 1.25rem; }
+@media (min-width: 640px) { .sg-card-pad { padding: 1.5rem; } }
+@media (min-width: 768px) { .sg-card-pad { padding: 2rem; } }
+
+.sg-divider { border: 0; border-top: 1px solid var(--sg-line); margin: 0; }
+

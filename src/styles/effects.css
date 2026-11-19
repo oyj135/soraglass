@@ -163,7 +163,7 @@ html[data-sg-veil="strong"] .sg-bg-veil::after {
   animation: sg-danmaku-move linear forwards;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 767.98px) {
   .sg-effects, .sg-danmaku { display: none; }
 }
 
@@ -246,7 +246,7 @@ html[data-sg-veil="strong"] .sg-bg-veil::after {
   letter-spacing: .08em;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 767.98px) {
   .sg-lightbox-nav { width: 2.4rem; height: 2.4rem; font-size: 1.3rem; }
   .sg-lightbox-nav.is-prev { left: .5rem; }
   .sg-lightbox-nav.is-next { right: .5rem; }

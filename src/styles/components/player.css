@@ -1,0 +1,780 @@
+/* ---------- 播放器（首页音乐卡 / 音乐页共用皮肤） ---------- */
+
+/* 首页音乐卡：版式参考华为音乐播放页。
+   纵向中轴、圆盘当主角 —— 卡片自己不再用 .sg-card-pad 的 2rem 内边距，
+   纵向空间全留给唱片（见文件末尾 .sg-hero-side 的覆盖规则）。 */
+.sg-player-card {
+  position: relative;
+  /* 光点：亮色下白点等于没画，改用主色；暗色才用白（像星光） */
+  --sg-spark: color-mix(in srgb, var(--sg-accent) 52%, transparent);
+  /* 内边距与原首页布局保持一致；相册封面在卡片内部排列。 */
+  padding: 1.45rem 1.75rem 1.1rem;
+  overflow: hidden;
+}
+
+html.dark .sg-player-card { --sg-spark: rgba(255, 255, 255, .55); }
+
+/* 卡内背景层：
+   ① 主色光晕：--sg-cover-tint 由 player.ts 从封面采来（取不到就退回 accent），
+      从唱片中心向外淡出；
+   ② 星点阵：2026-11-18 第十三轮起由 3 颗扩到 9 颗，散在唱片四周留白处，与作者卡深空、
+      歌词条星场同一套语言。**亮色下这张卡是白卡，星点只能做主色微光**（再亮就成了脏点），
+      暗色卡面下 --sg-spark 自动转白光，才是真正的星点；暗色再额外叠两层星云薄雾。
+   用 ::after 而不是 ::before —— 后者被 .sg-glass[data-sg-spotlight]::before 的
+   指针聚光描边占着（首页这张卡正好带 data-sg-spotlight）。 */
+/* 星点坐标抽成变量：**音乐卡与歌词条共用这一份**（第十四轮起歌词条不再自带星场 token），
+   昼夜/两种卡只在各自的 --sg-spark 上取色，坐标永不重复维护。 */
+.sg-player-card,
+.sg-lyric-bar {
+  --sg-spark-dots:
+    radial-gradient(2.5px 2.5px at 84% 13%, var(--sg-spark), transparent 100%),
+    radial-gradient(2px 2px at 14% 17%, var(--sg-spark), transparent 100%),
+    radial-gradient(1.5px 1.5px at 70% 29%, var(--sg-spark), transparent 100%),
+    radial-gradient(1.8px 1.8px at 26% 41%, var(--sg-spark), transparent 100%),
+    radial-gradient(1.4px 1.4px at 92% 47%, var(--sg-spark), transparent 100%),
+    radial-gradient(1.6px 1.6px at 7% 63%, var(--sg-spark), transparent 100%),
+    radial-gradient(1.8px 1.8px at 79% 67%, var(--sg-spark), transparent 100%),
+    radial-gradient(1.4px 1.4px at 41% 79%, var(--sg-spark), transparent 100%),
+    radial-gradient(1.4px 1.4px at 61% 92%, var(--sg-spark), transparent 100%);
+}
+
+.sg-player-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    var(--sg-spark-dots),
+    radial-gradient(88% 58% at 90% 94%,
+      color-mix(in srgb, var(--sg-cover-tint, var(--sg-accent)) 14%, transparent) 0,
+      transparent 66%),
+    radial-gradient(125% 88% at 50% 24%,
+      color-mix(in srgb, var(--sg-cover-tint, var(--sg-accent)) 26%, transparent) 0,
+      transparent 64%);
+}
+
+/* 暗色主题：卡面本身就是夜色，此时才叠真正的星云薄雾，星点也转为白光 */
+html.dark .sg-player-card::after {
+  background:
+    var(--sg-spark-dots),
+    radial-gradient(70% 52% at 12% 8%, rgba(43, 77, 112, .34) 0, transparent 68%),
+    radial-gradient(64% 46% at 92% 88%, rgba(31, 71, 99, .30) 0, transparent 66%),
+    radial-gradient(125% 88% at 50% 24%,
+      color-mix(in srgb, var(--sg-cover-tint, var(--sg-accent)) 22%, transparent) 0,
+      transparent 64%);
+}
+
+.sg-player {
+  position: relative;
+  z-index: 1;               /* 压在 ::after 光晕之上 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: .35rem;
+  height: 100%;
+  min-width: 0;
+  cursor: pointer;
+}
+
+/* 空歌单压缩（2026-11-18 视觉改造 P1-1）：player.ts 判定歌单为空时给根节点加 .is-empty，
+   隐藏唱片 / 波形 / 歌词 / 进度 / 控制，只留状态行与曲名区，首页副栏不再被无内容播放器撑出空腔。
+   :has() 特异性高于 .sg-hero-side .sg-player-card，顺带解除副栏 12rem 最小高度。 */
+.sg-player.is-empty .sg-album-art,
+.sg-player.is-empty .sg-player-wave,
+.sg-player.is-empty .sg-player-lyric,
+.sg-player.is-empty .sg-player-progress,
+.sg-player.is-empty .sg-player-controls { display: none; }
+.sg-player-card:has(.sg-player.is-empty) { min-height: 0; }
+
+/* 曲名与歌手沿中轴居中。站内正文就是霞鹜文楷（LXGW WenKai），
+   与华为那版衬线歌名天然同一路，不用另换字族。 */
+.sg-player-info { width: 100%; min-width: 0; text-align: center; }
+
+.sg-player-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 原 div 改为真实链接；外观不变，焦点沿用全站 :focus-visible。 */
+.sg-player-info a.sg-player-title { display: block; color: inherit; text-decoration: none; }
+
+.sg-player-artist {
+  margin-top: .15rem;
+  font-size: .75rem;
+  font-weight: 500;
+  letter-spacing: .05em;
+  color: var(--sg-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 歌词行：定高，打字机不会把卡片顶开 */
+.sg-player-lyric {
+  width: 100%;
+  min-height: 1.05rem;
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  text-align: center;
+  color: var(--sg-accent-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+html.dark .sg-player-lyric { color: var(--sg-accent-soft); }
+
+/* 时间夹进度条：左时间 / 轨道 / 右时间同一行，等宽数字不跳宽 */
+.sg-player-progress {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+  color: var(--sg-muted);
+}
+
+.sg-player-progress > span { flex: none; min-width: 2.25rem; text-align: center; }
+
+/* 轨道即进度：已播放段用 --sg-p 切分（player.ts 在 syncTime 里写百分比）。
+   6px 高、内阴影一档，比原来的 4px 平轨更像「凹槽」。 */
+input.sg-progress {
+  /* 轨道底色单独提成局部变量：亮色用分隔线色，暗色卡上要更亮一档，
+     否则 6px 的凹槽压在深色玻璃上等于没画。 */
+  --sg-track: var(--sg-line);
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg,
+      var(--sg-accent-ink) 0 var(--sg-p, 0%),
+      var(--sg-track) var(--sg-p, 0%) 100%);
+  box-shadow: inset 0 1px 2px rgba(16, 44, 50, .08);
+  outline: none;
+  cursor: pointer;
+}
+
+html.dark input.sg-progress { --sg-track: rgba(226, 240, 240, .22); }
+
+input.sg-progress::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  /* 滑块用卡面底色 + 一圈 accent-ink 描边：填充是 accent-ink 实色，
+     同色实心点会融进去（暗色下只剩投影轮廓，像空心环）；
+     卡底色则亮色是白点、暗色是深点，两种情况都和填充拉开最大反差。 */
+  background: var(--sg-page);
+  box-shadow:
+    0 0 0 1.5px var(--sg-accent-ink),
+    0 2px 5px rgba(16, 44, 50, .28);
+  cursor: pointer;
+  transition: transform var(--sg-dur-fast) var(--sg-ease);
+}
+
+input.sg-progress:hover::-webkit-slider-thumb { transform: scale(1.2); }
+
+input.sg-progress::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--sg-page);
+  box-shadow:
+    0 0 0 1.5px var(--sg-accent-ink),
+    0 2px 5px rgba(16, 44, 50, .28);
+  cursor: pointer;
+}
+
+/* 控制行：左胶囊（播放模式）/ 中间三键 / 右圆钮（静音）—— 华为的那一行排法 */
+.sg-player-controls {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .4rem;
+}
+
+.sg-player-transport { display: flex; align-items: center; gap: .55rem; }
+
+/* 前后键与静音键是**裸图标**：没有圆底、没有描边。
+   华为那一排里只有播放键和一枚说明性胶囊有实体，其余都是浮在版面上的线；
+   给每个键都套圆底，反而把主键的分量压平了。 */
+.sg-player-controls button {
+  display: grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--sg-text);
+  opacity: .8;
+  transition: opacity var(--sg-dur-fast) linear, color var(--sg-dur-fast) linear,
+              transform var(--sg-dur-fast) var(--sg-ease),
+              background-color var(--sg-dur-fast) linear;
+}
+
+.sg-player-controls button:hover {
+  opacity: 1;
+  color: var(--sg-accent-ink);
+  background: color-mix(in srgb, var(--sg-accent) 13%, transparent);
+  transform: scale(1.08);
+}
+
+.sg-player-controls button:active { transform: scale(.96); }
+.sg-player-controls button svg { width: 1.15rem; height: 1.15rem; }
+
+/* 模式胶囊：比圆钮宽，图标 + 文字。它是华为那一行里唯一的「说明性」控件。
+   选择器带 .sg-player-controls 是为了压过上面那条通用的按钮规则（同权重时后者会赢）。 */
+.sg-player-controls .sg-player-mode {
+  width: auto;
+  grid-auto-flow: column;
+  gap: .35rem;
+  padding: 0 .75rem;
+  border: 1px solid var(--sg-border);
+  background: var(--sg-chip);
+  border-radius: 999px;
+  opacity: .92;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
+
+.sg-player-controls .sg-player-mode svg { width: .95rem; height: .95rem; }
+.sg-player-controls .sg-player-mode.is-active {
+  color: var(--sg-accent-ink);
+  opacity: 1;
+}
+
+/* 主播放键：华为那枚「不规则的蛋」—— 宽略大于高，四个角的半径全不相等
+   （左上收得最紧、右下最松），像被捏过的软胶，而不是一个标准圆。
+   原来这里是正圆，和同一行的其它键同一个形状语言，主次只能靠尺寸硬撑。 */
+.sg-player-controls .sg-player-play {
+  width: 3rem;
+  height: 2.75rem;
+  border: 0;
+  border-radius: 58% 42% 46% 54% / 48% 56% 42% 58%;
+  background: var(--sg-accent);
+  color: #fff;
+  opacity: 1;
+  box-shadow:
+    0 8px 18px -8px color-mix(in srgb, var(--sg-accent) 80%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, .24);
+  /* 半径本身参与过渡：hover 时四角对调，轮廓像水面那样「流」一下 ——
+     有机形状最廉价也最有效的动效，不额外开 transform 图层。 */
+  transition:
+    border-radius .62s var(--sg-ease),
+    transform var(--sg-dur-fast) var(--sg-ease),
+    box-shadow var(--sg-dur-fast) var(--sg-ease);
+}
+
+.sg-player-controls .sg-player-play:hover {
+  color: #fff;
+  background: var(--sg-accent);
+  border-radius: 44% 56% 54% 46% / 56% 44% 58% 42%;
+  transform: scale(1.04) rotate(-2deg);
+  box-shadow: 0 12px 24px -10px var(--sg-accent);
+}
+
+.sg-player-controls .sg-player-play svg { width: 1rem; height: 1rem; }
+
+/* 播放/暂停两枚图标叠在同一格里切换。
+   ⚠️ 这里曾经漏写：两个 <svg> 同时可见，线上表现成「播放按钮里还压着暂停条」。
+   用 grid 叠放而不是 position:absolute，是为了让按钮尺寸不随图标变化跳动。 */
+.sg-player-play .sg-i-play,
+.sg-player-play .sg-i-pause { grid-area: 1 / 1; display: grid; place-items: center; }
+.sg-player-play .sg-i-pause { display: none; }
+.sg-player.is-playing .sg-player-play .sg-i-play { display: none; }
+.sg-player.is-playing .sg-player-play .sg-i-pause { display: grid; }
+
+/* 暗色下 --sg-accent 仍是 #35616b（它要恒压白字），压在 #1e2f33 的卡面上
+   对比只有 1.9:1，那颗主键会「沉」进去。提亮到 accent-2（#55868f）才跳得出来。
+   ⚠️ hover 那条必须把 background 重新写一遍：上面普通态的选择器带 :hover 时
+   特定性更高（0,4,0 > 0,3,1），不补就会被亮色那条 --sg-accent 抢回去，
+   暗色下鼠标一移上去主键反而变暗。 */
+html.dark .sg-player-controls .sg-player-play { background: var(--sg-accent-2); }
+html.dark .sg-player-controls .sg-player-play:hover {
+  background: var(--sg-accent-2);
+  box-shadow: 0 12px 24px -10px var(--sg-accent-2);
+}
+
+/* 静音键：按下（muted）走实心态，和主键区分开但不抢主键的位置。
+   裸图标没有描边了，所以这里只有底与色，不再写 border-color。 */
+.sg-player-controls .sg-player-mute.is-active {
+  background: color-mix(in srgb, var(--sg-accent) 18%, transparent);
+  color: var(--sg-accent-deep);
+  opacity: 1;
+}
+
+/* ---------- 音乐页（page-music.php） ---------- */
+.sg-music-page {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 1024px) {
+  .sg-music-page {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    align-items: stretch;
+    /* 源站 MusicClient.tsx:148 「md:h-[calc(100vh-320px)] md:min-h-[600px] md:max-h-[720px]」。
+       这块高度必须由容器兜住：否则 50 条歌单把 grid 行撑到 3000px+，
+       左栏跟着 stretch 成一根空白长条（唱片被顶到屏幕外），
+       右侧的 overflow-y 也永远不触发 —— 表现就是「歌单全部展开、页面被撑开」。 */
+    height: clamp(37.5rem, calc(100vh - 20rem), 45rem);
+  }
+}
+
+.sg-music-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  min-height: 26rem;
+}
+
+@media (min-width: 768px) { .sg-music-panel { padding: 2.25rem; } }
+
+/* 面板只留很轻的封面底色，去掉旧的密集声波和全卡光点。 */
+.sg-music-panel {
+  position: relative;
+  overflow: hidden;
+}
+.sg-music-panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(100% 80% at 50% 34%,
+    color-mix(in srgb, var(--sg-cover-tint, var(--sg-accent)) 12%, transparent) 0,
+    transparent 68%);
+}
+.sg-music-panel > * { position: relative; z-index: 1; }
+
+.sg-music-meta { text-align: center; padding-inline: .5rem; }
+.sg-music-meta h2 { font-size: 1.5rem; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sg-music-meta p { margin-top: .35rem; font-size: .85rem; font-weight: 700; letter-spacing: .12em; color: var(--sg-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* 底部控制条（第三阶段 · 完整音乐页统一）：与首页 .sg-player-controls 同一套语言 ——
+   辅键是裸图标，主键是四角半径不等的「豆形」，模式是唯一的说明性胶囊；
+   尺寸按大卡放大，但不再给每个键套玻璃圆钮（那会把主键的分量压平）。
+   通用规则用 :where(:not(…)) 排除 mode / play 且不抬权重：旧写法靠一堆 !important 兜，
+   hover 的 transform 其实一直被后代选择器压着没生效。 */
+.sg-music-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding-top: .25rem;
+}
+
+.sg-music-controls button:where(:not(.sg-music-mode):not(.sg-music-play)) {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--sg-text);
+  opacity: .8;
+  transition:
+    opacity var(--sg-dur-fast) linear,
+    color var(--sg-dur-fast) linear,
+    transform var(--sg-dur-fast) var(--sg-ease),
+    background-color var(--sg-dur-fast) linear;
+}
+
+.sg-music-controls button:where(:not(.sg-music-mode):not(.sg-music-play)):hover {
+  opacity: 1;
+  color: var(--sg-accent-ink);
+  background: color-mix(in srgb, var(--sg-accent) 13%, transparent);
+  transform: scale(1.08);
+}
+
+.sg-music-controls button:where(:not(.sg-music-mode):not(.sg-music-play)):active { transform: scale(.96); }
+.sg-music-controls button:where(:not(.sg-music-mode):not(.sg-music-play)) svg { width: 1.25rem; height: 1.25rem; }
+
+/* 播放模式：图标 + 文案的胶囊（列表循环 / 单曲循环 / 随机播放），对齐首页 .sg-player-mode。 */
+.sg-music-controls .sg-music-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  width: auto;
+  height: 2.4rem;
+  padding: 0 .8rem;
+  border: 1px solid var(--sg-border);
+  border-radius: 999px;
+  background: var(--sg-chip);
+  color: var(--sg-text);
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  white-space: nowrap;
+  opacity: .92;
+  transition: opacity var(--sg-dur-fast) linear, color var(--sg-dur-fast) linear;
+}
+
+.sg-music-controls .sg-music-mode svg { width: .95rem; height: .95rem; }
+.sg-music-controls .sg-music-mode.is-active {
+  color: var(--sg-accent-ink);
+  opacity: 1;
+}
+
+.sg-music-center { display: flex; align-items: center; justify-content: center; gap: 1rem; }
+
+/* 主键：与首页同款豆形，hover 时四角对调，轮廓像水面流一下。
+   暗色改用 accent-2 —— --sg-accent 在暗卡上对比不足，主键会「沉」进去。 */
+.sg-music-controls .sg-music-play {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 58% 42% 46% 54% / 48% 56% 42% 58%;
+  background: var(--sg-accent);
+  color: #fff;
+  opacity: 1;
+  box-shadow:
+    0 10px 22px -10px color-mix(in srgb, var(--sg-accent) 80%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, .24);
+  transition:
+    border-radius .62s var(--sg-ease),
+    transform var(--sg-dur-fast) var(--sg-ease),
+    box-shadow var(--sg-dur-fast) var(--sg-ease);
+}
+
+.sg-music-controls .sg-music-play:hover {
+  color: #fff;
+  background: var(--sg-accent);
+  border-radius: 44% 56% 54% 46% / 56% 44% 58% 42%;
+  transform: scale(1.04) rotate(-2deg);
+  box-shadow: 0 14px 28px -12px var(--sg-accent);
+}
+
+html.dark .sg-music-controls .sg-music-play { background: var(--sg-accent-2); }
+html.dark .sg-music-controls .sg-music-play:hover {
+  background: var(--sg-accent-2);
+  box-shadow: 0 14px 28px -12px var(--sg-accent-2);
+}
+
+.sg-music-controls .sg-music-play svg { width: 1.25rem; height: 1.25rem; }
+.sg-music-play .sg-i-play,
+.sg-music-play .sg-i-pause { grid-area: 1 / 1; display: grid; place-items: center; }
+.sg-music-play .sg-i-pause { display: none; }
+.sg-music.is-playing .sg-music-play .sg-i-play { display: none; }
+.sg-music.is-playing .sg-music-play .sg-i-pause { display: grid; }
+
+/* 静音激活态：paintMute() 给 [data-sg-mute] 加 is-active 并换图标，
+   首页那条 .sg-player-mute.is-active 管不到音乐页，这里补齐按下后的高亮。 */
+.sg-music-controls .sg-music-mute.is-active {
+  background: color-mix(in srgb, var(--sg-accent) 18%, transparent);
+  color: var(--sg-accent-deep);
+  opacity: 1;
+}
+
+html.dark .sg-music-controls .sg-music-mute.is-active { color: var(--sg-accent-soft); }
+
+/* 音量组（2026-11-17 第七轮）：静音键 + 音量合并成 .sg-music-sound ——
+   平时只显示静音键，悬停/键盘聚焦该组时音量从右侧滑出（无分隔线，
+   与常见播放器音量一样是图标+滑条紧凑组合）；过渡在 player-art.css。 */
+.sg-music-volume { position: relative; display: flex; align-items: center; gap: .4rem; }
+
+/* 右侧面板：歌词 / 歌单 */
+.sg-music-side { display: flex; flex-direction: column; overflow: hidden; padding: 0; min-height: 0; }
+
+/* 窄屏没有上面那条定高容器，右栏自己定高（源站 mobile 是 h-[450px]），
+   歌单同样在面板内部滚动，不把整页拉长。 */
+@media (max-width: 1023.98px) {
+  .sg-music-side { height: 28rem; }
+}
+
+.sg-music-tabs { display: flex; justify-content: center; padding: 1rem 0 .75rem; flex-shrink: 0; }
+
+.sg-music-body { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
+/* 仅音乐侧栏：作者 display:flex 会盖掉 UA 的 hidden，面板/筛选/空态必须真正隐藏。 */
+[data-sg-music-side] [hidden] { display: none; }
+
+.sg-music-lyrics {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 1.5rem 1.25rem;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+}
+
+/* 歌词块：行数少时靠 margin-block:auto 竖直居中（演示站是 py-[30vh] 把
+   当前行顶到面板中间）；行数多到溢出时两个 auto 自动归零，正常从上往下滚。
+   直接写 justify-content:center 会裁掉溢出内容的顶部且滚不回去。 */
+.sg-lyrics-inner {
+  display: flex;
+  flex-direction: column;
+  margin-block: auto;
+}
+
+.sg-lyric-line {
+  display: block;
+  padding: .55rem 1rem;
+  border-radius: var(--sg-radius-inner);
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 700;
+  /* 行距 2 + 上下留白：录屏里歌词是「疏」的，当前行才显得突出 */
+  line-height: 2;
+  color: var(--sg-text);
+  opacity: .32;
+  cursor: pointer;
+  transition: opacity var(--sg-dur-card) var(--sg-ease), color var(--sg-dur-card) var(--sg-ease), transform var(--sg-dur-card) var(--sg-ease);
+}
+
+.sg-lyric-line:hover { opacity: .55; }
+
+/* 当前行靠字重 + 缩放 + 阴影区分；颜色跟着底色走：
+   亮色要用深青（白字在浅卡上等于消失），暗色才用近白 */
+.sg-lyric-line.is-active {
+  opacity: 1;
+  color: var(--sg-accent-deep);
+  font-weight: 700;
+  transform: scale(1.06);
+  text-shadow: 0 6px 22px color-mix(in srgb, var(--sg-accent) 45%, transparent);
+}
+
+html.dark .sg-lyric-line.is-active { color: #f1f5ff; }
+
+.sg-music-empty {
+  display: grid;
+  place-items: center;
+  gap: .75rem;
+  flex: 1;
+  padding: 2rem;
+  text-align: center;
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--sg-muted);
+}
+
+.sg-music-empty svg { width: 2rem; height: 2rem; color: color-mix(in srgb, var(--sg-accent) 45%, transparent); animation: sg-spin 8s linear infinite; }
+
+.sg-playlist { display: flex; flex-direction: column; flex: 1; min-height: 0; padding: 0 1.25rem 1.25rem; gap: .75rem; }
+.sg-playlist-search { position: relative; flex-shrink: 0; }
+.sg-playlist-search input { width: 100%; height: 2.5rem; padding: 0 2.5rem; border-radius: 999px; border: 1px solid var(--sg-border); background: var(--sg-chip); color: inherit; outline: none; }
+.sg-playlist-search input:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--sg-accent) 40%, transparent); }
+.sg-playlist-search svg { position: absolute; left: .9rem; top: 50%; transform: translateY(-50%); width: 1rem; height: 1rem; color: var(--sg-muted); pointer-events: none; }
+
+.sg-playlist-list { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: .4rem; padding-right: .25rem; }
+
+.sg-song {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  width: 100%;
+  padding: .5rem .6rem;
+  border: 1px solid transparent;
+  border-radius: var(--sg-radius-inner);
+  background: transparent;
+  text-align: left;
+  transition: background-color var(--sg-dur-fast) linear, border-color var(--sg-dur-fast) linear;
+}
+
+.sg-song:hover { background: color-mix(in srgb, var(--sg-accent) 10%, transparent); }
+.sg-song.is-active { background: color-mix(in srgb, var(--sg-accent) 16%, transparent); border-color: color-mix(in srgb, var(--sg-accent) 30%, transparent); }
+
+.sg-song-cover { flex-shrink: 0; width: 2.5rem; height: 2.5rem; border-radius: var(--sg-radius-inner); overflow: hidden; background: rgba(148, 163, 184, .2); }
+.sg-song-cover img { width: 100%; height: 100%; object-fit: cover; }
+.sg-song-main { flex: 1; min-width: 0; }
+.sg-song-title { display: block; font-size: .88rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sg-song-artist { display: block; margin-top: .1rem; font-size: .72rem; color: var(--sg-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sg-song.is-active .sg-song-title { color: var(--sg-accent-ink); }
+html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
+
+/* 正在播放的三根跳动竖条 */
+.sg-song-wave { display: flex; align-items: flex-end; gap: 2px; height: 12px; flex-shrink: 0; }
+.sg-song-wave i:nth-child(2) { animation-delay: .2s; }
+.sg-song-wave i:nth-child(3) { animation-delay: .4s; }
+
+@keyframes sg-wave { 0%, 100% { transform: scaleY(.35); } 50% { transform: scaleY(1); } }
+
+/* 唱片自转。放在组件层而不是 effects.css：它属于播放器的一部分，
+   特效总开关（sg-effects-off）不应该把唱片也停掉。 */
+@keyframes sg-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+
+/* ---------- 首页歌词栏（LyricBar） ---------- */
+/* 通栏歌词：左声波、中央歌词、右音符；全部色彩由昼夜 --sg-lyric-* token 驱动。 */
+.sg-lyric-bar {
+  position: relative;
+  /* 星点取色跟昼夜走（2026-11-18 第十五轮）：日间是浅卡，白点等于没画，只能做主色微光 ——
+     与 .sg-player-card 同一条规则；暗色下面这条被 html.dark 覆写成白光，才是真正的星点。 */
+  --sg-spark: color-mix(in srgb, var(--sg-accent) 60%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  height: 5rem;
+  padding: 1.25rem;
+  /* 源站的 mt-[-10px]：压在 7:5 行下面，比常规栅格间距再近一点 */
+  margin-top: -.625rem;
+  border: 1px solid var(--sg-lyric-border);
+  border-radius: var(--sg-radius);
+  /* 星空层（2026-11-18 第十四轮起，第十五轮拆昼夜）：**与音乐卡同配方、同昼夜分档** ——
+     日间：9 颗主色微光点 + 两团主色光晕（等同 .sg-player-card::after 日间那三层）；
+     暗色：9 颗白光星点 + 两团冷蓝星云 + 一层主色光晕（等同 html.dark .sg-player-card::after）。
+     星点坐标 `--sg-spark-dots` 由上方 .sg-player-card 并列选择器共用一份，不重复维护。
+     走 background-image 而非伪元素：内容层天然压在背景之上，不必补 z-index。 */
+  background-color: var(--sg-lyric-bg);
+  background-image:
+    var(--sg-spark-dots),
+    radial-gradient(88% 58% at 90% 94%,
+      color-mix(in srgb, var(--sg-accent) 14%, transparent) 0, transparent 66%),
+    radial-gradient(125% 88% at 50% 24%,
+      color-mix(in srgb, var(--sg-accent) 26%, transparent) 0, transparent 64%);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  box-shadow: var(--sg-lyric-shadow);
+  color: var(--sg-lyric-text);
+  overflow: hidden;
+  transition: background-color 1s, border-color 1s, box-shadow .5s;
+}
+
+/* 暗色：卡面回到夜色，此时才叠真正的星云薄雾，星点也转为白光 */
+html.dark .sg-lyric-bar {
+  --sg-spark: rgba(255, 255, 255, .55);
+  background-image:
+    var(--sg-spark-dots),
+    radial-gradient(70% 52% at 12% 8%, rgba(43, 77, 112, .34) 0, transparent 68%),
+    radial-gradient(64% 46% at 92% 88%, rgba(31, 71, 99, .30) 0, transparent 66%),
+    radial-gradient(125% 88% at 50% 24%,
+      color-mix(in srgb, var(--sg-accent) 22%, transparent) 0, transparent 64%);
+}
+
+/* 声波：静止 4px，播放时 8px ↔ 28px。用 scaleY 代替源站的 height 动画，
+   只碰 transform，不触发重排。 */
+.sg-lyric-wave {
+  display: flex;
+  flex: none;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px;
+  width: 4rem;
+  height: 1.75rem;
+}
+
+.sg-lyric-wave i {
+  display: block;
+  width: 6px;
+  height: 1.75rem;
+  border-radius: 3px 3px 0 0;
+  background: rgba(148, 163, 184, .90);
+  transform: scaleY(.143);
+  transform-origin: bottom;
+  transition: transform .5s ease-out, background-color 1s;
+}
+
+/* 五根波形：青瓷由浅到深的同一族。色值由 --sg-lyric-wave-* 昼夜两档给出：
+   夜间必须是亮档（压在深底上），日间落到深青档（压在浅卡上）。 */
+.sg-lyric-wave i:nth-child(1) { background: var(--sg-lyric-wave-a); }
+.sg-lyric-wave i:nth-child(2) { background: var(--sg-lyric-wave-b); }
+.sg-lyric-wave i:nth-child(3) { background: var(--sg-lyric-wave-c); }
+.sg-lyric-wave i:nth-child(4) { background: var(--sg-lyric-wave-c); }
+.sg-lyric-wave i:nth-child(5) { background: var(--sg-lyric-wave-b); }
+
+.sg-lyric-bar.is-playing .sg-lyric-wave i { animation: sg-lyric-wave 1s ease-in-out infinite; }
+.sg-lyric-bar.is-playing .sg-lyric-wave i:nth-child(1) { animation-delay: 0ms; }
+.sg-lyric-bar.is-playing .sg-lyric-wave i:nth-child(2) { animation-delay: 200ms; }
+.sg-lyric-bar.is-playing .sg-lyric-wave i:nth-child(3) { animation-delay: 400ms; }
+.sg-lyric-bar.is-playing .sg-lyric-wave i:nth-child(4) { animation-delay: 100ms; }
+.sg-lyric-bar.is-playing .sg-lyric-wave i:nth-child(5) { animation-delay: 300ms; }
+
+@keyframes sg-lyric-wave {
+  0%, 100% { transform: scaleY(.286); }
+  50% { transform: scaleY(1); }
+}
+
+.sg-lyric-text {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0 2rem;
+  text-align: center;
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--sg-lyric-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: var(--sg-lyric-text-shadow);
+}
+
+/* 打字光标：源站是独立 span + cursorBlink；这里挂在文本节点后面，少一层 DOM */
+.sg-lyric-text::after {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 1.25rem;
+  margin-left: .25rem;
+  vertical-align: middle;
+  background: var(--sg-lyric-wave-a);
+  box-shadow: var(--sg-lyric-text-shadow);
+  animation: sg-lyric-caret .8s step-end infinite;
+}
+
+@keyframes sg-lyric-caret {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.sg-lyric-icon {
+  display: flex;
+  flex: none;
+  justify-content: flex-end;
+  width: 4rem;
+  color: var(--sg-lyric-icon);
+  transition: opacity .5s, color 1s;
+}
+
+.sg-lyric-icon svg { width: 1.5rem; height: 1.5rem; }
+
+.sg-lyric-bar.is-playing .sg-lyric-icon { animation: sg-lyric-bounce 1s infinite; }
+
+@keyframes sg-lyric-bounce {
+  0%, 100% { transform: translateY(-25%); }
+  50% { transform: none; }
+}
+
+.sg-lyric-bar:not(.is-playing) .sg-lyric-icon { opacity: .55; }
+
+@media (max-width: 639.98px) {
+  .sg-lyric-bar { height: 4.5rem; padding: 1rem; gap: .75rem; }
+  .sg-lyric-wave { width: 3rem; }
+  .sg-lyric-text { padding: 0 .5rem; font-size: 1rem; }
+  .sg-lyric-icon { width: 2.5rem; }
+  .sg-lyric-icon svg { width: 1.25rem; height: 1.25rem; }
+}
+

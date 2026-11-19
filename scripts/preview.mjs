@@ -132,6 +132,7 @@ ${js ? `<script type="module" src="${js}"></script>` : ''}
 <header class="sg-nav" data-sg-nav>
   <div class="sg-nav-inner">
     <a class="sg-brand" href="#">Xinghuisama<span class="sg-brand-accent">の</span>空璃</a>
+    <a class="sg-nav-page" data-sg-nav-page href="#" data-tip="回到顶部" hidden>预览页面</a>
     <nav class="sg-nav-links" aria-label="主导航">
       ${NAV_PRIMARY.map((item) => `<a class="sg-nav-link${item.active ? ' is-active' : ''}" href="${item.href}">${item.name}${item.active ? '<span class="sg-nav-dot"></span>' : ''}</a>`).join('')}
       ${

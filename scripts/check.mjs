@@ -105,6 +105,9 @@ const sourceRequired = [
   'src/styles/main.css', 'src/scripts/main.ts', 'public/data/playlist.json',
   'lib/config.php', 'lib/assets.php', 'lib/fields.php', 'lib/admin.php',
   'lib/http.php', 'lib/playlist.php', 'lib/stats.php',
+  // P0 拆分后 components/ 的 9 个子文件（聚合入口不得缺失任一）
+  ...['base', 'nav', 'floating', 'profile', 'player', 'home-content', 'article', 'pages', 'interactions']
+    .map(n => `src/styles/components/${n}.css`),
 ];
 for (const rel of sourceRequired) {
   if (!fs.existsSync(path.join(root, rel))) errors.push(`[源码缺失] soraglass/${rel}`);
@@ -131,6 +134,20 @@ for (const entry of fs.readdirSync(root)) {
   if (entry === 'dist') warnings.push('[临时产物] soraglass/dist/ 存在；npm run release 打包后会自动清理');
 }
 if (phpFiles.length === 0) errors.push('[源码缺失] 未发现任何 PHP 模板');
+
+// components.css 汇总入口的 @import 顺序即层叠顺序，必须与约定一致
+{
+  const entry = path.join(root, 'src/styles/components.css');
+  if (fs.existsSync(entry)) {
+    const expected = ['base', 'nav', 'floating', 'profile', 'player', 'home-content', 'article', 'pages', 'interactions']
+      .map(n => `@import "./components/${n}.css";`);
+    const src = fs.readFileSync(entry, 'utf8');
+    const actual = src.split(/\r?\n/).map(l => l.trim()).filter(l => l.startsWith('@import "./components/'));
+    if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+      errors.push('[样式顺序] components.css 的 9 条 @import 顺序与约定不符，层叠会改变');
+    }
+  }
+}
 
 // ---------- 5) Typecho 1.3 表单兼容性 ----------
 const fn = phpFiles.map(file => fs.readFileSync(file, 'utf8')).join('\n');
