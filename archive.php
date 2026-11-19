@@ -38,7 +38,7 @@ while ($this->next()) {
 }
 $sgCardsHtml = (string) ob_get_clean();
 ?>
-<main id="sg-main" class="sg-main sg-main--pad" data-sg-page="archive">
+<main id="sg-main" tabindex="-1" class="sg-main sg-main--pad" data-sg-page="archive">
   <div class="sg-page-head">
     <div class="sg-page-head-row is-centered">
       <div>

@@ -9,6 +9,35 @@
  *  - 照片：usr/uploads 下能被相册认出来的图片总数（sg_albums() 累加）。
  * 任何一步失败都回落 0，绝不让首页 500。
  */
+/**
+ * 跨请求缓存一个标量/数组结果（P2-9）：复用 sg_cache_file 的落盘目录，TTL 1 小时。
+ * 只在「全表扫描」这类昂贵计算上使用；管理员带 ?sg-refresh=1 可强制重算。
+ * $producer 抛错或缓存不可写时静默回退到实时计算，功能不受影响。
+ */
+function sg_stats_disk_cache(string $key, callable $producer)
+{
+    static $mem = [];
+    if (array_key_exists($key, $mem)) {
+        return $mem[$key];
+    }
+    $file = sg_cache_file('stats-' . $key . '.json');
+    $bypass = isset($_GET['sg-refresh']) && sg_user_is_admin();
+    $ttl = 3600;
+    if (!$bypass && $file !== '' && is_file($file) && (time() - (int) filemtime($file)) < $ttl) {
+        $cached = json_decode((string) file_get_contents($file), true);
+        if (is_array($cached) && array_key_exists('v', $cached)) {
+            $mem[$key] = $cached['v'];
+            return $mem[$key];
+        }
+    }
+    $value = $producer();
+    if ($file !== '') {
+        @file_put_contents($file, json_encode(['v' => $value], JSON_UNESCAPED_UNICODE), LOCK_EX);
+    }
+    $mem[$key] = $value;
+    return $value;
+}
+
 function sg_stats(): array
 {
     static $cache = null;
@@ -58,6 +87,11 @@ function sg_stats(): array
  * 访客数 / 总访问量不在这里算：页脚 busuanzi 镜像异步回写 DOM。任何一步失败都回退默认值，绝不让首页 500。
  */
 function sg_webinfo(): array
+{
+    return sg_stats_disk_cache('webinfo', 'sg_webinfo_uncached');
+}
+
+function sg_webinfo_uncached(): array
 {
     $words = sg_total_words();
     $posts = (int) (sg_stats()['posts'] ?? 0);
@@ -192,33 +226,29 @@ function sg_uptime(): array
  */
 function sg_total_words(): int
 {
-    static $cache = null;
-    if ($cache !== null) {
-        return $cache;
-    }
-
-    $cache = 0;
-    try {
-        $db = \Typecho\Db::get();
-        $rows = $db->fetchAll(
-            $db->select(['table.contents.text' => 'text'])
-                ->from('table.contents')
-                ->where('type = ?', 'post')
-                ->where('status = ?', 'publish')
-        );
-        foreach ($rows as $row) {
-            $text = (string) ($row['text'] ?? '');
-            if (strncmp($text, '<!--markdown-->', 15) === 0) {
-                $text = substr($text, 15);
+    return (int) sg_stats_disk_cache('total-words', static function (): int {
+        $count = 0;
+        try {
+            $db = \Typecho\Db::get();
+            $rows = $db->fetchAll(
+                $db->select(['table.contents.text' => 'text'])
+                    ->from('table.contents')
+                    ->where('type = ?', 'post')
+                    ->where('status = ?', 'publish')
+            );
+            foreach ($rows as $row) {
+                $text = (string) ($row['text'] ?? '');
+                if (strncmp($text, '<!--markdown-->', 15) === 0) {
+                    $text = substr($text, 15);
+                }
+                $text = (string) preg_replace('/\s+/u', '', strip_tags($text));
+                $count += function_exists('mb_strlen') ? (int) mb_strlen($text, 'UTF-8') : strlen($text);
             }
-            $text = (string) preg_replace('/\s+/u', '', strip_tags($text));
-            $cache += function_exists('mb_strlen') ? (int) mb_strlen($text, 'UTF-8') : strlen($text);
+        } catch (\Throwable $e) {
+            $count = 0;
         }
-    } catch (\Throwable $e) {
-        $cache = 0;
-    }
-
-    return $cache;
+        return $count;
+    });
 }
 
 /** 字数展示格式：过万写成「x.x 万」 */

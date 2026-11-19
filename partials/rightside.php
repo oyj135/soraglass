@@ -8,7 +8,7 @@
 ?>
 <div class="sg-pace" data-sg-pace aria-hidden="true"><span class="sg-pace-progress"></span></div>
 <div class="sg-rightside" data-sg-rightside>
-  <div class="sg-rightside-hidden" data-sg-rightside-hidden>
+  <div class="sg-rightside-hidden" id="sg-rightside-hidden" data-sg-rightside-hidden>
     <button class="sg-rightside-btn" type="button" data-sg-theme-toggle aria-label="切换昼夜模式">
       <?php echo sg_icon('sun', 'sg-i-sun'); ?>
       <?php echo sg_icon('moon', 'sg-i-moon'); ?>
@@ -19,7 +19,7 @@
     </button>
     <?php endif; ?>
   </div>
-  <button class="sg-rightside-btn" type="button" data-sg-rightside-config aria-label="展开设置" aria-expanded="false">
+  <button class="sg-rightside-btn" type="button" data-sg-rightside-config aria-label="展开设置" aria-expanded="false" aria-controls="sg-rightside-hidden">
     <?php echo sg_icon('settings'); ?>
   </button>
   <button class="sg-rightside-btn sg-go-up" type="button" data-sg-go-up aria-label="回到顶部">

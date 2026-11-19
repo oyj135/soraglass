@@ -41,7 +41,7 @@ if ($sgWeek) {
     $sgWeeks[] = array_pad($sgWeek, 7, null);
 }
 ?>
-<main id="sg-main" class="sg-main sg-main--narrow" data-sg-page="about" data-sg-grid>
+<main id="sg-main" tabindex="-1" class="sg-main sg-main--narrow" data-sg-page="about" data-sg-grid>
   <article class="sg-glass sg-about" data-sg-spotlight>
 
     <div class="sg-about-banner">
@@ -107,7 +107,7 @@ if ($sgWeek) {
                           $sgNum = (int) ($sgHeat[$sgKey] ?? 0);
                           $sgLevel = $sgNum === 0 ? 0 : ($sgNum === 1 ? 1 : ($sgNum === 2 ? 2 : ($sgNum === 3 ? 3 : 4)));
                         ?>
-                        <i class="sg-heat-cell" data-level="<?php echo $sgLevel; ?>" title="<?php echo sg_e($sgKey . '：' . $sgNum . ' 篇'); ?>"></i>
+                        <i class="sg-heat-cell" data-level="<?php echo $sgLevel; ?>" role="img" aria-label="<?php echo sg_e($sgKey . '：' . $sgNum . ' 篇'); ?>" title="<?php echo sg_e($sgKey . '：' . $sgNum . ' 篇'); ?>"></i>
                       <?php endif; ?>
                     <?php endforeach; ?>
                   <?php endforeach; ?>

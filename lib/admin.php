@@ -420,6 +420,12 @@ HTML;
 function themeConfig($form): void
 {
     sg_gallery_plugin(); // Upgrade native attachment hooks without resetting cloud settings.
+    /* 构建产物自检（P0-3）：dist 在 .gitignore 中、发布后被清，主题目录误传源码时
+       前台会静默裸奔。这里在设置页顶部直接给出可见状态，省得站长靠猜。 */
+    $sgBuildState = sg_asset_ready()
+        ? '<span style="color:#1a7f37">✓ 构建产物就绪（dist/.vite/manifest.json）</span>'
+        : '<span style="color:#d63638">✗ 缺少 dist 构建产物：请本地 npm run release 后上传 soraglass.zip（含 dist），勿只传源码目录</span>';
+    echo '<p class="description">' . $sgBuildState . '</p>';
     /* ---------------- 身份与导航 ---------------- */
     $form->addInput(new Text('sgAuthorName', null, '博主', _t('博主昵称'), _t('显示在首页个人卡片')));
     $form->addInput(new Text('sgAuthorStatus', null, '', _t('作者状态气泡'), _t('显示在作者卡头像右下角，可带 emoji；留空不显示')));

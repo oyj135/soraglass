@@ -16,6 +16,10 @@ function syncThemeCopy(): void {
   });
 }
 
+/**
+ * 切换昼夜主题：html.dark 翻转 + localStorage 持久化。
+ * （第二十四轮：原「日落转场」triggerSky 已按用户要求移除，转场交回纯配色切换。）
+ */
 export function toggleTheme(): void {
   const dark = !isDark();
   document.documentElement.classList.toggle('dark', dark);

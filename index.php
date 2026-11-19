@@ -35,7 +35,7 @@ foreach (sg_home_articles($sgHomeListLimit) as $sgHomeCard) {
     $sgHomeListHtml .= sg_feature_card_html($sgHomeCard);
 }
 ?>
-<main id="sg-main" class="sg-main sg-main--home" data-sg-page="index">
+<main id="sg-main" tabindex="-1" class="sg-main sg-main--home" data-sg-page="index">
   <?php /* 100vh 全屏图片首屏：参考 Fomalhaut #page-header.full_page。命名空间 .sg-front*，与首页主区 .sg-hero* 隔离。 */ ?>
   <?php $this->need('partials/home-front.php'); ?>
 

@@ -16,7 +16,7 @@ $sgDetails = $sgAlbums;
 if ($sgOpenAlbum && !in_array($sgOpenId, array_column($sgAlbums, 'id'), true)) { $sgDetails[] = $sgOpenAlbum; }
 $sgHead = ['title' => (string) $this->title, 'sub' => sg_page_sub($this, '在光里停留，在时间里收藏。'), 'search' => true, 'center' => false, 'placeholder' => '搜索相册、照片、日期或主题…', 'hidden' => $sgOpenId !== ''];
 ?>
-<main id="sg-main" class="sg-main sg-main--wide sg-main--pad" data-sg-page="photowall" data-sg-gallery data-endpoint="<?php echo sg_e(\Typecho\Common::url('/action/sg-gallery', \Widget\Options::alloc()->index)); ?>" data-album-pages="<?php echo $sgCatalog['pages']; ?>">
+<main id="sg-main" tabindex="-1" class="sg-main sg-main--wide sg-main--pad" data-sg-page="photowall" data-sg-gallery data-endpoint="<?php echo sg_e(\Typecho\Common::url('/action/sg-gallery', \Widget\Options::alloc()->index)); ?>" data-album-pages="<?php echo $sgCatalog['pages']; ?>">
   <?php sg_page_head($sgHead); ?>
   <div class="sg-gallery-list" data-sg-gallery-list <?php if ($sgOpenId !== '') echo 'hidden'; ?>>
     <?php if ($sgAlbums): ?>

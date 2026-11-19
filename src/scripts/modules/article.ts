@@ -419,16 +419,34 @@ export function initLightbox(): void {
         paint();
       };
 
+      /* P1-9：打开时把焦点移入灯箱、Tab 在控件间循环、关闭后归还焦点到触发链接。
+         原实现只挂 role="dialog"/aria-modal，焦点仍停在背景，键盘用户 Tab 会穿到背后内容。 */
+      const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      const focusables = (): HTMLElement[] => [closeBtn, prev, next].filter((el) => !el.hidden);
+
       const close = (): void => {
         box.remove();
         document.removeEventListener('keydown', onKey);
         document.documentElement.classList.remove('sg-lock');
+        if (opener?.isConnected) opener.focus({ preventScroll: true });
       };
 
       const onKey = (e: KeyboardEvent): void => {
-        if (e.key === 'Escape') close();
+        if (e.key === 'Escape') { close(); return; }
         if (e.key === 'ArrowLeft') step(-1);
         if (e.key === 'ArrowRight') step(1);
+        if (e.key === 'Tab') {
+          const items = focusables();
+          if (!items.length) return;
+          const first = items[0];
+          const last = items[items.length - 1];
+          const active = document.activeElement;
+          if (e.shiftKey && (active === first || !box.contains(active))) {
+            e.preventDefault(); last.focus();
+          } else if (!e.shiftKey && (active === last || !box.contains(active))) {
+            e.preventDefault(); first.focus();
+          }
+        }
       };
 
       box.append(img, counter, closeBtn, prev, next);
@@ -452,6 +470,7 @@ export function initLightbox(): void {
       pageOn(document, 'keydown', onKey);
       document.documentElement.classList.add('sg-lock');
       document.body.appendChild(box);
+      closeBtn.focus({ preventScroll: true });
       onPageDispose(close);
     });
   });

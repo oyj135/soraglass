@@ -394,3 +394,64 @@ html.dark .sg-spotlight::after {
   }
   img[data-lazy-src] { animation: none; }
 }
+
+/* ===== 第二十二轮（2026-11-19）：源站细节动效批量移植（A3/A4/A5/A6/A7） ===== */
+
+/* A3 图片模糊渐显（源站 imgblur：加载后 0.8s blur 5px→0）：
+   挂 html.sg-ready 保证只在首载播一次；壁纸层加 scale 补偿 blur 边缘透明。 */
+html.sg-ready .sg-bg { animation: sg-imgblur .9s ease-in-out both; }
+html.sg-ready .sg-cover img,
+html.sg-ready .sg-post-hero img { animation: sg-imgblur .8s ease-in-out both; }
+@keyframes sg-imgblur {
+  0% { filter: blur(10px); transform: scale(1.015); }
+  100% { filter: blur(0); transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html.sg-ready .sg-bg,
+  html.sg-ready .sg-cover img,
+  html.sg-ready .sg-post-hero img { animation: none; }
+}
+
+/* A4 页脚心跳（源站 iconAnimate：一次双跳节拍） */
+.sg-heart { display: inline-block; width: .9em; height: .9em; margin: 0 .12em; vertical-align: -.08em; color: #e8654a; animation: sg-heartbeat 1.4s ease-in-out infinite; }
+@keyframes sg-heartbeat {
+  0%, 100% { transform: scale(1); }
+  10%, 30% { transform: scale(.9); }
+  20%, 40%, 60%, 80% { transform: scale(1.1); }
+  50%, 70% { transform: scale(1.1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sg-heart { animation: none; }
+}
+
+/* A5 页脚波浪（源站 move-forever：四层错速平移，节奏与延迟逐层拉开） */
+@keyframes sg-waves-move {
+  0% { transform: translate3d(-90px, 0, 0); }
+  100% { transform: translate3d(85px, 0, 0); }
+}
+.sg-waves-parallax > use { animation: sg-waves-move 25s cubic-bezier(.55, .5, .45, .5) infinite; }
+.sg-waves-parallax > use:nth-child(1) { animation-delay: -2s; animation-duration: 7s; }
+.sg-waves-parallax > use:nth-child(2) { animation-delay: -3s; animation-duration: 10s; }
+.sg-waves-parallax > use:nth-child(3) { animation-delay: -4s; animation-duration: 13s; }
+.sg-waves-parallax > use:nth-child(4) { animation-delay: -5s; animation-duration: 20s; }
+@media (prefers-reduced-motion: reduce) {
+  .sg-waves-parallax > use { animation: none; }
+}
+
+/* C3 夜间星空（2026-11-24 第二十四轮，源站 #universe 的自有版）：
+   固定全屏 canvas 垫在壁纸（z -10）之上、内容之下；只在 html.dark 显示，
+   日间/≤768px/reduced-motion 直接隐藏；JS 侧同步停 rAF。 */
+.sg-universe { position: fixed; inset: 0; z-index: -9; pointer-events: none; }
+html:not(.dark) .sg-universe { display: none; }
+@media (max-width: 767.98px) { .sg-universe { display: none; } }
+@media (prefers-reduced-motion: reduce) { .sg-universe { display: none; } }
+
+/* A7 头像呼吸灯（源站 huxi：box-shadow 1px→5px 4s 呼吸；青瓷色，昼夜同 token） */
+@keyframes sg-huxi {
+  0%, 100% { box-shadow: 0 0 2px 1px color-mix(in srgb, var(--sg-accent) 55%, transparent); }
+  50% { box-shadow: 0 0 7px 5px color-mix(in srgb, var(--sg-accent) 55%, transparent); }
+}
+.sg-profile .sg-avatar-ring::after { animation: sg-huxi 4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .sg-profile .sg-avatar-ring::after { animation: none; }
+}

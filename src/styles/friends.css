@@ -7,8 +7,9 @@
      ② 头像宽度 60→0、margin-left -10px（.3s ease-out），文字让位。 */
 /* 列表托在卡面上（源站友链位于 #page 卡内）：原先直接压壁纸，花图上简介只剩 2.4:1 */
 .sg-flink-list {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 15px 14px;
   padding: 10px 10px 0;
   border: 1px solid var(--sg-card-border);
   border-radius: var(--sg-radius-outer);
@@ -20,15 +21,13 @@
 .sg-flink-item {
   position: relative;
   overflow: hidden;
-  width: calc(100% / 3 - 14px);
+  width: auto;
   height: 90px;
-  margin: 15px 7px;
-  border-radius: 8px;
+  margin: 0;
+  border-radius: var(--sg-radius-inner);
   line-height: 17px;
   transform: translateZ(0);
 }
-@media (max-width: 1024px) { .sg-flink-item { width: calc(50% - 14px); } }
-@media (max-width: 600px) { .sg-flink-item { width: 100%; } }
 
 /* hover 扫开的浅底（源站 var(--text-bg-hover) 同构：亮色主题色 12%，暗色白 10%） */
 .sg-flink-item::before {

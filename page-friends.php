@@ -34,7 +34,7 @@ $sgFriends = array_map(static function (array $row) use ($sgString): array {
     ];
 }, $sgFriends);
 ?>
-<main id="sg-main" class="sg-main sg-main--pad" data-sg-page="friends">
+<main id="sg-main" tabindex="-1" class="sg-main sg-main--pad" data-sg-page="friends">
   <?php sg_page_head($sgHead); ?>
 
   <?php if (trim((string) $this->content) !== '') : ?>

@@ -16,8 +16,22 @@ if ($sgName === '') {
     $sgName = 'Soraglass';
 }
 ?>
-<footer class="sg-footer-wrap">
-  <div class="sg-footer">
+<div class="sg-footer-zone">
+  <?php /* 页脚波浪（2026-11-19 A5，参数对齐源站 main-hero-waves-area：四层 7/10/13/20s
+     错速平移 move-forever；日间瓷白、夜间深靖，压在页脚文字底下做连续底色） */ ?>
+  <div class="sg-footer-waves" aria-hidden="true">
+    <svg class="sg-waves-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 24 150 28" preserveAspectRatio="none">
+      <defs><path id="sg-wave-gentle" d="M-160 44c30 0 58-18 88-18s58 18 88 18 58-18 88-18 58 18 88 18v44h-352z"/></defs>
+      <g class="sg-waves-parallax">
+        <use href="#sg-wave-gentle" x="48" y="0"></use>
+        <use href="#sg-wave-gentle" x="0" y="0"></use>
+        <use href="#sg-wave-gentle" x="0" y="3"></use>
+        <use href="#sg-wave-gentle" x="0" y="5"></use>
+      </g>
+    </svg>
+  </div>
+  <footer class="sg-footer-wrap">
+    <div class="sg-footer">
     <div class="sg-footer-status">
       <span class="sg-footer-run">
         <i class="sg-footer-dot" aria-hidden="true"></i>
@@ -31,10 +45,11 @@ if ($sgName === '') {
 
     <hr class="sg-footer-rule">
 
-    <p class="sg-footer-copy">&copy; <?php echo date('Y'); ?> <?php echo sg_e($sgName); ?> · 保留所有权利</p>
+    <p class="sg-footer-copy">&copy; <?php echo date('Y'); ?> <?php echo sg_e($sgName); ?> · <?php echo sg_icon('heart', 'sg-heart'); ?> 保留所有权利</p>
     <p class="sg-footer-powered">Powered by Typecho · Theme Soraglass 空璃</p>
   </div>
 </footer>
+</div>
 
 <?php $this->need('partials/toolbox.php'); ?>
 <?php $this->need('partials/rightside.php'); ?>

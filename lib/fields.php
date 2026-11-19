@@ -69,9 +69,13 @@ function sg_bg_url(string $value): string
         return '';
     }
     if (preg_match('#^(?:https?:)?//#i', $value) === 1
-        || str_starts_with($value, 'data:')
+        || preg_match('#^data:image/[a-z0-9.+-]+;base64,#i', $value) === 1
         || str_starts_with($value, '/')) {
         return $value;
+    }
+    // P2-10：非图片的 data: URI（如 data:text/html）不进 <img src>，其余非法协议同样拒收。
+    if (str_starts_with($value, 'data:')) {
+        return '';
     }
     if (str_starts_with($value, 'usr/') || str_starts_with($value, 'www/')) {
         $options = sg_options();

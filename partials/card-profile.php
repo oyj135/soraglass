@@ -31,7 +31,7 @@ $sgProfileSocial = sg_json('sgSocial', 'social', []);
       <?php if ($sgStatus !== '') : ?><span class="sg-status-text"><?php echo sg_e($sgStatus); ?></span><?php endif; ?>
     </span>
   </div>
-  <h1 class="sg-profile-name"><?php echo sg_e($sgName); ?></h1>
+  <p class="sg-profile-name"><?php echo sg_e($sgName); ?></p>
   <?php if ($sgBio !== '') : ?><p class="sg-profile-bio"><?php echo sg_e($sgBio); ?></p><?php endif; ?>
 </div>
 
@@ -62,7 +62,7 @@ $sgProfileSocial = sg_json('sgSocial', 'social', []);
   <?php foreach ($sgProfileSocial as $sgProfileItem) : ?>
   <?php if (!is_array($sgProfileItem)) { continue; } ?>
   <a class="sg-social <?php echo sg_e(sg_social_brand_class($sgProfileItem)); ?>" href="<?php echo sg_e(sg_value($sgProfileItem, 'url', '#')); ?>" target="_blank" rel="noopener noreferrer" title="<?php echo sg_e(sg_value($sgProfileItem, 'name', '链接')); ?>" aria-label="<?php echo sg_e(sg_value($sgProfileItem, 'name', '链接')); ?>">
-    <?php echo sg_icon(sg_social_icon($sgProfileItem)); ?>
+    <?php echo sg_social_svg(sg_social_icon($sgProfileItem)); ?>
   </a>
   <?php endforeach; ?>
 </div>

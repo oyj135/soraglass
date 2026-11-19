@@ -5,7 +5,7 @@ if (!defined('SG_ROOT')) {
 $this->need('header.php');
 $sgHome = rtrim((string) $this->options->siteUrl, '/') . '/';
 ?>
-<main id="sg-main" class="sg-main sg-main--pad" data-sg-page="404">
+<main id="sg-main" tabindex="-1" class="sg-main sg-main--pad" data-sg-page="404">
   <section class="sg-glass sg-notfound">
     <span class="sg-notfound-code">404</span>
     <h1>这片天空下好像什么都没有</h1>

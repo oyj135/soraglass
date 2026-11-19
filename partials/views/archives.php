@@ -49,7 +49,7 @@ $sgHead = [
     // 页头再挂「返回上一级」既重复又抢标题（用户截图里那颗胶囊）。
 ];
 ?>
-<main id="sg-main" class="sg-main sg-main--pad" data-sg-page="archives">
+<main id="sg-main" tabindex="-1" class="sg-main sg-main--pad" data-sg-page="archives">
   <?php sg_page_head($sgHead); ?>
 
   <?php if (!$sgGroups) : ?>

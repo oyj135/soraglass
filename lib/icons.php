@@ -42,6 +42,8 @@ function sg_icon(string $name, string $class = ''): string
         'bilibili'    => '<rect x="2" y="6" width="20" height="14" rx="4"/><path d="M7 6 5 3M17 6l2-3"/><path d="M9 11v4M15 11v4"/>',
         'twitter'     => '<path d="M4 4l7.5 9.5L4.5 20h2.3l5.8-6.3L17.5 20H20l-7.8-10L19.4 4h-2.3l-5.3 5.8L7.3 4z"/>',
         'close'       => '<path d="M6 6l12 12M18 6 6 18"/>',
+        /* 页脚心跳（2026-11-19 第二十二轮 A4，对齐源站 #heartbeat）：实心心形 */
+        'heart'       => '<path d="M12 20.6C7.2 17 3.5 13.6 3.5 9.7 3.5 7 5.5 5 8 5c1.6 0 3.1.8 4 2.1C13 5.8 14.5 5 16 5c2.5 0 4.5 2 4.5 4.7 0 3.9-3.7 7.3-8.5 10.9z" fill="currentColor" stroke="none"/>',
         'map-pin'     => '<path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/>',
         'pin'         => '<path d="M9 3h6l-.9 6.3 2.9 2.7H7l2.9-2.7z"/><path d="M12 12v9"/>',
         'plus'        => '<path d="M12 5v14M5 12h14"/>',
@@ -115,13 +117,40 @@ function sg_icon_color(string $name, string $class = ''): string
     return '<svg class="' . sg_e($cls) . '" viewBox="0 0 24 24" aria-hidden="true">' . $inner . '</svg>';
 }
 
+/**
+ * 社交品牌图标：多色填充 SVG（2026-11-19，对齐源站 iconfont 彩色 sprite 的观感）。
+ * 源站社交图标是 iconfont 项目导出的多色 symbol（<svg><use xlink:href="#icon-xx">），
+ * 每枚自带品牌色 fill；soraglass 不引外部图标库，路径自绘（品牌几何近似 + 官方品牌色），
+ * 未收录的名字回落线条版 sg_icon，调用点可安全混用。
+ * github 这类单色品牌走 currentColor（昼夜亮度由 --sg-brand-* token 控制），
+ * 其余品牌在 glyph 内写死官方色，CSS 的 color/fill 不会覆盖内联 fill。
+ * 用法：<?php echo sg_social_svg(sg_social_icon($item)); ?>
+ */
+function sg_social_svg(string $name): string
+{
+    $glyphs = [
+        'wechat'   => '<path d="M9.6 3.3c-3.7 0-6.7 2.9-6.7 6.5 0 2 .9 3.8 2.4 5L4.6 17.9l3.3-1.6c.5.1 1.1.2 1.7.2 3.7 0 6.7-2.9 6.7-6.7s-3-6.5-6.7-6.5z" fill="#2DC100"/><circle cx="7.4" cy="8.7" r="1.05" fill="#fff"/><circle cx="11.8" cy="8.7" r="1.05" fill="#fff"/><path d="M14 19.6l-.8 2.3 2.6-1.3c.3 0 .7.1 1.1.1 2.6 0 4.8-1.8 4.8-4.1s-2.2-4.1-4.8-4.1-4.8 1.8-4.8 4.1c0 1.2.6 2.3 1.5 3z" fill="#9BE45C" stroke="#fff" stroke-width="1.1" stroke-linejoin="round"/><circle cx="15.8" cy="14.9" r=".8" fill="#fff"/><circle cx="19.2" cy="14.9" r=".8" fill="#fff"/>',
+        'qq'       => '<path d="M12 2.4a6.4 6.4 0 0 0-6.4 6.4c0 1.2.2 2.3.6 3.3-1 1.8-2.1 4.5-2.1 6.4 0 1.7 1 2.4 1.9 2.4 1.4 0 2.4-1.2 3-2.8h6c.6 1.6 1.6 2.8 3 2.8.9 0 1.9-.7 1.9-2.4 0-1.9-1.1-4.6-2.1-6.4.4-1 .6-2.1.6-3.3A6.4 6.4 0 0 0 12 2.4z" fill="#12B7F5"/><ellipse cx="9.8" cy="8.1" rx="2.3" ry="2.7" fill="#fff"/><ellipse cx="14.2" cy="8.1" rx="2.3" ry="2.7" fill="#fff"/><circle cx="9.8" cy="7.9" r="1.15" fill="#182B44"/><circle cx="14.2" cy="7.9" r="1.15" fill="#182B44"/><path d="M10.4 10.6h3.2L12 12.6z" fill="#F5A623"/><ellipse cx="12" cy="16.4" rx="3.3" ry="2.8" fill="#fff"/>',
+        'bilibili' => '<path d="M7.4 3.2 9.2 5.9M16.6 3.2 14.8 5.9" fill="none" stroke="#23ADE5" stroke-width="1.8" stroke-linecap="round"/><rect x="2.4" y="5.9" width="19.2" height="13.8" rx="4.2" fill="#23ADE5"/><rect x="7.6" y="10" width="2.1" height="5.6" rx="1.05" fill="#fff"/><rect x="14.3" y="10" width="2.1" height="5.6" rx="1.05" fill="#fff"/>',
+        'mail'     => '<rect x="2.4" y="4.9" width="19.2" height="14.2" rx="3.2" fill="#3D7BE0"/><path d="M5.6 4.9h12.8a3.2 3.2 0 0 1 3.2 3.2v.7L12 14.4 2.4 8.8v-.7a3.2 3.2 0 0 1 3.2-3.2z" fill="#6BA6FF"/><path d="m2.4 8.8 9.6 5.6 9.6-5.6" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>',
+        'leetcode' => '<path class="sg-si-lc-c" d="M12.4 4.9a7.1 7.1 0 1 0 0 14.2" fill="none" stroke="#1E2A38" stroke-width="3.4" stroke-linecap="round"/><path d="m13.2 4.6 4.3-2.7" fill="none" stroke="#FFA116" stroke-width="3.2" stroke-linecap="round"/><path d="M13 19.1h5.4" fill="none" stroke="#FFA116" stroke-width="3.2" stroke-linecap="round"/>',
+        'rss'      => '<circle cx="5.3" cy="18.7" r="2.4" fill="#F7841D"/><path d="M3.4 12.4a8.2 8.2 0 0 1 8.2 8.2" fill="none" stroke="#F7841D" stroke-width="3" stroke-linecap="round"/><path d="M3.4 4.6A16.2 16.2 0 0 1 19.6 20.8" fill="none" stroke="#FBB03B" stroke-width="3" stroke-linecap="round"/>',
+        'twitter'  => '<path d="M22 5.8c-.7.3-1.5.5-2.3.6a4.1 4.1 0 0 0 1.8-2.2c-.8.5-1.7.8-2.6 1a4.1 4.1 0 0 0-7 3.7A11.6 11.6 0 0 1 3.4 4.6a4.1 4.1 0 0 0 1.3 5.5c-.7 0-1.3-.2-1.9-.5v.1c0 2 1.4 3.6 3.3 4a4.2 4.2 0 0 1-1.9.1 4.1 4.1 0 0 0 3.8 2.8A8.2 8.2 0 0 1 2 18.3a11.6 11.6 0 0 0 6.3 1.8c7.5 0 11.7-6.3 11.7-11.7v-.5c.8-.6 1.5-1.3 2-2.1z" fill="#1DA1F2"/>',
+        'github'   => '<path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-2c-2.8.6-3.4-1.2-3.4-1.2-.4-1.1-1-1.4-1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.7.4-1.1.7-1.4-2.2-.2-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.7 1a9.3 9.3 0 0 1 5 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.4 4.8-4.6 5 .4.3.7 1 .7 2v3c0 .3.2.6.7.5A10 10 0 0 0 12 2z" fill="currentColor"/>',
+    ];
+    if (!isset($glyphs[$name])) {
+        return sg_icon($name);
+    }
+    return '<svg class="sg-si" viewBox="0 0 24 24" aria-hidden="true">' . $glyphs[$name] . '</svg>';
+}
+
 /** 社交图标名 → 站点图标；未收录时退化为 link 图标 */
 function sg_social_icon(array $item): string
 {
     $key = strtolower(trim((string) ($item['icon'] ?? '')));
     if ($key === '') {
         $name = strtolower((string) ($item['name'] ?? ''));
-        foreach (['github' => 'github', 'mail' => 'mail', '邮箱' => 'mail', 'bilibili' => 'bilibili', '哔哩' => 'bilibili', 'rss' => 'rss', 'x' => 'twitter', 'twitter' => 'twitter'] as $needle => $icon) {
+        foreach (['github' => 'github', 'mail' => 'mail', '邮箱' => 'mail', 'bilibili' => 'bilibili', '哔哩' => 'bilibili', 'b站' => 'bilibili', 'rss' => 'rss', 'x' => 'twitter', 'twitter' => 'twitter', '微信' => 'wechat', 'weixin' => 'wechat', 'wechat' => 'wechat', 'qq' => 'qq', '力扣' => 'leetcode', 'leetcode' => 'leetcode'] as $needle => $icon) {
             if ($name !== '' && str_contains($name, $needle)) {
                 return $icon;
             }
@@ -134,11 +163,12 @@ function sg_social_icon(array $item): string
 /**
  * 社交图标的品牌色 class：图标名 → sg-social--<brand>。
  * 未收录的图标名退到 link（青瓷），避免 class 拼出 CSS 非法字符；
- * 与 sg_social_icon() 配套，供作者卡社交行按平台着色（2026-11-18）。
+ * 与 sg_social_icon() 配套，供作者卡社交行按平台着色（2026-11-18；
+ * 2026-11-19 补 wechat/qq/leetcode 三品牌，与 sg_social_svg() 的多色 glyph 对齐）。
  */
 function sg_social_brand_class(array $item): string
 {
     $name = sg_social_icon($item);
-    $brand = in_array($name, ['rss', 'github', 'mail', 'bilibili', 'twitter'], true) ? $name : 'link';
+    $brand = in_array($name, ['rss', 'github', 'mail', 'bilibili', 'twitter', 'wechat', 'qq', 'leetcode'], true) ? $name : 'link';
     return 'sg-social--' . $brand;
 }

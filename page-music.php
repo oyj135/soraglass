@@ -22,7 +22,7 @@ $sgHead = [
     'center' => true,
 ];
 ?>
-<main id="sg-main" class="sg-main sg-main--wide" data-sg-page="music">
+<main id="sg-main" tabindex="-1" class="sg-main sg-main--wide" data-sg-page="music">
   <?php sg_page_head($sgHead); ?>
 
   <div class="sg-music-page">

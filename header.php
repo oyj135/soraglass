@@ -58,6 +58,7 @@ if (!in_array($sgBlur, ['none', 'soft', 'strong'], true)) {
 <?php echo sg_asset(); ?>
 </head>
 <body class="sg-body">
+<?php echo sg_asset_missing_notice(); ?>
 <a class="sg-skip" href="#sg-main">跳到正文</a>
 <?php if ($sgSplash) : ?>
 <div class="sg-splash" aria-hidden="true"><span class="sg-splash-mark">空 璃</span></div>

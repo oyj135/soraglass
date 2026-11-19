@@ -23,7 +23,7 @@ $sgFrontSocial = sg_json('sgSocial', 'social', []);
       <?php foreach ($sgFrontSocial as $sgFrontItem) : ?>
       <?php if (!is_array($sgFrontItem)) { continue; } ?>
       <a class="sg-front-social-link" href="<?php echo sg_e(sg_value($sgFrontItem, 'url', '#')); ?>" target="_blank" rel="noopener noreferrer" title="<?php echo sg_e(sg_value($sgFrontItem, 'name', '链接')); ?>" aria-label="<?php echo sg_e(sg_value($sgFrontItem, 'name', '链接')); ?>">
-        <?php echo sg_icon(sg_social_icon($sgFrontItem)); ?>
+        <?php echo sg_social_svg(sg_social_icon($sgFrontItem)); ?>
       </a>
       <?php endforeach; ?>
     </div>

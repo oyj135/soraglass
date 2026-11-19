@@ -44,10 +44,13 @@
      调回轻盈档 .34 —— 换壁纸后遮罩不再是可读性手段。 */
   --sg-veil: rgba(255, 255, 255, .34);
   /* 直接压在壁纸上的文字（页头、页脚、相册说明）：逐字光晕充当局部底色，
-     壁纸再花也能读（2026-11-18 实测花图壁纸上无托底小字只剩 1.2–2:1） */
-  --sg-wall-halo: 0 0 2px rgba(255, 255, 255, .95), 0 0 6px rgba(255, 255, 255, .85), 0 0 14px rgba(255, 255, 255, .6);
+     壁纸再花也能读（2026-11-18 实测花图壁纸上无托底小字只剩 1.2–2:1）；
+     2026-11-19 方案二加档：字色 .86→.95、光晕半径/强度加大一档（高亮密集壁纸的兜底）。 */
+  --sg-wall-halo: 0 0 2px rgba(255, 255, 255, 1), 0 0 7px rgba(255, 255, 255, .92), 0 0 18px rgba(255, 255, 255, .78);
   /* 与光晕配对的字色：muted 灰在中间调壁纸上只有 ~2:1，壁纸字统一压到近黑 */
-  --sg-wall-ink: rgba(15, 23, 42, .86);
+  --sg-wall-ink: rgba(15, 23, 42, .95);
+  /* 首屏遮罩：0.3 是源站配暗壁纸的档，亮暖壁纸实测不够；提 .42，夜间 .45 */
+  --sg-front-veil: .42;
   --sg-line: rgba(148, 163, 184, .45);      /* 分隔线 */
 
   /* 阴影对齐源站 cardHover：静止 .05，hover 加深到 .09。 */
@@ -92,8 +95,12 @@
   --sg-brand-rss: #e8632a;
   --sg-brand-github: #24292f;
   --sg-brand-mail: #2563eb;
-  --sg-brand-bilibili: #fb7299;
+  /* B 站用 TV 图标的蓝（#23ADE5），不再是品牌粉——图标本体已换成蓝色 TV 多色 glyph */
+  --sg-brand-bilibili: #23ade5;
   --sg-brand-twitter: #1d9bf0;
+  --sg-brand-wechat: #2dc100;
+  --sg-brand-qq: #12b7f5;
+  --sg-brand-leetcode: #ffa116;
   --sg-brand-link: #0d7d86;
 
   /* 作者卡场景（2026-11-18 第十二轮起铺满整卡；第十四轮拆成昼夜两套，
@@ -249,6 +256,7 @@ html.dark {
   --sg-veil: rgba(6, 10, 12, .32);          /* 暗色壁纸遮罩：中性深灰青 */
   --sg-wall-halo: 0 1px 3px rgba(2, 6, 23, .6), 0 0 14px rgba(2, 6, 23, .42);
   --sg-wall-ink: var(--sg-muted);
+  --sg-front-veil: .45;
   --sg-line: rgba(230, 240, 245, .15);
 
   --sg-shadow: 0 20px 25px -5px rgb(0 0 0 / .35), 0 8px 10px -6px rgb(0 0 0 / .30);
@@ -279,8 +287,11 @@ html.dark {
   --sg-brand-rss: #ff9a63;
   --sg-brand-github: #f0f6fc;
   --sg-brand-mail: #7fb9ff;
-  --sg-brand-bilibili: #ff9dbb;
+  --sg-brand-bilibili: #64c4ec;
   --sg-brand-twitter: #7fd4f7;
+  --sg-brand-wechat: #86e36c;
+  --sg-brand-qq: #74ccf8;
+  --sg-brand-leetcode: #ffbe55;
   --sg-brand-link: var(--sg-accent-soft);
 
   --sg-glow-a: color-mix(in srgb, var(--sg-accent) 22%, transparent);
@@ -429,13 +440,26 @@ html.dark {
     );
   }
   /* ≤768px：隐藏系统滚动条，改用上面那条自绘的，免得出现两条 */
-  @media screen and (max-width: 768px) {
+  @media screen and (max-width: 767.98px) {
     html { scrollbar-width: none !important; }
     html::-webkit-scrollbar { width: 0; height: 0; }
     #mscrollbar { display: block; }
   }
 
   :focus-visible { outline: 2px solid var(--sg-accent); outline-offset: 2px; }
+
+  /* 构建产物缺失时管理员可见的降级横幅（P0-3），仅服务端按需输出此节点 */
+  .sg-build-alert {
+    position: relative;
+    z-index: 9999;
+    margin: 0;
+    padding: .75rem 1rem;
+    background: #7f1d1d;
+    color: #fff;
+    font: 500 .9rem/1.5 var(--font-sans, sans-serif);
+    text-align: center;
+  }
+  .sg-build-alert code { background: rgb(255 255 255 / .18); padding: .1em .35em; border-radius: 4px; }
 
   /* 文字选区（对齐 Fomalhaut ::selection）：主题色底 + 白字，暗色下用亮青 */
   ::selection { color: #fff; background-color: var(--sg-accent); }

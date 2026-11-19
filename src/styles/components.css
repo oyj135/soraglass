@@ -44,7 +44,7 @@ html.dark .sg-feature-card {
 .sg-glass:is(:hover) { box-shadow: var(--sg-shadow-strong); }
 /* 侧栏小卡：源站 aside card-widget 是 8px 圆角档（大容器 20px、首页文章卡 25px） */
 .sg-home-aside .sg-glass,
-.sg-aside .sg-glass { border-radius: 8px; }
+.sg-aside .sg-glass { border-radius: var(--sg-radius-inner); }
 
 .sg-card-pad { padding: 1.25rem; }
 @media (min-width: 640px) { .sg-card-pad { padding: 1.5rem; } }
@@ -62,8 +62,8 @@ html.dark .sg-feature-card {
   position: fixed;
   inset: 0 0 auto;
   z-index: 50;
-  background: rgba(250, 250, 250, .98);
-  border-bottom: 1px solid rgba(169, 169, 169, .28);
+  background: var(--sg-card);
+  border-bottom: 1px solid var(--sg-card-border);
   transition: transform .5s var(--sg-ease), background-color 1s, border-color 1s,
     box-shadow .3s var(--sg-ease);
 }
@@ -104,6 +104,48 @@ html.sg-ready .sg-nav { animation: sg-nav-in .5s var(--sg-ease) both; }
 }
 
 @media (min-width: 640px) { .sg-nav-inner { padding-inline: 1.875rem; } }
+
+/* A1（2026-11-19）：滚动后顶栏中央显示当前页名，悬停露「回到顶部」提示并微放大。
+   translate 与 scale 分开写（独立属性），避免源站 #name-container 那个
+   「scale 合成进 translateX(-50%) 导致居中偏移 6.3px」的坑；≤768px 隐藏。 */
+.sg-nav-page {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  max-width: 34vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--sg-text);
+  text-decoration: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s var(--sg-ease), scale .3s var(--sg-ease);
+}
+.sg-nav-page::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  translate: -50% 0;
+  padding: .2rem .6rem;
+  border-radius: 999px;
+  background: var(--sg-accent);
+  color: #fff;
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: .05em;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity .3s var(--sg-ease);
+}
+.sg-nav.is-scrolled .sg-nav-page { opacity: 1; pointer-events: auto; }
+.sg-nav.is-scrolled .sg-nav-page:is(:hover, :focus-visible) { scale: 1.03; }
+.sg-nav-page:is(:hover, :focus-visible)::after { opacity: 1; }
+@media (max-width: 767.98px) { .sg-nav-page { display: none; } }
 
 .sg-brand {
   font-size: 1.25rem;
@@ -457,7 +499,7 @@ html.dark .sg-sheet-panel {
 }
 .sg-neko.is-hover .sg-neko-msg,
 .sg-neko.is-bottom .sg-neko-msg { opacity: 1; transform: translateY(-50%) scale(1); }
-@media (max-width: 768px) { .sg-neko, .sg-neko-rope { display: none; } }
+@media (max-width: 767.98px) { .sg-neko, .sg-neko-rope { display: none; } }
 @media (prefers-reduced-motion: reduce) { .sg-neko, .sg-neko-msg { transition: none; } }
 
 
@@ -638,9 +680,9 @@ html.dark .sg-status-bubble--deco { background: var(--sg-card); }
 
 /* 卡底社交行（复用 sgSocial 与 .sg-social 按钮皮肤，尺寸收一档适配侧栏） */
 .sg-profile-social { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; margin-top: -.15rem; }
-/* 品牌微光底（2026-11-18 第八轮）：每枚图标用自身品牌色派生一层 10% 淡底 + 18% inset 描边，
-   静置即带品牌色相，hover 填品牌色实底 + 图标转白（源站无底彩色图标的 Soraglass 变体：
-   保留彩色识别，但用玻璃卡语言重新包裹，不照搬它的裸图标）。
+/* 品牌微光底（2026-11-18 第八轮，2026-11-19 随多色图标配色调整）：每枚图标用自身品牌色
+   派生一层 18% 淡底 + 18% inset 描边，静置即带品牌色相；hover 加深到 32% 淡底 + 上浮
+   （源站是裸彩色图标，Soraglass 用玻璃卡语言重新包裹，不照搬它的裸图标）。
    每个品牌 class 只声明 --sg-social-brand，共用规则统一引用，昼夜亮度沿用 --sg-brand-*。 */
 /* 特意挂 .sg-profile 提到 (0,3,0)：压过文件后面通用 html.dark .sg-social (0,2,0)，
    否则暗色下品牌淡底/图标色会被通用灰底覆盖。 */
@@ -659,17 +701,24 @@ html.dark .sg-status-bubble--deco { background: var(--sg-card); }
 .sg-profile-social .sg-social--mail     { --sg-social-brand: var(--sg-brand-mail); }
 .sg-profile-social .sg-social--bilibili { --sg-social-brand: var(--sg-brand-bilibili); }
 .sg-profile-social .sg-social--twitter  { --sg-social-brand: var(--sg-brand-twitter); }
+.sg-profile-social .sg-social--wechat   { --sg-social-brand: var(--sg-brand-wechat); }
+.sg-profile-social .sg-social--qq       { --sg-social-brand: var(--sg-brand-qq); }
+.sg-profile-social .sg-social--leetcode { --sg-social-brand: var(--sg-brand-leetcode); }
 .sg-profile-social .sg-social--link     { --sg-social-brand: var(--sg-brand-link); }
-/* 图标色继承按钮 color（品牌色）；hover 填品牌实底、图标转白，保留 540° 旋转。
-   color 挂在 svg 上，避免被通用 .sg-social 规则干扰。 */
+/* 图标本体是多色填充 SVG（2026-11-19，对齐源站 iconfont 彩色 sprite）：
+   品牌色内联在 glyph 里，不受 CSS color 影响；github/link 等单色品牌仍走 currentColor。
+   hover 不再把图标转白（会吞掉多色），改为加深品牌淡底 + 上浮 + 品牌投影，保留 540° 旋转。 */
 .sg-profile-social .sg-social svg { transition: transform .6s var(--sg-ease), color .35s var(--sg-ease); }
+.sg-profile-social .sg-social .sg-si { width: 1.2rem; height: 1.2rem; }
+/* 力扣的深色 C 弧在暗底上隐形：夜间（含首屏暗纱上的社交行）把弧线提亮到近白。
+   stroke 的内联写法是 presentation attribute，CSS 规则优先级恒高于它，可直接接管。 */
+html.dark .sg-si-lc-c { stroke: #dfe6f2; }
 .sg-profile-social .sg-social:is(:hover, :focus-visible) {
-  background: var(--sg-social-brand, var(--sg-brand-link));
-  color: #fff;
+  background: color-mix(in srgb, var(--sg-social-brand, var(--sg-brand-link)) 32%, var(--sg-profile-social-base));
   box-shadow: 0 8px 18px -10px color-mix(in srgb, var(--sg-social-brand, var(--sg-brand-link)) 70%, transparent);
   transform: translateY(-2px);
 }
-.sg-profile-social .sg-social:is(:hover, :focus-visible) svg { color: #fff; transform: rotate(540deg); }
+.sg-profile-social .sg-social:is(:hover, :focus-visible) svg { transform: rotate(540deg); }
 @media (prefers-reduced-motion: reduce) {
   .sg-profile-social .sg-social { transition: none; }
   .sg-profile-social .sg-social svg { transition: none; }
@@ -2436,7 +2485,7 @@ html.dark .sg-post-banner::before { background: radial-gradient(ellipse 72% 68% 
   100% { transform: translate3d(85px, 0, 0); }
 }
 @media (prefers-reduced-motion: reduce) { .sg-post-waves .parallax > use { animation: none; } }
-@media (max-width: 768px) { .sg-post-waves { height: 2.5rem; } }
+@media (max-width: 767.98px) { .sg-post-waves { height: 2.5rem; } }
 /* 夜间隐藏（源站 [data-theme=dark] .main-hero-waves-area display:none 同款） */
 html.dark .sg-post-waves { display: none; }
 
@@ -2515,7 +2564,7 @@ html.dark .sg-post-meta-cate:hover { color: var(--sg-accent-ink); }
   background: rgb(12, 18, 22);
   border-radius: 12px;
 }
-@media (max-width: 768px) { .sg-related-cell { margin: 2px; width: calc(50% - 4px); height: 150px; } }
+@media (max-width: 767.98px) { .sg-related-cell { margin: 2px; width: calc(50% - 4px); height: 150px; } }
 @media (max-width: 600px) { .sg-related-cell { width: calc(100% - 4px); } }
 .sg-related-item { display: block; height: 100%; }
 .sg-related-item img {
@@ -2688,7 +2737,23 @@ html.dark .sg-prose a { color: var(--sg-indigo-soft); }
 .sg-toc-list .sg-toc-lv3 a { padding-left: 1.75rem; font-size: .8125rem; }
 
 /* ---------- 独立页页头 ---------- */
-.sg-page-head { margin-bottom: 2.5rem; }
+.sg-page-head { position: relative; z-index: 0; margin-bottom: 2.5rem; }
+/* 方案一（2026-11-19）：页头日间压「瓷白纱」、夜间压暗纱 —— 渐变标题/副标题从此有连续底色，
+   不再依赖逐字光晕硬扛高亮壁纸。纱层 z-index:-1 垫在文字底下，mask 周围羽化不压下方卡片。 */
+.sg-page-head::before {
+  content: "";
+  position: absolute;
+  inset: -1.1rem -1.75rem -1.4rem;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 1.5rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .92), rgba(255, 255, 255, .55) 55%, rgba(255, 255, 255, 0));
+  -webkit-mask-image: radial-gradient(120% 118% at 50% 18%, #000 48%, transparent 80%);
+  mask-image: radial-gradient(120% 118% at 50% 18%, #000 48%, transparent 80%);
+}
+html.dark .sg-page-head::before {
+  background: linear-gradient(180deg, rgba(10, 14, 26, .68), rgba(10, 14, 26, .42) 55%, rgba(10, 14, 26, 0));
+}
 @media (min-width: 768px) { .sg-page-head { margin-bottom: 4rem; } }
 
 .sg-page-head-row { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
@@ -2705,6 +2770,30 @@ html.dark .sg-prose a { color: var(--sg-indigo-soft); }
    让花图/深色壁纸上的文字都能立起来（只影响这两处，不改全局排版）。
    标题是 background-clip:text 渐变字，text-shadow 会画在渐变之上把字冲白，改用 drop-shadow。 */
 .sg-page-sub { text-shadow: var(--sg-wall-halo); }
+
+/* 壁纸小字胶囊 .sg-wall-pill（2026-11-19 方案一）：无卡托底的计数/角标/相册 meta
+   从「逐字光晕」升级为连续玻璃底，任何壁纸都可读；夜间换深空玻璃。 */
+.sg-wall-pill {
+  display: inline-block;
+  padding: .18rem .65rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .68);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .55), 0 2px 10px rgba(15, 23, 42, .08);
+  color: var(--sg-wall-ink);
+  text-shadow: none;
+}
+html.dark .sg-wall-pill {
+  background: rgba(15, 20, 34, .55);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14), 0 2px 10px rgba(0, 0, 0, .3);
+}
+/* 落点①：光影画廊页「光影收藏 / N 本相册 · N 个瞬间」行 */
+.sg-curated-heading > span { padding: .18rem .65rem; border-radius: 999px; background: rgba(255, 255, 255, .68); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .55), 0 2px 10px rgba(15, 23, 42, .08); text-shadow: none; }
+html.dark .sg-curated-heading > span { background: rgba(15, 20, 34, .55); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14), 0 2px 10px rgba(0, 0, 0, .3); }
+/* 落点②：碎语页 #标签 角标（压在卡片右缘壁纸上） */
+.sg-tl-tag { padding: .14rem .55rem; border-radius: 999px; background: rgba(255, 255, 255, .68); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .55), 0 2px 10px rgba(15, 23, 42, .08); text-shadow: none; }
+html.dark .sg-tl-tag { background: rgba(15, 20, 34, .55); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14), 0 2px 10px rgba(0, 0, 0, .3); }
 .sg-page-title { filter: drop-shadow(0 0 2px rgba(255, 255, 255, .9)) drop-shadow(0 0 8px rgba(255, 255, 255, .55)); }
 html.dark .sg-page-title { filter: drop-shadow(0 1px 8px rgba(2, 6, 23, .6)); }
 html.dark .sg-page-sub,
@@ -3360,7 +3449,7 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
 /* ---------- 碎语（合并杂谈 / 说说后的单页短记流） ---------- */
 .sg-note-stream {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(20rem, 100%), 1fr));
   gap: 1.25rem;
   align-items: start;
 }
@@ -3775,7 +3864,40 @@ html.dark .sg-sticky-badge { box-shadow: 0 4px 14px rgba(0, 0, 0, .5), inset 0 0
 /* 2026-11-12 第七轮：页脚视觉对齐参考样例 —— 没有玻璃卡、没有时钟、没有分隔线，
    只剩居中两行衬线文案直接压在壁纸上（第一行版权、第二行 Powered by）。
    时钟节点与 modules/dashboard.ts 一起下线，页面上不再有任何 1s 定时器。 */
-.sg-footer-wrap { position: relative; z-index: 1; width: 95%; max-width: 72rem; margin-inline: auto; }
+/* 页脚区（2026-11-19 A5 + 方案一）：波浪全宽容器 + 底纱，给无卡托底的页脚文字连续底色。
+   波浪：四层错速平移（动画在 effects.css），日间瓷白、夜间深靖；实心顶层形成底部色带，
+   页脚文字落在色带上。 */
+.sg-footer-zone { position: relative; margin-top: 2.5rem; }
+.sg-footer-zone::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(255, 255, 255, .55), rgba(255, 255, 255, 0) 60%);
+}
+html.dark .sg-footer-zone::before { background: linear-gradient(to top, rgba(10, 13, 28, .5), rgba(10, 13, 28, 0) 60%); }
+.sg-footer-waves {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  z-index: 1;
+  height: 5.5rem;
+  pointer-events: none;
+}
+.sg-waves-svg { display: block; width: 100%; height: 100%; }
+.sg-waves-parallax > use:nth-child(1) { fill: rgba(247, 249, 254, .74); }
+.sg-waves-parallax > use:nth-child(2) { fill: rgba(247, 249, 254, .51); }
+.sg-waves-parallax > use:nth-child(3) { fill: rgba(247, 249, 254, .22); }
+.sg-waves-parallax > use:nth-child(4) { fill: #f7f9fe; }
+html.dark .sg-waves-parallax > use:nth-child(1) { fill: rgba(22, 25, 48, .78); }
+html.dark .sg-waves-parallax > use:nth-child(2) { fill: rgba(22, 25, 48, .5); }
+html.dark .sg-waves-parallax > use:nth-child(3) { fill: rgba(22, 25, 48, .24); }
+html.dark .sg-waves-parallax > use:nth-child(4) { fill: #161930; }
+@media (max-width: 767.98px) { .sg-footer-waves { height: 3.2rem; } }
+
+.sg-footer-wrap { position: relative; z-index: 2; width: 95%; max-width: 72rem; margin-inline: auto; }
 @media (min-width: 768px) { .sg-footer-wrap { width: 90%; } }
 
 /* 文字直接压在壁纸上，壁纸明暗完全由用户决定：
@@ -3830,7 +3952,9 @@ html.dark .sg-sticky-badge { box-shadow: 0 4px 14px rgba(0, 0, 0, .5), inset 0 0
 
 /* ③ 版权两行：13px / 12px，只用字重区分主次 */
 .sg-footer-copy { margin-top: .9rem; font-size: .8125rem; font-weight: 500; line-height: 1.6; letter-spacing: .01em; }
-.sg-footer-powered { margin-top: .25rem; font-size: .75rem; line-height: 1.6; }
+.sg-footer-powered { margin-top: .25rem; font-size: .75rem; line-height: 1.6; padding-bottom: 3.2rem; }
+/* A4 心跳：版权行里的一颗朱砂心（动画 sg-heartbeat 在 effects.css） */
+.sg-footer-copy .sg-heart { color: #e8654a; }
 
 /* 深色模式 = 用户截图里的那版：冷白字 + 靛蓝时长 + 亮分隔线 */
 html.dark .sg-footer {
@@ -4755,10 +4879,12 @@ html.dark .sg-archive-tag { color: var(--sg-accent-soft); }
   mask-image: radial-gradient(ellipse 70% 58% at 50% 0%, #000 28%, transparent 76%);
 }
 
-/* ---------- 视觉手法 3：渐变标题 ---------- */
+/* ---------- 视觉手法 3：渐变标题 ----------
+   2026-11-19 方案一改「双深端」：末端从青灰 accent-2 换成深青 accent-ink ——
+   亮橙壁纸实测旧末端只有 ~1.5:1，双深端任何壁纸区域都 ≥4.5:1，渐变观感保留。 */
 .sg-page-title,
 .sg-about-title h1 {
-  background-image: linear-gradient(110deg, var(--sg-text) 24%, var(--sg-accent-2) 62%, var(--sg-accent-2) 95%);
+  background-image: linear-gradient(110deg, var(--sg-text) 0%, var(--sg-text) 30%, var(--sg-accent-ink) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -5124,3 +5250,29 @@ html.dark .sg-home-aside .sg-profile::after {
 
 /* ② 正文链接 hover 波浪下划线 */
 .sg-prose a:hover { text-decoration-style: wavy; text-decoration-color: var(--sg-accent-ink); text-underline-offset: 4px; }
+
+/* ---------- 触摸命中区（P1-5，2026-11-19）----------
+   下列控件的视觉尺寸保持原样（裸图标按钮、窄翻页键），用透明 ::before 向外
+   撑出 ≥44px 的命中方块；position:absolute 让它不参与 grid 布局、不改变视觉。
+   position:relative 只建包含块，不改任何现有定位（这些控件原本 static）。 */
+.sg-tool,
+.sg-rightside-btn,
+.sg-player-controls button,
+.sg-music-controls button,
+.sg-briefing-pager button,
+.sg-filter-btn { position: relative; }
+/* 搜索框是替换元素，撑不了伪元素，直接抬 min-height（2.5→2.75rem，视觉仅高 4px） */
+.sg-playlist-search input { min-height: 2.75rem; }
+.sg-tool::before,
+.sg-rightside-btn::before,
+.sg-player-controls button::before,
+.sg-music-controls button::before,
+.sg-briefing-pager button::before,
+.sg-filter-btn::before,
+.sg-lightbox-close::before {
+  content: '';
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 2.75rem; height: 2.75rem;
+  transform: translate(-50%, -50%);
+}

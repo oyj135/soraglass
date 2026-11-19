@@ -26,6 +26,29 @@ function sg_manifest(): array
     return $cache;
 }
 
+/** 构建产物是否就绪（manifest 能解析出入口）。供后台自检与前台降级提示共用。 */
+function sg_asset_ready(string $entry = 'src/scripts/main.ts'): bool
+{
+    $manifest = sg_manifest();
+    return !empty($manifest[$entry]['file']);
+}
+
+/**
+ * 构建产物缺失时的可见降级提示（仅管理员可见，P0-3）。
+ * manifest 缺失时 sg_asset() 只吐 HTML 注释，页面静默裸奔无从发现；
+ * 这里在 <body> 顶部挂一条醒目横幅，让误传源码目录的站长一眼看见。
+ */
+function sg_asset_missing_notice(): string
+{
+    if (sg_asset_ready() || !sg_user_is_admin()) {
+        return '';
+    }
+    return '<div class="sg-build-alert" role="alert">'
+        . 'Soraglass 构建产物缺失：请本地执行 <code>npm run release</code> 生成 <code>dist/</code>，'
+        . '并把 <code>soraglass.zip</code>（内含 dist）上传到主题目录；仅上传源码目录会导致整页无样式。'
+        . '</div>';
+}
+
 /** 输出入口的 <link> 与 <script>，自动处理带 hash 的文件名 */
 function sg_asset(string $entry = 'src/scripts/main.ts'): string
 {
@@ -64,8 +87,10 @@ function sg_theme_colors(): array
     if (strtolower($raw) === $legacy) {
         $raw = $default;
     }
+    // P2-10：这组值会由 media.ts 直接拼进 linear-gradient()，必须限定为纯 hex 颜色，
+    // 否则管理员填入 `red), url(…)` 即可注入 CSS 声明 / 外发请求。非法值整条丢弃。
     return array_values(array_filter(array_map('trim', explode(',', $raw)), static function ($v) {
-        return $v !== '';
+        return preg_match('/^#[0-9a-f]{3,8}$/i', $v) === 1;
     }));
 }
 

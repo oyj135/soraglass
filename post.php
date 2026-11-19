@@ -66,7 +66,7 @@ $sgSticky = (int) sg_field($this, 'sticky', '0') > 0;
 $sgPrev = sg_adjacent_post($this, 'prev');
 $sgNext = sg_adjacent_post($this, 'next');
 ?>
-<main id="sg-main" class="sg-main sg-article-layout" data-sg-page="post" data-sg-origin="<?php echo $sgIsNote ? 'note' : 'article'; ?>">
+<main id="sg-main" tabindex="-1" class="sg-main sg-article-layout" data-sg-page="post" data-sg-origin="<?php echo $sgIsNote ? 'note' : 'article'; ?>">
   <?php /* 文章页顶部（2026-11-17 第六轮）：背景图移除（用户反馈），回到
          Fomalhaut not-top-img 的 #post > #post-info 形态 —— 标题左对齐、
          normal 字重、下缘分隔线；元信息两行 #78818a 灰，图标保留彩色。 */ ?>

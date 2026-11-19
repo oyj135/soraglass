@@ -41,9 +41,12 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* 跨文档视图转场：Chrome 126+ 下整页导航也有交叉淡入，
-   不再出现「旧页面已卸载、新页面还没画」的黑帧。不支持的浏览器直接忽略。 */
-@view-transition {
-  navigation: auto;
+   不再出现「旧页面已卸载、新页面还没画」的黑帧。不支持的浏览器直接忽略。
+   前庭敏感用户关掉整段 opt-in（P1-6）：no-preference 下才启用。 */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
 }
 
 /* 页面跳转动画（第十六轮，参考源站 pjax 的「无刷新局部替换」观感）：
@@ -60,4 +63,14 @@
 }
 @keyframes sg-vt-in {
   from { opacity: 0; transform: translateY(12px); }
+}
+
+/* P0-2（2026-11-19）：夜间焦点环。base 层的 :focus-visible 用 --sg-accent（填充色，
+   暗卡仅 2.39:1），默认夜间主题下键盘焦点几乎看不见。这里放在所有 @import 之后、
+   非分层（未进 @layer base），并加 [tabindex] 提高特异性，压过 gallery/px 等
+   组件层里写死 --sg-accent 的 focus-visible 规则；--sg-accent-ink 暗卡 8.89:1，
+   再补一圈暗描边，让焦点环落在任意壁纸上都清晰。 */
+html.dark :is(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline-color: var(--sg-accent-ink);
+  box-shadow: 0 0 0 4px rgb(2 6 23 / .6);
 }

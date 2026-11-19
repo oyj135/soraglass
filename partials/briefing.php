@@ -172,7 +172,7 @@ $sgBgTotal = $sgBgList ? count($sgBgList) : count($sgIssues);
       </div>
 
       <div class="sg-briefing-archive" data-sg-briefing-archive hidden>
-        <label class="sg-briefing-archive-label" for="sg-briefing-select">最近三天</label>
+        <span class="sg-briefing-archive-label">最近三天</span>
         <select id="sg-briefing-select" data-sg-briefing-select aria-label="选择选刊日期">
           <?php foreach ($sgRecentDates as $sgDate) : ?>
           <?php

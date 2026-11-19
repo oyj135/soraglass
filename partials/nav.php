@@ -129,6 +129,9 @@ foreach ($sgNavMore as $sgMorePage) {
 <header class="sg-nav" data-sg-nav>
   <div class="sg-nav-inner">
     <a class="sg-brand" href="<?php echo sg_e($sgHome); ?>"><?php echo sg_e($sgBrandTitle); ?><span class="sg-brand-accent"><?php echo sg_e($sgBrandSuffix); ?></span><?php echo sg_e($sgBrandAfter); ?></a>
+    <?php /* 滚动后顶栏中央显示当前页名（2026-11-19 A1，对齐源站 #name-container）：
+       文字由 JS 填充（当前页标题），点击回到顶部；悬停露出「回到顶部」提示。 */ ?>
+    <a class="sg-nav-page" data-sg-nav-page href="#" data-tip="回到顶部" hidden></a>
     <nav class="sg-nav-links" aria-label="主导航">
       <a class="sg-nav-link<?php echo $sgActive === 'index' ? ' is-active' : ''; ?>"<?php echo $sgActive === 'index' ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgHome); ?>"><span class="sg-nav-ico" style="color:#ff6b6b"><?php echo sg_icon('home'); ?></span>首页<?php if ($sgActive === 'index') : ?><span class="sg-nav-dot"></span><?php endif; ?></a>
       <?php foreach ($sgNavPrimary as $sgPage) : ?>

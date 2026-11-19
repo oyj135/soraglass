@@ -115,6 +115,34 @@
 .sg-article.sg-reading-surface .sg-prose { font-size: 1rem; line-height: 2; }
 .sg-article.sg-reading-surface .sg-prose h2 { margin: 2.75rem 0 1rem; font-size: 1.5rem; font-weight: 700; line-height: 1.5; }
 .sg-article.sg-reading-surface .sg-prose h3 { margin: 2rem 0 .75rem; font-size: 1.25rem; font-weight: 650; line-height: 1.5; }
+
+/* A2（2026-11-19）：正文标题风车（源站 h1~h6 ::before 风车 ccc 6s linear infinite，
+   hover 变色；soraglass 版用 mask 上色，h2 朱砂 / h3 湖蓝 / h4 薄荷绿——与多色信息图标同源
+   的 --sg-icon-* token，昼夜各一档）。 */
+.sg-article.sg-reading-surface .sg-prose h2::before,
+.sg-article.sg-reading-surface .sg-prose h3::before,
+.sg-article.sg-reading-surface .sg-prose h4::before {
+  content: "";
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: .45em;
+  vertical-align: -.08em;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='%23000'%3E%3Cpath d='M12 12C12 6.2 16.2 2 22 2c0 5.8-4.2 10-10 10z'/%3E%3Cpath d='M12 12C12 6.2 16.2 2 22 2c0 5.8-4.2 10-10 10z' transform='rotate(90 12 12)'/%3E%3Cpath d='M12 12C12 6.2 16.2 2 22 2c0 5.8-4.2 10-10 10z' transform='rotate(180 12 12)'/%3E%3Cpath d='M12 12C12 6.2 16.2 2 22 2c0 5.8-4.2 10-10 10z' transform='rotate(270 12 12)'/%3E%3Ccircle cx='12' cy='12' r='2.1'/%3E%3C/g%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='%23000'%3E%3Cpath d='M12 12C12 6.2 16.2 2 22 2c0 5.8-4.2 10-10 10z'/%3E%3Cpath d='M12 12C12 6.2 16.2 2 22 2c0 5.8-4.2 10-10 10z' transform='rotate(90 12 12)'/%3E%3Cpath d='M12 12C12 6.2 16.2 2 22 2c0 5.8-4.2 10-10 10z' transform='rotate(180 12 12)'/%3E%3Cpath d='M12 12C12 6.2 16.2 2 22 2c0 5.8-4.2 10-10 10z' transform='rotate(270 12 12)'/%3E%3Ccircle cx='12' cy='12' r='2.1'/%3E%3C/g%3E%3C/svg%3E");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  animation: sg-pinwheel 6s linear infinite;
+}
+.sg-article.sg-reading-surface .sg-prose h2::before { background-color: var(--sg-icon-mark); }
+.sg-article.sg-reading-surface .sg-prose h3::before { background-color: var(--sg-icon-data); }
+.sg-article.sg-reading-surface .sg-prose h4::before { background-color: var(--sg-icon-cate); }
+@keyframes sg-pinwheel { to { transform: rotate(1turn); } }
+@media (prefers-reduced-motion: reduce) {
+  .sg-article.sg-reading-surface .sg-prose :is(h2, h3, h4)::before { animation: none; }
+}
 .sg-article.sg-reading-surface .sg-prose p { margin-bottom: 1.25rem; }
 .sg-article.sg-reading-surface .sg-prose blockquote {
   margin-block: 1.75rem;

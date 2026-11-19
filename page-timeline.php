@@ -159,7 +159,7 @@ $sgHead = [
     'search_value'  => $sgKeyword,
 ];
 ?>
-<main id="sg-main" class="sg-main sg-main--wide sg-main--pad sg-archive" data-sg-page="timeline" data-sg-archive data-sg-grid>
+<main id="sg-main" tabindex="-1" class="sg-main sg-main--wide sg-main--pad sg-archive" data-sg-page="timeline" data-sg-archive data-sg-grid>
   <?php sg_page_head($sgHead); ?>
 
   <div class="sg-archive-toolbar">

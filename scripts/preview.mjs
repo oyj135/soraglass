@@ -65,7 +65,11 @@ const icons = {
   chevronRight: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>',
   folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7h6l2 2h10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
   github: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-2c-2.8.6-3.4-1.2-3.4-1.2-.4-1.1-1-1.4-1-1.4-.9-.6 0-.6 0-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.7.4-1.1.7-1.4-2.2-.2-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.7 1a9.3 9.3 0 0 1 5 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.4 4.8-4.6 5 .4.3.7 1 .7 2v3c0 .3.2.6.7.5A10 10 0 0 0 12 2z"/></svg>',
-  bilibili: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l2 2h8l2-2 1.5 1.5-1 1H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h1.5l-1-1zM7 10v3M17 10v3"/></svg>',
+  /* 社交品牌图标：多色填充（2026-11-19，与 lib/icons.php sg_social_svg() 同源自绘） */
+  wechat: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.6 3.3c-3.7 0-6.7 2.9-6.7 6.5 0 2 .9 3.8 2.4 5L4.6 17.9l3.3-1.6c.5.1 1.1.2 1.7.2 3.7 0 6.7-2.9 6.7-6.7s-3-6.5-6.7-6.5z" fill="#2DC100"/><circle cx="7.4" cy="8.7" r="1.05" fill="#fff"/><circle cx="11.8" cy="8.7" r="1.05" fill="#fff"/><path d="M14 19.6l-.8 2.3 2.6-1.3c.3 0 .7.1 1.1.1 2.6 0 4.8-1.8 4.8-4.1s-2.2-4.1-4.8-4.1-4.8 1.8-4.8 4.1c0 1.2.6 2.3 1.5 3z" fill="#9BE45C" stroke="#fff" stroke-width="1.1" stroke-linejoin="round"/><circle cx="15.8" cy="14.9" r=".8" fill="#fff"/><circle cx="19.2" cy="14.9" r=".8" fill="#fff"/></svg>',
+  qq: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.4a6.4 6.4 0 0 0-6.4 6.4c0 1.2.2 2.3.6 3.3-1 1.8-2.1 4.5-2.1 6.4 0 1.7 1 2.4 1.9 2.4 1.4 0 2.4-1.2 3-2.8h6c.6 1.6 1.6 2.8 3 2.8.9 0 1.9-.7 1.9-2.4 0-1.9-1.1-4.6-2.1-6.4.4-1 .6-2.1.6-3.3A6.4 6.4 0 0 0 12 2.4z" fill="#12B7F5"/><ellipse cx="9.8" cy="8.1" rx="2.3" ry="2.7" fill="#fff"/><ellipse cx="14.2" cy="8.1" rx="2.3" ry="2.7" fill="#fff"/><circle cx="9.8" cy="7.9" r="1.15" fill="#182B44"/><circle cx="14.2" cy="7.9" r="1.15" fill="#182B44"/><path d="M10.4 10.6h3.2L12 12.6z" fill="#F5A623"/><ellipse cx="12" cy="16.4" rx="3.3" ry="2.8" fill="#fff"/></svg>',
+  leetcode: '<svg viewBox="0 0 24 24" aria-hidden="true"><path class="sg-si-lc-c" d="M12.4 4.9a7.1 7.1 0 1 0 0 14.2" fill="none" stroke="#1E2A38" stroke-width="3.4" stroke-linecap="round"/><path d="m13.2 4.6 4.3-2.7" fill="none" stroke="#FFA116" stroke-width="3.2" stroke-linecap="round"/><path d="M13 19.1h5.4" fill="none" stroke="#FFA116" stroke-width="3.2" stroke-linecap="round"/></svg>',
+  bilibili: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.4 3.2 9.2 5.9M16.6 3.2 14.8 5.9" fill="none" stroke="#23ADE5" stroke-width="1.8" stroke-linecap="round"/><rect x="2.4" y="5.9" width="19.2" height="13.8" rx="4.2" fill="#23ADE5"/><rect x="7.6" y="10" width="2.1" height="5.6" rx="1.05" fill="#fff"/><rect x="14.3" y="10" width="2.1" height="5.6" rx="1.05" fill="#fff"/></svg>',
   user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>',
   share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4"/></svg>',
   link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>',
@@ -81,8 +85,8 @@ const icons = {
   star: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>',
   image: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m4 18 5-5 4 4 3-3 4 4"/></svg>',
   message: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
-  mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
-  rss: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.6" fill="currentColor" stroke="none"/></svg>',
+  mail: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.4" y="4.9" width="19.2" height="14.2" rx="3.2" fill="#3D7BE0"/><path d="M5.6 4.9h12.8a3.2 3.2 0 0 1 3.2 3.2v.7L12 14.4 2.4 8.8v-.7a3.2 3.2 0 0 1 3.2-3.2z" fill="#6BA6FF"/><path d="m2.4 8.8 9.6 5.6 9.6-5.6" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  rss: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.3" cy="18.7" r="2.4" fill="#F7841D"/><path d="M3.4 12.4a8.2 8.2 0 0 1 8.2 8.2" fill="none" stroke="#F7841D" stroke-width="3" stroke-linecap="round"/><path d="M3.4 4.6A16.2 16.2 0 0 1 19.6 20.8" fill="none" stroke="#FBB03B" stroke-width="3" stroke-linecap="round"/></svg>',
 };
 
 const NAV = [
@@ -242,10 +246,11 @@ const profile = `
 </div>
 <a class="sg-author-btn" href="#">${icons.user}关于我</a>
 <div class="sg-profile-social">
-  <a class="sg-social" href="#" title="GitHub" aria-label="GitHub">${icons.github}</a>
+  <a class="sg-social" href="#" title="微信" aria-label="微信">${icons.wechat}</a>
+  <a class="sg-social" href="#" title="QQ" aria-label="QQ">${icons.qq}</a>
   <a class="sg-social" href="#" title="哔哩哔哩" aria-label="哔哩哔哩">${icons.bilibili}</a>
   <a class="sg-social" href="#" title="邮箱" aria-label="邮箱">${icons.mail}</a>
-  <a class="sg-social" href="#" title="RSS" aria-label="RSS">${icons.rss}</a>
+  <a class="sg-social" href="#" title="力扣" aria-label="力扣">${icons.leetcode}</a>
 </div>
 `;
 
@@ -336,7 +341,8 @@ const front = `
     <h1 class="sg-front-title">Xinghuisama<span class="sg-front-title-mark">· 空璃</span></h1>
     <p class="sg-front-sub" data-sg-typewriter="在空璃里写代码、拍照片、记碎碎念。&#10;把每一个夜晚调成深空色。">在空璃里写代码、拍照片、记碎碎念。</p>
     <div class="sg-front-social">
-      <a class="sg-front-social-link" href="#" title="GitHub" aria-label="GitHub">${icons.github}</a>
+      <a class="sg-front-social-link" href="#" title="微信" aria-label="微信">${icons.wechat}</a>
+      <a class="sg-front-social-link" href="#" title="QQ" aria-label="QQ">${icons.qq}</a>
       <a class="sg-front-social-link" href="#" title="哔哩哔哩" aria-label="哔哩哔哩">${icons.bilibili}</a>
     </div>
   </div>
@@ -600,8 +606,8 @@ const postPage = `${head('把毛玻璃调成呼吸的频率 - Soraglass')}
         <h3 class="sg-author-name">Xinghuisama</h3>
         <p class="sg-author-bio">在空璃里写代码、拍照片、记碎碎念。</p>
         <div class="sg-socials">
-          <a class="sg-social" href="#" title="GitHub">${icons.github}</a>
           <a class="sg-social" href="#" title="哔哩哔哩">${icons.bilibili}</a>
+          <a class="sg-social" href="#" title="邮箱">${icons.mail}</a>
         </div>
         <a class="sg-author-btn" href="#">${icons.user}关于我</a>
       </section>
