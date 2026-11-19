@@ -201,14 +201,20 @@ $sgHead = [
       </a>
       <div class="sg-feature-body">
         <h3 class="sg-feature-title"><a href="<?php echo sg_e($sgPost['permalink']); ?>"><?php echo sg_e($sgPost['title']); ?></a></h3>
-        <?php /* meta 行对齐源站 post-ui.pug：日期 | 分类链接(' > ') | 标签链接(' • ') */ ?>
+        <?php /* 日期独占一行，分类路径与全部标签在细线下分组。 */ ?>
         <div class="sg-feature-meta">
           <span class="is-date"><?php echo sg_icon_color('clock'); ?><time datetime="<?php echo sg_e($sgPost['date']); ?>"><?php echo sg_e($sgAgo !== '' ? '发表于 ' . $sgAgo : '发表于 ' . $sgPost['date']); ?></time></span>
+          <?php if (!empty($sgPost['cates']) || !empty($sgPost['tagRows'])) : ?>
+          <div class="sg-feature-taxonomy">
+          <?php endif; ?>
           <?php if (!empty($sgPost['cates'])) : ?>
           <span class="is-cate"><?php echo sg_icon_color('folder'); ?><?php foreach ($sgPost['cates'] as $sgIdx => $sgCate) : ?><a class="sg-meta-link" href="<?php echo sg_e((string) $sgCate['url']); ?>"><?php echo sg_e((string) $sgCate['name']); ?></a><?php if ($sgIdx < count($sgPost['cates']) - 1) : ?><i class="sg-meta-sep" aria-hidden="true">&gt;</i><?php endif; ?><?php endforeach; ?></span>
           <?php endif; ?>
           <?php if (!empty($sgPost['tagRows'])) : ?>
           <span class="is-tags"><?php echo sg_icon_color('tag'); ?><?php foreach ($sgPost['tagRows'] as $sgIdx => $sgTag) : ?><a class="sg-meta-link" href="<?php echo sg_e((string) $sgTag['url']); ?>"><?php echo sg_e((string) $sgTag['name']); ?></a><?php if ($sgIdx < count($sgPost['tagRows']) - 1) : ?><span class="sg-meta-sep" aria-hidden="true"> • </span><?php endif; ?><?php endforeach; ?></span>
+          <?php endif; ?>
+          <?php if (!empty($sgPost['cates']) || !empty($sgPost['tagRows'])) : ?>
+          </div>
           <?php endif; ?>
         </div>
       </div>

@@ -45,29 +45,6 @@
   .sg-music.is-blocked [data-sg-play] { animation: none; }
 }
 
-/* ---------- 视觉手法 1：指针聚光描边（aceternity → 只画 1px 边，不铺满卡面） ---------- */
-.sg-glass[data-sg-spotlight]::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  padding: 1px;
-  border-radius: inherit;
-  background: radial-gradient(
-    180px circle at var(--sg-mx, 50%) var(--sg-my, 50%),
-    color-mix(in srgb, var(--sg-accent-soft) 75%, transparent),
-    transparent 72%
-  );
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--sg-dur-card) var(--sg-ease);
-}
-.sg-glass[data-sg-spotlight]:hover::before { opacity: 1; }
-
 /* ---------- 视觉手法 2：页头网格底纹（静态，无动画） ---------- */
 .sg-main[data-sg-grid]::before {
   content: '';
@@ -84,31 +61,29 @@
   mask-image: radial-gradient(ellipse 70% 58% at 50% 0%, #000 28%, transparent 76%);
 }
 
-/* ---------- 视觉手法 3：渐变标题 ----------
-   2026-11-19 方案一改「双深端」：末端从青灰 accent-2 换成深青 accent-ink ——
-   亮橙壁纸实测旧末端只有 ~1.5:1，双深端任何壁纸区域都 ≥4.5:1，渐变观感保留。 */
-.sg-page-title,
-.sg-about-title h1 {
-  background-image: linear-gradient(110deg, var(--sg-text) 0%, var(--sg-text) 30%, var(--sg-accent-ink) 100%);
+/* 夜间保留原有渐变标题，日间采用青瓷实色字。 */
+html.dark .sg-page-title,
+html.dark .sg-about-title h1 {
+  background-image: linear-gradient(110deg, var(--sg-text) 20%, var(--sg-accent-soft) 66%, var(--sg-accent-pale) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-
 @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
-  .sg-page-title,
-  .sg-about-title h1 {
+  html.dark .sg-page-title,
+  html.dark .sg-about-title h1 {
     background-image: none;
     -webkit-text-fill-color: currentColor;
     color: var(--sg-text);
   }
 }
-
-/* 暗色主题下 indigo-500 / purple-600 落在深蓝壁纸上只有 2:1 出头（截图里「档案」两个字
-   几乎糊进背景）。改用 400 档同色相，既保留渐变，又把对比度拉回 5:1 以上。 */
-html.dark .sg-page-title,
-html.dark .sg-about-title h1 {
-  background-image: linear-gradient(110deg, var(--sg-text) 20%, var(--sg-accent-soft) 66%, var(--sg-accent-pale) 100%);
+html:not(.dark) :is(.sg-page-title, .sg-about-title h1) {
+  background-image: none;
+  -webkit-text-fill-color: currentColor;
+  -webkit-text-stroke: 0;
+  color: var(--sg-accent-deep);
+  text-shadow: none;
+  filter: none;
 }
 
 /* 视觉手法 4（2026-11-16 移除）：原「全部档案」胶囊有一条 sg-sheen 白色高光
@@ -162,7 +137,7 @@ html.dark .sg-about-title h1 {
   }
 
   /* 缩到 .01ms 仍会「跳一下」，这里直接把位移与缩放全部取消。
-     指针聚光边是纯透明度变化，保留不影响前庭敏感。 */
+     保留明确的静态交互状态。 */
   .sg-post-card:hover .sg-thumb img,
   .sg-photo:hover img,
   .sg-post-slide:hover .sg-slide-cover,
@@ -410,7 +385,7 @@ html.dark .sg-px-month {
    主题装饰层（2026-11-17 第十轮）
    ① 作者卡回形针：源站 paperclip.css 逐参数移植 —— 内联 SVG、18° 倾角、
       针身探出卡片边缘；夜间自动切冰蓝夜光并低幅呼吸。
-      挂点：首页右侧作者卡 + 文章页作者卡（::after，不与 spotlight ::before 冲突）。
+      挂点：首页右侧作者卡 + 文章页作者卡（::after）。
    ② 正文链接 hover 波浪下划线
    ========================================================================= */
 

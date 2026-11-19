@@ -364,9 +364,11 @@ const featureCard = (title, desc, ago, cat, tags) => `
     <h3 class="sg-feature-title"><a href="#">${title}</a></h3>
     <div class="sg-feature-meta">
       <span class="is-date">${icons.clock}发表于 ${ago}</span>
-      <span class="is-cate">${icons.folder}${cat}</span>
+      ${cat || tags ? `<div class="sg-feature-taxonomy">
+        ${cat ? `<span class="is-cate">${icons.folder}${cat}</span>` : ''}
+        ${tags ? `<span class="is-tags">${icons.tag}${tags}</span>` : ''}
+      </div>` : ''}
     </div>
-    <div class="sg-feature-tags"><span class="is-tag">${icons.tag}${tags}</span></div>
   </div>
 </article>`;
 
@@ -495,7 +497,7 @@ const indexPage = `${head('Soraglass · 空璃')}
           <span class="sg-lyric-icon" aria-hidden="true">${icons.music}</span>
         </div>
         <div class="sg-home-stories">
-          <a class="sg-poster-wide" href="#" data-sg-hover data-sg-spotlight>
+          <a class="sg-poster-wide" href="#" data-sg-hover>
             <img src="${IMG.bg2}" alt="" loading="lazy">
             <span class="sg-veil"></span>
             <div class="sg-poster-body">
@@ -514,8 +516,8 @@ const indexPage = `${head('Soraglass · 空璃')}
       </div>
     </div>
     <aside class="sg-home-aside" aria-label="站点侧栏">
-      <section class="sg-glass sg-card-pad sg-profile" data-sg-hover data-sg-spotlight>${profile}</section>
-      <section class="sg-glass sg-player-card" data-sg-hover data-sg-spotlight>${player}</section>
+      <section class="sg-glass sg-card-pad sg-profile" data-sg-hover>${profile}</section>
+      <section class="sg-glass sg-player-card" data-sg-hover>${player}</section>
       ${calendar}
       ${countdown}
       ${webinfo}
@@ -749,7 +751,7 @@ ${foot()}`;
 
 const aboutPage = `${head('关于 - Soraglass')}
 <main class="sg-main sg-main--narrow" data-sg-page="about" data-sg-grid>
-  <article class="sg-glass sg-about" data-sg-spotlight>
+  <article class="sg-glass sg-about">
     <div class="sg-about-banner">
       <img src="${IMG.bg}" alt="关于">
       <div class="sg-about-veil"></div>
@@ -821,7 +823,7 @@ const timelinePage = `${head('知识档案 - Soraglass')}
     ]
       .map(
         ([title, desc, date, tags]) => `
-    <article class="sg-glass sg-archive-card" data-sg-archive-card data-keywords="${title} ${desc}" data-tags="${tags}" data-sg-spotlight>
+    <article class="sg-glass sg-archive-card" data-sg-archive-card data-keywords="${title} ${desc}" data-tags="${tags}">
       <a class="sg-archive-cover" href="#" tabindex="-1" aria-hidden="true"><img src="${IMG.bg}" alt="" loading="lazy"></a>
       <div class="sg-archive-body">
         <div class="sg-archive-date"><time>${date}</time></div>

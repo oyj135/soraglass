@@ -349,43 +349,6 @@ html.dark img[data-lazy-src] {
   from { background-position: 140% 0; }
   to { background-position: -140% 0; }
 }
-/* ---------- Spotlight 鼠标聚光灯（第十六轮 P1，第十七轮扩面 + 昼夜分案）----------
-   落点：全部文章卡 .sg-feature-card（首页 / 知识档案）+ 项目卡 .sg-project
-   + 音乐页双面板 .sg-music-panel / .sg-music-side。
-   昼夜分开设计（用户反馈同款参数看不清）：
-   · 白天（近白卡面）：压暗外圈提供明暗差，光标核心换签名色暖光——白底上白光不可见
-   · 夜间（深靛卡面）：改「提亮聚光」——白色亮核心 + 靛紫光晕定位光标，
-     外围压暗加深补足轮廓；深底上黑色压暗圈本身不可见，靠提亮表达
-   JS 只写 --spot-x/--spot-y 两个变量（rAF 节流）；仅 pointer:fine 且非减少动效时启用。 */
-.sg-spotlight { position: relative; }
-.sg-spotlight::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  border-radius: inherit;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity .35s var(--sg-ease);
-  background:
-    radial-gradient(circle 90px at var(--spot-x, 50%) var(--spot-y, 50%),
-      color-mix(in srgb, var(--sg-accent) 22%, transparent), color-mix(in srgb, var(--sg-accent) 0%, transparent) 75%),
-    radial-gradient(circle at var(--spot-x, 50%) var(--spot-y, 50%),
-      rgba(0, 0, 0, 0) 0 120px, rgba(0, 0, 0, .45) 340px);
-}
-html.dark .sg-spotlight::after {
-  background:
-    radial-gradient(circle 90px at var(--spot-x, 50%) var(--spot-y, 50%),
-      rgba(255, 255, 255, .28), rgba(255, 255, 255, 0) 75%),
-    radial-gradient(circle 220px at var(--spot-x, 50%) var(--spot-y, 50%),
-      color-mix(in srgb, var(--sg-ink) 26%, transparent), color-mix(in srgb, var(--sg-ink) 0%, transparent) 80%),
-    radial-gradient(circle at var(--spot-x, 50%) var(--spot-y, 50%),
-      rgba(0, 0, 0, 0) 0 120px, rgba(0, 0, 0, .62) 340px);
-}
-.sg-spotlight:hover::after { opacity: 1; }
-@media (prefers-reduced-motion: reduce) {
-  .sg-spotlight::after { display: none; }
-}
 @media (prefers-reduced-motion: reduce) {
   html.sg-ready .sg-reveal {
     transition: none;

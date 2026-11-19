@@ -83,7 +83,7 @@ $sgBgTotal = $sgBgList ? count($sgBgList) : count($sgIssues);
 ?>
 
 
-<section class="sg-glass sg-briefing" data-sg-briefing data-sg-spotlight>
+<section class="sg-glass sg-briefing" data-sg-briefing>
   <div class="sg-briefing-hero">
     <div class="sg-briefing-covers" aria-hidden="true"
          data-sg-briefing-bg

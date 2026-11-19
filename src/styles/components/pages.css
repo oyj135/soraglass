@@ -9,7 +9,7 @@
    conic-gradient 彩虹描边绕卡片旋转（@property 动画自定义角度）；
    不支持 @property 的浏览器退化为静态渐变描边（不影响布局）。
    应用范围：知识档案/精选文章卡 + 友链卡 + 项目卡。
-   注意：项目卡带 data-sg-spotlight，其 ::before 被聚光描边占用，描边走 ::after。 */
+   项目与友链描边使用 ::after。 */
 .sg-feature-card::before,
 .sg-flink-item::after,
 .sg-project::after {
@@ -62,39 +62,27 @@
 .sg-btn--ghost:hover { background: var(--sg-card-strong); color: var(--sg-accent-ink); }
 
 /* ---------- 页脚 / 分页 / 浮层 ---------- */
-/* 2026-11-12 第七轮：页脚视觉对齐参考样例 —— 没有玻璃卡、没有时钟、没有分隔线，
-   只剩居中两行衬线文案直接压在壁纸上（第一行版权、第二行 Powered by）。
-   时钟节点与 modules/dashboard.ts 一起下线，页面上不再有任何 1s 定时器。 */
-/* 页脚区（2026-11-19 第三轮，用户要求去掉波浪）：只剩一层底纱给无卡托底的页脚文字
-   连续底色，不再有波浪 DOM。纱从底部起、到 62% 淡出，边界仍是渐隐的软边。
-   2026-11-19 延长：原渐变在 62% 就到 0，而状态行（运行时长 / 备案号）正好落在纱区之外、
-   裸压壁纸。终点改 100% 并把底部提到 .72、中间补一档，让三段文字都在同一层纱上；
-   仍是通栏 + 四边羽化，不形成被否掉的「圆角矩形边界」。 */
+/* 日间固定瓷白底承托全部文字，夜间保留原渐隐底纱。 */
 .sg-footer-zone { position: relative; margin-top: 2.5rem; }
-.sg-footer-zone::before {
-  content: "";
+html:not(.dark) .sg-footer-zone { background: var(--sg-wall-surface); border-top: 1px solid var(--sg-reading-border); }
+html.dark .sg-footer-zone::before {
+  content: '';
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: linear-gradient(to top, rgba(255, 255, 255, .72), rgba(255, 255, 255, .4) 55%, rgba(255, 255, 255, 0) 100%);
+  background: linear-gradient(to top, rgba(10, 13, 28, .58), rgba(10, 13, 28, 0) 62%);
 }
-html.dark .sg-footer-zone::before { background: linear-gradient(to top, rgba(10, 13, 28, .58), rgba(10, 13, 28, 0) 62%); }
 
 .sg-footer-wrap { position: relative; z-index: 2; width: 95%; max-width: 72rem; margin-inline: auto; }
 @media (min-width: 768px) { .sg-footer-wrap { width: 90%; } }
 
-/* 文字直接压在壁纸上，壁纸明暗完全由用户决定：
-   暗色（含深色模式）用参考样例的冷白 + 深色阴影；亮色模式反过来用深字 + 浅色阴影，
-   否则白字糊在浅色壁纸上（归档页默认壁纸就是浅紫，实测几乎读不出来）。
-   阴影只做对比度补偿，不是光效；日间 2026-11-18 起改用 --sg-wall-halo（花图壁纸上旧的
-   单层浅影只剩 1.6–3:1）。 */
 .sg-footer {
   padding: .85rem 1.5rem 1rem;
   text-align: center;
   font-family: var(--font-serif);
   color: rgba(15, 23, 42, .97);
-  text-shadow: var(--sg-wall-halo);
+  text-shadow: none;
 }
 
 .sg-footer p { margin: 0; }
@@ -137,9 +125,14 @@ html.dark .sg-footer-zone::before { background: linear-gradient(to top, rgba(10,
 /* ③ 版权两行：13px / 12px，只用字重区分主次 */
 .sg-footer-copy { margin-top: .9rem; font-size: .8125rem; font-weight: 500; line-height: 1.6; letter-spacing: .01em; }
 .sg-footer-powered { margin-top: .25rem; font-size: .75rem; line-height: 1.6; padding-bottom: 3.2rem; }
-/* 日间页脚压在用户壁纸上：去掉低对比的半透明灰，版权两行加实一档；夜间仍走下方 html.dark 那套 */
-html:not(.dark) .sg-footer-copy { font-weight: 600; }
-html:not(.dark) .sg-footer-powered { font-weight: 500; }
+/* 文字主次以色值和字号区分，全部使用实色；底部留出悬浮控件空间。 */
+html:not(.dark) .sg-footer { padding-block: 1.75rem 1.5rem; color: var(--sg-muted); -webkit-text-stroke: 0; }
+html:not(.dark) .sg-footer-status { color: var(--sg-text); font-weight: 500; line-height: 1.9; }
+html:not(.dark) .sg-footer-uptime { color: var(--sg-accent-deep); font-weight: 700; }
+html:not(.dark) .sg-footer-icp { color: var(--sg-muted); font-size: .875rem; }
+html:not(.dark) .sg-footer-copy { margin-top: .9rem; color: var(--sg-text); font-size: .9375rem; font-weight: 700; }
+html:not(.dark) .sg-footer-powered { margin-top: .25rem; color: var(--sg-muted); font-size: .8125rem; font-weight: 400; padding-bottom: calc(3.2rem + env(safe-area-inset-bottom, 0px)); }
+html:not(.dark) .sg-footer-rule { border-top-color: var(--sg-reading-border); }
 /* 深色模式 = 用户截图里的那版：冷白字 + 靛蓝时长 + 亮分隔线 */
 html.dark .sg-footer {
   color: rgba(255, 255, 255, .76);

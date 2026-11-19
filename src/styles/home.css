@@ -34,6 +34,11 @@ html.dark .sg-nav.is-front .sg-nav-link:is(:hover, :focus-visible) { color: var(
 html.dark .sg-nav.is-front .sg-nav-link::after { background: var(--sg-accent-ink); }
 .sg-nav.is-front .sg-nav-link.is-active { color: #fff; }
 .sg-nav.is-front .sg-nav-more-menu { color: var(--sg-text); }
+html:not(.dark) .sg-nav.is-front { background: var(--sg-wall-surface); border-bottom-color: var(--sg-reading-border); }
+html:not(.dark) .sg-nav.is-front :is(.sg-brand, .sg-brand-accent, .sg-nav-link, .sg-nav-more-btn, .sg-nav-page) { color: var(--sg-accent-deep); text-shadow: none; }
+html:not(.dark) .sg-nav.is-front .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent); }
+html:not(.dark) .sg-nav.is-front .sg-nav-link:is(.is-active)::before,
+html:not(.dark) .sg-nav.is-front .sg-nav-link::after { background: var(--sg-accent); }
 
 /* ---------- 100vh 全屏首屏 ---------- */
 .sg-main--home { padding-top: 0; } /* 首屏自带全高，去掉主容器顶部留白；滚动后由正文区自行留白 */
@@ -71,7 +76,7 @@ html.dark .sg-nav.is-front .sg-nav-link::after { background: var(--sg-accent-ink
 @media (prefers-reduced-motion: reduce), (pointer: coarse), (max-width: 899px) {
   .sg-front::before { background: rgba(0, 0, 0, .42); }
 }
-/* 文字可读性双保险：遮罩之上仍有 text-shadow（日间轻投影 / 夜间霓虹发光） */
+/* 首屏文案层；日间由瓷白底承托，夜间保留霓虹文字。 */
 .sg-front-inner {
   position: relative;
   z-index: 1;
@@ -81,9 +86,8 @@ html.dark .sg-nav.is-front .sg-nav-link::after { background: var(--sg-accent-ink
 }
 /* 首屏标题/副标题发光字（2026-11-17，复刻 Fomalhaut 夜间霓虹灯发光字）：
    源站夜间给 #site-title / #site-subtitle 挂 text-shadow 动画（light_15px/10px/5px），
-   日间明确关掉；这里同构 —— 夜间主题色呼吸发光，日间轻投影保底。 */
-/* 日间无遮罩，靠轻投影保底可读 */
-.sg-front-title, .sg-front-sub { text-shadow: 0 2px 22px rgba(0, 0, 0, .42); }
+   日间明确关掉；夜间主题色呼吸发光，日间瓷白底承托实色字。 */
+.sg-front-title, .sg-front-sub { text-shadow: none; }
 html.dark .sg-front-title, html.dark .sg-front-sub { text-shadow: none; animation: sg-front-neon 8s ease-in-out infinite; }
 @keyframes sg-front-neon {
   0%, 100% { text-shadow: 0 0 6px color-mix(in srgb, var(--sg-accent-soft) 75%, transparent), 0 0 18px color-mix(in srgb, var(--sg-accent-soft) 45%, transparent), 0 0 42px color-mix(in srgb, var(--sg-accent) 30%, transparent); }
@@ -169,6 +173,23 @@ html.dark .sg-front-title, html.dark .sg-front-sub { text-shadow: none; animatio
 .sg-front-next svg { width: 1.75rem; height: 1.75rem; animation: sg-front-bob 2s var(--sg-ease) infinite; }
 @keyframes sg-front-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
 @media (prefers-reduced-motion: reduce) { .sg-front-next svg { animation: none; } }
+html:not(.dark) .sg-front::before { content: none; }
+html:not(.dark) .sg-front-inner {
+  padding: clamp(1.75rem, 4vw, 3rem);
+  border: 1px solid var(--sg-reading-border);
+  border-radius: var(--sg-radius-outer);
+  background: var(--sg-wall-surface);
+  color: var(--sg-accent-deep);
+}
+html:not(.dark) .sg-front-title { text-wrap: balance; }
+html:not(.dark) .sg-front-sub { color: var(--sg-muted); opacity: 1; }
+html:not(.dark) .sg-front-caret { background: currentColor; }
+html:not(.dark) .sg-front-social-link { background: var(--sg-chip); border-color: var(--sg-reading-border); color: var(--sg-accent-deep); }
+html:not(.dark) .sg-front-social-link:hover { background: var(--sg-line); }
+html:not(.dark) .sg-front-read { background: var(--sg-accent); border-color: var(--sg-accent); }
+html:not(.dark) .sg-front-read:is(:hover, :focus-visible) { background: var(--sg-accent-deep); }
+html:not(.dark) .sg-front-next { padding: .5rem 1rem; border: 1px solid var(--sg-reading-border); border-radius: var(--sg-radius-inner); background: var(--sg-wall-surface); color: var(--sg-accent-deep); text-shadow: none; }
+html:not(.dark) .sg-front-next-label { opacity: 1; text-shadow: none; }
 
 /* ---------- 正文两栏（74% : 26%） ---------- */
 /* 首屏 100vh 与正文之间留呼吸（2026-11-18 视觉改造，源站 .layout padding-top 40px） */

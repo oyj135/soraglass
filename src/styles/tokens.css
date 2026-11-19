@@ -30,6 +30,8 @@
   --sg-panel: #ffffff;                      /* 阅读弹窗 */
   /* 个人刊物：阅读表面与实色辅助卡分工，明暗主题同一条 token 路径。 */
   --sg-reading-surface: rgba(250, 253, 253, .98);
+  /* 日间页头与页脚：固定瓷白底隔离壁纸，实色文字无需描边或光晕。 */
+  --sg-wall-surface: #f7faf8;
   --sg-reading-border: color-mix(in srgb, var(--sg-accent) 17%, transparent);
   --sg-shadow-reading: 0 8px 36px -16px rgb(10 24 26 / .16);
   --sg-space-section: clamp(2rem, 4vw, 3.5rem);

@@ -17,7 +17,6 @@ import { initScrollbar } from './modules/scrollbar';
 import { initLazyload } from './modules/lazyload';
 import { initReveal } from './modules/reveal';
 import { initStatsCache } from './modules/stats-cache';
-import { initSpotlight } from './modules/spotlight';
 import { initUniverse } from './modules/universe';
 
 /**
@@ -56,7 +55,6 @@ function mountPage(): void {
   safe('lazyload', initLazyload);
   safe('reveal', initReveal);
   safe('stats-cache', initStatsCache);
-  safe('spotlight', initSpotlight);
   safe('universe', initUniverse);
 }
 function boot(): void {

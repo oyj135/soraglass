@@ -42,7 +42,7 @@ if ($sgWeek) {
 }
 ?>
 <main id="sg-main" tabindex="-1" class="sg-main sg-main--narrow" data-sg-page="about" data-sg-grid>
-  <article class="sg-glass sg-about" data-sg-spotlight>
+  <article class="sg-glass sg-about">
 
     <div class="sg-about-banner">
       <img src="<?php echo sg_e($sgBanner); ?>" alt="<?php echo sg_e((string) $this->title); ?>">

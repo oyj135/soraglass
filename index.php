@@ -126,7 +126,7 @@ foreach (sg_home_articles($sgHomeListLimit) as $sgHomeCard) {
            更窄时各占整行。昼夜切换卡已移除——模式切换统一在右侧悬浮按钮组里。 */
         ?>
         <div class="sg-home-stories">
-          <a class="sg-poster-wide" href="<?php echo sg_e($sgPoster['link'] !== '' ? $sgPoster['link'] : $sgHome); ?>" data-sg-hover data-sg-spotlight>
+          <a class="sg-poster-wide" href="<?php echo sg_e($sgPoster['link'] !== '' ? $sgPoster['link'] : $sgHome); ?>" data-sg-hover>
             <img src="<?php echo sg_e($sgPoster['cover']); ?>" alt="" loading="lazy" referrerpolicy="no-referrer">
             <span class="sg-veil"></span>
             <div class="sg-poster-body">
@@ -167,8 +167,8 @@ foreach (sg_home_articles($sgHomeListLimit) as $sgHomeCard) {
 
     <?php /* 右侧五卡：作者 → 音乐 → 日历 → 春节倒计时 → 小站资讯。命名空间 .sg-h*，兼顾现有 .sg-hero-side 压缩样式。 */ ?>
     <aside class="sg-home-aside" aria-label="站点侧栏">
-      <section class="sg-glass sg-card-pad sg-profile" data-sg-hover data-sg-spotlight><?php $this->need('partials/card-profile.php'); ?></section>
-      <section class="sg-glass sg-player-card" data-sg-hover data-sg-spotlight><?php $this->need('partials/player.php'); ?></section>
+      <section class="sg-glass sg-card-pad sg-profile" data-sg-hover><?php $this->need('partials/card-profile.php'); ?></section>
+      <section class="sg-glass sg-player-card" data-sg-hover><?php $this->need('partials/player.php'); ?></section>
       <?php $this->need('partials/side-calendar.php'); ?>
       <?php $this->need('partials/side-countdown.php'); ?>
       <?php $this->need('partials/side-webinfo.php'); ?>

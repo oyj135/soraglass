@@ -850,17 +850,18 @@ function sg_feature_card_html(array $card): string
     if ($quote !== '') {
         $html .= '<span class="sg-feature-quote">「' . sg_e($quote) . '」</span>';
     }
-    /* 2026-11-18 第六轮：静态柔和正弦分割取代旧「书签尖 + 弹跳小三角」，
-       小三角元素一并移除，避免与平滑曲线冲突。 */
     $html .= '</a>';
     $html .= '<div class="sg-feature-body">';
     $html .= '<h3 class="sg-feature-title"><a href="' . sg_e($url) . '">' . sg_e($title) . '</a></h3>';
-    /* meta 行对齐源站 post-ui.pug .article-meta-wrap：日期 | 分类链接(' > ' 分隔) | 标签链接(' • ' 分隔)。
+    /* 日期与分类/标签分组，分类路径与全部标签仍保留原生链接。
        第十八轮修复「标签不全」：旧版合并成一段纯文本且分类只取第一个，现全部渲染为可点击链接。 */
     $cates = is_array($card['cates'] ?? null) ? $card['cates'] : [];
     $tagRows = is_array($card['tagRows'] ?? null) ? $card['tagRows'] : [];
     $html .= '<div class="sg-feature-meta">';
     $html .= '<span class="is-date">' . sg_icon_color('clock') . sg_e($dateText) . '</span>';
+    if ($cates || $tagRows) {
+        $html .= '<div class="sg-feature-taxonomy">';
+    }
     if ($cates) {
         $links = [];
         foreach ($cates as $sgIdx => $sgCate) {
@@ -880,6 +881,9 @@ function sg_feature_card_html(array $card): string
             }
         }
         $html .= '<span class="is-tags">' . sg_icon_color('tag') . implode('', $links) . '</span>';
+    }
+    if ($cates || $tagRows) {
+        $html .= '</div>';
     }
     $html .= '</div>';
     $html .= '</div>';

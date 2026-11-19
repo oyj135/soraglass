@@ -82,13 +82,31 @@ html.dark .sg-post-banner-title { text-shadow: none; animation: sg-post-neon 8s 
   text-shadow: 0 1px 3px rgba(2, 6, 23, .6);
 }
 html.dark .sg-post-meta-line { color: var(--sg-muted); }
+/* 日间页顶与独立页共用瓷白阅读底，去掉压图白字与暗幕。 */
+html:not(.dark) .sg-post-banner {
+  padding: clamp(2rem, 4vw, 3.5rem) 1.5rem;
+  border: 1px solid var(--sg-reading-border);
+  border-radius: var(--sg-radius-outer);
+  background: var(--sg-wall-surface);
+}
+html:not(.dark) .sg-post-banner::before { content: none; }
+html:not(.dark) .sg-post-banner-title {
+  display: block;
+  overflow: visible;
+  color: var(--sg-accent-deep);
+  text-shadow: none;
+  text-wrap: balance;
+}
+html:not(.dark) .sg-post-meta-line { color: var(--sg-muted); text-shadow: none; }
 .sg-post-meta-item { display: inline-flex; align-items: center; gap: .35rem; }
 .sg-post-meta-item svg { width: .9rem; height: .9rem; flex: none; }
 /* 横幅底是暗幕，朱砂亮档文字只有 1.5:1：文字取浅暖色，图钉图标保留朱砂作识别 */
 .sg-post-meta-pin { color: #ffd2bf; }
 .sg-post-meta-pin svg { color: var(--sg-warm-bright); }
+html:not(.dark) .sg-post-meta-pin { color: var(--sg-warm); }
 .sg-post-meta-cate { color: inherit; text-decoration: none; border-bottom: 1px dashed transparent; transition: color .25s, border-color .25s; }
 .sg-post-meta-cate:hover { color: var(--sg-accent-soft); border-bottom-color: currentColor; }
+html:not(.dark) .sg-post-meta-cate:hover { color: var(--sg-accent-deep); }
 html.dark .sg-post-meta-cate:hover { color: var(--sg-accent-ink); }
 .sg-post-meta-sep { opacity: .6; }
 @media (max-width: 571.98px) { .sg-post-meta-sep { display: none; } }
@@ -292,10 +310,13 @@ html.dark .sg-prose a { color: var(--sg-indigo-soft); }
 
 /* ---------- 独立页页头 ---------- */
 .sg-page-head { position: relative; z-index: 0; margin-bottom: 2.5rem; }
-/* 2026-11-19 第三版（用户要求）：雾层整体移除。
-   前两版都在解决「边界」，但雾层存在的意义只是让字读得清；既然用户不要这层底，
-   就回到「逐字光晕」方案：标题用 drop-shadow、副标题用 --sg-wall-halo（见下方 365 行附近），
-   不再有第二块表面与壁纸/导航抢层级。9 个页头同时生效。 */
+/* 日间采用瓷白阅读面与深青实色字，全部独立页复用；夜间保留原材质。 */
+html:not(.dark) .sg-page-head {
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  border: 1px solid var(--sg-reading-border);
+  border-radius: var(--sg-radius-outer);
+  background: var(--sg-wall-surface);
+}
 @media (min-width: 768px) { .sg-page-head { margin-bottom: 4rem; } }
 
 .sg-page-head-row { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
@@ -308,10 +329,14 @@ html.dark .sg-prose a { color: var(--sg-indigo-soft); }
 .sg-page-sub { margin-top: .5rem; font-size: .875rem; font-weight: 500; letter-spacing: .05em; color: var(--sg-wall-ink); }
 @media (min-width: 768px) { .sg-page-sub { font-size: 1rem; } }
 
-/* 页头直接铺在壁纸上，没有卡片托底：日间逐字白光晕，暗色主题下补一层暗投影，
-   让花图/深色壁纸上的文字都能立起来（只影响这两处，不改全局排版）。
-   标题是 background-clip:text 渐变字，text-shadow 会画在渐变之上把字冲白，改用 drop-shadow。 */
-.sg-page-sub { text-shadow: var(--sg-wall-halo); }
+html:not(.dark) .sg-page-title {
+  color: var(--sg-accent-deep);
+  font-weight: 700;
+  letter-spacing: .025em;
+  line-height: 1.35;
+  text-wrap: balance;
+}
+html:not(.dark) .sg-page-sub { color: var(--sg-muted); line-height: 1.85; }
 
 /* 壁纸小字胶囊 .sg-wall-pill（2026-11-19 方案一）：无卡托底的计数/角标/相册 meta
    从「逐字光晕」升级为连续玻璃底，任何壁纸都可读；夜间换深空玻璃。 */
@@ -336,7 +361,6 @@ html.dark .sg-curated-heading > span { background: rgba(15, 20, 34, .55); box-sh
 /* 落点②：碎语页 #标签 角标（压在卡片右缘壁纸上） */
 .sg-tl-tag { padding: .14rem .55rem; border-radius: 999px; background: rgba(255, 255, 255, .68); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .55), 0 2px 10px rgba(15, 23, 42, .08); text-shadow: none; }
 html.dark .sg-tl-tag { background: rgba(15, 20, 34, .55); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14), 0 2px 10px rgba(0, 0, 0, .3); }
-.sg-page-title { filter: drop-shadow(0 0 2px rgba(255, 255, 255, .9)) drop-shadow(0 0 8px rgba(255, 255, 255, .55)); }
 html.dark .sg-page-title { filter: drop-shadow(0 1px 8px rgba(2, 6, 23, .6)); }
 html.dark .sg-page-sub,
 html.dark .sg-page-head .sg-search { text-shadow: 0 1px 18px rgba(2, 6, 23, .55); }
@@ -598,16 +622,28 @@ html.dark .sg-project-src { color: var(--sg-indigo-soft); }
 
 /* 数据源标注（GitHub 账号填了才出现） */
 .sg-projects-source {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: .35rem;
+  display: block;
+  text-align: center;
   margin: -.25rem 0 1.25rem;
   font-size: .78rem;
   color: var(--sg-wall-ink);
   text-shadow: var(--sg-wall-halo);
 }
-.sg-projects-source svg { width: .95rem; height: .95rem; }
+.sg-projects-source svg { display: inline-block; width: .95rem; height: .95rem; margin-right: .35rem; vertical-align: -.15em; }
+html:not(.dark) .sg-projects-source {
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+  padding: .6rem 1rem;
+  border: 1px solid var(--sg-reading-border);
+  border-radius: var(--sg-radius-inner);
+  background: var(--sg-wall-surface);
+  color: var(--sg-muted);
+  font-size: .875rem;
+  line-height: 1.8;
+  text-shadow: none;
+  overflow-wrap: anywhere;
+}
 .sg-projects-diag { margin-top: 1rem; font-size: .75rem; line-height: 1.7; text-align: center; color: var(--sg-muted); }
 
 .sg-tags { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: auto; padding-top: .5rem; }
@@ -1120,14 +1156,7 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
 }
 html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6); }
 
-/* 封面：底边「单拱缓波」静态分割（2026-11-19 第七轮重做）。
-   按用户给的参考截图量过边界曲线：参考图 630px 宽，界线落差仅约 10px，
-   且形态是一侧近乎水平、另一侧缓缓抬起的单拱，不是有明确峰谷的 S 波。
-   所以这里只取「四分之一个周期」：左端 90、中段 89.5 基本持平、右端 94.5 微微下沉，
-   落差 5 单位（封面高的 5%）；三段贝塞尔两端切线水平，全曲线无折角。
-   旧版（2026-11-18 第六轮）在 200 宽内塞了两个起伏、落差 10 单位，窄卡上斜率翻倍，
-   看起来像锯齿。preserveAspectRatio='none' + mask-size 100% 仍随卡宽拉伸：
-   波长跟卡宽走、落差跟 200px 封面高走；mask 同时裁 img、暗幕 ::after 与摘要层。 */
+/* 封面与阅读区采用平直边界，窄卡不再拉伸波浪裁切。 */
 .sg-feature-media {
   position: relative;
   display: flex;
@@ -1137,12 +1166,7 @@ html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6)
   height: 12.5rem;              /* 200px，与 Fomalhaut 封面同高 */
   overflow: hidden;
   background: rgba(148, 163, 184, .15);
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H200V94.5C168 94.5 150 89.5 118 89.5C74 89.5 40 90 0 90Z' fill='%23fff'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H200V94.5C168 94.5 150 89.5 118 89.5C74 89.5 40 90 0 90Z' fill='%23fff'/%3E%3C/svg%3E");
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
+  border-bottom: 1px solid var(--sg-reading-border);
 }
 .sg-feature-media img {
   position: absolute;
@@ -1162,7 +1186,7 @@ html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6)
   background: linear-gradient(to top, rgba(4, 18, 24, .70), rgba(4, 18, 24, .45) 45%, rgba(4, 18, 24, .30));
   pointer-events: none;
 }
-/* 引号摘要：贴在封面下缘（平缓正弦切线之上），默认常显。
+/* 引号摘要：位于封面内，默认常显。
    仅精确指针设备下改为隐藏 + hover 淡入，见下方渐进增强块。 */
 .sg-feature-quote {
   position: relative;
@@ -1241,22 +1265,28 @@ html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6)
   font-family: var(--font-sans);
   font-size: .78rem;
 }
+.sg-feature-meta { flex-direction: column; gap: .65rem; }
 .sg-feature-meta > span { display: inline-flex; align-items: center; gap: .3rem; }
+.sg-feature-taxonomy {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: .4rem .75rem;
+  width: 100%;
+  padding-top: .65rem;
+  border-top: 1px solid var(--sg-reading-border);
+}
+.sg-feature-taxonomy > span { display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .3rem; min-width: 0; max-width: 100%; }
+.sg-feature-taxonomy .sg-meta-link { overflow-wrap: anywhere; }
 .sg-feature-meta svg { width: .9rem; height: .9rem; flex: none; }
 /* 元信息图标为多色填充（sg_icon_color，2026-11-18）：颜色走 --sg-icon-* 语义 token，
-   昼夜自动换档，这里不再收敛单色；竖线只在相邻项之间出现。 */
+   日期独占一行，分类与标签在细线下自然换行，不产生行首竖线。 */
 .sg-feature-meta .sg-meta-link { color: inherit; transition: color .25s var(--sg-ease); }
 .sg-feature-meta .sg-meta-link:hover { color: var(--sg-accent-ink); }
 .sg-feature-meta .sg-meta-sep { font-style: normal; opacity: .7; margin-inline: .15rem; }
-.sg-feature-meta > span + span::before {
-  content: "";
-  width: 1px;
-  height: .8em;
-  margin-right: .15rem;
-  background: var(--sg-line);
-}
 /* 减少动效：摘要仍可显隐（瞬时切换），但去掉位移/缩放与过渡；
-   波浪已是静态，无需再停动画。 */
+   封面边界本身没有动画。 */
 @media (prefers-reduced-motion: reduce) {
   .sg-feature-quote,
   .sg-feature-card:is(:hover, :focus-within) .sg-feature-quote { transform: none; }
