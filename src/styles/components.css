@@ -158,7 +158,21 @@ html.sg-ready .sg-nav { animation: sg-nav-in .5s var(--sg-ease) both; }
 .sg-brand:hover { color: var(--sg-accent-ink); }
 .sg-brand-accent { color: var(--sg-accent-ink); margin-inline: .25rem; }
 
-.sg-nav-links { display: flex; gap: 2rem; font-size: .875rem; font-weight: 700; }
+/* 互斥显示（2026-11-19）：滚动态顶栏中央让位给当前页名，主导航淡出并退出焦点树。
+   visibility 与 opacity 同步过渡，避免隐藏后仍能被键盘 Tab 聚焦到透明链接。 */
+.sg-nav-links {
+  display: flex;
+  gap: 2rem;
+  font-size: .875rem;
+  font-weight: 700;
+  transition: opacity .3s var(--sg-ease), visibility .3s;
+}
+/* :has() 守卫：页名未填充（JS 未移掉 hidden）时保持导航可见，避免空顶栏。 */
+.sg-nav.is-scrolled:has(.sg-nav-page:not([hidden])) .sg-nav-links {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
 
 .sg-nav-link {
   position: relative;
