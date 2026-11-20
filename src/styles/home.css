@@ -383,16 +383,11 @@ html.dark .sg-hcard { background-color: var(--sg-card); background-image: var(--
 .sg-hweather-source a { color: inherit; text-decoration: none; }
 .sg-hweather-source a:hover { color: var(--sg-accent-ink); text-decoration: underline; text-underline-offset: 3px; }
 .sg-hweather-source a:focus-visible { outline: 2px solid var(--sg-accent); outline-offset: 3px; }
-.sg-hwelcome-greeting { color: var(--sg-accent-ink); font-size: .78rem; }
-.sg-hwelcome-location { margin: 0; font-size: .88rem; color: var(--sg-text); line-height: 1.8; min-height: 3.6em; overflow-wrap: anywhere; }
-.sg-hwelcome-meta { margin: .35rem 0 0; font-size: .72rem; line-height: 1.8; color: var(--sg-muted); min-height: 3.6em; }
-.sg-hwelcome-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .45rem; margin-top: .65rem; }
-.sg-hwelcome-refresh { flex: none; min-height: 2.75rem; padding: .4rem .75rem; border: 1px solid var(--sg-line); border-radius: var(--sg-radius-inner); background: var(--sg-chip); color: var(--sg-accent-ink); font: inherit; font-size: .76rem; cursor: pointer; }
-.sg-hwelcome-refresh:hover { background: var(--sg-accent-soft); color: var(--sg-text); }
-.sg-hwelcome-refresh:active { background: var(--sg-chip); }
-.sg-hwelcome-refresh:focus-visible { outline: 2px solid var(--sg-accent); outline-offset: 3px; }
-.sg-hwelcome-refresh:disabled { opacity: .6; cursor: default; }
-[data-sg-welcome-feedback] { color: var(--sg-muted); font-size: .72rem; line-height: 1.6; }
+/* 欢迎语对齐源站：一段话 + 主色高亮数字/地名/IP（2026-11-20）。 */
+.sg-hwelcome-location { margin: 0; font-size: .88rem; color: var(--sg-text); line-height: 1.85; overflow-wrap: anywhere; }
+.sg-hwelcome--visitor .sg-hwelcome-location { min-height: 6em; }
+.sg-hwelcome-location .sg-hw-strong { color: var(--sg-accent-ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.sg-hwelcome-meta { margin: .3rem 0 0; font-size: .72rem; line-height: 1.7; color: var(--sg-muted); }
 
 /* ---------- 春节倒计时卡（对齐源站 #aside-countdown：左栏 30% 居中，百分比与还剩天数嵌在条内） ---------- */
 .sg-hcd-main { display: flex; align-items: center; gap: 0 .625rem; }

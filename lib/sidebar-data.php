@@ -267,11 +267,19 @@ function sg_sidebar_geo(string $ip, string $key, float $deadline): ?array
     $result = $data['result'] ?? []; $ad = $result['ad_info'] ?? [];
     $coords = sg_sidebar_coordinates($result['location']['lat'] ?? null, $result['location']['lng'] ?? null);
     $text = static fn($v): string => is_scalar($v) ? mb_substr(trim((string) $v), 0, 80) : '';
-    $nation = $text($ad['nation'] ?? ''); $city = $text($ad['city'] ?? '');
+    $nation = $text($ad['nation'] ?? ''); $province = $text($ad['province'] ?? '');
+    $city = $text($ad['city'] ?? ''); $district = $text($ad['district'] ?? '');
     if ($nation === '' && $city === '') return null;
-    $label = implode(' ', array_unique(array_filter([$nation, $text($ad['province'] ?? ''), $city])));
+    // 2026-11-20：口径对齐源站 —— 国内拼「省 市 区」，国外只写国家名。
+    // 逐级过滤空值，避免出现「杭州市 杭州市」这类重复段。
+    $label = $nation === '中国'
+        ? implode(' ', array_unique(array_filter([$province, $city, $district])))
+        : $nation;
+    if ($label === '') $label = implode(' ', array_unique(array_filter([$nation, $province, $city])));
+    // IP 只回显给访客本人（源站把 IP 印在欢迎语末尾）；经纬度仍然不下发。
     return array_merge($coords ?? ['latitude' => null, 'longitude' => null], [
         'label' => $label, 'city' => $city, 'nation' => $nation,
+        'province' => $province, 'district' => $district, 'ip' => $text($result['ip'] ?? ''),
         'timezone' => $nation === '中国' ? 'Asia/Shanghai' : '',
         'source' => 'tencent', 'observedAt' => time(),
     ]);
@@ -283,6 +291,7 @@ function sg_sidebar_geo(string $ip, string $key, float $deadline): ?array
  * 和风 `/{host}/geo/v2/city/lookup` 的 location 既吃经纬度也吃城市名/拼音/LocationID，
  * 返回的 lat / lon / tz 正好就是「站长城市纬度 / 经度 / 时区」三个输入框要填的东西。
  * 凭据与 Host 与天气同一套，所以这里只做代理、不引入新配置；密钥始终留在服务端。
+ * 城市名支持「杭州市西湖区」这类「市 + 区县」写法：拆成区县主词查询、再按市级名过滤（见下方）。
  */
 function sg_sidebar_geo_city(string $name, array $cfg, float $deadline, ?array $headers = null): ?array
 {
@@ -290,11 +299,35 @@ function sg_sidebar_geo_city(string $name, array $cfg, float $deadline, ?array $
     if ($name === '' || $cfg['weatherHost'] === '') return null;
     $headers = $headers ?? sg_sidebar_weather_auth($cfg);
     if ($headers === null) return null;
-    $data = sg_sidebar_get_json('https://' . $cfg['weatherHost'] . '/geo/v2/city/lookup?' . http_build_query([
-        'location' => $name, 'lang' => 'zh', 'number' => 1,
-    ], '', '&', PHP_QUERY_RFC3986), $headers, $deadline);
-    $location = $data['location'][0] ?? null;
-    if (($data['code'] ?? '') !== '200' || !is_array($location)) return null;
+    $lookup = static function (string $location, int $number) use ($cfg, $headers, $deadline): ?array {
+        $data = sg_sidebar_get_json('https://' . $cfg['weatherHost'] . '/geo/v2/city/lookup?' . http_build_query([
+            'location' => $location, 'lang' => 'zh', 'number' => $number,
+        ], '', '&', PHP_QUERY_RFC3986), $headers, $deadline);
+        $list = $data['location'] ?? null;
+        return ($data['code'] ?? '') === '200' && is_array($list) && $list ? $list : null;
+    };
+    // 2026-11-20：支持「杭州市西湖区」这类「市 + 区县」写法。
+    // GeoAPI 对整串的模糊匹配命中率低（常直接返回空列表），但它会把每条结果的 adm1/adm2 一并给出，
+    // 所以拆成「主词 = 区县名」去查，再用市级名过滤结果；拆完仍查不到时回退整串再试一次。
+    // 不用 adm 参数：它按文档只吃英文/拼音区划名，中文市名靠结果过滤更稳。
+    $main = $name; $admHint = '';
+    $cut = mb_strpos($name, '市');
+    if ($cut !== false && ($tail = trim(mb_substr($name, $cut + 1))) !== '') {
+        $head = trim(mb_substr($name, 0, $cut));
+        $admHint = preg_match('/(?:省|自治区|特别行政区)([^省]*)$/u', $head, $m) ? trim($m[1]) : $head;
+        $admHint = (string) preg_replace('/市$/u', '', $admHint);
+        $main = $tail;
+    }
+    $list = $lookup($main, $admHint !== '' ? 10 : 1) ?? ($main !== $name ? $lookup($name, 1) : null);
+    if (!$list) return null;
+    $location = $list[0];
+    if ($admHint !== '') {
+        foreach ($list as $item) {
+            $adm2 = (string) ($item['adm2'] ?? ''); $adm1 = (string) ($item['adm1'] ?? '');
+            if (($adm2 !== '' && (mb_strpos($adm2, $admHint) !== false || mb_strpos($admHint, $adm2) !== false))
+                || ($adm1 !== '' && mb_strpos($adm1, $admHint) !== false)) { $location = $item; break; }
+        }
+    }
     $point = sg_sidebar_coordinates($location['lat'] ?? null, $location['lon'] ?? null);
     if (!$point) return null;
     $tz = (string) ($location['tz'] ?? '');
@@ -450,7 +483,7 @@ function sg_sidebar_context(bool $refresh = false): array
             }
         }
     }
-    // Coordinates are used internally; the browser gets display data, never the visitor IP or precise location.
+    // 经纬度只在服务端使用，浏览器只拿展示字段；IP 仅回显给访客本人（源站欢迎语末尾同样印 IP）。
     unset($location['latitude'], $location['longitude'], $weather['latitude'], $weather['longitude']);
     return ['location' => $location, 'weather' => $weather, 'sun' => sg_sidebar_sun($city), 'generatedAt' => time()];
 }

@@ -2,7 +2,7 @@ import { pageOn, pageInterval, pageSignal, onPageDispose } from './lifecycle';
 import { civilDate, dateKey, dayOrdinal, calendarFacts, fallbackFestival, loadCalendarLibrary, lunarFacts, DAY_MS } from './calendar-data';
 
 type SidebarConfig = { timezone: string; detail: boolean; mode: 'off' | 'site' | 'visitor'; weather: boolean; endpoint: string; fallbackDates: string[]; initial: Context };
-type LocationData = { status: string; label?: string; observedAt?: number; stale?: boolean; distance?: number | null; source?: string };
+type LocationData = { status: string; label?: string; observedAt?: number; stale?: boolean; distance?: number | null; source?: string; ip?: string; province?: string; district?: string };
 type WeatherData = { status: string; reason?: string; city?: string; condition?: string; temperature?: number; humidity?: number; feelsLike?: number; windDir?: string; windScale?: number; visibility?: number; icon?: string; observedAt?: string; fetchedAt?: number; stale?: boolean; attributions?: string[] };
 type SunData = { status: string; date?: string; timezone?: string; city?: string; rise?: string; set?: string };
 type Context = { location: LocationData; weather: WeatherData; sun: SunData; generatedAt: number };
@@ -37,7 +37,6 @@ export function initSidebarData(): void {
   const calendar = root.querySelector<HTMLElement>('[data-sg-calendar]');
   const countdown = root.querySelector<HTMLElement>('[data-sg-countdown]');
   const welcome = root.querySelector<HTMLElement>('[data-sg-welcome]');
-  const refreshButton = root.querySelector<HTMLButtonElement>('[data-sg-location-refresh]');
   const weather = root.querySelector<HTMLElement>('[data-sg-weather]');
   let lastDay = '';
   let calendarLibrary: Awaited<ReturnType<typeof loadCalendarLibrary>> | null = null;
@@ -48,18 +47,49 @@ export function initSidebarData(): void {
   let context: Context = cfg.initial;
   const cacheKey = `sg:sidebar-location:${cfg.endpoint}:${cfg.mode}`;
 
+  const greetingOf = (hour: number): string => (hour >= 5 && hour < 11 ? '上午好' : hour >= 11 && hour < 13 ? '中午好' : hour >= 13 && hour < 18 ? '下午好' : hour >= 18 ? '晚上好' : '夜深了');
+  const clockOf = (date: Date): string => `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+
+  /** 源站欢迎语的高亮段：`<b>` + 主色。IPv6 在冒号后插 `<wbr>`，长地址能断行不撑破卡片。 */
+  const strongOf = (text: string): HTMLElement => {
+    const bold = document.createElement('b');
+    bold.className = 'sg-hw-strong';
+    if (!text.includes(':')) { bold.textContent = text; return bold; }
+    text.split(':').forEach((part, index) => {
+      if (index > 0) bold.append(':', document.createElement('wbr'));
+      bold.append(part);
+    });
+    return bold;
+  };
+
+  let lastLocation: LocationData | null = null;
+
+  // 2026-11-20：欢迎语对齐源站 —— 「来自 省 市 区 的访客，下午好，现在是 15:35，
+  // 你目前距站长约 1063 公里，IP 地址：x.x.x.x」，一段话、高亮段走主色。
+  // 时间随每分钟重绘一次（见 refresh），所以整句由 DOM 节点拼装而非 innerHTML。
   const paintLocation = (location: LocationData, cached = false): void => {
     if (!welcome) return;
+    lastLocation = location;
+    const line = welcome.querySelector<HTMLElement>('[data-sg-welcome-location]');
+    const meta = welcome.querySelector<HTMLElement>('[data-sg-welcome-meta]');
+    if (!line) return;
     if (location.status === 'ok' && typeof location.label === 'string') {
-      put(welcome, '[data-sg-welcome-location]', `来自${location.label}的朋友，欢迎来访`);
-      put(welcome, '[data-sg-welcome-meta]', `${cached || location.stale ? '上次定位 · ' : ''}IP归属地${typeof location.distance === 'number' ? ` · 与站长约 ${location.distance} 公里` : ''}`);
-    } else if (location.status === 'site' && typeof location.label === 'string') {
-      put(welcome, '[data-sg-welcome-location]', `来自${location.label}的一声问候`);
-      put(welcome, '[data-sg-welcome-meta]', '站长所在城市');
-    } else {
-      put(welcome, '[data-sg-welcome-location]', '来自远方的朋友，欢迎来访');
-      put(welcome, '[data-sg-welcome-meta]', cfg.mode === 'visitor' ? '位置暂不可用' : '愿你在这里找到喜欢的文字');
+      const now = new Date();
+      const parts: (string | Node)[] = ['来自 ', strongOf(location.label), ` 的访客，${greetingOf(now.getHours())}，现在是 `, strongOf(clockOf(now))];
+      if (typeof location.distance === 'number') parts.push('，你目前距站长约 ', strongOf(String(location.distance)), ' 公里');
+      if (typeof location.ip === 'string' && location.ip !== '') parts.push('，IP 地址：', strongOf(location.ip));
+      line.replaceChildren(...parts);
+      if (meta) {
+        const stale = cached || location.stale === true;
+        meta.hidden = !stale;
+        put(welcome, '[data-sg-welcome-meta]', stale ? '上次定位结果，正在更新' : '');
+      }
+      return;
     }
+    const site = location.status === 'site' && typeof location.label === 'string';
+    put(welcome, '[data-sg-welcome-location]', site ? `来自${location.label}的一声问候` : '来自远方的朋友，欢迎来访');
+    if (meta) meta.hidden = false;
+    put(welcome, '[data-sg-welcome-meta]', site ? '站长所在城市' : cfg.mode === 'visitor' ? '位置暂不可用' : '愿你在这里找到喜欢的文字');
   };
 
   /** 底部虚线附加行：节气与日出日落都为空时整行收起（源站 extraHTML 无内容即返回空串）。 */
@@ -213,10 +243,8 @@ export function initSidebarData(): void {
     }
     syncExtra();
     lastDay = key;
-    if (welcome) {
-      const hour = now.getHours();
-      put(welcome, '[data-sg-welcome-greeting]', hour >= 5 && hour < 11 ? '上午好' : hour < 13 && hour >= 11 ? '中午好' : hour < 18 && hour >= 13 ? '下午好' : hour >= 18 ? '晚上好' : '夜深了');
-    }
+    // 欢迎语含「现在是 HH:mm」，每分钟按当前时刻重绘（问候语也随时段切换）。
+    if (welcome && lastLocation && lastLocation.status === 'ok') paintLocation(lastLocation);
   };
 
   const fetchContext = async (force = false): Promise<void> => {
@@ -229,7 +257,6 @@ export function initSidebarData(): void {
     signal.addEventListener('abort', abort, { once: true });
     const timeout = window.setTimeout(abort, 8500);
     fetching = true;
-    if (refreshButton) { refreshButton.disabled = true; refreshButton.setAttribute('aria-busy', 'true'); }
     if (weather) weather.setAttribute('aria-busy', 'true');
     nextFetch = Date.now() + 60000;
     try {
@@ -246,7 +273,6 @@ export function initSidebarData(): void {
       if (data.location.status === 'ok') {
         try { localStorage.setItem(cacheKey, JSON.stringify({ at: (data.location.observedAt ?? data.generatedAt) * 1000, location: data.location })); } catch { /* optional */ }
       }
-      if (force && welcome) put(welcome, '[data-sg-welcome-feedback]', data.location.status === 'ok' || data.location.status === 'site' ? '位置信息已更新' : '位置暂不可用，请稍后重试');
     } catch {
       if (signal.aborted || !root.isConnected) return;
       const oldWeather = context.weather;
@@ -257,11 +283,9 @@ export function initSidebarData(): void {
         weather: recent ? { ...oldWeather, stale: true } : { status: cfg.weather ? 'unavailable' : 'disabled' },
         sun: sameSunDay ? oldSun : { status: 'unavailable' } };
       paintContext(context);
-      if (force && welcome) put(welcome, '[data-sg-welcome-feedback]', '更新失败，请稍后重试');
     } finally {
       clearTimeout(timeout); signal.removeEventListener('abort', abort); fetching = false;
       if (!signal.aborted && root.isConnected) {
-        if (refreshButton) { refreshButton.disabled = false; refreshButton.removeAttribute('aria-busy'); }
         weather?.removeAttribute('aria-busy');
       }
     }
@@ -285,7 +309,6 @@ export function initSidebarData(): void {
       if (cached && typeof cached.at === 'number' && Date.now() - cached.at < 43200000 && cached.location?.status === 'ok') paintLocation(cached.location, true);
     } catch { /* optional */ }
   }
-  if (refreshButton) pageOn(refreshButton, 'click', () => { put(root, '[data-sg-welcome-feedback]', '正在更新位置'); void fetchContext(true); });
   const watches = [calendar, welcome, weather].filter((node): node is HTMLElement => !!node);
   if (typeof IntersectionObserver !== 'undefined') {
     const visible = new Set<Element>();

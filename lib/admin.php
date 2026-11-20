@@ -581,7 +581,7 @@ function themeConfig($form): void
     $form->addInput(new Radio('sgCalendarDetail', $effectOptions, 'on', _t('首页详细日期'), _t('显示大日期、农历、生肖、节气与年内第几天。公历月历和春节倒计时始终保留。')));
     $form->addInput(new Text('sgCalendarTimezone', null, 'Asia/Shanghai', _t('日历时区'), _t('公历、农历、春节与进度条共同使用的时区，例如 Asia/Shanghai；无效值回退上海时区。')));
     $form->addInput(new Select('sgSidebarLocation', ['off' => _t('关闭欢迎卡'), 'site' => _t('站长城市'), 'visitor' => _t('访客 IP 归属地')], 'site', _t('首页欢迎信息'), _t('站长城市模式不查询访客位置；访客模式通过服务端定位，默认不显示 IP 地址。定位失败时显示通用欢迎，天气回退站长城市。')));
-    $form->addInput(new Text('sgSiteCity', null, '', _t('站长城市'), _t('用于欢迎、天气回退和距离基点。留空不输出虚构城市，例如填写自己的城市名称。填好后可点下面按钮用和风 GeoAPI 反查坐标与时区。') . sg_admin_geo_lookup()));
+    $form->addInput(new Text('sgSiteCity', null, '', _t('站长城市'), _t('用于欢迎、天气回退和距离基点。留空不输出虚构城市，例如填写自己的城市名称。可填到区县，如「杭州市西湖区」，坐标按该区县解析。填好后可点下面按钮用和风 GeoAPI 反查坐标与时区。') . sg_admin_geo_lookup()));
     $form->addInput(new Text('sgSiteLatitude', null, '', _t('站长城市纬度'), _t('十进制度数，范围 -90 到 90；使用城市代表位置的 WGS84 坐标，不需要精确住址。留空时按「站长城市」用和风 GeoAPI 自动解析（需配好 API Host 与凭据）。')));
     $form->addInput(new Text('sgSiteLongitude', null, '', _t('站长城市经度'), _t('十进制度数，范围 -180 到 180；与纬度共同填写，用于估算距离及日出日落。留空时同纬度一样自动解析。')));
     $form->addInput(new Text('sgSiteTimezone', null, 'Asia/Shanghai', _t('站长城市时区'), _t('例如 Asia/Shanghai。日出日落按对应城市时区显示，独立于日历时区。清空后采用 GeoAPI 返回的时区。')));
