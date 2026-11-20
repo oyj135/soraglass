@@ -82,22 +82,25 @@ html.dark .sg-post-banner-title { text-shadow: none; animation: sg-post-neon 8s 
   text-shadow: 0 1px 3px rgba(2, 6, 23, .6);
 }
 html.dark .sg-post-meta-line { color: var(--sg-muted); }
-/* 日间页顶与独立页共用瓷白阅读底，去掉压图白字与暗幕。 */
-html:not(.dark) .sg-post-banner {
-  padding: clamp(2rem, 4vw, 3.5rem) 1.5rem;
-  border: 1px solid var(--sg-reading-border);
-  border-radius: var(--sg-radius-outer);
-  background: var(--sg-wall-surface);
-}
+/* 日间（2026-11-20 第十三轮）：与独立页页头同步，去掉瓷白实色卡。
+   正文卡与相关推荐本来就是 24% 白玻璃（壁纸透出 + 模糊），标题块曾是页顶唯一
+   一块实色，把首屏壁纸糊住；去掉后壁纸在顶部完整露出、页头高度随之降低。
+   标题与元信息改用主题已有的「壁纸字」配方（近黑字 + 白色描边光晕，夜间 token
+   自动反转成浅字 + 暗光晕），与 .sg-page-head、首屏 .sg-front 同一套语言。
+   内边距从卡内的 clamp(2rem,4vw,3.5rem) 收回 1.25rem —— .sg-main 已经留了
+   6–7rem 清导航，再多就是一块空地。 */
+html:not(.dark) .sg-post-banner { padding: 1.25rem 1.5rem .75rem; }
 html:not(.dark) .sg-post-banner::before { content: none; }
 html:not(.dark) .sg-post-banner-title {
   display: block;
   overflow: visible;
-  color: var(--sg-accent-deep);
-  text-shadow: none;
+  color: var(--sg-wall-ink);
   text-wrap: balance;
+  /* 28–40px 的字用 1px 描边会被字心吃掉，改用两层柔光把字从花色壁纸上「托」出来。 */
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .85), 0 0 18px rgba(255, 255, 255, .8), 0 0 44px rgba(255, 255, 255, .55);
 }
-html:not(.dark) .sg-post-meta-line { color: var(--sg-muted); text-shadow: none; }
+/* 元信息是 15px 小字，走真实描边档（max 4px 柔光，不会被自己的光晕糊边）。 */
+html:not(.dark) .sg-post-meta-line { color: var(--sg-wall-ink); text-shadow: var(--sg-wall-halo); }
 .sg-post-meta-item { display: inline-flex; align-items: center; gap: .35rem; }
 .sg-post-meta-item svg { width: .9rem; height: .9rem; flex: none; }
 /* 横幅底是暗幕，朱砂亮档文字只有 1.5:1：文字取浅暖色，图钉图标保留朱砂作识别 */
