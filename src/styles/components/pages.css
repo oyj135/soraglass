@@ -62,7 +62,13 @@
 /* 页脚（2026-11-19 第五轮）：昼夜统一「透明 + 底部渐变暗纱 + 浅色字」。
    撤销日间瓷白实底（用户反馈整片挡住壁纸，参考源站 #footer 的透明 + 暗罩）：
    暗纱从底部起、向上羽化到 100%，让状态行 / 分隔线 / 版权三段都落在同一层纱上，
-   不切出被否过的「圆角矩形边界」；夜间沿用原配方不动。 */
+   不切出被否过的「圆角矩形边界」；夜间沿用原配方不动。
+
+   2026-11-20 第二轮：日间仍反馈「文字不清晰」。实测原因是纱太薄 ——
+   中上部只有 0.12–0.34，浅壁纸透上来后白字掉到 3:1 左右，13px/500 的版权行最吃亏。
+   处理分两层：纱提浓（底部 .62→.74、中段 .34→.44、上缘 .12→.18），
+   文字按源站 #footer-wrap 的配方回补（源站 .copyright 是 16px 加粗浅灰）：
+   版权 13→15px/600、白度 .76→.92，Powered 12→13px。夜间两块都不动。 */
 .sg-footer-zone { position: relative; margin-top: 2.5rem; }
 .sg-footer-zone::before {
   content: '';
@@ -70,8 +76,22 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: linear-gradient(to top, rgba(10, 13, 28, .62), rgba(10, 13, 28, .34) 58%, rgba(10, 13, 28, .12) 100%);
+  background: linear-gradient(to top, rgba(10, 13, 28, .78), rgba(10, 13, 28, .66) 45%, rgba(10, 13, 28, .56) 100%);
 }
+/* 日间的纱必须整块都够浓（白字在浅壁纸上的下限是 alpha≈.5），代价是上缘会出现一道边界；
+   用一条伸进上方留白里的补光把硬边吃掉，别把 text 区再调淡。夜间 ::before 自带羽化，不需要这段。 */
+.sg-footer-zone::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  z-index: 0;
+  height: 5rem;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(10, 13, 28, .56), rgba(10, 13, 28, 0));
+}
+html.dark .sg-footer-zone::after { display: none; }
 html.dark .sg-footer-zone::before {
   background: linear-gradient(to top, rgba(10, 13, 28, .58), rgba(10, 13, 28, 0) 62%);
 }
@@ -84,8 +104,9 @@ html.dark .sg-footer-zone::before {
   padding: .85rem 1.5rem 1rem;
   text-align: center;
   font-family: var(--font-serif);
-  color: rgba(255, 255, 255, .76);
-  text-shadow: 0 1px 3px rgba(15, 23, 42, .45), 0 0 14px rgba(15, 23, 42, .22);
+  color: rgba(255, 255, 255, .88);
+  /* 纱加浓后不再需要大半径外发光（在浅底上会糊成灰影），收成一道贴边投影 */
+  text-shadow: 0 1px 2px rgba(8, 12, 24, .55);
 }
 
 .sg-footer p { margin: 0; }
@@ -102,7 +123,7 @@ html.dark .sg-footer-zone::before {
   font-size: .875rem;
   font-weight: 600;
   line-height: 1.6;
-  color: rgba(233, 239, 247, .92);
+  color: rgba(240, 246, 250, .96);
 }
 
 .sg-footer-run { display: inline-flex; align-items: center; gap: .4rem; }
@@ -115,19 +136,19 @@ html.dark .sg-footer-zone::before {
 }
 /* 时长是这一行唯一的彩色项：暗底用 indigo-400（亮底时代那版已随瓷白页脚一起下线） */
 .sg-footer-uptime { font-weight: 900; color: var(--sg-indigo-soft); letter-spacing: .01em; }
-.sg-footer-icp { font-weight: 400; font-size: .8125rem; color: rgba(233, 239, 247, .70); }
+.sg-footer-icp { font-weight: 400; font-size: .8125rem; color: rgba(236, 243, 248, .82); }
 
 /* ② 状态行与版权之间的通栏细分隔线（参考图里就是一条 1px 细线） */
 .sg-footer-rule {
   border: 0;
-  border-top: 1px solid rgba(226, 232, 240, .18);
+  border-top: 1px solid rgba(226, 232, 240, .24);
   margin: .9rem 0 0;
   text-shadow: none;
 }
 
-/* ③ 版权两行：13px / 12px，只用字重区分主次 */
-.sg-footer-copy { margin-top: .9rem; font-size: .8125rem; font-weight: 500; line-height: 1.6; letter-spacing: .01em; }
-.sg-footer-powered { margin-top: .25rem; font-size: .75rem; line-height: 1.6; padding-bottom: calc(3.2rem + env(safe-area-inset-bottom, 0px)); }
+/* ③ 版权两行：15px/600 + 13px，只用字重区分主次（对齐源站 .copyright 的 16px 加粗） */
+.sg-footer-copy { margin-top: .9rem; font-size: .9375rem; font-weight: 600; line-height: 1.6; letter-spacing: .01em; color: rgba(255, 255, 255, .94); }
+.sg-footer-powered { margin-top: .25rem; font-size: .8125rem; line-height: 1.6; color: rgba(255, 255, 255, .80); padding-bottom: calc(3.2rem + env(safe-area-inset-bottom, 0px)); }
 
 /* 窄屏：字号整体再降一档（14px 在 390px 上仍略宽，状态行与备案号会换行） */
 @media (max-width: 767.98px) {
@@ -135,7 +156,7 @@ html.dark .sg-footer-zone::before {
   .sg-footer-status { font-size: .8125rem; gap: .25rem 1rem; }
   .sg-footer-dot { width: .4375rem; height: .4375rem; }
   .sg-footer-icp { font-size: .75rem; }
-  .sg-footer-copy { font-size: .8125rem; margin-top: .75rem; }
+  .sg-footer-copy { font-size: .875rem; margin-top: .75rem; }
   .sg-footer-powered { font-size: .75rem; }
   .sg-footer-rule { margin-top: .75rem; }
 }

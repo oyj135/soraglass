@@ -287,11 +287,10 @@ html.dark .sg-prose a { color: var(--sg-indigo-soft); }
 
 /* 侧栏 */
 /* 文章页作者卡：内容与首页 card-profile 完全一致（复用 sg-profile/sg-avatar-ring/
-   sg-stats 类名，呼吸灯已并入 .sg-profile 共用段）；内边距用 sg-card-pad。 */
+   sg-stats 类名，呼吸灯已并入 .sg-profile 共用段）。
+   2026-11-20 第二轮：内边距 / 行距 / 统计字号不再在文章页单独覆盖 ——
+   密度统一由 profile.css 的「两侧栏共用」块给出，这里只留居中兜底。 */
 .sg-author-card { text-align: center; }
-
-/* 三格统计在侧栏卡里的字号（首页 hero 侧栏另有压缩档） */
-.sg-author-card .sg-stat-num { font-size: 1.25rem; }
 
 .sg-side-card { padding: 1.5rem; }
 .sg-side-title { margin-bottom: 1rem; padding-left: .5rem; border-left: 4px solid var(--sg-accent-ink); font-size: .875rem; font-weight: 900; letter-spacing: .05em; text-transform: uppercase; }

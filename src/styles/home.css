@@ -338,30 +338,50 @@ html.dark .sg-hcard { background-color: var(--sg-card); background-image: var(--
 .sg-hcal-main { display: flex; align-items: flex-start; gap: .5rem; }
 .sg-hcal-left { flex: 0 0 44%; min-width: 0; display: flex; flex-direction: column; align-items: center; align-self: center; text-align: center; }
 .sg-hcal-left.is-slim { align-self: flex-start; }
-.sg-hcal-week { font-family: var(--font-sans); font-size: .82rem; font-weight: 600; line-height: 1.3; color: var(--sg-text); white-space: nowrap; }
-.sg-hcal-day { font-size: 2.3rem; font-weight: 700; line-height: 1.08; color: var(--sg-accent-ink); font-variant-numeric: tabular-nums; }
-.sg-hcal-solar { display: block; max-width: 100%; font-family: var(--font-sans); font-size: .72rem; line-height: 1.45; color: var(--sg-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* 2026-11-20：用户反馈「重点文字显示不清楚」。三处根因一起改 ——
+   ① 大日期用 --sg-accent 原色（白卡 6.5:1），38px 的细笔画处发灰 → 换 --sg-cal-strong（~10:1）；
+   ② 周次 .82rem/600、年月与农历 .72rem 都低于侧栏可读阈值（<12px）→ 各提一档；
+   ③ 星期行原本走 --sg-faint（三级色）+ .95em，双重减淡 → 提到 --sg-muted。
+   对照基准是源站 aside-calendar.css：.cal-daynum 2.45em/700 + cal-strong，.cal-solar/.cal-lunar .76em。 */
+.sg-hcal-week { font-family: var(--font-sans); font-size: .9rem; font-weight: 700; line-height: 1.3; color: var(--sg-text); white-space: nowrap; }
+.sg-hcal-day { font-size: 2.45rem; font-weight: 700; line-height: 1.08; color: var(--sg-cal-strong); font-variant-numeric: tabular-nums; }
+.sg-hcal-solar { display: block; max-width: 100%; font-family: var(--font-sans); font-size: .76rem; line-height: 1.45; color: var(--sg-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sg-hcal-solar span + span { color: var(--sg-muted); }
-.sg-hcal-lunar { display: block; max-width: 100%; font-size: .72rem; line-height: 1.45; color: var(--sg-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sg-hcal-grid { flex: 1 1 auto; min-width: 0; table-layout: fixed; border-collapse: collapse; text-align: center; font-family: var(--font-sans); font-size: .68rem; }
-.sg-hcal-wd { font-weight: 400; color: var(--sg-faint); padding-bottom: 2px; font-size: .95em; }
+.sg-hcal-lunar { display: block; max-width: 100%; font-size: .76rem; line-height: 1.45; color: var(--sg-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sg-hcal-grid { flex: 1 1 auto; min-width: 0; table-layout: fixed; border-collapse: collapse; text-align: center; font-family: var(--font-sans); font-size: .72rem; }
+.sg-hcal-wd { font-weight: 500; color: var(--sg-muted); padding-bottom: 2px; font-size: .95em; }
 .sg-hcal-cell { height: 1.68em; padding: 0; vertical-align: middle; color: var(--sg-text); font-variant-numeric: tabular-nums; }
 .sg-hcal-cell > span { display: flex; margin: 0 auto; align-items: center; justify-content: center; width: 1.68em; height: 1.68em; border-radius: 50%; line-height: 1; }
 .sg-hcal-cell.is-empty { visibility: hidden; }
-.sg-hcal-cell.is-today > span { color: #fff; font-weight: 600; background: var(--sg-accent); box-shadow: 0 1px 4px color-mix(in srgb, var(--sg-accent) 40%, transparent); }
+.sg-hcal-cell.is-today > span { color: var(--sg-cal-ink); font-weight: 600; background: var(--sg-cal-strong); box-shadow: 0 1px 4px color-mix(in srgb, var(--sg-accent) 40%, transparent); }
 /* 附加行：源站 .cal-extra（虚线上边线 + 居中 + 节气在前、日出日落在后） */
-.sg-hcal-extra { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .25rem .75rem; margin-top: .5rem; padding-top: .44rem; border-top: 1px dashed color-mix(in srgb, var(--sg-accent) 22%, var(--sg-line)); font-size: .72rem; color: var(--sg-muted); white-space: nowrap; }
-.sg-hcal-term { font-size: .78rem; color: var(--sg-muted); }
-.sg-hcal-term strong { font-weight: 700; color: var(--sg-accent-ink); }
+.sg-hcal-extra { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .25rem .75rem; margin-top: .5rem; padding-top: .44rem; border-top: 1px dashed color-mix(in srgb, var(--sg-accent) 22%, var(--sg-line)); font-size: .74rem; color: var(--sg-muted); white-space: nowrap; }
+.sg-hcal-term { font-size: .8rem; color: var(--sg-text); }
+.sg-hcal-term strong { font-weight: 700; color: var(--sg-cal-strong); }
 .sg-hcal-sun { display: inline-flex; gap: .7rem; }
-.sg-hweather { margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--sg-line); min-height: 6rem; }
-.sg-hweather-main { display: flex; align-items: center; gap: .35rem; font-size: .85rem; color: var(--sg-text); }
-.sg-hweather-icon { flex: none; display: inline-flex; width: 1.35rem; height: 1.35rem; }
+
+/* ---------- 天气块（2026-11-20 重排）----------
+   原版是「图标 + 城市·天气·温度」一整行文字，再跟「湿度 / 更新于」一行，
+   温度与正文同字号、右侧还空着 —— 数据平铺没有主次。新版：
+     主行 = 图标 + 大温度（1.6rem，用 --sg-cal-strong）+ 右对齐的城市/天气；
+     数据行 = 体感 / 湿度 / 风（由 sidebar-data.ts 按接口实返字段生成，缺项不输出）；
+     脚注 = 更新时刻 + 和风天气声明（弱化、去掉正文式下划线）。
+   数据只增三档：feelsLike、wind、visibility（和风 v1 current 接口原生返回）。 */
+.sg-hweather { margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--sg-line); }
+.sg-hweather-main { display: flex; align-items: center; gap: .55rem; }
+.sg-hweather-icon { flex: none; display: inline-flex; width: 1.75rem; height: 1.75rem; }
 .sg-hweather-icon svg { width: 100%; height: 100%; }
-.sg-hweather-meta { margin: .35rem 0; font-size: .72rem; color: var(--sg-muted); }
-.sg-hweather-source, .sg-hweather-source [data-sg-weather-attributions] { display: flex; flex-wrap: wrap; gap: .3rem .55rem; font-size: .68rem; }
-.sg-hweather-source a { color: var(--sg-faint); text-decoration: underline; text-underline-offset: 3px; }
-.sg-hweather-source a:hover { color: var(--sg-accent-ink); }
+.sg-hweather-temp { font-family: var(--font-sans); font-size: 1.6rem; font-weight: 700; line-height: 1; color: var(--sg-cal-strong); font-variant-numeric: tabular-nums; }
+.sg-hweather-place { display: flex; flex-direction: column; align-items: flex-end; gap: .1rem; margin-left: auto; min-width: 0; text-align: right; }
+.sg-hweather-city { font-family: var(--font-sans); font-size: .8rem; font-weight: 600; line-height: 1.3; color: var(--sg-text); }
+.sg-hweather-cond { font-size: .72rem; line-height: 1.3; color: var(--sg-muted); }
+.sg-hweather-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .2rem 0; margin: .55rem 0 0; font-size: .72rem; line-height: 1.6; color: var(--sg-muted); }
+.sg-hweather-meta > span + span::before { content: '·'; margin: 0 .45rem; color: var(--sg-faint); }
+.sg-hweather-meta b { font-weight: 600; color: var(--sg-text); font-variant-numeric: tabular-nums; }
+.sg-hweather-source { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .2rem .5rem; margin-top: .45rem; font-size: .68rem; color: var(--sg-faint); }
+.sg-hweather-source [data-sg-weather-attributions] { display: flex; flex-wrap: wrap; gap: .3rem .5rem; }
+.sg-hweather-source a { color: inherit; text-decoration: none; }
+.sg-hweather-source a:hover { color: var(--sg-accent-ink); text-decoration: underline; text-underline-offset: 3px; }
 .sg-hweather-source a:focus-visible { outline: 2px solid var(--sg-accent); outline-offset: 3px; }
 .sg-hwelcome-greeting { color: var(--sg-accent-ink); font-size: .78rem; }
 .sg-hwelcome-location { margin: 0; font-size: .88rem; color: var(--sg-text); line-height: 1.8; min-height: 3.6em; overflow-wrap: anywhere; }
@@ -393,6 +413,12 @@ html.dark .sg-hcard { background-color: var(--sg-card); background-image: var(--
 /* 窄屏侧栏是整宽，内容别拉太散（源站同款 380px 上限） */
 @media (max-width: 900px) {
   .sg-hcal-main, .sg-hcd-main { max-width: 380px; margin: 0 auto; }
+}
+
+/* <1024 右缘有固定的「菜单」把手（.sg-disc，48px 贴右边），右对齐的城市名会被它压住 ——
+   这一档把城市/天气挪到大温度右侧左对齐，≥1024 再回到右对齐。 */
+@media (max-width: 1023.98px) {
+  .sg-hweather-place { align-items: flex-start; margin-left: .35rem; text-align: left; }
 }
 
 /* ---------- 小站资讯卡（对齐 Fomalhaut card_webinfo 新版：KPI + 时间条 + 年度产出柱状） ---------- */

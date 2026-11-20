@@ -191,6 +191,15 @@
   --sg-lyric-text-shadow: none;
   --sg-lyric-shadow: var(--sg-shadow);
 
+  /* 日历卡「当文字用的强调色」（2026-11-20）：大日期与今日圆不用 --sg-accent 原色 ——
+     原色在白卡上 6.5:1，做 38px 数字时笔画细处会发灰；按源站 aside-calendar 的
+     color-mix(主题色 62%, #000) 压深一档到 10:1 左右，字重与对比一起提。
+     夜间反相：mix(accent-ink 78%, #fff) 提亮，深卡上 8:1。 */
+  --sg-cal-strong: #213c42;
+  --sg-cal-strong: color-mix(in srgb, var(--sg-accent) 62%, #000);
+  /* 今日圆里的数字：亮档是压深青底压白字；夜间圆底是亮青，字必须翻成近黑才不糊。 */
+  --sg-cal-ink: #fff;
+
   /* 歌词条的星空层（2026-11-18 第十四轮）不再自带 token：改为复用音乐卡的
      `--sg-spark-dots`（9 颗星点坐标，声明在 components.css 的 .sg-player-card/.sg-lyric-bar）。
      第十五轮起它跟音乐卡一样分昼夜两档：日间主色微光 + 主色光晕，暗色白光星点 + 冷蓝星云，
@@ -306,6 +315,11 @@ html.dark {
 
   /* 头像描边跟着卡片底色走，暗色下用深灰青才不刺眼 */
   --sg-ring: #14181d;
+
+  /* 日历卡强调色夜间档（见亮色块注释）：提亮到深卡可见，不与白字抢对比 */
+  --sg-cal-strong: #a8d2d5;
+  --sg-cal-strong: color-mix(in srgb, var(--sg-accent-ink) 78%, #fff);
+  --sg-cal-ink: #10131a;
 
   /* 歌词栏夜间同样跟随卡片（2026-11-19）：卡面/描边/阴影不再单开一档，
      只保留波形与音符的亮色档（深底上深青会糊）。 */

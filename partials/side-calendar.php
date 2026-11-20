@@ -67,7 +67,11 @@ $sgCalTitle = $sgCalYear . '年' . $sgCalMonth . '月' . $sgCalToday . '日 星�
         <svg data-sg-weather-icon="snow" hidden viewBox="0 0 24 24"><path d="M12 2v20M3 7l18 10M3 17 21 7m-12-3 3 3 3-3M9 20l3-3 3 3" fill="none" stroke="var(--sg-accent-soft)" stroke-width="2" stroke-linecap="round"/></svg>
         <svg data-sg-weather-icon="fog" hidden viewBox="0 0 24 24"><path d="M4 7h16M2 12h20M5 17h14" stroke="var(--sg-muted)" stroke-width="3" stroke-linecap="round"/></svg>
       </span>
-      <span data-sg-weather-main>天气加载中</span>
+      <span class="sg-hweather-temp" data-sg-weather-temp>--</span>
+      <span class="sg-hweather-place">
+        <b class="sg-hweather-city" data-sg-weather-main>天气加载中</b>
+        <span class="sg-hweather-cond" data-sg-weather-cond></span>
+      </span>
     </div>
     <p class="sg-hweather-meta" data-sg-weather-meta>正在获取当地天气</p>
     <div class="sg-hweather-source"><a href="https://www.qweather.com/" target="_blank" rel="noopener noreferrer">和风天气</a><span data-sg-weather-attributions></span></div>

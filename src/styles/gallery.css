@@ -1,7 +1,7 @@
 /* Scheme B: natural-ratio album masonry on the page's own surface. */
 [data-sg-gallery] [hidden]{display:none!important}
 [data-sg-gallery].sg-main{width:calc(100% - 2 * clamp(16px,3vw,56px));max-width:none;padding-inline:0}
-.sg-curated-heading{display:flex;justify-content:space-between;gap:1rem;margin:0 0 1.25rem;color:var(--sg-wall-ink);font:12px/1.7 var(--font-sans);letter-spacing:.08em;text-shadow:var(--sg-wall-halo)}
+.sg-curated-heading{display:flex;justify-content:space-between;gap:1rem;margin:0 0 1.25rem;color:var(--sg-wall-ink);font:600 12.5px/1.7 var(--font-sans);letter-spacing:.08em;text-shadow:var(--sg-wall-halo)}
 .sg-curated-grid{columns:3;column-gap:clamp(24px,2.1vw,40px)}
 .sg-curated-album{display:block;min-width:0;width:100%;margin:0 0 2.5rem;break-inside:avoid;border-radius:0;background:transparent;border:0;padding:0;color:var(--sg-text);text-decoration:none}
 .sg-curated-album:hover{box-shadow:none;color:var(--sg-accent-ink)}
@@ -11,9 +11,9 @@
 .sg-curated-featured{color:var(--sg-accent-ink);font:600 10px/1.4 var(--font-sans);margin-right:.45rem}
 /* 相册说明直接压在壁纸上（拍立得叠片下方）：不设底板，用紧凑文字与光晕托底，让图片成为主体 */
 .sg-curated-meta{margin-top:.35rem;padding:0;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;border-radius:0;text-align:center;text-shadow:var(--sg-wall-halo)}
-.sg-curated-meta h2{font-size:.95rem;line-height:1.35;margin:.08rem 0 0;overflow-wrap:anywhere}
-.sg-curated-date{font:10px/1.5 var(--font-sans);letter-spacing:.04em;color:var(--sg-wall-ink)}
-.sg-curated-meta p{font-size:.75rem;line-height:1.5;color:var(--sg-wall-ink);margin:.12rem auto 0;max-width:32ch;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.sg-curated-meta h2{font-size:1rem;font-weight:600;line-height:1.4;margin:.1rem 0 0;overflow-wrap:anywhere}
+.sg-curated-date{font:500 11.5px/1.6 var(--font-sans);letter-spacing:.03em;color:var(--sg-wall-ink)}
+.sg-curated-meta p{font-size:.82rem;line-height:1.55;color:var(--sg-wall-ink);margin:.15rem auto 0;max-width:34ch;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .sg-curated-count{font:10px/1.5 var(--font-sans);color:var(--sg-faint);white-space:nowrap}.sg-curated-count>span{font-size:1.2rem;margin-left:.6rem;color:var(--sg-accent-ink)}
 .sg-gallery-search-results{margin-top:2.5rem}.sg-gallery-search-results h2{font-size:1.3rem;margin-bottom:1.2rem}.sg-gallery-search-results h2 span{font-size:.8rem;color:var(--sg-muted);margin-left:.6rem}
 [data-sg-gallery] .sg-gallery-masonry{columns:3;column-gap:1.25rem}
@@ -37,7 +37,7 @@ img.is-lazy-in{animation:sg-cover-in .8s ease-out forwards}
 [data-sg-gallery] .sg-back,[data-sg-gallery] .sg-gallery-detail-count{background:transparent;border:0;box-shadow:none;padding-inline:0}
 [data-sg-gallery] .sg-back:hover{background:transparent;box-shadow:none}
 [data-sg-gallery] .sg-notfound{background:transparent;border:0;box-shadow:none}
-.sg-photo-caption{display:flex;flex-direction:column;gap:.25rem;padding:.75rem 0 0;font-size:.8rem}.sg-photo-caption b{font-weight:500}.sg-photo-caption time,.sg-photo-caption>span{font:10px/1.6 var(--font-sans);color:var(--sg-faint)}
+.sg-photo-caption{display:flex;flex-direction:column;gap:.25rem;padding:.75rem 0 0;font-size:.85rem}.sg-photo-caption b{font-weight:600}.sg-photo-caption time,.sg-photo-caption>span{font:11px/1.6 var(--font-sans);color:var(--sg-wall-ink)}
 .sg-photo-file-label,.sg-curated-no-preview{display:flex;align-items:center;justify-content:center;min-height:140px;padding:1rem;color:var(--sg-muted);font-size:.8rem}
 .sg-curated-grid--one{columns:1;max-width:52rem}.sg-curated-grid--two{columns:2}
 @media(max-width:1000px){.sg-curated-grid{column-count:2}[data-sg-gallery] .sg-gallery-masonry{columns:2}.sg-curated-grid--one{column-count:1}}

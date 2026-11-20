@@ -3,7 +3,7 @@ import { civilDate, dateKey, dayOrdinal, calendarFacts, fallbackFestival, loadCa
 
 type SidebarConfig = { timezone: string; detail: boolean; mode: 'off' | 'site' | 'visitor'; weather: boolean; endpoint: string; fallbackDates: string[]; initial: Context };
 type LocationData = { status: string; label?: string; observedAt?: number; stale?: boolean; distance?: number | null; source?: string };
-type WeatherData = { status: string; reason?: string; city?: string; condition?: string; temperature?: number; humidity?: number; icon?: string; observedAt?: string; fetchedAt?: number; stale?: boolean; attributions?: string[] };
+type WeatherData = { status: string; reason?: string; city?: string; condition?: string; temperature?: number; humidity?: number; feelsLike?: number; windDir?: string; windScale?: number; visibility?: number; icon?: string; observedAt?: string; fetchedAt?: number; stale?: boolean; attributions?: string[] };
 type SunData = { status: string; date?: string; timezone?: string; city?: string; rise?: string; set?: string };
 type Context = { location: LocationData; weather: WeatherData; sun: SunData; generatedAt: number };
 const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六'];
@@ -86,13 +86,45 @@ export function initSidebarData(): void {
     if (!weather) return;
     const current = data.weather;
     const valid = current.status === 'ok' && typeof current.temperature === 'number' && typeof current.humidity === 'number' && typeof current.condition === 'string';
-    put(weather, '[data-sg-weather-main]', valid ? `${current.city ?? ''} · ${current.condition} ${current.temperature}°C` : '天气暂不可用');
+    // 2026-11-20：主行拆成「大温度 + 城市 / 天气」，数据行按接口实返字段拼 span（缺项直接不输出，
+    // 旧缓存没有 feelsLike/wind 时不会留空占位）。一切文本走 textContent，不拼 innerHTML。
+    put(weather, '[data-sg-weather-temp]', valid ? `${current.temperature}°` : '--');
+    put(weather, '[data-sg-weather-main]', valid ? (current.city || '当前位置') : '天气暂不可用');
+    put(weather, '[data-sg-weather-cond]', valid ? (current.condition ?? '') : '');
     let update = '';
     if (valid) {
       const time = new Date(current.observedAt || (current.fetchedAt ?? 0) * 1000);
       update = Number.isNaN(time.getTime()) ? '' : new Intl.DateTimeFormat('zh-CN', { timeZone: data.sun.timezone || cfg.timezone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(time);
     }
-    put(weather, '[data-sg-weather-meta]', valid ? `湿度 ${current.humidity}%${update ? ` · ${current.stale ? '最近记录' : '更新于'} ${update}` : ''}` : '稍后会自动重试');
+    const meta = weather.querySelector<HTMLElement>('[data-sg-weather-meta]');
+    if (meta) {
+      if (!valid) {
+        put(weather, '[data-sg-weather-meta]', '稍后会自动重试');
+      } else {
+        meta.replaceChildren();
+        const cell = (label: string, value: string): void => {
+          const span = document.createElement('span');
+          if (label) {
+            const name = document.createElement('span');
+            name.textContent = label;
+            span.append(name);
+          }
+          const strong = document.createElement('b');
+          strong.textContent = value;
+          span.append(strong);
+          meta.append(span);
+        };
+        if (typeof current.feelsLike === 'number') cell('体感 ', `${current.feelsLike}°`);
+        cell('湿度 ', `${current.humidity}%`);
+        if (typeof current.windScale === 'number' && current.windScale >= 0) cell('', `${current.windDir ?? ''} ${current.windScale}级`.trim());
+        else if (current.windDir) cell('', current.windDir);
+        if (update) {
+          const span = document.createElement('span');
+          span.textContent = `${current.stale ? '最近记录' : '更新'} ${update}`;
+          meta.append(span);
+        }
+      }
+    }
     weather.dataset.state = valid ? (current.stale ? 'stale' : 'ready') : 'error';
     // 失败原因只放在 data 属性上供站长排查（枚举值，无凭据信息），界面文案仍是「稍后会自动重试」。
     weather.dataset.reason = valid ? '' : (current.reason ?? '');

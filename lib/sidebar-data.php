@@ -319,10 +319,24 @@ function sg_sidebar_weather(array $city, array $cfg, float $deadline, ?array $he
     if (!is_numeric($temperature) || !is_string($condition) || !is_numeric($humidity)) return null;
     $tz = (string) ($location['tz'] ?? '');
     try { new DateTimeZone($tz); } catch (Throwable $e) { $tz = ''; }
+    // 2026-11-20：日历卡天气块补三档实返数据（体感 / 风向风级 / 能见度）。
+    // 全部按「有就带、没有就不带」处理 —— 接口降级时不写空键，前端缺字段即不渲染。
+    $feelsLike = $data['feelsLike']['value'] ?? null;
+    $windScale = $data['wind']['scale'] ?? null;
+    $compass = strtolower((string) ($data['wind']['direction']['compass'] ?? ''));
+    $visibility = $data['visibility']['value'] ?? null;
+    $compassMap = ['n' => '北风', 'nne' => '东北偏北风', 'ne' => '东北风', 'ene' => '东北偏东风',
+        'e' => '东风', 'ese' => '东南偏东风', 'se' => '东南风', 'sse' => '东南偏南风',
+        's' => '南风', 'ssw' => '西南偏南风', 'sw' => '西南风', 'wsw' => '西南偏西风',
+        'w' => '西风', 'wnw' => '西北偏西风', 'nw' => '西北风', 'nnw' => '西北偏北风'];
     return [
         'city' => mb_substr((string) ($location['name'] ?? $city['city']), 0, 80),
         'temperature' => round((float) $temperature, 1), 'condition' => mb_substr($condition, 0, 80),
         'humidity' => (int) round(max(0, min(1, (float) $humidity)) * 100),
+        'feelsLike' => is_numeric($feelsLike) ? round((float) $feelsLike, 1) : null,
+        'windDir' => $compassMap[$compass] ?? '',
+        'windScale' => is_numeric($windScale) ? (int) $windScale : null,
+        'visibility' => is_numeric($visibility) ? round((float) $visibility / 1000, 1) : null,
         'icon' => (string) ($data['condition']['code'] ?? ''),
         'observedAt' => (string) ($data['validTime'] ?? ''), 'fetchedAt' => time(),
         'timezone' => $tz, 'latitude' => $point['latitude'], 'longitude' => $point['longitude'],
