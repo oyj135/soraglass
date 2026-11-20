@@ -333,3 +333,23 @@ html.dark .sg-sheet-panel {
 .sg-sheet-close { min-width: 2.75rem; min-height: 2.75rem; padding: .5rem; border-radius: var(--sg-radius-inner); color: var(--sg-text); background: var(--sg-chip); cursor: pointer; }
 .sg-sheet-close:is(:hover, :focus-visible) { color: var(--sg-accent-ink); }
 .sg-sheet .sg-sheet-link { flex-shrink: 0; min-height: 2.75rem; }
+
+/* ---------- 全站导航统一首页白字体系（2026-11-20 第二十九轮） ----------
+   根因：白字 + 顶部暗幕原先只挂在 `.sg-nav.is-front`（仅首页首屏由 home.ts 打标），
+   其他页面走基础黑字规则，所以「同一个导航栏」在两处观感不同。
+   这里把首页那套日间配方提升到全站；夜间深玻璃底与青瓷字保持原样。 */
+html:not(.dark) .sg-nav {
+  background: linear-gradient(180deg, rgba(2, 6, 23, .5), rgba(2, 6, 23, 0));
+  border-bottom-color: transparent;
+}
+html:not(.dark) .sg-nav :is(.sg-brand, .sg-brand-accent, .sg-nav-link, .sg-nav-more-btn, .sg-nav-page) {
+  color: #fff;
+  opacity: 1;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, .55);
+}
+html:not(.dark) .sg-nav .sg-nav-link.is-active::before { background: #fff; }
+html:not(.dark) .sg-nav .sg-nav-link.is-active { color: #fff; }
+html:not(.dark) .sg-nav .sg-nav-link:is(:hover, :focus-visible) { color: #80c8f8; opacity: 1; }
+html:not(.dark) .sg-nav .sg-nav-link::after { background: #80c8f8; }
+/* 下拉面板是实底卡，文字回落正文色，不能继承导航白字 */
+html:not(.dark) .sg-nav .sg-nav-more-menu { color: var(--sg-text); }

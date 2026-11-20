@@ -986,24 +986,21 @@ html.dark .sg-gallery-detail-top .sg-back,
 html.dark .sg-gallery-detail-date,
 html.dark .sg-gallery-detail-count { text-shadow: none; }
 
-/* 2026-11-20 第二十八轮（用户截图：相册内文字仍白且带阴影）：日间详情头改纯黑、去阴影，
-   同时放大「返回画廊 / 日期 / 大标题 / 简介」字号。夜间仍是白字描边配方，一字未改。
-   上一轮的白字三件套规则保留给夜间，此处只用 html:not(.dark) 覆盖日间。 */
+/* 2026-11-20 第二十九轮（用户确认「沿用首页白字体系」）：详情头回到白字 + 深色描边，
+   与列表页、页头、全站导航同一套；字号层级也统一为：相册名 2.25rem / 日期与计数 1rem /
+   简介 1.125rem / 返回栏 1rem。上一轮的纯黑覆盖已撤销，夜间配方逐字不动。 */
 html:not(.dark) .sg-gallery-detail-top .sg-back,
 html:not(.dark) .sg-gallery-detail-date,
 html:not(.dark) .sg-gallery-detail-count,
 html:not(.dark) .sg-gallery-detail-count b,
 html:not(.dark) .sg-gallery-detail-title h1,
-html:not(.dark) .sg-gallery-detail-title p { color: #000; text-shadow: none; }
-html:not(.dark) .sg-gallery-detail-top .sg-back:hover { color: #000; }
-html:not(.dark) .sg-gallery-detail-dot { background: #000; box-shadow: none; }
-html:not(.dark) .sg-gallery-detail-head { border-bottom-color: var(--sg-border); }
-html:not(.dark) .sg-gallery-detail-top .sg-back { font-size: 1rem; }
+html:not(.dark) .sg-gallery-detail-title p { color: var(--sg-wall-white-ink); text-shadow: var(--sg-wall-white-halo); }
+html:not(.dark) .sg-gallery-detail-top .sg-back:hover { color: var(--sg-wall-white-ink); }
+html:not(.dark) .sg-gallery-detail-title h1 { font-size: 2.25rem; text-shadow: var(--sg-wall-white-edge); }
 html:not(.dark) .sg-gallery-detail-date,
-html:not(.dark) .sg-gallery-detail-count { font-size: .95rem; }
-html:not(.dark) .sg-gallery-detail-title h1 { font-size: 2.5rem; }
-@media (min-width: 768px) { html:not(.dark) .sg-gallery-detail-title h1 { font-size: 3.5rem; } }
-html:not(.dark) .sg-gallery-detail-title p { font-size: 1.05rem; }
+html:not(.dark) .sg-gallery-detail-count,
+html:not(.dark) .sg-gallery-detail-top .sg-back { font-size: 1rem; }
+html:not(.dark) .sg-gallery-detail-title p { font-size: 1.125rem; }
 
 /* 详情用 multi-column 瀑布流，比 grid 更接近源站（图片高度不齐） */
 .sg-gallery-masonry { columns: 2; column-gap: .875rem; }

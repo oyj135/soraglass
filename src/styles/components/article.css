@@ -404,17 +404,21 @@ html.dark .sg-prose a { color: var(--sg-indigo-soft); }
 }
 @media (min-width: 768px) { .sg-page-sub { font-size: 1.125rem; } }
 
-/* 2026-11-20：日间页头文字纯黑无光晕（夜间仍走上方白字配方）
-   —— 这里必须和 interactions.css 的同名覆盖一起改，后者特异度更高。 */
+/* 2026-11-20 第二十九轮：页头恢复白字 + 深色描边，与首页首屏及全站导航同一套。
+   上一轮为「纯黑无阴影」的日间覆盖已撤销；夜间配方走上面的基础规则与 interactions.css。 */
 html:not(.dark) .sg-page-title {
-  color: #000;
-  text-shadow: none;
+  color: var(--sg-wall-white-ink);
+  text-shadow: var(--sg-wall-white-edge);
   font-weight: 900;
-  letter-spacing: .025em;
-  line-height: 1.35;
+  letter-spacing: .1em;
+  line-height: 1.2;
   text-wrap: balance;
 }
-html:not(.dark) .sg-page-sub { color: #000; text-shadow: none; line-height: 1.7; }
+html:not(.dark) .sg-page-sub {
+  color: var(--sg-wall-white-ink);
+  text-shadow: var(--sg-wall-white-halo);
+  line-height: 1.7;
+}
 
 /* 壁纸小字胶囊 .sg-wall-pill（2026-11-19 方案一）：无卡托底的计数/角标/相册 meta
    从「逐字光晕」升级为连续玻璃底，任何壁纸都可读；夜间换深空玻璃。 */
