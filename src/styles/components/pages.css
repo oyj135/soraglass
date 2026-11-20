@@ -58,17 +58,16 @@
 .sg-btn--ghost { background: var(--sg-card); border-color: var(--sg-border); color: var(--sg-text); }
 .sg-btn--ghost:hover { background: var(--sg-card-strong); color: var(--sg-accent-ink); }
 
-/* ---------- 页脚 / 分页 / 浮层 ---------- */
-/* 页脚（2026-11-19 第五轮）：昼夜统一「透明 + 底部渐变暗纱 + 浅色字」。
-   撤销日间瓷白实底（用户反馈整片挡住壁纸，参考源站 #footer 的透明 + 暗罩）：
-   暗纱从底部起、向上羽化到 100%，让状态行 / 分隔线 / 版权三段都落在同一层纱上，
-   不切出被否过的「圆角矩形边界」；夜间沿用原配方不动。
-
-   2026-11-20 第二轮：日间仍反馈「文字不清晰」。实测原因是纱太薄 ——
-   中上部只有 0.12–0.34，浅壁纸透上来后白字掉到 3:1 左右，13px/500 的版权行最吃亏。
-   处理分两层：纱提浓（底部 .62→.74、中段 .34→.44、上缘 .12→.18），
-   文字按源站 #footer-wrap 的配方回补（源站 .copyright 是 16px 加粗浅灰）：
-   版权 13→15px/600、白度 .76→.92，Powered 12→13px。夜间两块都不动。 */
+/* ---------- 页脚 / 分页 / 浮层 ----------
+   页脚遮罩（2026-11-20 第十二轮）：按用户要求复刻源站形态。
+   源站 fomal.cc 实测：`#footer::before` 是整条平铺 `rgba(0,0,0,.25)`、直边、无渐变、
+   无边框，`#footer-wrap` 内边距 20px、字色 #eee —— 它压在自己那张深色页脚图上，
+   所以 25% 就够。
+   我们身后是同一张壁纸（日间还叠了 34% 白纱），按 25% 原值实测白字只有 ~1.9:1，
+   读不出来；所以复刻的是**形态**（整条平铺、直边、不再有羽化与补光），
+   浓度按壁纸提到 46%，文字回到近白并保留一道贴边投影。
+   之前那版「底部 .78 → 上缘 .56 渐变 + 5rem 补光」正是用户说的"效果不好"：
+   渐变会在壁纸中间拉出一条说不出理由的黑带。夜间仍是原来的透明配方。 */
 .sg-footer-zone { position: relative; margin-top: 2.5rem; }
 .sg-footer-zone::before {
   content: '';
@@ -76,22 +75,8 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: linear-gradient(to top, rgba(10, 13, 28, .78), rgba(10, 13, 28, .66) 45%, rgba(10, 13, 28, .56) 100%);
+  background: rgba(9, 12, 20, .46);
 }
-/* 日间的纱必须整块都够浓（白字在浅壁纸上的下限是 alpha≈.5），代价是上缘会出现一道边界；
-   用一条伸进上方留白里的补光把硬边吃掉，别把 text 区再调淡。夜间 ::before 自带羽化，不需要这段。 */
-.sg-footer-zone::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 100%;
-  z-index: 0;
-  height: 5rem;
-  pointer-events: none;
-  background: linear-gradient(to top, rgba(10, 13, 28, .56), rgba(10, 13, 28, 0));
-}
-html.dark .sg-footer-zone::after { display: none; }
 html.dark .sg-footer-zone::before {
   background: linear-gradient(to top, rgba(10, 13, 28, .58), rgba(10, 13, 28, 0) 62%);
 }
@@ -99,13 +84,13 @@ html.dark .sg-footer-zone::before {
 .sg-footer-wrap { position: relative; z-index: 2; width: 95%; max-width: 72rem; margin-inline: auto; }
 @media (min-width: 768px) { .sg-footer-wrap { width: 90%; } }
 
-/* 文字压在同一条暗纱上：昼夜共用冷白体系（原夜间那版），投影只做对比度补偿 */
+/* 文字压在同一条暗纱上：昼夜共用冷白体系（源站 #footer-wrap 是 #eee），
+   纱更实之后投影只做贴边补偿，不再用大半径外发光（浅底会糊成灰影） */
 .sg-footer {
-  padding: .85rem 1.5rem 1rem;
+  padding: 1.25rem 1.5rem 1rem;
   text-align: center;
   font-family: var(--font-serif);
-  color: rgba(255, 255, 255, .88);
-  /* 纱加浓后不再需要大半径外发光（在浅底上会糊成灰影），收成一道贴边投影 */
+  color: rgba(240, 245, 250, .94);
   text-shadow: 0 1px 2px rgba(8, 12, 24, .55);
 }
 
@@ -147,8 +132,8 @@ html.dark .sg-footer-zone::before {
 }
 
 /* ③ 版权两行：15px/600 + 13px，只用字重区分主次（对齐源站 .copyright 的 16px 加粗） */
-.sg-footer-copy { margin-top: .9rem; font-size: .9375rem; font-weight: 600; line-height: 1.6; letter-spacing: .01em; color: rgba(255, 255, 255, .94); }
-.sg-footer-powered { margin-top: .25rem; font-size: .8125rem; line-height: 1.6; color: rgba(255, 255, 255, .80); padding-bottom: calc(3.2rem + env(safe-area-inset-bottom, 0px)); }
+.sg-footer-copy { margin-top: .9rem; font-size: .9375rem; font-weight: 600; line-height: 1.6; letter-spacing: .01em; color: rgba(250, 253, 255, .97); }
+.sg-footer-powered { margin-top: .25rem; font-size: .8125rem; line-height: 1.6; color: rgba(255, 255, 255, .86); padding-bottom: calc(3.2rem + env(safe-area-inset-bottom, 0px)); }
 
 /* 窄屏：字号整体再降一档（14px 在 390px 上仍略宽，状态行与备案号会换行） */
 @media (max-width: 767.98px) {

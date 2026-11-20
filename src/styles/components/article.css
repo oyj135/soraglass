@@ -307,16 +307,15 @@ html.dark .sg-prose a { color: var(--sg-indigo-soft); }
 .sg-toc-list li.is-active a { color: var(--sg-accent-ink); font-weight: 700; }
 .sg-toc-list .sg-toc-lv3 a { padding-left: 1.75rem; font-size: .8125rem; }
 
-/* ---------- 独立页页头 ---------- */
-.sg-page-head { position: relative; z-index: 0; margin-bottom: 2.5rem; }
-/* 日间采用瓷白阅读面与深青实色字，全部独立页复用；夜间保留原材质。 */
-html:not(.dark) .sg-page-head {
-  padding: clamp(1.5rem, 3vw, 2.5rem);
-  border: 1px solid var(--sg-reading-border);
-  border-radius: var(--sg-radius-outer);
-  background: var(--sg-wall-surface);
-}
-@media (min-width: 768px) { .sg-page-head { margin-bottom: 4rem; } }
+/* ---------- 独立页页头 ----------
+   2026-11-20 第十二轮：日间去掉瓷白实色卡（用户反馈顶图被挡住）。
+   页面下方项目卡 / 文章卡本身就是 24% 白玻璃（壁纸透过来 + 模糊），
+   页头曾是整页唯一一块实色，观感上"糊住"顶图；去掉后壁纸在顶部完整露出。
+   文字改用主题已有的「壁纸字」配方：近黑字 + 白色描边光晕（夜间 token 自动反转成
+   浅字 + 暗光晕），与首页首屏 .sg-front、相册 .sg-curated-heading 同一套语言。
+   页头因此不再需要内边距，高度由标题本身决定。 */
+.sg-page-head { position: relative; z-index: 0; margin-bottom: 2.25rem; }
+@media (min-width: 768px) { .sg-page-head { margin-bottom: 3.5rem; } }
 
 .sg-page-head-row { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
 @media (min-width: 768px) { .sg-page-head-row { flex-direction: row; align-items: center; justify-content: space-between; } }
@@ -329,13 +328,16 @@ html:not(.dark) .sg-page-head {
 @media (min-width: 768px) { .sg-page-sub { font-size: 1rem; } }
 
 html:not(.dark) .sg-page-title {
-  color: var(--sg-accent-deep);
+  color: var(--sg-wall-ink);
   font-weight: 700;
   letter-spacing: .025em;
   line-height: 1.35;
   text-wrap: balance;
+  /* 48px 的字用 1px 描边救不回来（笔画本身就很宽，描边被字心吃掉），
+     这里改用两层柔光把字从花色壁纸上「托」出来；4px 以内的小字仍走 --sg-wall-halo。 */
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .8), 0 0 22px rgba(255, 255, 255, .82), 0 0 52px rgba(255, 255, 255, .6);
 }
-html:not(.dark) .sg-page-sub { color: var(--sg-muted); line-height: 1.85; }
+html:not(.dark) .sg-page-sub { color: var(--sg-wall-ink); line-height: 1.85; text-shadow: var(--sg-wall-halo); }
 
 /* 壁纸小字胶囊 .sg-wall-pill（2026-11-19 方案一）：无卡托底的计数/角标/相册 meta
    从「逐字光晕」升级为连续玻璃底，任何壁纸都可读；夜间换深空玻璃。 */
