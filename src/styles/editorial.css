@@ -60,7 +60,8 @@
   background-image: none;
   -webkit-text-fill-color: currentColor;
 }
-.sg-main[data-sg-page="archive"] .sg-page-sub { font-family: var(--font-sans); font-size: .875rem; letter-spacing: 0; }
+/* 归档页副标题：字体族与字距单独设定，字号跟主体一起放大（2026-11-20 由 .875rem 提到 1rem） */
+.sg-main[data-sg-page="archive"] .sg-page-sub { font-family: var(--font-sans); font-size: 1rem; letter-spacing: 0; }
 /* 2026-11-16 第二十轮：列表卡已统一为 .sg-feature-card 栅格（栅格定义在 components.css），
    overflow 不能用 hidden，否则会裁掉卡片 hover 的上浮与阴影。下方 .sg-post-card 系列
    是旧行式结构的规则，对现在的卡片已不生效，保留仅为兼容历史，不再参与布局。 */

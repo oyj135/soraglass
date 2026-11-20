@@ -100,9 +100,9 @@ html.dark .sg-post-waves { display: none; }
 
 .sg-post-banner-title {
   margin: 0 0 1rem;
-  color: #fff;
+  color: var(--sg-wall-white-ink);
   font-size: clamp(1.75rem, 4vw, 2.5rem);
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1.5;
   letter-spacing: 0;
   overflow-wrap: anywhere;
@@ -132,11 +132,12 @@ html.dark .sg-post-banner-title { text-shadow: none; animation: sg-post-neon 8s 
   gap: .35rem .6rem;
   font-family: var(--font-sans);
   font-size: .95rem;
+  font-weight: 600;
   line-height: 1.5;
-  color: rgba(255, 255, 255, .92);
-  text-shadow: 0 1px 3px rgba(2, 6, 23, .6);
+  color: var(--sg-wall-white-ink);
+  text-shadow: var(--sg-wall-white-halo);
 }
-html.dark .sg-post-meta-line { color: var(--sg-muted); }
+/* 2026-11-20：与页头统一白色，不再区分昼夜灰阶 */
 /* 日间（2026-11-20 第十三轮）：与独立页页头同步，去掉瓷白实色卡。
    正文卡与相关推荐本来就是 24% 白玻璃（壁纸透出 + 模糊），标题块曾是页顶唯一
    一块实色，把首屏壁纸糊住；去掉后壁纸在顶部完整露出、页头高度随之降低。
@@ -146,22 +147,22 @@ html.dark .sg-post-meta-line { color: var(--sg-muted); }
    6–7rem 清导航，再多就是一块空地。 */
 html:not(.dark) .sg-post-banner { padding: 1.25rem 1.5rem .75rem; }
 html:not(.dark) .sg-post-banner::before { content: none; }
+/* 2026-11-20 第十九轮：标题与元信息统一白色加粗（原来是日间近黑字），
+   白字靠深色投影托底，选择器仍留着只为保持层叠位置。 */
 html:not(.dark) .sg-post-banner-title {
   display: block;
   overflow: visible;
-  color: #0b1220;
+  color: var(--sg-wall-white-ink);
   text-wrap: balance;
-  /* 2026-11-20：与独立页页头一致 —— 日间改为纯黑、去掉柔光，避免标题边缘发糊。 */
-  text-shadow: none;
+  text-shadow: var(--sg-wall-white-edge);
 }
-/* 元信息是 15px 小字：日间同样不做描边/光晕，直接近黑字。 */
-html:not(.dark) .sg-post-meta-line { color: #0b1220; text-shadow: none; }
+html:not(.dark) .sg-post-meta-line { color: var(--sg-wall-white-ink); text-shadow: var(--sg-wall-white-halo); }
 .sg-post-meta-item { display: inline-flex; align-items: center; gap: .35rem; }
 .sg-post-meta-item svg { width: .9rem; height: .9rem; flex: none; }
 /* 横幅底是暗幕，朱砂亮档文字只有 1.5:1：文字取浅暖色，图钉图标保留朱砂作识别 */
 .sg-post-meta-pin { color: #ffd2bf; }
 .sg-post-meta-pin svg { color: var(--sg-warm-bright); }
-html:not(.dark) .sg-post-meta-pin { color: var(--sg-warm); }
+html:not(.dark) .sg-post-meta-pin { color: var(--sg-wall-white-ink); }
 .sg-post-meta-cate { color: inherit; text-decoration: none; border-bottom: 1px dashed transparent; transition: color .25s, border-color .25s; }
 .sg-post-meta-cate:hover { color: var(--sg-accent-soft); border-bottom-color: currentColor; }
 html:not(.dark) .sg-post-meta-cate:hover { color: var(--sg-accent-deep); }
@@ -379,23 +380,37 @@ html.dark .sg-prose a { color: var(--sg-indigo-soft); }
 @media (min-width: 768px) { .sg-page-head-row { flex-direction: row; align-items: center; justify-content: space-between; } }
 .sg-page-head-row.is-centered { flex-direction: column; align-items: center; text-align: center; gap: 1.25rem; }
 
-.sg-page-title { font-size: 2.25rem; font-weight: 900; letter-spacing: .1em; line-height: 1.2; }
+/* 2026-11-20 第十九轮：页头文字统一白色 + 加粗（用户要求），昼夜同一套。
+   白字必须加深色投影托底（亮壁纸上纯白字对比度趋近 1:1），因此日间不再有
+   「近黑字」覆盖块；夜间沿用原有暗光晕，额外叠一层实影更稳。 */
+.sg-page-title {
+  font-size: 2.25rem;
+  font-weight: 900;
+  letter-spacing: .1em;
+  line-height: 1.2;
+  color: var(--sg-wall-white-ink);
+  text-shadow: var(--sg-wall-white-edge);
+}
 @media (min-width: 768px) { .sg-page-title { font-size: 3rem; } }
 
-.sg-page-sub { margin-top: .5rem; font-size: .875rem; font-weight: 500; letter-spacing: .05em; color: var(--sg-wall-ink); }
-@media (min-width: 768px) { .sg-page-sub { font-size: 1rem; } }
+/* 副标题字号 14→16（768px 以上 16→18），字重 500→600 */
+.sg-page-sub {
+  margin-top: .5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: .05em;
+  color: var(--sg-wall-white-ink);
+  text-shadow: var(--sg-wall-white-halo);
+}
+@media (min-width: 768px) { .sg-page-sub { font-size: 1.125rem; } }
 
 html:not(.dark) .sg-page-title {
-  color: #0b1220;
-  font-weight: 700;
+  font-weight: 900;
   letter-spacing: .025em;
   line-height: 1.35;
   text-wrap: balance;
-  /* 2026-11-20：日间去掉两层柔光与描边（用户要求「去除多余花哨效果，改为更清晰的黑色」）。
-     全局壁纸遮罩已移除，背景更亮，纯黑字的对比度本来就够；光晕只会让字边发糊。 */
-  text-shadow: none;
 }
-html:not(.dark) .sg-page-sub { color: #0b1220; line-height: 1.85; text-shadow: none; }
+html:not(.dark) .sg-page-sub { line-height: 1.7; }
 
 /* 壁纸小字胶囊 .sg-wall-pill（2026-11-19 方案一）：无卡托底的计数/角标/相册 meta
    从「逐字光晕」升级为连续玻璃底，任何壁纸都可读；夜间换深空玻璃。 */

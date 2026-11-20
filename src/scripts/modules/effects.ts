@@ -131,34 +131,34 @@ function initSeason(kinds: Season[]): void {
   };
 
   /* 流星：头部一个亮点 + 沿飞行反方向渐隐的拖尾。
-     颜色跟随主题即取即算 —— 日间壁纸偏亮，冰白会看不见，改用深青蓝；
-     夜间壁纸偏暗，回到冰白 + 冷蓝尾。每帧读一次 html.dark，昼夜切换后立即生效。 */
+     2026-11-20 第十九轮：**只在夜间绘制**（用户要求）—— 日间壁纸偏亮，白光条会被
+     当成划痕，干脆不启用。颜色固定为夜间档（冰白头部 + 冷蓝尾）。
+     每帧读一次 html.dark，切到日间立刻停画；切回夜间时把流星送回底部重新出发，
+     免得夜里一上来全挤在屏幕中部。 */
   const drawMeteor = (p: Particle): void => {
-    const dark = document.documentElement.classList.contains('dark');
     const tail = 52 + p.size * 46;
     const length = Math.hypot(p.vx, p.vy) || 1;
     const tailX = p.x - (p.vx / length) * tail;
     const tailY = p.y - (p.vy / length) * tail;
 
-    const head = dark ? `rgba(255, 255, 255, ${p.alpha})` : `rgba(23, 92, 116, ${p.alpha * 0.72})`;
-    const mid = dark ? `rgba(186, 230, 253, ${p.alpha * 0.6})` : `rgba(66, 148, 176, ${p.alpha * 0.34})`;
+    const head = `rgba(255, 255, 255, ${p.alpha})`;
+    const mid = `rgba(186, 230, 253, ${p.alpha * 0.6})`;
 
     const trail = ctx.createLinearGradient(p.x, p.y, tailX, tailY);
     trail.addColorStop(0, head);
     trail.addColorStop(0.45, mid);
     trail.addColorStop(1, 'rgba(186, 230, 253, 0)');
     ctx.strokeStyle = trail;
-    // 日间壁纸底色亮，线要略粗一点才不被当成划痕；夜间保持细锐。
-    ctx.lineWidth = p.size * (dark ? 1.3 : 1.6);
+    ctx.lineWidth = p.size * 1.3;
     ctx.lineCap = 'round';
     ctx.beginPath();
     ctx.moveTo(p.x, p.y);
     ctx.lineTo(tailX, tailY);
     ctx.stroke();
 
-    const glow = p.size * (dark ? 6 : 4.5);
+    const glow = p.size * 6;
     const halo = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glow);
-    halo.addColorStop(0, dark ? `rgba(255, 255, 255, ${p.alpha * 0.9})` : `rgba(24, 104, 130, ${p.alpha * 0.45})`);
+    halo.addColorStop(0, `rgba(255, 255, 255, ${p.alpha * 0.9})`);
     halo.addColorStop(1, 'rgba(255, 255, 255, 0)');
     ctx.beginPath();
     ctx.arc(p.x, p.y, glow, 0, Math.PI * 2);
@@ -166,8 +166,23 @@ function initSeason(kinds: Season[]): void {
     ctx.fill();
   };
 
+  /* 流星只在夜间出现：每帧读一次主题，从夜间切到日间时把它们送回视口下方
+     （此时不绘制，位置无所谓），切回夜间便从头飞起，不会在屏幕中部堆一坨。 */
+  let night = document.documentElement.classList.contains('dark');
+
   const step = (): void => {
     if (!running) return;
+
+    const isNight = document.documentElement.classList.contains('dark');
+    if (isNight !== night) {
+      night = isNight;
+      if (!night) {
+        for (const p of particles) {
+          if (p.kind === 'meteor') Object.assign(p, createParticle('meteor', width, height));
+        }
+      }
+    }
+
     ctx.clearRect(0, 0, width, height);
 
     for (const p of particles) {
@@ -186,8 +201,10 @@ function initSeason(kinds: Season[]): void {
       }
 
       /* 流星向上飞：越过顶部就回到底部重新出发（随机横向位置与速度），
-         左右越界从另一侧绕回，长跑不会在角落堆积。 */
+         左右越界从另一侧绕回，长跑不会在角落堆积。
+         非夜间直接跳过（不移动、不绘制），其他粒子照常。 */
       if (p.kind === 'meteor') {
+        if (!night) continue;
         p.x += p.vx;
         p.y += p.vy;
         if (p.y < -90) Object.assign(p, createParticle('meteor', width, height));

@@ -1,7 +1,7 @@
 /* Scheme B: natural-ratio album masonry on the page's own surface. */
 [data-sg-gallery] [hidden]{display:none!important}
 [data-sg-gallery].sg-main{width:calc(100% - 2 * clamp(16px,3vw,56px));max-width:none;padding-inline:0}
-.sg-curated-heading{display:flex;justify-content:space-between;gap:1rem;margin:0 0 1.25rem;color:var(--sg-wall-ink);font:600 12.5px/1.7 var(--font-sans);letter-spacing:.08em;text-shadow:var(--sg-wall-halo)}
+.sg-curated-heading{display:flex;justify-content:space-between;gap:1rem;margin:0 0 1.25rem;color:var(--sg-wall-white-ink);font:700 12.5px/1.7 var(--font-sans);letter-spacing:.08em;text-shadow:var(--sg-wall-white-halo)}
 .sg-curated-grid{columns:3;column-gap:clamp(24px,2.1vw,40px)}
 .sg-curated-album{display:block;min-width:0;width:100%;margin:0 0 2.5rem;break-inside:avoid;border-radius:0;background:transparent;border:0;padding:0;color:var(--sg-text);text-decoration:none}
 .sg-curated-album:hover{box-shadow:none;color:var(--sg-accent-ink)}
@@ -10,10 +10,10 @@
 .sg-curated-image img{width:auto;max-width:100%;height:auto;max-height:620px;max-height:min(62vh,620px);object-fit:contain;display:block}
 .sg-curated-featured{color:var(--sg-accent-ink);font:600 10px/1.4 var(--font-sans);margin-right:.45rem}
 /* 相册说明直接压在壁纸上（拍立得叠片下方）：不设底板，用紧凑文字与光晕托底，让图片成为主体 */
-.sg-curated-meta{margin-top:.35rem;padding:0;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;border-radius:0;text-align:center;text-shadow:var(--sg-wall-halo)}
-.sg-curated-meta h2{font-size:1rem;font-weight:600;line-height:1.4;margin:.1rem 0 0;overflow-wrap:anywhere}
-.sg-curated-date{font:500 11.5px/1.6 var(--font-sans);letter-spacing:.03em;color:var(--sg-wall-ink)}
-.sg-curated-meta p{font-size:.82rem;line-height:1.55;color:var(--sg-wall-ink);margin:.15rem auto 0;max-width:34ch;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sg-curated-meta{margin-top:.35rem;padding:0;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;border-radius:0;text-align:center;text-shadow:var(--sg-wall-white-halo)}
+.sg-curated-meta h2{font-size:1.125rem;font-weight:700;line-height:1.4;margin:.1rem 0 0;overflow-wrap:anywhere}
+.sg-curated-date{font:600 12.5px/1.6 var(--font-sans);letter-spacing:.03em;color:var(--sg-wall-white-ink)}
+.sg-curated-meta p{font-size:.9rem;line-height:1.55;color:var(--sg-wall-white-ink);margin:.15rem auto 0;max-width:34ch;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .sg-curated-count{font:10px/1.5 var(--font-sans);color:var(--sg-faint);white-space:nowrap}.sg-curated-count>span{font-size:1.2rem;margin-left:.6rem;color:var(--sg-accent-ink)}
 .sg-gallery-search-results{margin-top:2.5rem}.sg-gallery-search-results h2{font-size:1.3rem;margin-bottom:1.2rem}.sg-gallery-search-results h2 span{font-size:.8rem;color:var(--sg-muted);margin-left:.6rem}
 [data-sg-gallery] .sg-gallery-masonry{columns:3;column-gap:1.25rem}
@@ -37,9 +37,9 @@ img.is-lazy-in{animation:sg-cover-in .8s ease-out forwards}
 [data-sg-gallery] .sg-back,[data-sg-gallery] .sg-gallery-detail-count{background:transparent;border:0;box-shadow:none;padding-inline:0}
 [data-sg-gallery] .sg-back:hover{background:transparent;box-shadow:none}
 [data-sg-gallery] .sg-notfound{background:transparent;border:0;box-shadow:none}
-.sg-photo-caption{display:flex;flex-direction:column;gap:.25rem;padding:.75rem 0 0;font-size:.85rem}.sg-photo-caption b{font-weight:600}.sg-photo-caption time,.sg-photo-caption>span{font:11px/1.6 var(--font-sans);color:var(--sg-wall-ink)}
-/* 2026-11-20：日间相册文字（相册标题/日期/说明 + 图注）去掉白色描边与光晕，
-   统一改近黑直读 —— 与独立页页头同一口径。夜间保持原有冷白 + 暗光晕。
+.sg-photo-caption{display:flex;flex-direction:column;gap:.25rem;padding:.75rem 0 0;font-size:.95rem;color:var(--sg-wall-white-ink);text-shadow:var(--sg-wall-white-halo)}.sg-photo-caption b{font-weight:700}.sg-photo-caption time,.sg-photo-caption>span{font:600 12px/1.6 var(--font-sans);color:var(--sg-wall-white-ink)}
+/* 2026-11-20 第十九轮：日间相册文字改为纯白 + 加粗（原为近黑），
+   与页头/页脚统一；白字靠深色投影托底。夜间本就是这个白色体系，随基础规则生效。
    注意：等高画廊里压在图片上的 hover 图注是白色渐变层，选择器权重更高，不受此处影响。 */
 html:not(.dark) .sg-curated-heading,
 html:not(.dark) .sg-curated-meta,
@@ -48,11 +48,11 @@ html:not(.dark) .sg-curated-date,
 html:not(.dark) .sg-curated-meta p,
 html:not(.dark) .sg-photo-caption,
 html:not(.dark) .sg-photo-caption time,
-html:not(.dark) .sg-photo-caption>span{color:#0b1220;text-shadow:none}
+html:not(.dark) .sg-photo-caption>span{color:var(--sg-wall-white-ink)}
 .sg-photo-file-label,.sg-curated-no-preview{display:flex;align-items:center;justify-content:center;min-height:140px;padding:1rem;color:var(--sg-muted);font-size:.8rem}
 .sg-curated-grid--one{columns:1;max-width:52rem}.sg-curated-grid--two{columns:2}
 @media(max-width:1000px){.sg-curated-grid{column-count:2}[data-sg-gallery] .sg-gallery-masonry{columns:2}.sg-curated-grid--one{column-count:1}}
-@media(max-width:600px){.sg-curated-grid{column-count:1}.sg-curated-album{margin-bottom:2rem}.sg-curated-heading{font-size:11px}.sg-curated-meta h2{font-size:.95rem}[data-sg-gallery] .sg-gallery-masonry{columns:1}}
+@media(max-width:600px){.sg-curated-grid{column-count:1}.sg-curated-album{margin-bottom:2rem}.sg-curated-heading{font-size:12px}.sg-curated-meta h2{font-size:1.05rem}[data-sg-gallery] .sg-gallery-masonry{columns:1}}
 @media(prefers-reduced-motion:reduce){.sg-curated-album{transition:none}}
 .sg-gallery-more{display:block;margin:24px auto;padding:10px 20px;border:1px solid var(--sg-line);border-radius:6px;background:transparent;color:var(--sg-text);font:13px var(--font-sans);cursor:pointer}.sg-gallery-more:hover{border-color:var(--sg-accent)}.sg-gallery-more:focus-visible{outline:2px solid var(--sg-accent);outline-offset:4px}.sg-gallery-more:disabled{opacity:.55;cursor:wait}.sg-gallery-status{color:var(--sg-muted);font:13px/1.8 var(--font-sans);padding-block:12px}
 /* Source album gesture: two offset prints fan out behind a natural-ratio cover. */

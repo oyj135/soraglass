@@ -84,14 +84,15 @@ html.dark .sg-footer-zone::before {
 .sg-footer-wrap { position: relative; z-index: 2; width: 95%; max-width: 72rem; margin-inline: auto; }
 @media (min-width: 768px) { .sg-footer-wrap { width: 90%; } }
 
-/* 文字压在同一条暗纱上：昼夜共用冷白体系（源站 #footer-wrap 是 #eee），
-   纱更实之后投影只做贴边补偿，不再用大半径外发光（浅底会糊成灰影） */
+/* 文字压在同一条暗纱上：2026-11-20 第十九轮起统一纯白 + 加粗
+   （用户要求「页脚文字统一白色并加粗」），灰阶全部收成 #fff，
+   层次只由字号与字重区分；暗纱上仍留一层贴边实影防花壁纸。 */
 .sg-footer {
   padding: 1.25rem 1.5rem 1rem;
   text-align: center;
   font-family: var(--font-serif);
-  color: rgba(240, 245, 250, .94);
-  text-shadow: 0 1px 2px rgba(8, 12, 24, .55);
+  color: var(--sg-wall-white-ink);
+  text-shadow: 0 1px 2px rgba(8, 12, 24, .6);
 }
 
 .sg-footer p { margin: 0; }
@@ -106,9 +107,9 @@ html.dark .sg-footer-zone::before {
   justify-content: center;
   gap: .3rem 1.5rem;
   font-size: .875rem;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.6;
-  color: rgba(240, 246, 250, .96);
+  color: var(--sg-wall-white-ink);
 }
 
 .sg-footer-run { display: inline-flex; align-items: center; gap: .4rem; }
@@ -119,9 +120,10 @@ html.dark .sg-footer-zone::before {
   background: var(--sg-green);
   flex: none;
 }
-/* 时长是这一行唯一的彩色项：暗底用 indigo-400（亮底时代那版已随瓷白页脚一起下线） */
-.sg-footer-uptime { font-weight: 900; color: var(--sg-indigo-soft); letter-spacing: .01em; }
-.sg-footer-icp { font-weight: 400; font-size: .8125rem; color: rgba(236, 243, 248, .82); }
+/* 时长原本是这一行唯一的彩色项（indigo-400）：用户要求「页脚文字统一白色」，
+   改白后用 900 字重承担强调，不再抢彩色。 */
+.sg-footer-uptime { font-weight: 900; color: var(--sg-wall-white-ink); letter-spacing: .01em; }
+.sg-footer-icp { font-weight: 600; font-size: .8125rem; color: var(--sg-wall-white-ink); }
 
 /* ② 状态行与版权之间的通栏细分隔线（参考图里就是一条 1px 细线） */
 .sg-footer-rule {
@@ -131,9 +133,9 @@ html.dark .sg-footer-zone::before {
   text-shadow: none;
 }
 
-/* ③ 版权两行：15px/600 + 13px，只用字重区分主次（对齐源站 .copyright 的 16px 加粗） */
-.sg-footer-copy { margin-top: .9rem; font-size: .9375rem; font-weight: 600; line-height: 1.6; letter-spacing: .01em; color: rgba(250, 253, 255, .97); }
-.sg-footer-powered { margin-top: .25rem; font-size: .8125rem; line-height: 1.6; color: rgba(255, 255, 255, .86); padding-bottom: calc(3.2rem + env(safe-area-inset-bottom, 0px)); }
+/* ③ 版权两行：15px/700 + 13px/600，主次靠字号与字重，颜色统一纯白 */
+.sg-footer-copy { margin-top: .9rem; font-size: .9375rem; font-weight: 700; line-height: 1.6; letter-spacing: .01em; color: var(--sg-wall-white-ink); }
+.sg-footer-powered { margin-top: .25rem; font-size: .8125rem; font-weight: 600; line-height: 1.6; color: var(--sg-wall-white-ink); padding-bottom: calc(3.2rem + env(safe-area-inset-bottom, 0px)); }
 
 /* 窄屏：字号整体再降一档（14px 在 390px 上仍略宽，状态行与备案号会换行） */
 @media (max-width: 767.98px) {
