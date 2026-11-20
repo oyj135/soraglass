@@ -561,7 +561,7 @@ function themeConfig($form): void
        2026-11-20：壁纸与内容之间的背景遮罩整层下线（用户要求内容直接叠在壁纸上），
        `sgBgVeil` 设置项移除，旧值留在库里不再读取。 */
     foreach (['sgBgLight' => '日间', 'sgBgDark' => '夜间'] as $sgBgKey => $sgBgMode) {
-        $form->addInput(new Textarea($sgBgKey, null, '', _t('背景壁纸 · ' . $sgBgMode . '（一行一张，可轮播）'), _t('分别设置' . $sgBgMode . '模式的全站壁纸；最多 12 张，一行一个图片地址。留空使用主题内置渐变壁纸。') . sg_admin_upload_tools($sgBgKey)));
+        $form->addInput(new Textarea($sgBgKey, null, '', _t('背景壁纸 · ' . $sgBgMode . '（一行一张，可轮播）'), _t('分别设置' . $sgBgMode . '模式的全站壁纸；最多 4 张，一行一个图片地址（超出部分不生效）。留空使用主题内置渐变壁纸。') . sg_admin_upload_tools($sgBgKey)));
     }
     /* 首屏独立图设置已移除（2026-11-17）：首页 100vh 首屏与正文壁纸共用同一张
        （壁纸组第一张），视觉连续、少一次请求；旧 sgFrontImg / sgFrontImgDark

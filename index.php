@@ -25,7 +25,7 @@ $sgNotesLink = sg_page_url('notes');
 
 // 封面轮播：单独取最近的文章（跳过碎语），不受列表「每页条数上限」影响；
 // 同样按全站上限收在 3 张。
-$sgSlides = sg_home_slides(3);
+$sgSlides = sg_home_slides(5);
 
 // 正文文章列表（2026-11-17 第三轮重写）：直接查库（sg_home_articles），
 // 碎语隔离写进 SQL 子查询，绕开 Widget_Archive —— 线上两个问题（置顶碎语重复、

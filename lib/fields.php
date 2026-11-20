@@ -97,10 +97,11 @@ function sg_bg_url(string $value): string
 function sg_wallpapers(): array
 {
     $fallback = sg_theme_url('dist/img/bg-1.svg');
-    return ['light' => sg_bg_list((string) sg_opt('sgBgLight', '')) ?: [$fallback],
-        'dark' => sg_bg_list((string) sg_opt('sgBgDark', '')) ?: [$fallback]];
+    return ['light' => sg_bg_list((string) sg_opt('sgBgLight', ''), 4) ?: [$fallback],
+        'dark' => sg_bg_list((string) sg_opt('sgBgDark', ''), 4) ?: [$fallback]];
 }
 
+/** 全站壁纸每组最多 4 张（2026-11-20 用户指定）；日报背景仍走默认档 12 张。 */
 function sg_bg_list(string $value, int $limit = 12): array
 {
     $value = trim($value);
@@ -898,11 +899,11 @@ function sg_feature_card_html(array $card): string
  * 一旦这个值小于碎语条数（线上是 6 篇碎语），最新一页会全是碎语，
  * 循环里被逐条跳过后封面就成了空卡片 —— 2026-11-16 线上「左侧文章不显示」就是这个原因。
  * 这里用 Recent 组件单独取数，条数按「需要几张 + 碎语条数」多取，与列表分页互不影响。
- * 2026-11-20：默认张数由 5 收到 3 —— 全站轮播（封面轮播 + 碎语轮播）统一最多展示 3 张。
+ * 2026-11-20：封面轮播张数定为 5（用户指定），碎语轮播独立为 3，两者不再共用一个数字。
  *
  * @return array<int,array{title:string,url:string,cover:string,date:string,category:string,desc:string}>
  */
-function sg_home_slides(int $limit = 3): array
+function sg_home_slides(int $limit = 5): array
 {
     $limit = max(1, $limit);
     $slides = [];
