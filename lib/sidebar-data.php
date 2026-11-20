@@ -30,12 +30,74 @@ function sg_sidebar_cfg(): array
     // 和风 2026 起改用账号专属 Host，形如 abc1234xyz.re.qweatherapi.com（可为 1–3 级子域），
     // 旧规则只认单级子域，会把合法 Host 判为非法后静默清空。
     if (!preg_match('/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.){1,3}qweatherapi\.com$/D', $host)) $host = '';
+    // 和风 JWT：kid = 凭据 ID，iss = 开发者 ID（Q 开头），sub = 项目 ID，私钥为 Ed25519 PKCS#8 PEM。
+    $id = static function (string $value): string {
+        return preg_match('/^[A-Za-z0-9_-]{1,64}$/D', $value) ? $value : '';
+    };
+    $pem = str_replace("\r", '', trim(sg_opt('sgWeatherJwtKey')));
+    if ($pem !== '' && (strpos($pem, '-----BEGIN PRIVATE KEY-----') === false || strlen($pem) > 4096)) $pem = '';
     return [
         'mode' => $mode, 'detail' => sg_opt('sgCalendarDetail', 'on') === 'on',
         'timezone' => sg_sidebar_timezone()->getName(), 'site' => $site,
         'geoKey' => trim(sg_opt('sgGeoKey')), 'weatherKey' => trim(sg_opt('sgWeatherKey')),
         'weatherHost' => $host, 'weather' => sg_opt('sgWeather', 'off') === 'on',
+        'jwt' => [
+            'kid' => $id(trim(sg_opt('sgWeatherJwtKid'))),
+            'iss' => $id(trim(sg_opt('sgWeatherDevId'))),
+            'sub' => $id(trim(sg_opt('sgWeatherProjectId'))),
+            'key' => $pem,
+        ],
     ];
+}
+
+/** JWT 三项与私钥齐备时才算配置完成；缺一项就退回 API KEY。 */
+function sg_sidebar_jwt_ready(array $jwt): bool
+{
+    return $jwt['kid'] !== '' && $jwt['iss'] !== '' && $jwt['sub'] !== '' && $jwt['key'] !== '';
+}
+
+/** 当前 PHP 是否能完成 Ed25519 签名：sodium（PHP 7.2+）或 PHP 8.4+ 的 openssl。 */
+function sg_sidebar_jwt_supported(): bool
+{
+    return function_exists('sodium_crypto_sign_seed_keypair') && function_exists('sodium_crypto_sign_detached');
+}
+
+/** 从 PKCS#8 PEM 取出 32 字节 Ed25519 种子（DER 末 32 字节）。 */
+function sg_sidebar_jwt_seed(string $pem): ?string
+{
+    $body = preg_replace('/-----[^-]+-----|\s+/', '', $pem);
+    $der = is_string($body) ? base64_decode($body, true) : null;
+    if (!is_string($der) || strlen($der) < 32 || substr($der, 0, 1) !== "\x30") return null;
+    $seed = substr($der, -32);
+    return strlen($seed) === 32 ? $seed : null;
+}
+
+/** 生成和风 JWT：header {alg,kid} + payload {iss,sub,iat,exp}，Ed25519 签名后 Base64URL 拼接。 */
+function sg_sidebar_jwt(array $jwt, ?int $now = null): ?string
+{
+    if (!sg_sidebar_jwt_ready($jwt) || !sg_sidebar_jwt_supported()) return null;
+    $seed = sg_sidebar_jwt_seed($jwt['key']);
+    if ($seed === null) return null;
+    $pair = sodium_crypto_sign_seed_keypair($seed);
+    $secret = sodium_crypto_sign_secretkey($pair);
+    $b64 = static fn(string $raw): string => rtrim(strtr(base64_encode($raw), '+/', '-_'), '=');
+    $iat = ($now ?? time()) - 30;
+    $data = $b64(json_encode(['alg' => 'EdDSA', 'kid' => $jwt['kid']], JSON_UNESCAPED_SLASHES))
+        . '.' . $b64(json_encode(['iss' => $jwt['iss'], 'sub' => $jwt['sub'], 'iat' => $iat, 'exp' => $iat + 900], JSON_UNESCAPED_SLASHES));
+    $signature = sodium_crypto_sign_detached($data, $secret);
+    return $data . '.' . $b64($signature);
+}
+
+/** 和风请求头：JWT 优先（Bearer），否则 API KEY。两者都没有返回 null。 */
+function sg_sidebar_weather_auth(array $cfg): ?array
+{
+    $jwt = $cfg['jwt'] ?? ['kid' => '', 'iss' => '', 'sub' => '', 'key' => ''];
+    if (sg_sidebar_jwt_ready($jwt)) {
+        $token = sg_sidebar_jwt($jwt);
+        return $token === null ? null : ['Accept: application/json', 'Authorization: Bearer ' . $token];
+    }
+    if ($cfg['weatherKey'] === '' || strpbrk($cfg['weatherKey'], "\r\n") !== false) return null;
+    return ['Accept: application/json', 'X-QW-Api-Key: ' . $cfg['weatherKey']];
 }
 
 function sg_sidebar_date(?DateTimeImmutable $now = null): array
@@ -237,9 +299,10 @@ function sg_sidebar_sun(?array $city, ?DateTimeImmutable $now = null): array
 function sg_sidebar_weather(array $city, array $cfg, float $deadline): ?array
 {
     $coords = sg_sidebar_coordinates($city['latitude'] ?? null, $city['longitude'] ?? null);
-    if (!$coords || $cfg['weatherHost'] === '' || $cfg['weatherKey'] === '' || strpbrk($cfg['weatherKey'], "\r\n") !== false) return null;
+    if (!$coords || $cfg['weatherHost'] === '') return null;
+    $headers = sg_sidebar_weather_auth($cfg);
+    if ($headers === null) return null;
     $base = 'https://' . $cfg['weatherHost'];
-    $headers = ['Accept: application/json', 'X-QW-Api-Key: ' . $cfg['weatherKey']];
     // GeoAPI resolves a city and its WGS84 weather coordinates/timezone, rather than blindly reusing map coordinates.
     $geo = sg_sidebar_get_json($base . '/geo/v2/city/lookup?' . http_build_query([
         'location' => $coords['longitude'] . ',' . $coords['latitude'], 'lang' => 'zh', 'number' => 1,
@@ -292,7 +355,9 @@ function sg_sidebar_context(bool $refresh = false): array
         } else $location['reason'] = $ip === '' ? 'non-public-ip' : 'provider-unavailable';
     } elseif ($cfg['mode'] === 'site' && $city) $location = array_merge($city, ['status' => 'site']);
     if ($cfg['weather'] && $identity !== '' && $city) {
-        $key = 'weather|' . hash('sha256', $cfg['weatherHost'] . '|' . $cfg['weatherKey']) . '|' . round((float) $city['latitude'], 2) . ',' . round((float) $city['longitude'], 2);
+        // 凭据标识随认证方式变化（JWT 用 kid，API KEY 用 key 的哈希），换认证不会吃到旧缓存。
+        $credential = sg_sidebar_jwt_ready($cfg['jwt']) ? 'jwt|' . $cfg['jwt']['kid'] : 'key|' . $cfg['weatherKey'];
+        $key = 'weather|' . hash('sha256', $cfg['weatherHost'] . '|' . $credential) . '|' . round((float) $city['latitude'], 2) . ',' . round((float) $city['longitude'], 2);
         $value = sg_sidebar_cached($dir, $key, 900, 7200, false, static fn() => sg_sidebar_weather($city, $cfg, $deadline), $allowed);
         if ($value) {
             $weather = array_merge($value, ['status' => 'ok']);

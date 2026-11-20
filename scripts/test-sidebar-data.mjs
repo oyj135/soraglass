@@ -10,6 +10,10 @@ import { Solar, Lunar } from 'lunar-javascript';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const temp = fs.mkdtempSync(path.join(root, 'scripts/.sidebar-test-'));
 const php = process.argv[2] || process.env.PHP_BIN || 'php';
+// 本机 PHP 可能把 sodium 编译成可选扩展：不可用时用 -d extension=sodium 补上，JWT 分支才能真跑。
+const phpProbe = args => execFileSync(php, [...args, '-r', 'echo (int) function_exists("sodium_crypto_sign_detached");'], { encoding: 'utf8' }).trim();
+let phpArgs = [];
+try { if (phpProbe([]) !== '1' && phpProbe(['-d', 'extension=sodium']) === '1') phpArgs = ['-d', 'extension=sodium']; } catch { phpArgs = []; }
 let assertions = 0;
 const check = (actual, expected) => { assert.deepEqual(actual, expected); assertions++; };
 try {
@@ -87,10 +91,42 @@ verify(sg_sidebar_date(new DateTimeImmutable('2035-03-01'))['target']===null,'ex
 $options['sgWeatherHost']='localhost:8080'; verify(sg_sidebar_cfg()['weatherHost']==='','host-validation');
 $options['sgWeatherHost']='abc1234xyz.re.qweatherapi.com'; verify(sg_sidebar_cfg()['weatherHost']==='abc1234xyz.re.qweatherapi.com','host-subdomain');
 $options['sgWeatherHost']='console.qweather.com'; verify(sg_sidebar_cfg()['weatherHost']==='','host-console-url');
-echo json_encode(['count'=>$count,'progress'=>$date['progress'],'cacheDir'=>$dir]);
+// JWT：sodium 可用时自签一对 Ed25519 密钥，校验 header/payload/签名/请求头。
+$jwtOk=false;
+if (function_exists('sodium_crypto_sign_seed_keypair')) {
+  $seed=random_bytes(32);
+  $pair=sodium_crypto_sign_seed_keypair($seed);
+  $pub=sodium_crypto_sign_publickey($pair);
+  $der=hex2bin('302e020100300506032b657004220420').$seed;
+  $pem="-----BEGIN PRIVATE KEY-----\n".chunk_split(base64_encode($der),64,"\n")."-----END PRIVATE KEY-----";
+  $options['sgWeatherHost']='abc1234xyz.re.qweatherapi.com';
+  $options['sgWeatherKey']='';
+  $options['sgWeatherJwtKid']='KID123456';
+  $options['sgWeatherDevId']='Q12345ABCD';
+  $options['sgWeatherProjectId']='PID987654';
+  $options['sgWeatherJwtKey']=$pem;
+  $cfg=sg_sidebar_cfg();
+  verify($cfg['jwt']['kid']==='KID123456' && $cfg['jwt']['iss']==='Q12345ABCD','jwt-config');
+  $token=sg_sidebar_jwt($cfg['jwt']);
+  $parts=explode('.',$token);
+  verify(count($parts)===3,'jwt-parts');
+  $head=json_decode(base64_decode(strtr($parts[0],'-_','+/')),true);
+  verify($head['alg']==='EdDSA' && $head['kid']==='KID123456','jwt-header');
+  $body=json_decode(base64_decode(strtr($parts[1],'-_','+/')),true);
+  verify($body['iss']==='Q12345ABCD' && $body['sub']==='PID987654' && $body['exp']-$body['iat']===900,'jwt-payload');
+  verify(sodium_crypto_sign_verify_detached(base64_decode(strtr($parts[2],'-_','+/')), $parts[0].'.'.$parts[1], $pub),'jwt-signature');
+  $auth=sg_sidebar_weather_auth($cfg);
+  verify($auth[1]==='Authorization: Bearer '.$token,'jwt-request-header');
+  $options['sgWeatherProjectId']='';
+  $options['sgWeatherKey']='fallback-key';
+  verify(sg_sidebar_weather_auth(sg_sidebar_cfg())[1]==='X-QW-Api-Key: fallback-key','jwt-incomplete-falls-back');
+  $jwtOk=true;
+}
+echo json_encode(['count'=>$count,'progress'=>$date['progress'],'cacheDir'=>$dir,'jwt'=>$jwtOk]);
 `;
   const phpFile = path.join(temp, 'fixture.php'); fs.writeFileSync(phpFile, fixture);
-  const result = JSON.parse(execFileSync(php, [phpFile, path.join(root, 'lib/sidebar-data.php'), temp], { encoding: 'utf8' }));
+  const result = JSON.parse(execFileSync(php, [...phpArgs, phpFile, path.join(root, 'lib/sidebar-data.php'), temp], { encoding: 'utf8' }));
+  if (!result.jwt) console.warn('! JWT 断言已跳过：当前 PHP 无 sodium 且无法动态加载');
   assertions += result.count;
   check(dates.calendarFacts({ ...sample, hour: 12 }).progress, result.progress);
   // Only this fixture's dedicated cache is removed, after checking its resolved task prefix.

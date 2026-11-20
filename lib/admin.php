@@ -476,7 +476,14 @@ function themeConfig($form): void
     $form->addInput(new Text('sgGeoKey', null, '', _t('访客定位密钥'), _t($sgGeoDescription)));
     $form->addInput(new Radio('sgWeather', $effectOptions, 'off', _t('首页天气'), _t('开启后在日历底部显示城市天气、温度、湿度与更新时间；需填写下面的和风 Host 和密钥。未配置或失败时显示「天气暂不可用」。')));
     $form->addInput(new Text('sgWeatherHost', null, '', _t('和风 API Host'), _t('和风控制台「设置 → API Host」里那串专属域名，形如 abc1234xyz.re.qweatherapi.com（可含 .re 等子段）；只填域名，不含 https:// 或路径，不要填 console.qweather.com。使用当前实时天气产品和 GeoAPI 城市查询。')));
-    $form->addInput(new Text('sgWeatherKey', null, '', _t('和风 API Key'), _t('在和风控制台「项目 → 凭据 → 添加凭据（API KEY）」生成，只显示一次；服务端用 X-QW-Api-Key 请求头认证，不下发浏览器。需开通当前实时天气与城市查询；天气成功缓存 15 分钟，失败时保留带时间的最近记录。')));
+    $form->addInput(new Text('sgWeatherKey', null, '', _t('和风 API Key'), _t('可选。控制台「项目 → 凭据 → 添加凭据（API KEY）」生成，只显示一次，服务端用 X-QW-Api-Key 请求头认证。与下面的 JWT 四项目二选一：JWT 填齐时优先 JWT。和风将自 2027-01-01 起限制 API KEY 的每日请求量。')));
+    $sgJwtHint = sg_sidebar_jwt_supported()
+        ? '当前服务器已支持 Ed25519 签名（sodium）。'
+        : '当前 PHP 未启用 sodium 扩展，无法生成 Ed25519 签名；请在 PHP 扩展里启用 sodium（或升级到 PHP 8.4）后再用 JWT。';
+    $form->addInput(new Text('sgWeatherJwtKid', null, '', _t('和风 JWT 凭据 ID'), _t('控制台「项目 → 凭据」里 JWT 凭据的 ID，即 JWT header 的 kid。与下面三项填齐后自动改用 JWT，API KEY 可留空。')));
+    $form->addInput(new Text('sgWeatherDevId', null, '', _t('和风开发者 ID'), _t('控制台「设置」里的开发者 ID，Q 开头 10 位，即 JWT payload 的 iss。')));
+    $form->addInput(new Text('sgWeatherProjectId', null, '', _t('和风项目 ID'), _t('控制台「项目管理」里该凭据所属项目的 ID，即 JWT payload 的 sub（不是项目名称）。')));
+    $form->addInput(new Textarea('sgWeatherJwtKey', null, '', _t('和风 JWT 私钥'), _t('Ed25519 私钥全文，含 -----BEGIN PRIVATE KEY----- 与 -----END PRIVATE KEY-----；只存服务端，不下发浏览器。令牌由服务端每次签发（有效期 15 分钟，和风上限 24 小时）。' . $sgJwtHint)));
     $form->addInput(new Textarea('sgNotice', null, '', _t('侧栏公告'), _t('显示在文章页与独立页右侧栏的公告卡；留空则不输出该卡。支持换行，按纯文本处理。')));
     $form->addInput(new Text('sgSidebar', null, 'notice', _t('侧栏卡片与顺序'), _t(
         '文章页侧栏固定为「作者卡 / 公告 / 目录」三张。此项仅 <code>notice</code> 生效（控制公告卡是否显示，'
