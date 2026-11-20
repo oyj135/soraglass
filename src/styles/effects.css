@@ -73,24 +73,10 @@ html.sg-splash-pending .sg-splash { animation: sg-splash-auto .45s ease 1.2s for
 html[data-sg-blur="soft"] { --sg-bg-blur: 5px; --sg-bg-blur-scale: 1.04; }
 html[data-sg-blur="strong"] { --sg-bg-blur: 12px; --sg-bg-blur-scale: 1.08; }
 
-.sg-bg-veil {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  background: var(--sg-veil);
-  opacity: var(--sg-veil-opacity, 1);
-  transition: background-color 1s, opacity 1s;
-}
-
-/* 遮罩浓度三档：`strong` 再叠一层同色，等效把壁纸压暗/压亮一档（不写死颜色，跟随主题）。 */
-html[data-sg-veil="soft"] { --sg-veil-opacity: .62; }
-html[data-sg-veil="strong"] { --sg-veil-opacity: 1; }
-html[data-sg-veil="strong"] .sg-bg-veil::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--sg-veil);
-}
+/* 2026-11-20：壁纸与内容之间的背景遮罩（.sg-bg-veil 与三档 data-sg-veil）整层移除。
+   用户要求内容直接叠在壁纸上，不再压一层半透明蒙版；可读性改由各自的局部托底承担：
+   首屏 `--sg-front-veil`、页脚 `.sg-footer-zone::before`、正文卡片本身的玻璃底。
+   旧设置 `sgBgVeil` 留在数据库里但不再读取，CSS 里也不要再加回全屏蒙版。 */
 
 /* 壁纸色相统一层（2026-11-14 第三十六轮：留色不留动）
    原来这里有一条 15s 无限循环的 background-position 位移，配合 400% 背景尺寸

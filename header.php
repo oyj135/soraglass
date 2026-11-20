@@ -5,20 +5,18 @@ if (!defined('SG_ROOT')) {
 sg_context($this);
 $sgSplash = sg_opt('sgSplash', 'on') === 'on';
 
-/* 日间与夜间壁纸各自轮播，遮罩/模糊共用。 */
+/* 日间与夜间壁纸各自轮播，模糊档位共用。
+   2026-11-20：壁纸与内容之间的背景遮罩整层移除（用户要求内容直接叠在壁纸上），
+   `sgBgVeil` 设置项与 `.sg-bg-veil` 节点一并下线；旧值留在库里不再读取。 */
 $sgWallpapers = sg_wallpapers();
 
-$sgVeil = (string) sg_opt('sgBgVeil', 'mid');
-if (!in_array($sgVeil, ['soft', 'mid', 'strong'], true)) {
-    $sgVeil = 'mid';
-}
 $sgBlur = (string) sg_opt('sgBgBlur', 'none');
 if (!in_array($sgBlur, ['none', 'soft', 'strong'], true)) {
     $sgBlur = 'none';
 }
 ?>
 <!DOCTYPE html>
-<html lang="zh-CN" data-sg-veil="<?php echo sg_e($sgVeil); ?>" data-sg-blur="<?php echo sg_e($sgBlur); ?>">
+<html lang="zh-CN" data-sg-blur="<?php echo sg_e($sgBlur); ?>">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -73,7 +71,6 @@ if (!in_array($sgBlur, ['none', 'soft', 'strong'], true)) {
     </div>
     <?php endforeach; ?>
   </div>
-  <div class="sg-bg-veil"></div>
   <div class="sg-gradient" data-sg-gradient></div>
   <div class="sg-glow sg-glow-a"></div>
   <div class="sg-glow sg-glow-b"></div>

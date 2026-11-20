@@ -122,7 +122,6 @@ ${js ? `<script type="module" src="${js}"></script>` : ''}
   <div class="sg-bg-images" data-sg-bg>
     <div class="sg-bg-frame is-active"><img src="${IMG.bg}" alt=""></div>
   </div>
-  <div class="sg-bg-veil"></div>
   <div class="sg-gradient" data-sg-gradient></div>
   <div class="sg-glow sg-glow-a"></div>
   <div class="sg-glow sg-glow-b"></div>

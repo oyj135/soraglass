@@ -38,6 +38,17 @@ img.is-lazy-in{animation:sg-cover-in .8s ease-out forwards}
 [data-sg-gallery] .sg-back:hover{background:transparent;box-shadow:none}
 [data-sg-gallery] .sg-notfound{background:transparent;border:0;box-shadow:none}
 .sg-photo-caption{display:flex;flex-direction:column;gap:.25rem;padding:.75rem 0 0;font-size:.85rem}.sg-photo-caption b{font-weight:600}.sg-photo-caption time,.sg-photo-caption>span{font:11px/1.6 var(--font-sans);color:var(--sg-wall-ink)}
+/* 2026-11-20：日间相册文字（相册标题/日期/说明 + 图注）去掉白色描边与光晕，
+   统一改近黑直读 —— 与独立页页头同一口径。夜间保持原有冷白 + 暗光晕。
+   注意：等高画廊里压在图片上的 hover 图注是白色渐变层，选择器权重更高，不受此处影响。 */
+html:not(.dark) .sg-curated-heading,
+html:not(.dark) .sg-curated-meta,
+html:not(.dark) .sg-curated-meta h2,
+html:not(.dark) .sg-curated-date,
+html:not(.dark) .sg-curated-meta p,
+html:not(.dark) .sg-photo-caption,
+html:not(.dark) .sg-photo-caption time,
+html:not(.dark) .sg-photo-caption>span{color:#0b1220;text-shadow:none}
 .sg-photo-file-label,.sg-curated-no-preview{display:flex;align-items:center;justify-content:center;min-height:140px;padding:1rem;color:var(--sg-muted);font-size:.8rem}
 .sg-curated-grid--one{columns:1;max-width:52rem}.sg-curated-grid--two{columns:2}
 @media(max-width:1000px){.sg-curated-grid{column-count:2}[data-sg-gallery] .sg-gallery-masonry{columns:2}.sg-curated-grid--one{column-count:1}}

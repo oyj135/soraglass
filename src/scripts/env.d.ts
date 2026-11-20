@@ -20,7 +20,8 @@ interface SGConfig {
   danmaku: string[];
   effects: boolean;
   clickEffect: boolean;
-  season: 'none' | 'sakura' | 'snow' | 'fireflies';
+  /** 季节粒子，可为英文逗号组合（如 `snow,meteor`）；effects.ts 负责拆包与白名单过滤 */
+  season: string;
   playlist: SGTrack[];
   nav: { name: string; href: string }[];
   /** 内置占位图（dist/img/ph-*.svg）：外链图片加载失败时前端自动换成它 */

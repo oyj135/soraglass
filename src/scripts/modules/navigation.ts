@@ -42,6 +42,12 @@ export async function navigate(href: string, push = true, y = 0): Promise<void> 
     const next = new DOMParser().parseFromString(html, 'text/html'), main = next.querySelector('#sg-main'), current = document.querySelector('#sg-main');
     const runtime = next.querySelector('[data-sg-config]'), style = next.querySelector('[data-sg-style]');
     if (!main || !current || !runtime || !eligible(new URL(response.url)) || !style || style.getAttribute('href') !== document.querySelector('[data-sg-style]')?.getAttribute('href')) throw new Error('Full navigation required');
+    /* 一次性修掉 PJAX 的 noscript 陷阱（2026-11-20）：DOMParser 建的是「脚本禁用」的
+       惰性文档，`<noscript>` 里的内容会被当成真实标记解析；搬进当前文档后，其中的
+       `<style>` 立刻生效 —— 首页天气/农历就是被 side-calendar 的 noscript 兜底样式
+       整块 display:none 掉的，表现成「切页回来只剩日出日落」。
+       PJAX 必然有 JS，noscript 兜底在这里没有任何意义，直接剔掉。 */
+    main.querySelectorAll('noscript').forEach((node) => node.remove());
     const cfg = JSON.parse(runtime.textContent || '{}') as Partial<SGConfig>;
     const destination = new URL(response.url || url.href);
     if (!destination.hash) destination.hash = url.hash;
@@ -59,7 +65,7 @@ export async function navigate(href: string, push = true, y = 0): Promise<void> 
     for (const rel of ['canonical', 'prev', 'next']) {
       document.querySelector(`link[rel="${rel}"]`)?.remove(); const link = next.querySelector(`link[rel="${rel}"]`); if (link) document.head.append(link);
     }
-    for (const attr of ['data-sg-veil', 'data-sg-blur']) { const value = next.documentElement.getAttribute(attr); if (value) document.documentElement.setAttribute(attr, value); }
+    for (const attr of ['data-sg-blur']) { const value = next.documentElement.getAttribute(attr); if (value) document.documentElement.setAttribute(attr, value); }
     const bg = document.querySelector('[data-sg-bg]'), newBg = next.querySelector('[data-sg-bg]'); if (bg && newBg) bg.replaceWith(newBg);
     for (const selector of ['[data-sg-nav]', '[data-sg-sheet]', '[data-sg-rightside]']) {
       const previous = document.querySelector(selector), replacement = next.querySelector(selector);

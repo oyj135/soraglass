@@ -149,13 +149,13 @@ html:not(.dark) .sg-post-banner::before { content: none; }
 html:not(.dark) .sg-post-banner-title {
   display: block;
   overflow: visible;
-  color: var(--sg-wall-ink);
+  color: #0b1220;
   text-wrap: balance;
-  /* 28–40px 的字用 1px 描边会被字心吃掉，改用两层柔光把字从花色壁纸上「托」出来。 */
-  text-shadow: 0 1px 0 rgba(255, 255, 255, .85), 0 0 18px rgba(255, 255, 255, .8), 0 0 44px rgba(255, 255, 255, .55);
+  /* 2026-11-20：与独立页页头一致 —— 日间改为纯黑、去掉柔光，避免标题边缘发糊。 */
+  text-shadow: none;
 }
-/* 元信息是 15px 小字，走真实描边档（max 4px 柔光，不会被自己的光晕糊边）。 */
-html:not(.dark) .sg-post-meta-line { color: var(--sg-wall-ink); text-shadow: var(--sg-wall-halo); }
+/* 元信息是 15px 小字：日间同样不做描边/光晕，直接近黑字。 */
+html:not(.dark) .sg-post-meta-line { color: #0b1220; text-shadow: none; }
 .sg-post-meta-item { display: inline-flex; align-items: center; gap: .35rem; }
 .sg-post-meta-item svg { width: .9rem; height: .9rem; flex: none; }
 /* 横幅底是暗幕，朱砂亮档文字只有 1.5:1：文字取浅暖色，图钉图标保留朱砂作识别 */
@@ -386,16 +386,16 @@ html.dark .sg-prose a { color: var(--sg-indigo-soft); }
 @media (min-width: 768px) { .sg-page-sub { font-size: 1rem; } }
 
 html:not(.dark) .sg-page-title {
-  color: var(--sg-wall-ink);
+  color: #0b1220;
   font-weight: 700;
   letter-spacing: .025em;
   line-height: 1.35;
   text-wrap: balance;
-  /* 48px 的字用 1px 描边救不回来（笔画本身就很宽，描边被字心吃掉），
-     这里改用两层柔光把字从花色壁纸上「托」出来；4px 以内的小字仍走 --sg-wall-halo。 */
-  text-shadow: 0 1px 0 rgba(255, 255, 255, .8), 0 0 22px rgba(255, 255, 255, .82), 0 0 52px rgba(255, 255, 255, .6);
+  /* 2026-11-20：日间去掉两层柔光与描边（用户要求「去除多余花哨效果，改为更清晰的黑色」）。
+     全局壁纸遮罩已移除，背景更亮，纯黑字的对比度本来就够；光晕只会让字边发糊。 */
+  text-shadow: none;
 }
-html:not(.dark) .sg-page-sub { color: var(--sg-wall-ink); line-height: 1.85; text-shadow: var(--sg-wall-halo); }
+html:not(.dark) .sg-page-sub { color: #0b1220; line-height: 1.85; text-shadow: none; }
 
 /* 壁纸小字胶囊 .sg-wall-pill（2026-11-19 方案一）：无卡托底的计数/角标/相册 meta
    从「逐字光晕」升级为连续玻璃底，任何壁纸都可读；夜间换深空玻璃。 */

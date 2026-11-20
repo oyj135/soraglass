@@ -557,8 +557,9 @@ function themeConfig($form): void
         . '留空或 JSON 解析失败时回落到「站点副标题」，多行仍按条循环。'
     ) . sg_admin_json_tools()));
 
-    /* 背景：日间组、夜间组与可暂停轮播（旧通用壁纸 sgBg 已移除）。 */
-    $veilOptions = ['soft' => _t('淡（透出壁纸）'), 'mid' => _t('中（默认）'), 'strong' => _t('浓（文字最清楚）')];
+    /* 背景：日间组、夜间组与可暂停轮播（旧通用壁纸 sgBg 已移除）。
+       2026-11-20：壁纸与内容之间的背景遮罩整层下线（用户要求内容直接叠在壁纸上），
+       `sgBgVeil` 设置项移除，旧值留在库里不再读取。 */
     foreach (['sgBgLight' => '日间', 'sgBgDark' => '夜间'] as $sgBgKey => $sgBgMode) {
         $form->addInput(new Textarea($sgBgKey, null, '', _t('背景壁纸 · ' . $sgBgMode . '（一行一张，可轮播）'), _t('分别设置' . $sgBgMode . '模式的全站壁纸；最多 12 张，一行一个图片地址。留空使用主题内置渐变壁纸。') . sg_admin_upload_tools($sgBgKey)));
     }
@@ -566,21 +567,31 @@ function themeConfig($form): void
        （壁纸组第一张），视觉连续、少一次请求；旧 sgFrontImg / sgFrontImgDark
        配置值留在库里不再读取。 */
     $form->addInput(new Text('sgBgInterval', null, '9', _t('背景壁纸 · 轮播间隔（秒）'), _t('默认 9 秒，3–120 秒；0 停止轮播。单张图保持静止，标签页隐藏或系统要求减少动效时暂停。')));
-    $form->addInput(new Select('sgBgVeil', $veilOptions, 'mid', _t('背景遮罩（壁纸与内容之间）'), _t(
-        '<b>显示位置</b>：压在壁纸之上、全部内容之下的那层蒙版，全站生效。<br>'
-        . '<b>怎么选</b>：照片类壁纸建议「中」或「浓」；深色照片选「浓」能明显提升正文对比度；纯渐变壁纸选「淡」即可。'
-    )));
     $blurOptions = ['none' => _t('不模糊'), 'soft' => _t('轻度模糊'), 'strong' => _t('重度模糊')];
     $form->addInput(new Select('sgBgBlur', $blurOptions, 'none', _t('背景模糊（只糊壁纸）'), _t(
         '<b>显示位置</b>：同样作用于全站壁纸层，卡片与文字不受影响。<br>'
         . '<b>怎么选</b>：照片类壁纸建议「轻度模糊」，避免细节抢正文；渐变壁纸不需要模糊。移动端会自动降低模糊强度。'
     )));
     $form->addInput(new Text('sgThemeColors', null, '#5f9299,#8ec5c9,#b8d8dc,#dcebed', _t('呼吸渐变色（壁纸之上的光晕）'), _t(
-        '<b>显示位置</b>：壁纸最上层缓慢流动的渐变光晕，全站生效（壁纸被遮罩压暗时尤其明显）。<br>'
+        '<b>显示位置</b>：壁纸最上层缓慢流动的渐变光晕，全站生效。<br>'
         . '英文逗号分隔的十六进制色值，至少两个。'
     )));
-    $seasonOptions = ['none' => _t('关闭'), 'sakura' => _t('樱花'), 'snow' => _t('飘雪'), 'fireflies' => _t('萤火虫')];
-    $form->addInput(new Select('sgSeason', $seasonOptions, 'none', _t('季节粒子'), _t('移动端与 reduced-motion 下自动关闭')));
+    /* 季节粒子：一次只能选一种组合，带「+ 流星」的值让流星与原有粒子同时出现。
+       JS 侧按英文逗号拆开（effects.ts 的 kinds），所以新增组合只改这里。 */
+    $seasonOptions = [
+        'none' => _t('关闭'),
+        'sakura' => _t('樱花'),
+        'snow' => _t('飘雪'),
+        'fireflies' => _t('萤火虫'),
+        'meteor' => _t('流星（自下向上）'),
+        'sakura,meteor' => _t('樱花 + 流星'),
+        'snow,meteor' => _t('飘雪 + 流星'),
+        'fireflies,meteor' => _t('萤火虫 + 流星'),
+    ];
+    $form->addInput(new Select('sgSeason', $seasonOptions, 'none', _t('季节粒子'), _t(
+        '<b>流星</b>：从页面底部斜向上飞，带渐隐拖尾，日间用青蓝、夜间用冰白，与其它粒子同层叠加互不干扰。<br>'
+        . '移动端与系统「减少动效」下自动关闭。'
+    )));
     $effectOptions = ['on' => _t('开启'), 'off' => _t('关闭')];
     $form->addInput(new Radio('sgEffects', $effectOptions, 'on', _t('全局粒子特效'), _t('低配设备或移动端自动降级')));
     $form->addInput(new Radio('sgClickEffect', $effectOptions, 'on', _t('点击涟漪'), _t('点击页面时的粒子反馈')));

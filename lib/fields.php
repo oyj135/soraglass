@@ -898,10 +898,11 @@ function sg_feature_card_html(array $card): string
  * 一旦这个值小于碎语条数（线上是 6 篇碎语），最新一页会全是碎语，
  * 循环里被逐条跳过后封面就成了空卡片 —— 2026-11-16 线上「左侧文章不显示」就是这个原因。
  * 这里用 Recent 组件单独取数，条数按「需要几张 + 碎语条数」多取，与列表分页互不影响。
+ * 2026-11-20：默认张数由 5 收到 3 —— 全站轮播（封面轮播 + 碎语轮播）统一最多展示 3 张。
  *
  * @return array<int,array{title:string,url:string,cover:string,date:string,category:string,desc:string}>
  */
-function sg_home_slides(int $limit = 5): array
+function sg_home_slides(int $limit = 3): array
 {
     $limit = max(1, $limit);
     $slides = [];

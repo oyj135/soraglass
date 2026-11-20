@@ -18,12 +18,14 @@ $sgHome = rtrim((string) $this->options->siteUrl, '/') . '/';
 $sgPoster = sg_home_poster($this);
 $sgCoverFallback = $sgPoster['cover'] !== '' ? $sgPoster['cover'] : sg_theme_url('dist/img/cover-default.svg');
 
-// 碎语轮播：读 JSON 短记（合并了原来的「杂谈 / 说说」两页），取最新 4 条
-$sgNotes = array_slice(sg_notes(), 0, 4);
+// 碎语轮播：读 JSON 短记（合并了原来的「杂谈 / 说说」两页）。
+// 2026-11-20：全站轮播统一最多 3 张（用户要求超出部分不再显示）。
+$sgNotes = array_slice(sg_notes(), 0, 3);
 $sgNotesLink = sg_page_url('notes');
 
-// 封面轮播：单独取最近的文章（跳过碎语），不受列表「每页条数上限」影响
-$sgSlides = sg_home_slides(5);
+// 封面轮播：单独取最近的文章（跳过碎语），不受列表「每页条数上限」影响；
+// 同样按全站上限收在 3 张。
+$sgSlides = sg_home_slides(3);
 
 // 正文文章列表（2026-11-17 第三轮重写）：直接查库（sg_home_articles），
 // 碎语隔离写进 SQL 子查询，绕开 Widget_Archive —— 线上两个问题（置顶碎语重复、
