@@ -419,14 +419,15 @@ html.dark .sg-hcard { background-color: var(--sg-card); background-image: var(--
 /* ---------- 小站资讯卡（对齐 Fomalhaut card_webinfo 新版：KPI + 时间条 + 年度产出柱状） ---------- */
 .sg-hinfo-kpi { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
 .sg-hinfo-kpi-item { display: flex; flex-direction: column; align-items: center; gap: .2rem; padding: .6rem .2rem; border-radius: .6rem; background: var(--sg-chip); text-decoration: none; transition: background-color .25s ease-in-out, transform .25s ease-in-out; }
-/* 2026-11-20：小卡悬浮底色取源站主题色淡档 rgba(57,197,187,.16)，夜里不动 */
+/* 2026-11-20 第三十轮：小卡悬浮底统一为「全部档案」同款 #5457c9 实底压白字 */
 html:not(.dark) .sg-hinfo-kpi-item:is(:hover, :focus-visible),
 html:not(.dark) .sg-hinfo-visit-item:is(:hover, :focus-visible) {
-  background-color: color-mix(in srgb, #39c5bb 16%, transparent);
+  background-color: var(--sg-filter-active);
   transform: translateY(-2px);
 }
+html:not(.dark) :is(.sg-hinfo-kpi-item, .sg-hinfo-visit-item):is(:hover, :focus-visible) :is(.sg-hinfo-num, .sg-hinfo-label, .sg-hinfo-time, .sg-hinfo-time-item, .sg-hinfo-time-item b, .sg-hinfo-time-sep) { color: #fff; }
 a.sg-hinfo-kpi-item { transition: background-color .2s var(--sg-ease); }
-a.sg-hinfo-kpi-item:hover { background: var(--sg-line); }
+html:not(.dark) a.sg-hinfo-kpi-item:hover { background: var(--sg-filter-active); }
 .sg-hinfo-num { font-size: 1.15rem; font-weight: 700; color: var(--sg-accent-ink); line-height: 1.1; font-variant-numeric: tabular-nums; }
 .sg-hinfo-label { font-family: var(--font-sans); font-size: .66rem; color: var(--sg-muted); }
 .sg-hinfo-time { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .45rem; margin-top: .9rem; padding-top: .75rem; border-top: 1px solid var(--sg-line); font-size: .72rem; color: var(--sg-muted); }
@@ -455,3 +456,11 @@ a.sg-hinfo-kpi-item:hover { background: var(--sg-line); }
 .sg-hinfo-visit-item { display: flex; flex-direction: column; align-items: center; gap: .25rem; padding: .55rem .2rem; border-radius: .6rem; background: var(--sg-chip); transition: background-color .25s ease-in-out, transform .25s ease-in-out; }
 .sg-hinfo-visit-num { font-size: 1.35rem; font-weight: 700; line-height: 1.1; color: var(--sg-accent-ink); font-variant-numeric: tabular-nums; }
 .sg-hinfo-visit-label { font-family: var(--font-sans); font-size: .66rem; color: var(--sg-muted); }
+
+/* 2026-11-20 第三十轮：首页分类小卡与「浏览最新文章」按钮悬浮底统一 #5457c9；
+   夜间仍走原有主题色悬浮。 */
+html:not(.dark) a.sg-home-cate:hover {
+  background: var(--sg-filter-active);
+  box-shadow: 0 6px 16px -8px color-mix(in srgb, var(--sg-filter-active) 65%, transparent);
+}
+html:not(.dark) .sg-front-read:is(:hover, :focus-visible) { background: var(--sg-filter-active); }

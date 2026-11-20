@@ -302,8 +302,12 @@ html.dark .sg-footer-zone::before {
   transition: color .3s, border-color .3s, transform .3s, background-color .3s;
 }
 .sg-tag-chip:hover { color: var(--sg-accent-ink); border-color: var(--sg-accent-ink); transform: translateY(-1px); }
-/* 2026-11-20：标签小卡补源站主题色淡档悬浮底色（源站 --text-bg-hover 的 16% 档），夜间不动 */
-html:not(.dark) .sg-tag-chip:is(:hover, :focus-visible) { background-color: color-mix(in srgb, #39c5bb 16%, transparent); }
+/* 2026-11-20 第三十轮：标签小卡悬浮底与「全部档案」选中态同款 #5457c9 实底压白字 */
+html:not(.dark) .sg-tag-chip:is(:hover, :focus-visible) {
+  background-color: var(--sg-filter-active);
+  border-color: var(--sg-filter-active);
+  color: #fff;
+}
 .sg-tag-chip-count {
   font-size: .7rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -986,17 +990,16 @@ html.dark .sg-gallery-detail-top .sg-back,
 html.dark .sg-gallery-detail-date,
 html.dark .sg-gallery-detail-count { text-shadow: none; }
 
-/* 2026-11-20 第二十九轮补正（用户反馈：描边太重、字太大）：详情头与列表页同款柔和投影，
-   去掉四向硬描边；字号层级同为相册名 1.375rem / 日期、计数、简介、返回栏 .8125–.875rem。
-   夜间配方逐字不动。 */
+/* 2026-11-20 第三十轮（用户反馈：柔影也去除）：详情头日间白字不带 text-shadow，
+   字号层级不变；夜间配方逐字不动。 */
 html:not(.dark) .sg-gallery-detail-top .sg-back,
 html:not(.dark) .sg-gallery-detail-date,
 html:not(.dark) .sg-gallery-detail-count,
 html:not(.dark) .sg-gallery-detail-count b,
 html:not(.dark) .sg-gallery-detail-title h1,
-html:not(.dark) .sg-gallery-detail-title p { color: var(--sg-wall-white-ink); text-shadow: 0 1px 8px rgba(6, 14, 26, .62); }
+html:not(.dark) .sg-gallery-detail-title p { color: var(--sg-wall-white-ink); text-shadow: none; }
 html:not(.dark) .sg-gallery-detail-top .sg-back:hover { color: var(--sg-wall-white-ink); }
-html:not(.dark) .sg-gallery-detail-title h1 { font-size: 1.375rem; text-shadow: 0 2px 14px rgba(6, 14, 26, .6); }
+html:not(.dark) .sg-gallery-detail-title h1 { font-size: 1.375rem; text-shadow: none; }
 html:not(.dark) .sg-gallery-detail-date,
 html:not(.dark) .sg-gallery-detail-count,
 html:not(.dark) .sg-gallery-detail-top .sg-back { font-size: .875rem; }

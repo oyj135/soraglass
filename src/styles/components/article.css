@@ -404,10 +404,10 @@ html.dark .sg-prose a { color: var(--sg-indigo-soft); }
 }
 @media (min-width: 768px) { .sg-page-sub { font-size: 1.125rem; } }
 
-/* 2026-11-20 第二十九轮补正：页头白字去掉四向硬描边，只留柔和投影。 */
+/* 2026-11-20 第三十轮：页头白字连柔和投影一并去掉，只保留白字本身。 */
 html:not(.dark) .sg-page-title {
   color: var(--sg-wall-white-ink);
-  text-shadow: 0 2px 14px rgba(6, 14, 26, .6);
+  text-shadow: none;
   font-weight: 900;
   letter-spacing: .1em;
   line-height: 1.2;
@@ -415,7 +415,7 @@ html:not(.dark) .sg-page-title {
 }
 html:not(.dark) .sg-page-sub {
   color: var(--sg-wall-white-ink);
-  text-shadow: 0 1px 8px rgba(6, 14, 26, .62);
+  text-shadow: none;
   line-height: 1.7;
 }
 

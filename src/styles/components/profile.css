@@ -366,3 +366,9 @@ html.dark .sg-social { background: rgba(51, 65, 85, .50); color: #cbd5e1; }
    插图整体上移 36px，把鲸鱼让到名字之上，文字区回到纱的干净段。 */
 .sg-home-aside .sg-profile-banner,
 .sg-aside .sg-profile-banner { background-position: center -2.25rem; }
+
+/* 2026-11-20 第三十轮：「关于我」按钮悬浮底统一「全部档案」同款 #5457c9，夜间不动 */
+html:not(.dark) .sg-profile .sg-author-btn:is(:hover, :focus-visible) {
+  background: var(--sg-filter-active);
+  box-shadow: 0 10px 22px -12px color-mix(in srgb, var(--sg-filter-active) 70%, transparent);
+}

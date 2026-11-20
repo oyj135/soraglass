@@ -72,18 +72,17 @@ html:not(.dark) .sg-photo-caption>span{color:var(--sg-wall-white-ink)}
 @media(prefers-reduced-motion:reduce){.sg-album-front,.sg-album-paper,.sg-album-open{transition:none}}
 @media(max-width:600px){.sg-album-front,.sg-album-paper{border-width:5px}.sg-album-stack{max-width:86%}.sg-album-paper--1{transform:rotate(5deg) translate(12px,6px)}}
 
-/* 2026-11-20 第二十九轮补正（用户反馈：描边太重、字太大）：只保留柔和投影，
-   不再用 --sg-wall-white-edge/halo 的四向硬描边；列表与详情同套字号层级。
-   夜间白字配方不动；等高画廊压图 hover 图注保持白字。 */
+/* 2026-11-20 第三十轮（用户反馈：柔影也去除）：日间白字不带任何 text-shadow，
+   字号层级不变；夜间白字配方不动；等高画廊压图 hover 图注保持白字。 */
 html:not(.dark) .sg-curated-heading,
 html:not(.dark) .sg-curated-meta,
-html:not(.dark) .sg-photo-caption { color: var(--sg-wall-white-ink); text-shadow: 0 1px 8px rgba(6, 14, 26, .62); }
+html:not(.dark) .sg-photo-caption { color: var(--sg-wall-white-ink); text-shadow: none; }
 html:not(.dark) .sg-curated-meta h2,
 html:not(.dark) .sg-curated-date,
 html:not(.dark) .sg-curated-meta p,
 html:not(.dark) .sg-photo-caption time,
-html:not(.dark) .sg-photo-caption > span { color: var(--sg-wall-white-ink); text-shadow: 0 1px 8px rgba(6, 14, 26, .62); }
-html:not(.dark) .sg-curated-meta h2 { font-size: 1.375rem; text-shadow: 0 2px 14px rgba(6, 14, 26, .6); }
+html:not(.dark) .sg-photo-caption > span { color: var(--sg-wall-white-ink); text-shadow: none; }
+html:not(.dark) .sg-curated-meta h2 { font-size: 1.375rem; text-shadow: none; }
 html:not(.dark) .sg-curated-date { font-size: .8125rem; }
 html:not(.dark) .sg-curated-meta p { font-size: .875rem; }
 @media (max-width: 600px) { html:not(.dark) .sg-curated-meta h2 { font-size: 1.125rem; } }

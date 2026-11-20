@@ -345,7 +345,7 @@ html:not(.dark) .sg-nav {
 html:not(.dark) .sg-nav :is(.sg-brand, .sg-brand-accent, .sg-nav-link, .sg-nav-more-btn, .sg-nav-page) {
   color: #fff;
   opacity: 1;
-  text-shadow: 0 1px 10px rgba(0, 0, 0, .55);
+  text-shadow: none;
 }
 html:not(.dark) .sg-nav .sg-nav-link.is-active::before { background: #fff; }
 html:not(.dark) .sg-nav .sg-nav-link.is-active { color: #fff; }
@@ -353,3 +353,17 @@ html:not(.dark) .sg-nav .sg-nav-link:is(:hover, :focus-visible) { color: #80c8f8
 html:not(.dark) .sg-nav .sg-nav-link::after { background: #80c8f8; }
 /* 下拉面板是实底卡，文字回落正文色，不能继承导航白字 */
 html:not(.dark) .sg-nav .sg-nav-more-menu { color: var(--sg-text); }
+
+/* 2026-11-20 第三十轮：导航文字悬浮也用「全部档案」同款 #5457c9 药丸实底压白字。
+   悬浮下划线收起（药丸已是明确反馈），夜间深玻璃底与青瓷悬浮色保持原样。 */
+html:not(.dark) .sg-nav .sg-nav-link:is(:hover, :focus-visible) {
+  color: #fff;
+  background: var(--sg-filter-active);
+  border-radius: 999px;
+  box-shadow: 0 2px 12px color-mix(in srgb, var(--sg-filter-active) 40%, transparent);
+}
+html:not(.dark) .sg-nav .sg-nav-link:is(:hover, :focus-visible)::after { background: transparent; }
+html:not(.dark) .sg-nav :is(.sg-nav-more-link, .sg-sheet-link):is(:hover, :focus-visible) {
+  background: var(--sg-filter-active);
+  color: #fff;
+}
