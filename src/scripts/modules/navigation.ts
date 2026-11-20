@@ -3,6 +3,15 @@ import { closeNavigationUI } from './navigation-ui';
 let render: (() => void) | null = null, active: AbortController | null = null, version = 0;
 let pendingHref: string | null = null;
 const key = 'sg-navigation';
+/* history 写入容错（2026-11-20）：浏览器对 30 秒内超过 100 次 pushState/replaceState
+   会直接抛 SecurityError。滚动记录一帧一次，长页面连续滚动必然会撞上限，
+   未捕获时 rAF 整帧中断、地址栏停在半路，还会把页面交互一起打断。 */
+function replaceState(state: Record<string, unknown>, href: string): void {
+  try { history.replaceState(state, '', href); } catch { /* 配额耗尽时放弃本次记录，不影响导航 */ }
+}
+function pushState(state: Record<string, unknown>, href: string): void {
+  try { history.pushState(state, '', href); } catch { /* 同上 */ }
+}
 const routeKey = (url: URL): string => { const copy = new URL(url); copy.searchParams.delete('album'); return copy.pathname + copy.search; };
 let currentRoute = routeKey(new URL(location.href));
 const eligible = (url: URL): boolean => url.origin === location.origin && !/\/(admin|action|usr|plugin-package|theme-package)(\/|$)/.test(url.pathname);
@@ -25,8 +34,8 @@ export async function navigate(href: string, push = true, y = 0): Promise<void> 
   if (local(url) && currentRoute === routeKey(url) && push) {
     cancelNavigation();
     if (url.href !== location.href) {
-      history.replaceState({ ...history.state, [key]: true, y: scrollY }, '', location.href);
-      history.pushState({ [key]: true, y }, '', url);
+      replaceState({ ...history.state, [key]: true, y: scrollY }, location.href);
+      pushState({ [key]: true, y }, url.href);
     }
     position(url, y); return;
   }
@@ -52,8 +61,8 @@ export async function navigate(href: string, push = true, y = 0): Promise<void> 
     const destination = new URL(response.url || url.href);
     if (!destination.hash) destination.hash = url.hash;
     if (push && destination.href !== location.href) {
-      history.replaceState({ ...history.state, [key]: true, y: scrollY }, '', location.href);
-      history.pushState({ [key]: true, y: 0 }, '', destination);
+      replaceState({ ...history.state, [key]: true, y: scrollY }, location.href);
+      pushState({ [key]: true, y: 0 }, destination.href);
     }
     disposePage();
     document.querySelectorAll('.sg-lightbox').forEach(n => n.remove());
@@ -80,7 +89,7 @@ export async function navigate(href: string, push = true, y = 0): Promise<void> 
   }
 }
 export function initNavigation(mount: () => void): void {
-  render = mount; history.replaceState({ ...history.state, [key]: true, y: scrollY }, '', location.href); history.scrollRestoration = 'manual';
+  render = mount; replaceState({ ...history.state, [key]: true, y: scrollY }, location.href); history.scrollRestoration = 'manual';
   document.addEventListener('click', event => {
     if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
     const link = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href]') : null;
@@ -96,12 +105,23 @@ export function initNavigation(mount: () => void): void {
     if (currentRoute === routeKey(new URL(location.href))) { cancelNavigation(); position(new URL(location.href), typeof event.state?.y === 'number' ? event.state.y : 0); return; }
     void navigate(location.href, false, typeof event.state?.y === 'number' ? event.state.y : 0);
   });
-  let scrollFrame = 0;
+  /* 滚动位置记录（2026-11-20 重写）：按固定 800ms 间隔写一次，滚动停下再补写最终位置。
+     Chrome 对同一文档 30 秒内的 history 写入上限是 100 次，而滚动按帧记录在长页面上
+     两秒就能写满 —— 撞限后 pushState/replaceState 直接抛 SecurityError，
+     表现就是地址栏停在半路、控制台刷 "pushState more than 100 times"。 */
+  let scrollFrame = 0, lastAt = 0, trailing = 0;
+  const record = (y: number): void => {
+    lastAt = performance.now();
+    replaceState({ ...history.state, [key]: true, y }, location.href);
+  };
   window.addEventListener('scroll', () => {
     if (scrollFrame) return;
     scrollFrame = requestAnimationFrame(() => {
       scrollFrame = 0;
-      if (!active && currentRoute === routeKey(new URL(location.href))) history.replaceState({ ...history.state, [key]: true, y: scrollY }, '', location.href);
+      if (active || currentRoute !== routeKey(new URL(location.href))) return;
+      if (performance.now() - lastAt >= 800) { window.clearTimeout(trailing); record(scrollY); return; }
+      window.clearTimeout(trailing);
+      trailing = window.setTimeout(() => { if (!active) record(scrollY); }, 700);
     });
   }, { passive: true });
 }

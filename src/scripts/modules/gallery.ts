@@ -25,6 +25,18 @@ export function initGallery(): void {
   let baseAlbums = initial.albums, albumPage = 1, albumPages = initial.pages, searchPage = 1, searchPages = 1;
   let lastAlbum = '', query = '', searchVersion = 0, routeVersion = 0, searchController: AbortController | null = null;
   const photoLoads = new Map<HTMLElement, Promise<void>>();
+  /* 地址栏写入统一走这里（2026-11-20）：同一地址不重复入栈，
+     浏览器因「30 秒内 100 次」限制抛错时降级为 replaceState，
+     不让历史记录配额把页面交互整块打断。 */
+  let lastPush = { href: '', at: 0 };
+  const writeUrl = (href: string): void => {
+    if (href === location.href) return;
+    const now = Date.now();
+    if (href === lastPush.href && now - lastPush.at < 500) return;
+    lastPush = { href, at: now };
+    try { history.pushState(null, '', href); }
+    catch { try { history.replaceState(null, '', href); } catch { /* 地址无法写入时保持当前 URL，功能不受影响 */ } }
+  };
   const message = (text = ''): void => { if (status) { status.textContent = text; status.hidden = !text; } };
   const node = <T extends keyof HTMLElementTagNameMap>(tag: T, text = '', cls = ''): HTMLElementTagNameMap[T] => {
     const n = document.createElement(tag); n.textContent = text; if (cls) n.className = cls; return n;
@@ -134,7 +146,10 @@ export function initGallery(): void {
     const loading = (async (): Promise<void> => {
     try {
       const data = await read<PhotoPage>('gallery-photos', { album: section.dataset.sgGalleryDetail!, page }), box = section.querySelector<HTMLElement>('[data-sg-photo-group]')!;
-      if (page === 1) box.replaceChildren(); box.append(...data.photos.map(p => photoCard(p, known.get(p.album))));
+      /* 空返回不清空已有内容（2026-11-20）：服务端已渲染的照片先留着，
+         否则接口返回 0 条时首屏会从「有照片」直接变成一片空白。 */
+      if (page === 1 && data.photos.length) box.replaceChildren();
+      box.append(...data.photos.map(p => photoCard(p, known.get(p.album))));
       justifyGroup(box);
       section.dataset.loaded = '1'; section.dataset.photoPage = String(data.page); section.dataset.photoPages = String(data.pages);
       section.querySelector<HTMLButtonElement>('[data-gallery-photos-more]')!.hidden = data.page >= data.pages; initLightbox();
@@ -154,9 +169,11 @@ export function initGallery(): void {
       list!.hidden = Boolean(detail); root!.querySelectorAll<HTMLElement>('[data-sg-gallery-detail]').forEach(d => { d.hidden = d !== detail; });
       if (detail && detail.dataset.loaded === '1') { const g = detail.querySelector<HTMLElement>('[data-sg-photo-group]'); if (g) justifyGroup(g); }
       if (head) head.hidden = Boolean(detail); if (empty && detail) empty.hidden = true;
-      if (push) { const url = new URL(location.href); if (detail) url.searchParams.set('album', id); else url.searchParams.delete('album'); history.pushState(null, '', url); }
+      if (push) { const url = new URL(location.href); if (detail) url.searchParams.set('album', id); else url.searchParams.delete('album'); writeUrl(url.href); }
       if (detail) { lastAlbum = id; if (detail.dataset.loaded !== '1') { message('正在读取照片…'); await loadPhotos(detail); } }
       if (version !== routeVersion) return; message();
+      /* 相册打开后仍没有任何照片时给出可读结论，而不是留一片空白让人以为是加载失败。 */
+      if (detail) { const box = detail.querySelector<HTMLElement>('[data-sg-photo-group]'); if (box && box.children.length === 0) message('这本相册暂时没有可预览的照片，稍后再试或到后台核对照片状态。'); }
       if (focus) { const target = detail?.querySelector<HTMLElement>('h1') ?? [...grid!.querySelectorAll<HTMLAnchorElement>('[data-sg-album]')].find(c => c.dataset.sgAlbum === lastAlbum); if (target) { target.tabIndex = detail ? -1 : 0; target.focus({ preventScroll: true }); } window.scrollTo({ top: 0, behavior: 'auto' }); }
     } catch (e) { if (version === routeVersion) message(e instanceof Error ? e.message : '读取失败，请重试。'); }
   }
