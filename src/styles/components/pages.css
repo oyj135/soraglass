@@ -803,9 +803,11 @@ html:not(.dark) .sg-heat-cell[data-level="4"] { background: #35616b; }
   transition: background-color .3s, color .3s, border-color .3s;
 }
 .sg-archive-toolbar .sg-archive-tags .sg-filter-btn:hover {
-  color: var(--sg-text);
-  background: color-mix(in srgb, var(--sg-card-strong) 94%, transparent);
-  border-color: var(--sg-accent-soft);
+  color: #fff;
+  background: var(--sg-filter-active);
+  border-color: var(--sg-filter-active);
+  font-weight: 700;
+  box-shadow: 0 2px 12px color-mix(in srgb, var(--sg-filter-active) 40%, transparent);
 }
 /* 选中态：蓝紫实底 + 白字，参考图的「全部档案」高亮。两级类 + .is-active 压过全局深青规则。 */
 .sg-archive-toolbar .sg-archive-tags .sg-filter-btn.is-active,
@@ -983,6 +985,25 @@ html.dark .sg-gallery-detail-title p,
 html.dark .sg-gallery-detail-top .sg-back,
 html.dark .sg-gallery-detail-date,
 html.dark .sg-gallery-detail-count { text-shadow: none; }
+
+/* 2026-11-20 第二十八轮（用户截图：相册内文字仍白且带阴影）：日间详情头改纯黑、去阴影，
+   同时放大「返回画廊 / 日期 / 大标题 / 简介」字号。夜间仍是白字描边配方，一字未改。
+   上一轮的白字三件套规则保留给夜间，此处只用 html:not(.dark) 覆盖日间。 */
+html:not(.dark) .sg-gallery-detail-top .sg-back,
+html:not(.dark) .sg-gallery-detail-date,
+html:not(.dark) .sg-gallery-detail-count,
+html:not(.dark) .sg-gallery-detail-count b,
+html:not(.dark) .sg-gallery-detail-title h1,
+html:not(.dark) .sg-gallery-detail-title p { color: #000; text-shadow: none; }
+html:not(.dark) .sg-gallery-detail-top .sg-back:hover { color: #000; }
+html:not(.dark) .sg-gallery-detail-dot { background: #000; box-shadow: none; }
+html:not(.dark) .sg-gallery-detail-head { border-bottom-color: var(--sg-border); }
+html:not(.dark) .sg-gallery-detail-top .sg-back { font-size: 1rem; }
+html:not(.dark) .sg-gallery-detail-date,
+html:not(.dark) .sg-gallery-detail-count { font-size: .95rem; }
+html:not(.dark) .sg-gallery-detail-title h1 { font-size: 2.5rem; }
+@media (min-width: 768px) { html:not(.dark) .sg-gallery-detail-title h1 { font-size: 3.5rem; } }
+html:not(.dark) .sg-gallery-detail-title p { font-size: 1.05rem; }
 
 /* 详情用 multi-column 瀑布流，比 grid 更接近源站（图片高度不齐） */
 .sg-gallery-masonry { columns: 2; column-gap: .875rem; }

@@ -71,3 +71,15 @@ html:not(.dark) .sg-photo-caption>span{color:var(--sg-wall-white-ink)}
 .sg-curated-album:hover .sg-album-open,.sg-curated-album:focus-visible .sg-album-open{opacity:1}
 @media(prefers-reduced-motion:reduce){.sg-album-front,.sg-album-paper,.sg-album-open{transition:none}}
 @media(max-width:600px){.sg-album-front,.sg-album-paper{border-width:5px}.sg-album-stack{max-width:86%}.sg-album-paper--1{transform:rotate(5deg) translate(12px,6px)}}
+
+/* 2026-11-20 第二十八轮（用户反馈：相册下文字阴影没去掉）：日间相册文字回归纯黑无阴影。
+   夜间白字 + 深色描边配方逐字不动；等高画廊压在图片上的 hover 图注由更高权重规则保持白字。
+   text-shadow 是可继承属性，父级置 none 即可把子元素的投影一并关掉。 */
+html:not(.dark) .sg-curated-heading,
+html:not(.dark) .sg-curated-meta,
+html:not(.dark) .sg-photo-caption { color: #000; text-shadow: none; }
+html:not(.dark) .sg-curated-meta h2,
+html:not(.dark) .sg-curated-date,
+html:not(.dark) .sg-curated-meta p,
+html:not(.dark) .sg-photo-caption time,
+html:not(.dark) .sg-photo-caption > span { color: #000; text-shadow: none; }

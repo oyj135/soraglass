@@ -10,7 +10,6 @@ import { initGallery } from './modules/gallery';
 import { initArticle } from './modules/article';
 import { initNotes } from './modules/notes';
 import { initNavigation } from './modules/navigation';
-import { initProgress } from './modules/progress';
 import { initHome } from './modules/home';
 import { initTicker } from './modules/ticker';
 import { initRightside } from './modules/rightside';
@@ -63,8 +62,6 @@ function mountPage(): void {
   safe('universe', initUniverse);
 }
 function boot(): void {
-  // 进度条只绑一次：PJAX 换页时复用同一节点，不随 mountPage 重复注册监听
-  safe('progress', initProgress);
   mountPage(); safe('effects', initEffects); initNavigation(mountPage);
 }
 
