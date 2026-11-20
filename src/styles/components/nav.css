@@ -9,8 +9,10 @@
   position: fixed;
   inset: 0 0 auto;
   z-index: 50;
-  background: var(--sg-card);
-  border-bottom: 1px solid var(--sg-card-border);
+  /* 2026-11-20：日间按源站 #nav 去掉实底与分隔线，直接压在壁纸上；
+     夜间仍保留原来的深玻璃底，避免亮色壁纸把白字吃掉。 */
+  background: transparent;
+  border-bottom: 1px solid transparent;
   transition: background-color 1s, border-color 1s, box-shadow .3s var(--sg-ease);
 }
 
@@ -99,7 +101,7 @@ html.sg-ready .sg-nav { animation: sg-nav-in .5s var(--sg-ease) both; }
 @media (max-width: 767.98px) { .sg-nav-page { display: none; } }
 
 .sg-brand {
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   font-weight: 900;
   letter-spacing: -.05em;
   white-space: nowrap;
@@ -116,8 +118,9 @@ html.sg-ready .sg-nav { animation: sg-nav-in .5s var(--sg-ease) both; }
 .sg-nav-links {
   display: flex;
   gap: 2rem;
-  font-size: .875rem;
-  font-weight: 700;
+  /* 2026-11-20：导航文字加大加粗（用户要求），与源站菜单的视觉重量对齐 */
+  font-size: 1rem;
+  font-weight: 800;
   transition: opacity .3s var(--sg-ease), visibility .3s;
 }
 /* :has() 守卫：页名未填充（JS 未移掉 hidden）时保持导航可见，避免空顶栏。 */
@@ -136,7 +139,9 @@ html.sg-ready .sg-nav { animation: sg-nav-in .5s var(--sg-ease) both; }
   white-space: nowrap;
 }
 
-.sg-nav-link:hover { color: var(--sg-accent-ink); opacity: 1; }
+/* 2026-11-20：悬浮文字与下划线改用源站实测值（#nav a:hover / .site-page:not(.child):after） */
+.sg-nav-link:is(:hover, :focus-visible) { color: #49b1f5; opacity: 1; }
+html.dark .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent-ink); }
 
 /* 导航条目图标（2026-11-17）：内联 SVG 与文字同行，激活态随链接色走。
    悬浮下划线（2026-11-18，对齐源站 #nav .site-page:after 的「从左长出」下划线）：
@@ -150,7 +155,8 @@ html.sg-ready .sg-nav { animation: sg-nav-in .5s var(--sg-ease) both; }
   bottom: .05rem;
   height: 2px;
   border-radius: 2px;
-  background: var(--sg-accent-soft);
+  /* 源站 `.site-page:not(.child):after` 实测 #80c8f8 / 3px */
+  background: #80c8f8;
   transform: scaleX(0);
   transform-origin: left center;
   transition: transform .3s ease-in-out;
@@ -328,3 +334,40 @@ html.dark .sg-sheet-panel {
 .sg-sheet-close:is(:hover, :focus-visible) { color: var(--sg-accent-ink); }
 .sg-sheet .sg-sheet-link { flex-shrink: 0; min-height: 2.75rem; }
 
+
+/* ---------- 页面切换进度条（2026-11-20） ----------
+   常驻 header.php，PJAX 只换正文不会移除。默认不占位、不拦截点击；
+   首屏由 html.sg-loading 推进，站内跳转由 navigation.ts 的 html.sg-navigating 推进，
+   完成事件由 progress.ts 加 .is-done 补满并淡出。 */
+.sg-progress {
+  position: fixed;
+  inset: 0 0 auto;
+  height: 3px;
+  z-index: 70;
+  pointer-events: none;
+}
+.sg-progress-bar {
+  display: block;
+  width: 0;
+  height: 100%;
+  opacity: 0;
+  background: linear-gradient(90deg, #80c8f8, #39c5bb);
+  box-shadow: 0 0 8px color-mix(in srgb, #39c5bb 55%, transparent);
+  transition: none;
+}
+html.sg-loading .sg-progress-bar,
+html.sg-navigating .sg-progress-bar {
+  width: 72%;
+  opacity: 1;
+  transition: width 1.1s cubic-bezier(.12, .72, .28, 1), opacity .2s linear;
+}
+html.sg-navigating .sg-progress-bar { width: 88%; }
+.sg-progress-bar.is-done {
+  width: 100% !important;
+  opacity: 0 !important;
+  transition: width .18s linear, opacity .3s ease .16s !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html.sg-loading .sg-progress-bar,
+  html.sg-navigating .sg-progress-bar { transition: none; }
+}

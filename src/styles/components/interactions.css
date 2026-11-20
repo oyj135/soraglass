@@ -80,12 +80,13 @@ html.dark .sg-about-title h1 {
     color: var(--sg-text);
   }
 }
+/* 2026-11-20：日间页头标题按用户要求改为纯黑、去描边（夜间渐变字保持不动） */
 html:not(.dark) :is(.sg-page-title, .sg-about-title h1) {
   background-image: none;
   -webkit-text-fill-color: currentColor;
   -webkit-text-stroke: 0;
-  color: var(--sg-wall-white-ink);
-  text-shadow: var(--sg-wall-white-edge);
+  color: #000;
+  text-shadow: none;
   filter: none;
 }
 

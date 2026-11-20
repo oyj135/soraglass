@@ -28,9 +28,9 @@ html.dark .sg-nav.is-front { background: linear-gradient(180deg, rgba(2, 6, 23, 
 .sg-nav.is-front .sg-nav-link.is-active::before { background: #fff; }
 /* 首屏 hover（2026-11-18 用户反馈：原来 base 与 hover 都压白、且 !important 锁死，
    悬浮毫无变化）：base 满白保醒目，hover 换青瓷浅色 + 同色下划线，变化一眼可见 */
-.sg-nav.is-front .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent-soft); opacity: 1; }
+.sg-nav.is-front .sg-nav-link:is(:hover, :focus-visible) { color: #80c8f8; opacity: 1; }
 html.dark .sg-nav.is-front .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent-ink); }
-.sg-nav.is-front .sg-nav-link::after { background: var(--sg-accent-soft); }
+.sg-nav.is-front .sg-nav-link::after { background: #80c8f8; }
 html.dark .sg-nav.is-front .sg-nav-link::after { background: var(--sg-accent-ink); }
 .sg-nav.is-front .sg-nav-link.is-active { color: #fff; }
 .sg-nav.is-front .sg-nav-more-menu { color: var(--sg-text); }
@@ -418,7 +418,13 @@ html.dark .sg-hcard { background-color: var(--sg-card); background-image: var(--
 
 /* ---------- 小站资讯卡（对齐 Fomalhaut card_webinfo 新版：KPI + 时间条 + 年度产出柱状） ---------- */
 .sg-hinfo-kpi { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
-.sg-hinfo-kpi-item { display: flex; flex-direction: column; align-items: center; gap: .2rem; padding: .6rem .2rem; border-radius: .6rem; background: var(--sg-chip); text-decoration: none; }
+.sg-hinfo-kpi-item { display: flex; flex-direction: column; align-items: center; gap: .2rem; padding: .6rem .2rem; border-radius: .6rem; background: var(--sg-chip); text-decoration: none; transition: background-color .25s ease-in-out, transform .25s ease-in-out; }
+/* 2026-11-20：小卡悬浮底色取源站主题色淡档 rgba(57,197,187,.16)，夜里不动 */
+html:not(.dark) .sg-hinfo-kpi-item:is(:hover, :focus-visible),
+html:not(.dark) .sg-hinfo-visit-item:is(:hover, :focus-visible) {
+  background-color: color-mix(in srgb, #39c5bb 16%, transparent);
+  transform: translateY(-2px);
+}
 a.sg-hinfo-kpi-item { transition: background-color .2s var(--sg-ease); }
 a.sg-hinfo-kpi-item:hover { background: var(--sg-line); }
 .sg-hinfo-num { font-size: 1.15rem; font-weight: 700; color: var(--sg-accent-ink); line-height: 1.1; font-variant-numeric: tabular-nums; }
@@ -446,6 +452,6 @@ a.sg-hinfo-kpi-item:hover { background: var(--sg-line); }
 .sg-hinfo-year { flex: 1 1 0; min-width: 0; text-align: center; font-family: var(--font-sans); font-size: .625rem; color: var(--sg-faint); opacity: .85; }
 /* 访客位（对齐 Fomalhaut .wi-visit）：两位大数字 + 标签，busuanzi 回写前显示 — */
 .sg-hinfo-visit { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; margin-top: .85rem; padding-top: .8rem; border-top: 1px solid var(--sg-line); }
-.sg-hinfo-visit-item { display: flex; flex-direction: column; align-items: center; gap: .25rem; padding: .55rem .2rem; border-radius: .6rem; background: var(--sg-chip); }
+.sg-hinfo-visit-item { display: flex; flex-direction: column; align-items: center; gap: .25rem; padding: .55rem .2rem; border-radius: .6rem; background: var(--sg-chip); transition: background-color .25s ease-in-out, transform .25s ease-in-out; }
 .sg-hinfo-visit-num { font-size: 1.35rem; font-weight: 700; line-height: 1.1; color: var(--sg-accent-ink); font-variant-numeric: tabular-nums; }
 .sg-hinfo-visit-label { font-family: var(--font-sans); font-size: .66rem; color: var(--sg-muted); }

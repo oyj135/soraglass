@@ -299,9 +299,11 @@ html.dark .sg-footer-zone::before {
   background: var(--sg-chip);
   font-size: calc(.55rem + .6rem * var(--sg-weight, .8));
   font-weight: 600;
-  transition: color .3s, border-color .3s, transform .3s;
+  transition: color .3s, border-color .3s, transform .3s, background-color .3s;
 }
 .sg-tag-chip:hover { color: var(--sg-accent-ink); border-color: var(--sg-accent-ink); transform: translateY(-1px); }
+/* 2026-11-20：标签小卡补源站主题色淡档悬浮底色（源站 --text-bg-hover 的 16% 档），夜间不动 */
+html:not(.dark) .sg-tag-chip:is(:hover, :focus-visible) { background-color: color-mix(in srgb, #39c5bb 16%, transparent); }
 .sg-tag-chip-count {
   font-size: .7rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;

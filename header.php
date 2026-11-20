@@ -57,6 +57,8 @@ if (!in_array($sgBlur, ['none', 'soft', 'strong'], true)) {
 </head>
 <body class="sg-body">
 <?php echo sg_asset_missing_notice(); ?>
+<!-- 页面切换进度条：整站常驻节点，PJAX 只替换 #sg-main，不会被带走 -->
+<div class="sg-progress" aria-hidden="true"><span class="sg-progress-bar" data-sg-progress-bar></span></div>
 <a class="sg-skip" href="#sg-main">跳到正文</a>
 <?php if ($sgSplash) : ?>
 <div class="sg-splash" aria-hidden="true"><span class="sg-splash-mark">空 璃</span></div>

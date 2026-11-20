@@ -30,7 +30,9 @@
 .sg-flink-item:is(:hover, :focus-within) {
   background-color: var(--sg-chip);
   border-color: color-mix(in srgb, var(--sg-accent) 32%, var(--sg-card-border));
-  box-shadow: 0 4px 8px rgba(0, 0, 0, .1), 0 2px 4px rgba(0, 0, 0, .1);
+  /* 源站 .site-card:hover .img 的四层柔影 */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, .1), 0 2px 4px rgba(0, 0, 0, .1),
+    0 4px 8px rgba(0, 0, 0, .1), 0 8px 16px rgba(0, 0, 0, .1);
 }
 
 .sg-flink-item a {
@@ -71,7 +73,8 @@
   border-radius: 50%;
   background: var(--sg-chip);
 }
-.sg-flink-icon img { width: 100%; height: 100%; object-fit: cover; }
+.sg-flink-icon img { width: 100%; height: 100%; object-fit: cover; transition: transform 2s ease; }
+.sg-flink-item:is(:hover, :focus-within) .sg-flink-icon img { transform: scale(1.02); }
 
 .sg-flink-name {
   font-weight: 600;
@@ -100,6 +103,7 @@
 @media (prefers-reduced-motion: reduce) {
   .sg-flink-item,
   .sg-flink-shot img,
+  .sg-flink-icon img,
   .sg-flink-name,
   .sg-flink-desc { transition: none; }
 }

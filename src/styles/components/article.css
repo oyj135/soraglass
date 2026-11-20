@@ -404,13 +404,17 @@ html.dark .sg-prose a { color: var(--sg-indigo-soft); }
 }
 @media (min-width: 768px) { .sg-page-sub { font-size: 1.125rem; } }
 
+/* 2026-11-20：日间页头文字纯黑无光晕（夜间仍走上方白字配方）
+   —— 这里必须和 interactions.css 的同名覆盖一起改，后者特异度更高。 */
 html:not(.dark) .sg-page-title {
+  color: #000;
+  text-shadow: none;
   font-weight: 900;
   letter-spacing: .025em;
   line-height: 1.35;
   text-wrap: balance;
 }
-html:not(.dark) .sg-page-sub { line-height: 1.7; }
+html:not(.dark) .sg-page-sub { color: #000; text-shadow: none; line-height: 1.7; }
 
 /* 壁纸小字胶囊 .sg-wall-pill（2026-11-19 方案一）：无卡托底的计数/角标/相册 meta
    从「逐字光晕」升级为连续玻璃底，任何壁纸都可读；夜间换深空玻璃。 */
@@ -431,6 +435,8 @@ html.dark .sg-wall-pill {
 }
 /* 落点①：光影画廊页「光影收藏 / N 本相册 · N 个瞬间」行 */
 .sg-curated-heading > span { padding: .18rem .65rem; border-radius: 999px; background: rgba(255, 255, 255, .68); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .55), 0 2px 10px rgba(15, 23, 42, .08); text-shadow: none; }
+/* 2026-11-20：画廊相册名与计数胶囊改纯黑（白胶囊上黑字），夜间不动 */
+html:not(.dark) .sg-curated-heading > span { color: #000; text-shadow: none; }
 html.dark .sg-curated-heading > span { background: rgba(15, 20, 34, .55); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14), 0 2px 10px rgba(0, 0, 0, .3); }
 /* 落点②：碎语页 #标签 角标（压在卡片右缘壁纸上） */
 .sg-tl-tag { padding: .14rem .55rem; border-radius: 999px; background: rgba(255, 255, 255, .68); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .55), 0 2px 10px rgba(15, 23, 42, .08); text-shadow: none; }
@@ -517,15 +523,13 @@ html.dark .sg-filter-btn.is-active {
   .sg-project { gap: .9375rem; padding: 1.375rem 1.375rem 1.0625rem; }
 }
 
-.sg-project:hover {
-  border-color: var(--sg-proj-border-hot);
-  box-shadow: var(--sg-shadow-strong);
-}
-
-/* 键盘可达：Tab 到整卡链接时给同样的反馈，不然只有鼠标能用 */
+/* 悬浮：源站 .site-card:hover 的「多层柔影 + 主体 1.02 缓放」，项目卡用头像当主体 */
+.sg-project:hover,
 .sg-project:focus-within {
   border-color: var(--sg-proj-border-hot);
-  box-shadow: var(--sg-shadow-strong);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, .1), 0 2px 4px rgba(0, 0, 0, .1),
+    0 4px 8px rgba(0, 0, 0, .1), 0 8px 16px rgba(0, 0, 0, .1);
+  transform: translateY(-2px);
 }
 
 /* 身份行：头像 + 项目名 + 徽章。名字用 h3，和卡片的字号层级绑在一起 */
@@ -557,7 +561,9 @@ html.dark .sg-filter-btn.is-active {
   border-radius: 50%;
   object-fit: cover;
   background: var(--sg-card);
+  transition: transform 2s ease;
 }
+.sg-project:is(:hover, :focus-within) .sg-project-avatar img { transform: scale(1.02); }
 
 .sg-project:hover .sg-project-avatar {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--sg-accent) 14%, transparent);
