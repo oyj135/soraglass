@@ -21,10 +21,8 @@ html.dark .sg-player-card { --sg-spark: rgba(255, 255, 255, .55); }
       歌词条星场同一套语言。**亮色下这张卡是白卡，星点只能做主色微光**（再亮就成了脏点），
       暗色卡面下 --sg-spark 自动转白光，才是真正的星点；暗色再额外叠两层星云薄雾。
    装饰使用 ::after，和卡内其它伪元素分开。 */
-/* 星点坐标抽成变量：**音乐卡与歌词条共用这一份**（第十四轮起歌词条不再自带星场 token），
-   昼夜/两种卡只在各自的 --sg-spark 上取色，坐标永不重复维护。 */
-.sg-player-card,
-.sg-lyric-bar {
+/* 星点坐标抽成变量：**只属于音乐卡**（2026-11-19 起歌词条改为纯卡片材质，不再叠星场）。 */
+.sg-player-card {
   --sg-spark-dots:
     radial-gradient(2.5px 2.5px at 84% 13%, var(--sg-spark), transparent 100%),
     radial-gradient(2px 2px at 14% 17%, var(--sg-spark), transparent 100%),
@@ -625,12 +623,13 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
 
 
 /* ---------- 首页歌词栏（LyricBar） ---------- */
-/* 通栏歌词：左声波、中央歌词、右音符；全部色彩由昼夜 --sg-lyric-* token 驱动。 */
+/* 通栏歌词：左声波、中央歌词、右音符。
+   2026-11-19 第八轮：用户要求「背景和其他卡片一致」—— 撤掉原先自带的两团主色光晕
+   与 9 颗星点（暗色那套冷蓝星云一并删），改为与 .sg-hcard 完全同源的卡片材质：
+   --sg-card 实底 + --sg-card-image 顶光 + --sg-card-border 描边 + sheen/--sg-shadow。
+   星场只留给音乐卡，歌词条不再共享星点坐标。 */
 .sg-lyric-bar {
   position: relative;
-  /* 星点取色跟昼夜走（2026-11-18 第十五轮）：日间是浅卡，白点等于没画，只能做主色微光 ——
-     与 .sg-player-card 同一条规则；暗色下面这条被 html.dark 覆写成白光，才是真正的星点。 */
-  --sg-spark: color-mix(in srgb, var(--sg-accent) 60%, transparent);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -640,36 +639,13 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
   /* 源站的 mt-[-10px]：压在 7:5 行下面，比常规栅格间距再近一点 */
   margin-top: -.625rem;
   border: 1px solid var(--sg-lyric-border);
-  border-radius: var(--sg-radius);
-  /* 星空层（2026-11-18 第十四轮起，第十五轮拆昼夜）：**与音乐卡同配方、同昼夜分档** ——
-     日间：9 颗主色微光点 + 两团主色光晕（等同 .sg-player-card::after 日间那三层）；
-     暗色：9 颗白光星点 + 两团冷蓝星云 + 一层主色光晕（等同 html.dark .sg-player-card::after）。
-     星点坐标 `--sg-spark-dots` 由上方 .sg-player-card 并列选择器共用一份，不重复维护。
-     走 background-image 而非伪元素：内容层天然压在背景之上，不必补 z-index。 */
+  border-radius: var(--sg-radius-card, var(--sg-radius));
   background-color: var(--sg-lyric-bg);
-  background-image:
-    var(--sg-spark-dots),
-    radial-gradient(88% 58% at 90% 94%,
-      color-mix(in srgb, var(--sg-accent) 14%, transparent) 0, transparent 66%),
-    radial-gradient(125% 88% at 50% 24%,
-      color-mix(in srgb, var(--sg-accent) 26%, transparent) 0, transparent 64%);
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
-  box-shadow: var(--sg-lyric-shadow);
+  background-image: var(--sg-card-image, none);
+  box-shadow: var(--sg-card-sheen, 0 0 0 transparent), var(--sg-lyric-shadow);
   color: var(--sg-lyric-text);
   overflow: hidden;
   transition: background-color 1s, border-color 1s, box-shadow .5s;
-}
-
-/* 暗色：卡面回到夜色，此时才叠真正的星云薄雾，星点也转为白光 */
-html.dark .sg-lyric-bar {
-  --sg-spark: rgba(255, 255, 255, .55);
-  background-image:
-    var(--sg-spark-dots),
-    radial-gradient(70% 52% at 12% 8%, rgba(43, 77, 112, .34) 0, transparent 68%),
-    radial-gradient(64% 46% at 92% 88%, rgba(31, 71, 99, .30) 0, transparent 66%),
-    radial-gradient(125% 88% at 50% 24%,
-      color-mix(in srgb, var(--sg-accent) 22%, transparent) 0, transparent 64%);
 }
 
 /* 声波：静止 4px，播放时 8px ↔ 28px。用 scaleY 代替源站的 height 动画，

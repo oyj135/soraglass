@@ -1,86 +1,105 @@
-/* 友链页（2026-11-17 第八轮，逐参数对齐 Fomalhaut _flink_style/butterfly.styl ——
-   源站 flink_style 未在 _config.yml 配置，case 走 default = butterfly）：
-   90px 高、圆角 8px 的横条卡（≥1024 三列 / ≤1024 两列 / ≤600 单列）：
-   60px 圆头像 + 加粗站名 + 一行简介。
-   hover 两件事（源站同款）：
-     ① ::before 从中心 scale(0)→scale(1) 扫开浅底（.3s ease-out）；
-     ② 头像宽度 60→0、margin-left -10px（.3s ease-out），文字让位。 */
-/* 列表托在卡面上（源站友链位于 #page 卡内）：原先直接压壁纸，花图上简介只剩 2.4:1 */
+/* 友链页（2026-11-19 第六轮，改按源站 volantis 形态 —— _config.yml: flink_style: volantis，
+   themes/fomalhaut/source/css/_custom/custom.css:1013-1073 的覆盖为准）：
+   每张卡 = 16:10 站点截图（上） + 32px 圆头像 / 站名 1 行 / 简介 2 行（下）；
+   5 列（≤1200 四列 / ≤900 三列 / ≤600 两列）、18px 圆角、5px 内边距、1px 描边；
+   hover 只把截图 scale(1.02)（源站同款），扫开动画与流光描边均已去掉。
+   外层保留一张玻璃卡托底：卡片直接压壁纸时简介只剩 2.4:1 对比。 */
 .sg-flink-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
-  gap: 15px 14px;
-  padding: 10px 10px 0;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 1.25rem;
   border: 1px solid var(--sg-card-border);
   border-radius: var(--sg-radius-outer);
   background-color: var(--sg-card);
-  background-image: var(--sg-card-image);
-  box-shadow: var(--sg-shadow), var(--sg-card-sheen);
+  background-image: var(--sg-card-image, none);
+  box-shadow: var(--sg-shadow), var(--sg-card-sheen, 0 0 0 transparent);
 }
+@media (max-width: 1199.98px) { .sg-flink-list { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 899.98px) { .sg-flink-list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 599.98px) { .sg-flink-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; padding: .75rem; } }
 
 .sg-flink-item {
-  position: relative;
+  min-width: 0;
+  padding: 5px;
+  border: 1px solid var(--sg-card-border);
+  border-radius: 18px;
+  background-color: transparent;
+  transition: background-color .3s var(--sg-ease), border-color .3s var(--sg-ease), box-shadow .3s var(--sg-ease);
+}
+.sg-flink-item:is(:hover, :focus-within) {
+  background-color: var(--sg-chip);
+  border-color: color-mix(in srgb, var(--sg-accent) 32%, var(--sg-card-border));
+  box-shadow: 0 4px 8px rgba(0, 0, 0, .1), 0 2px 4px rgba(0, 0, 0, .1);
+}
+
+.sg-flink-item a {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  color: var(--sg-text);
+  text-decoration: none;
+}
+
+/* 截图：源站 .site-card .img —— 16:10、18px 圆角、hover 只做 scale，2s 长缓动 */
+.sg-flink-shot {
+  display: block;
   overflow: hidden;
-  width: auto;
-  height: 90px;
-  margin: 0;
-  border-radius: var(--sg-radius-inner);
-  line-height: 17px;
-  transform: translateZ(0);
+  aspect-ratio: 16 / 10;
+  border-radius: 18px;
+  background: var(--sg-chip);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, .2);
 }
+.sg-flink-shot img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 2s ease; }
+.sg-flink-item:is(:hover, :focus-within) .sg-flink-shot img { transform: scale(1.02); }
 
-/* hover 扫开的浅底（源站 var(--text-bg-hover) 同构：亮色主题色 12%，暗色白 10%） */
-.sg-flink-item::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background: color-mix(in srgb, var(--sg-accent) 12%, transparent);
-  transform: scale(0);
-  transition: transform .3s ease-out;
+/* 头像列跨站名/简介两行（源站是 float:left 的 32px 圆头像 + 右侧两行） */
+.sg-flink-info {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  column-gap: .5rem;
+  row-gap: 1px;
+  align-items: start;
+  padding: .5rem .25rem .25rem;
 }
-html.dark .sg-flink-item::before { background: rgba(255, 255, 255, .1); }
-.sg-flink-item:is(:hover, :focus-within, :active)::before { transform: scale(1); }
-
-.sg-flink-item a { position: relative; z-index: 1; display: block; height: 100%; color: var(--sg-text); text-decoration: none; }
-
 .sg-flink-icon {
-  float: left;
+  grid-row: 1 / 3;
+  width: 2rem;
+  height: 2rem;
+  margin-top: 2px;
   overflow: hidden;
-  margin: 15px 10px;
-  width: 60px;
-  height: 60px;
-  border-radius: 35px;
-  transition: width .3s ease-out, margin-left .3s ease-out;
+  border-radius: 50%;
+  background: var(--sg-chip);
 }
-.sg-flink-icon img { width: 100%; height: 100%; object-fit: cover; transition: filter 375ms ease-in .2s, transform .3s; }
-.sg-flink-item:is(:hover, :focus-within) .sg-flink-icon { width: 0; margin-left: -10px; }
+.sg-flink-icon img { width: 100%; height: 100%; object-fit: cover; }
 
 .sg-flink-name {
-  display: block;
-  height: 40px;
-  padding: 16px 10px 0 0;
-  font-weight: 700;
-  font-size: 1.43em;
-  line-height: 1.4;
+  font-weight: 600;
+  font-size: .95rem;
+  line-height: 1.35;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: color .3s;
 }
 .sg-flink-desc {
-  display: block;
-  height: 50px;
-  padding: 16px 10px 16px 0;
-  font-size: .93em;
-  line-height: 1.5;
+  font-size: .78rem;
+  line-height: 1.35;
   color: var(--sg-muted);
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
+  word-break: break-word;
+  transition: color .3s;
 }
+.sg-flink-item:is(:hover, :focus-within) .sg-flink-name { color: var(--sg-accent-ink); }
+.sg-flink-item:is(:hover, :focus-within) .sg-flink-desc { color: var(--sg-text); }
 
 @media (prefers-reduced-motion: reduce) {
-  .sg-flink-item::before,
-  .sg-flink-icon,
-  .sg-flink-icon img { transition: none; }
+  .sg-flink-item,
+  .sg-flink-shot img,
+  .sg-flink-name,
+  .sg-flink-desc { transition: none; }
 }

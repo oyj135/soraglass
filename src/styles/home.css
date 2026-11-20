@@ -34,11 +34,8 @@ html.dark .sg-nav.is-front .sg-nav-link:is(:hover, :focus-visible) { color: var(
 html.dark .sg-nav.is-front .sg-nav-link::after { background: var(--sg-accent-ink); }
 .sg-nav.is-front .sg-nav-link.is-active { color: #fff; }
 .sg-nav.is-front .sg-nav-more-menu { color: var(--sg-text); }
-html:not(.dark) .sg-nav.is-front { background: var(--sg-wall-surface); border-bottom-color: var(--sg-reading-border); }
-html:not(.dark) .sg-nav.is-front :is(.sg-brand, .sg-brand-accent, .sg-nav-link, .sg-nav-more-btn, .sg-nav-page) { color: var(--sg-accent-deep); text-shadow: none; }
-html:not(.dark) .sg-nav.is-front .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent); }
-html:not(.dark) .sg-nav.is-front .sg-nav-link:is(.is-active)::before,
-html:not(.dark) .sg-nav.is-front .sg-nav-link::after { background: var(--sg-accent); }
+/* 2026-11-19 撤销「日间瓷白导航条」：实底横条把首屏壁纸顶部整条挡住，
+   用户要求回到夜间同款 —— 透明 + 顶部渐隐 scrim，文字压白。 */
 
 /* ---------- 100vh 全屏首屏 ---------- */
 .sg-main--home { padding-top: 0; } /* 首屏自带全高，去掉主容器顶部留白；滚动后由正文区自行留白 */
@@ -173,23 +170,13 @@ html.dark .sg-front-title, html.dark .sg-front-sub { text-shadow: none; animatio
 .sg-front-next svg { width: 1.75rem; height: 1.75rem; animation: sg-front-bob 2s var(--sg-ease) infinite; }
 @keyframes sg-front-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
 @media (prefers-reduced-motion: reduce) { .sg-front-next svg { animation: none; } }
-html:not(.dark) .sg-front::before { content: none; }
-html:not(.dark) .sg-front-inner {
-  padding: clamp(1.75rem, 4vw, 3rem);
-  border: 1px solid var(--sg-reading-border);
-  border-radius: var(--sg-radius-outer);
-  background: var(--sg-wall-surface);
-  color: var(--sg-accent-deep);
-}
+/* 2026-11-19 撤销日间「瓷白阅读层」（用户反馈：白卡把首屏壁纸整块挡住）：
+   去掉 ::before 的 content:none 与 .sg-front-inner 的白底/描边/内边距，
+   遮罩回到基础规则（rgba(0,0,0,.42)，滚动视差 .30→.50，夜间同值），
+   文字与控件沿用夜间那套白字体系，只补一层轻投影兜底可读性。 */
 html:not(.dark) .sg-front-title { text-wrap: balance; }
-html:not(.dark) .sg-front-sub { color: var(--sg-muted); opacity: 1; }
-html:not(.dark) .sg-front-caret { background: currentColor; }
-html:not(.dark) .sg-front-social-link { background: var(--sg-chip); border-color: var(--sg-reading-border); color: var(--sg-accent-deep); }
-html:not(.dark) .sg-front-social-link:hover { background: var(--sg-line); }
-html:not(.dark) .sg-front-read { background: var(--sg-accent); border-color: var(--sg-accent); }
-html:not(.dark) .sg-front-read:is(:hover, :focus-visible) { background: var(--sg-accent-deep); }
-html:not(.dark) .sg-front-next { padding: .5rem 1rem; border: 1px solid var(--sg-reading-border); border-radius: var(--sg-radius-inner); background: var(--sg-wall-surface); color: var(--sg-accent-deep); text-shadow: none; }
-html:not(.dark) .sg-front-next-label { opacity: 1; text-shadow: none; }
+html:not(.dark) .sg-front-title,
+html:not(.dark) .sg-front-sub { text-shadow: 0 2px 24px rgba(0, 0, 0, .5); }
 
 /* ---------- 正文两栏（74% : 26%） ---------- */
 /* 首屏 100vh 与正文之间留呼吸（2026-11-18 视觉改造，源站 .layout padding-top 40px） */
@@ -425,12 +412,20 @@ a.sg-hinfo-kpi-item:hover { background: var(--sg-line); }
 .sg-hinfo-chart { margin-top: .85rem; padding-top: .75rem; border-top: 1px solid var(--sg-line); }
 .sg-hinfo-chart-head { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; margin-bottom: .6rem; font-size: .78rem; font-weight: 600; color: var(--sg-text); }
 .sg-hinfo-chart-sub { font-family: var(--font-sans); font-size: .66rem; font-weight: 400; color: var(--sg-faint); }
-.sg-hinfo-bars { display: flex; align-items: stretch; gap: .3rem; height: 6.5rem; }
-.sg-hinfo-bar { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: .2rem; }
-.sg-hinfo-bar-n { font-family: var(--font-sans); font-size: .62rem; color: var(--sg-muted); }
-.sg-hinfo-bar-track { flex: 1; width: 100%; max-width: 1.4rem; display: flex; align-items: flex-end; }
-.sg-hinfo-bar-track i { display: block; width: 100%; border-radius: .3rem .3rem .15rem .15rem; background: linear-gradient(to top, var(--sg-accent), var(--sg-accent-soft)); }
-.sg-hinfo-bar-y { font-family: var(--font-sans); font-size: .6rem; color: var(--sg-faint); }
+/* 年度产出：源站 .wi-bars（高 50px、gap 6px、柱宽上限 22px、渐变到 30% 透明）
+   + 独立 .wi-years 年份行；数字 10px / 50% 不透明压在柱顶上方 2px。 */
+.sg-hinfo-bars { display: flex; align-items: flex-end; gap: .375rem; height: 3.125rem; }
+.sg-hinfo-bar { flex: 1 1 0; min-width: 0; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; }
+.sg-hinfo-bar-n { font-family: var(--font-sans); font-size: .625rem; line-height: 1.2; margin-bottom: 2px; opacity: .5; color: var(--sg-text); }
+.sg-hinfo-bar-fill {
+  display: block;
+  width: 100%;
+  max-width: 1.375rem;
+  border-radius: 4px 4px 2px 2px;
+  background: linear-gradient(to top, var(--sg-accent), color-mix(in srgb, var(--sg-accent) 30%, transparent));
+}
+.sg-hinfo-years { display: flex; gap: .375rem; margin-top: .25rem; }
+.sg-hinfo-year { flex: 1 1 0; min-width: 0; text-align: center; font-family: var(--font-sans); font-size: .625rem; color: var(--sg-faint); opacity: .85; }
 /* 访客位（对齐 Fomalhaut .wi-visit）：两位大数字 + 标签，busuanzi 回写前显示 — */
 .sg-hinfo-visit { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; margin-top: .85rem; padding-top: .8rem; border-top: 1px solid var(--sg-line); }
 .sg-hinfo-visit-item { display: flex; flex-direction: column; align-items: center; gap: .25rem; padding: .55rem .2rem; border-radius: .6rem; background: var(--sg-chip); }

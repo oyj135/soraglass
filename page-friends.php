@@ -15,9 +15,10 @@ $sgHead = [
     'search' => false,
     'center' => true,
 ];
-/* 友链卡（2026-11-17 第二轮，对齐 Fomalhaut _flink_style/volantis.styl 的 .site-card）：
-   顶部站点截图 + 下方圆头像 / 名称 / 两行简介。截图字段 siteShot 可选，
-   未填时与源站同款走 thum.io 在线截屏；兼容旧JSON，输出时统一转义。 */
+/* 友链卡（2026-11-19 第六轮，改按源站 volantis 形态：_config flink_style: volantis
+   + custom.css 的覆盖）—— 16:10 站点截图在上，下面是圆头像 / 站名（1 行）/ 简介（2 行）。
+   截图字段 siteShot 可选，未填时与源站同款走 thum.io 在线截屏（失败由 onerror 摘掉图区，
+   卡片自动退化为纯文字卡）；兼容旧JSON，输出时统一转义。 */
 $sgString = static function (array $row, string $key, string $fallback = ''): string {
     return isset($row[$key]) && is_scalar($row[$key]) && (string) $row[$key] !== ''
         ? (string) $row[$key] : $fallback;
@@ -46,9 +47,13 @@ $sgFriends = array_map(static function (array $row) use ($sgString): array {
     <?php foreach ($sgFriends as $sgFriend) : ?>
     <div class="sg-flink-item">
       <a href="<?php echo sg_e($sgFriend['url']); ?>" target="_blank" rel="noopener noreferrer" title="<?php echo sg_e($sgFriend['name']); ?>" aria-label="<?php echo sg_e('访问 ' . $sgFriend['name'] . '（新窗口）'); ?>">
-        <span class="sg-flink-icon"><img src="<?php echo sg_e($sgFriend['avatar']); ?>" alt="<?php echo sg_e($sgFriend['name']); ?>" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='<?php echo sg_e(sg_theme_url('dist/img/avatar.svg')); ?>'"></span>
-        <span class="sg-flink-name"><?php echo sg_e($sgFriend['name']); ?></span>
-        <span class="sg-flink-desc" title="<?php echo sg_e($sgFriend['description']); ?>"><?php echo sg_e($sgFriend['description']); ?></span>
+        <?php /* 截图失败（thum.io 超时 / 站点拒绝）时整块摘掉，卡片退回文字卡，不破图 */ ?>
+        <span class="sg-flink-shot"><img src="<?php echo sg_e($sgFriend['siteshot']); ?>" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></span>
+        <span class="sg-flink-info">
+          <span class="sg-flink-icon"><img src="<?php echo sg_e($sgFriend['avatar']); ?>" alt="<?php echo sg_e($sgFriend['name']); ?>" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='<?php echo sg_e(sg_theme_url('dist/img/avatar.svg')); ?>'"></span>
+          <span class="sg-flink-name"><?php echo sg_e($sgFriend['name']); ?></span>
+          <span class="sg-flink-desc" title="<?php echo sg_e($sgFriend['description']); ?>"><?php echo sg_e($sgFriend['description']); ?></span>
+        </span>
       </a>
     </div>
     <?php endforeach; ?>

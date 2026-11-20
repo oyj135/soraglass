@@ -53,8 +53,10 @@ if ($sgName === '') {
 <div class="sg-toast" data-sg-toast role="status" aria-live="polite"></div>
 <?php /* 访客统计（2026-11-16 第三轮，对齐 Fomalhaut 的 busuanzi 方案）：
    异步加载计数镜像，回写 #busuanzi_value_site_uv / site_pv / page_pv；
-   加载失败时占位「—」保留，不阻塞页面也不伪造数字。 */ ?>
-<script async src="https://events.vercount.one/js"></script>
+   加载失败时占位「—」保留，不阻塞页面也不伪造数字。
+   2026-11-19：加 data-sg-counter 标记 —— PJAX 换页后 stats-cache.ts 会摘掉它重新注入，
+   否则文章阅读量永远停在「—」（vercount 只在加载时扫一次 DOM）。 */ ?>
+<script async data-sg-counter src="https://events.vercount.one/js"></script>
 <?php $this->footer(); ?>
 </body>
 </html>

@@ -141,26 +141,6 @@
 .sg-dot:hover::before { background: rgba(255, 255, 255, .90); }
 .sg-dot.is-active::before { width: 1.5rem; background: var(--sg-indigo-soft); }
 
-.sg-carousel-toggle {
-  position: absolute;
-  top: .65rem;
-  right: .65rem;
-  z-index: 31;
-  min-width: 2.75rem;
-  min-height: 2.75rem;
-  padding: .4rem;
-  border: 1px solid var(--sg-border);
-  border-radius: var(--sg-radius-inner);
-  background: var(--sg-card-strong);
-  color: var(--sg-text);
-  font-family: var(--font-sans);
-  font-size: .75rem;
-  cursor: pointer;
-}
-.sg-carousel-toggle[hidden] { display: none; }
-.sg-carousel-toggle:is(:hover, :focus-visible) { color: var(--sg-accent-ink); }
-.sg-post-carousel .sg-carousel-toggle { left: 1.8rem; right: auto; top: 1.8rem; }
-.sg-chatter.has-carousel-controls .sg-chatter-body { padding-right: 4.5rem; }
 .sg-carousel-wheel-hint {
   display: none;
   position: absolute;

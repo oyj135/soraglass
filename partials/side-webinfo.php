@@ -38,14 +38,21 @@ $sgWiFriendsLink = sg_page_exists('friends') ? sg_page_url('friends') : '';
       <span>年度产出</span>
       <span class="sg-hinfo-chart-sub">共 <?php echo (int) $sgWi['writeDays']; ?> 个写作日</span>
     </div>
+    <?php /* 年度产出（2026-11-19 第七轮，逐参数对齐源站 .wi-bars / .wi-years）：
+       柱区固定 50px、无轨道底槽，柱体本身是渐变块（宽度上限 22px、顶部 4px 圆角）；
+       年份是独立一行，不再挤在每根柱子里 —— 源站 card_webinfo.pug:130-137 就是这个结构。 */ ?>
     <div class="sg-hinfo-bars">
       <?php foreach ($sgWi['bars'] as $sgWiBar) : ?>
       <?php $sgWiH = $sgWiBar['count'] > 0 ? max(12, (int) round($sgWiBar['count'] / $sgWiMax * 68)) : 4; ?>
       <div class="sg-hinfo-bar">
         <span class="sg-hinfo-bar-n"><?php echo (int) $sgWiBar['count']; ?></span>
-        <span class="sg-hinfo-bar-track"><i style="height:<?php echo $sgWiH; ?>%<?php echo $sgWiBar['count'] > 0 ? '' : ';opacity:.25'; ?>"></i></span>
-        <span class="sg-hinfo-bar-y"><?php echo (int) $sgWiBar['year']; ?></span>
+        <span class="sg-hinfo-bar-fill" style="height:<?php echo $sgWiH; ?>%<?php echo $sgWiBar['count'] > 0 ? '' : ';opacity:.25'; ?>"></span>
       </div>
+      <?php endforeach; ?>
+    </div>
+    <div class="sg-hinfo-years">
+      <?php foreach ($sgWi['bars'] as $sgWiBar) : ?>
+      <span class="sg-hinfo-year"><?php echo (int) $sgWiBar['year']; ?></span>
       <?php endforeach; ?>
     </div>
   </div>

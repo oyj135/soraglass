@@ -5,7 +5,7 @@ import { pageOn,pageTimeout,onPageDispose } from './lifecycle';
  * [data-sg-interval] 缺省 6000ms，首页文章轮播使用 8000ms（第十七轮降速）。
  *
  * 自动播放保留源站 wait 节奏：每段淡出 / 淡入 800ms。
- * 保留已确认的自动播放与淡入淡出节奏；提供显式暂停 / 继续，
+ * 2026-11-19：移除运行时创建的「暂停 / 继续」按钮（用户要求），自动播放不可停；
  * 桌面支持方向键 / Home / End 与滚轮切换，不新增触摸手势。
  */
 import { reducedMotion } from './runtime';
@@ -41,7 +41,6 @@ function setupCarousel(host: HTMLElement): void {
   let requested = index;
   let pending = 0;
   let timer = 0;
-  let paused = false;
 
   const dots: HTMLButtonElement[] = [];
   let progressFill: HTMLElement | null = null;
@@ -76,27 +75,6 @@ function setupCarousel(host: HTMLElement): void {
     });
   }
 
-  const toggle = document.createElement('button');
-  toggle.type = 'button';
-  toggle.className = 'sg-carousel-toggle';
-  toggle.dataset.sgCarouselToggle = '';
-  host.classList.add('has-carousel-controls');
-  host.appendChild(toggle);
-  const paintToggle = (): void => {
-    toggle.textContent = paused ? '继续' : '暂停';
-    toggle.setAttribute('aria-label', paused ? '继续自动轮播' : '暂停自动轮播');
-    if (reducedMotion() && document.activeElement === toggle) {
-      if (!host.hasAttribute('tabindex')) host.tabIndex = -1;
-      host.focus({ preventScroll: true });
-    }
-    toggle.hidden = reducedMotion();
-  };
-  pageOn(toggle, 'click', () => {
-    paused = !paused;
-    if (paused && pending) jump(requested);
-    paintToggle();
-    restart();
-  });
   const hint = document.createElement('span');
   hint.className = 'sg-carousel-wheel-hint';
   hint.textContent = '滚轮切换 · 移出卡片滚动页面';
@@ -106,7 +84,7 @@ function setupCarousel(host: HTMLElement): void {
     slide.setAttribute('aria-roledescription', '幻灯片');
     slide.setAttribute('aria-label', `第 ${i + 1} 张，共 ${slides.length} 张`);
   });
-  onPageDispose(() => { toggle.remove(); hint.remove(); host.classList.remove('has-carousel-controls'); });
+  onPageDispose(() => { hint.remove(); });
 
   const paintIndicator = (): void => {
     dots.forEach((dot, i) => {
@@ -193,8 +171,8 @@ function setupCarousel(host: HTMLElement): void {
 
   function restart(): void {
     stop();
-    /* 悬停仍照常切换；用户显式暂停后，手动切页与标签页恢复不会重启。 */
-    if (document.hidden || reducedMotion() || paused) return;
+    /* 悬停仍照常切换；手动切页与标签页恢复都重新计时。 */
+    if (document.hidden || reducedMotion()) return;
     timer = pageTimeout(() => {
       timer = 0;
       show(requested + 1);
@@ -243,11 +221,9 @@ function setupCarousel(host: HTMLElement): void {
   });
   pageOn(motion, 'change', () => {
     if (reducedMotion()) jump(requested);
-    paintToggle();
     restart();
   });
 
-  paintToggle();
   jump(index);
   restart();
 }

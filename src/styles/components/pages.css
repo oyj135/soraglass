@@ -8,10 +8,9 @@
 /* ---------- 卡片悬停旋转渐变边框（hereitis「CSS鼠标悬停边框动画」同风格） ----------
    conic-gradient 彩虹描边绕卡片旋转（@property 动画自定义角度）；
    不支持 @property 的浏览器退化为静态渐变描边（不影响布局）。
-   应用范围：知识档案/精选文章卡 + 友链卡 + 项目卡。
-   项目与友链描边使用 ::after。 */
+   应用范围：知识档案/精选文章卡 + 项目卡。
+   友链卡 2026-11-19 起改为源站 volantis 形态，不再挂描边（只留截图 scale）。 */
 .sg-feature-card::before,
-.sg-flink-item::after,
 .sg-project::after {
   content: '';
   position: absolute;
@@ -29,7 +28,6 @@
   pointer-events: none;
 }
 .sg-feature-card:is(:hover, :focus-within)::before,
-.sg-flink-item:is(:hover, :focus-within)::after,
 .sg-project:is(:hover, :focus-within)::after {
   opacity: 1;
   animation: sg-border-spin 3s linear infinite;
@@ -37,7 +35,6 @@
 @keyframes sg-border-spin { to { --sg-angle: 360deg; } }
 @media (prefers-reduced-motion: reduce) {
   .sg-feature-card:is(:hover, :focus-within)::before,
-  .sg-flink-item:is(:hover, :focus-within)::after,
   .sg-project:is(:hover, :focus-within)::after { animation: none; }
 }
 
@@ -62,27 +59,33 @@
 .sg-btn--ghost:hover { background: var(--sg-card-strong); color: var(--sg-accent-ink); }
 
 /* ---------- 页脚 / 分页 / 浮层 ---------- */
-/* 日间固定瓷白底承托全部文字，夜间保留原渐隐底纱。 */
+/* 页脚（2026-11-19 第五轮）：昼夜统一「透明 + 底部渐变暗纱 + 浅色字」。
+   撤销日间瓷白实底（用户反馈整片挡住壁纸，参考源站 #footer 的透明 + 暗罩）：
+   暗纱从底部起、向上羽化到 100%，让状态行 / 分隔线 / 版权三段都落在同一层纱上，
+   不切出被否过的「圆角矩形边界」；夜间沿用原配方不动。 */
 .sg-footer-zone { position: relative; margin-top: 2.5rem; }
-html:not(.dark) .sg-footer-zone { background: var(--sg-wall-surface); border-top: 1px solid var(--sg-reading-border); }
-html.dark .sg-footer-zone::before {
+.sg-footer-zone::before {
   content: '';
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  background: linear-gradient(to top, rgba(10, 13, 28, .62), rgba(10, 13, 28, .34) 58%, rgba(10, 13, 28, .12) 100%);
+}
+html.dark .sg-footer-zone::before {
   background: linear-gradient(to top, rgba(10, 13, 28, .58), rgba(10, 13, 28, 0) 62%);
 }
 
 .sg-footer-wrap { position: relative; z-index: 2; width: 95%; max-width: 72rem; margin-inline: auto; }
 @media (min-width: 768px) { .sg-footer-wrap { width: 90%; } }
 
+/* 文字压在同一条暗纱上：昼夜共用冷白体系（原夜间那版），投影只做对比度补偿 */
 .sg-footer {
   padding: .85rem 1.5rem 1rem;
   text-align: center;
   font-family: var(--font-serif);
-  color: rgba(15, 23, 42, .97);
-  text-shadow: none;
+  color: rgba(255, 255, 255, .76);
+  text-shadow: 0 1px 3px rgba(15, 23, 42, .45), 0 0 14px rgba(15, 23, 42, .22);
 }
 
 .sg-footer p { margin: 0; }
@@ -99,7 +102,7 @@ html.dark .sg-footer-zone::before {
   font-size: .875rem;
   font-weight: 600;
   line-height: 1.6;
-  color: rgba(15, 23, 42, .98);
+  color: rgba(233, 239, 247, .92);
 }
 
 .sg-footer-run { display: inline-flex; align-items: center; gap: .4rem; }
@@ -107,42 +110,24 @@ html.dark .sg-footer-zone::before {
   width: .5rem;
   height: .5rem;
   border-radius: 50%;
-  background: #16a34a;
+  background: var(--sg-green);
   flex: none;
 }
-/* 时长是这一行唯一的彩色项：亮底用压暗的主题色（accent-deep 在花图壁纸上只有 1.9:1），暗底进一档用 indigo-400 */
-.sg-footer-uptime { font-weight: 900; color: color-mix(in srgb, var(--sg-accent) 45%, #000); letter-spacing: .01em; }
-.sg-footer-icp { font-weight: 400; font-size: .8125rem; color: var(--sg-wall-ink); }
+/* 时长是这一行唯一的彩色项：暗底用 indigo-400（亮底时代那版已随瓷白页脚一起下线） */
+.sg-footer-uptime { font-weight: 900; color: var(--sg-indigo-soft); letter-spacing: .01em; }
+.sg-footer-icp { font-weight: 400; font-size: .8125rem; color: rgba(233, 239, 247, .70); }
 
 /* ② 状态行与版权之间的通栏细分隔线（参考图里就是一条 1px 细线） */
 .sg-footer-rule {
   border: 0;
-  border-top: 1px solid rgba(15, 23, 42, .28);
+  border-top: 1px solid rgba(226, 232, 240, .18);
   margin: .9rem 0 0;
   text-shadow: none;
 }
 
 /* ③ 版权两行：13px / 12px，只用字重区分主次 */
 .sg-footer-copy { margin-top: .9rem; font-size: .8125rem; font-weight: 500; line-height: 1.6; letter-spacing: .01em; }
-.sg-footer-powered { margin-top: .25rem; font-size: .75rem; line-height: 1.6; padding-bottom: 3.2rem; }
-/* 文字主次以色值和字号区分，全部使用实色；底部留出悬浮控件空间。 */
-html:not(.dark) .sg-footer { padding-block: 1.75rem 1.5rem; color: var(--sg-muted); -webkit-text-stroke: 0; }
-html:not(.dark) .sg-footer-status { color: var(--sg-text); font-weight: 500; line-height: 1.9; }
-html:not(.dark) .sg-footer-uptime { color: var(--sg-accent-deep); font-weight: 700; }
-html:not(.dark) .sg-footer-icp { color: var(--sg-muted); font-size: .875rem; }
-html:not(.dark) .sg-footer-copy { margin-top: .9rem; color: var(--sg-text); font-size: .9375rem; font-weight: 700; }
-html:not(.dark) .sg-footer-powered { margin-top: .25rem; color: var(--sg-muted); font-size: .8125rem; font-weight: 400; padding-bottom: calc(3.2rem + env(safe-area-inset-bottom, 0px)); }
-html:not(.dark) .sg-footer-rule { border-top-color: var(--sg-reading-border); }
-/* 深色模式 = 用户截图里的那版：冷白字 + 靛蓝时长 + 亮分隔线 */
-html.dark .sg-footer {
-  color: rgba(255, 255, 255, .76);
-  text-shadow: 0 1px 3px rgba(15, 23, 42, .45), 0 0 14px rgba(15, 23, 42, .22);
-}
-html.dark .sg-footer-status { color: rgba(233, 239, 247, .92); }
-html.dark .sg-footer-dot { background: var(--sg-green); }
-html.dark .sg-footer-uptime { color: var(--sg-indigo-soft); }
-html.dark .sg-footer-icp { color: rgba(233, 239, 247, .70); }
-html.dark .sg-footer-rule { border-top-color: rgba(226, 232, 240, .18); }
+.sg-footer-powered { margin-top: .25rem; font-size: .75rem; line-height: 1.6; padding-bottom: calc(3.2rem + env(safe-area-inset-bottom, 0px)); }
 
 /* 窄屏：字号整体再降一档（14px 在 390px 上仍略宽，状态行与备案号会换行） */
 @media (max-width: 767.98px) {

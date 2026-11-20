@@ -178,20 +178,18 @@
   --sg-album-paper: #fff;
   --sg-album-shadow: 0 10px 24px rgb(16 37 48 / .14);
 
-  /* 独立通栏歌词卡（2026-11-17 用户指定）：昼夜都用夜间配方 —— 深色底 + 青色波纹
-     与文字辉光，不再跟随日间变浅色。 */
-  /* 歌词条（2026-11-18 第十五轮）：日间不再是黑条，改为与音乐卡日间同构的浅色卡 ——
-     卡面取 --sg-card，字走正文墨色，五根波形/音符落到深青三档（浅底上浅青等于没画）。
-     原 `0 0 8px` 主色发光只服务于深底，浅底上会糊成一团，日间直接关掉。 */
+  /* 歌词条（2026-11-19 第八轮）：用户要求卡面与其他卡片一致 —— 底色/描边/阴影
+     全部对齐 .sg-hcard（--sg-card / --sg-card-border / --sg-shadow），
+     不再自带深色底或独立阴影档；文字随正文墨色。 */
   --sg-lyric-bg: var(--sg-card);
-  --sg-lyric-border: rgba(13, 43, 51, .10);
+  --sg-lyric-border: var(--sg-card-border);
   --sg-lyric-text: var(--sg-text);
   --sg-lyric-wave-a: var(--sg-accent);
   --sg-lyric-wave-b: var(--sg-accent-2);
   --sg-lyric-wave-c: var(--sg-accent-deep);
   --sg-lyric-icon: var(--sg-accent);
   --sg-lyric-text-shadow: none;
-  --sg-lyric-shadow: 0 8px 24px -16px rgb(7 17 27 / .22);
+  --sg-lyric-shadow: var(--sg-shadow);
 
   /* 歌词条的星空层（2026-11-18 第十四轮）不再自带 token：改为复用音乐卡的
      `--sg-spark-dots`（9 颗星点坐标，声明在 components.css 的 .sg-player-card/.sg-lyric-bar）。
@@ -309,16 +307,17 @@ html.dark {
   /* 头像描边跟着卡片底色走，暗色下用深灰青才不刺眼 */
   --sg-ring: #14181d;
 
-  /* 歌词栏暗色换中性墨青（波形/辉光走 accent 族自动跟随） */
-  --sg-lyric-bg: rgba(8, 12, 14, .98);
-  --sg-lyric-border: rgba(255, 255, 255, .10);
-  --sg-lyric-text: #fff;
+  /* 歌词栏夜间同样跟随卡片（2026-11-19）：卡面/描边/阴影不再单开一档，
+     只保留波形与音符的亮色档（深底上深青会糊）。 */
+  --sg-lyric-bg: var(--sg-card);
+  --sg-lyric-border: var(--sg-card-border);
+  --sg-lyric-text: var(--sg-text);
   --sg-lyric-wave-a: var(--sg-accent-soft);
   --sg-lyric-wave-b: var(--sg-accent-pale);
   --sg-lyric-wave-c: var(--sg-accent-2);
   --sg-lyric-icon: var(--sg-accent-soft);
   --sg-lyric-text-shadow: 0 0 8px color-mix(in srgb, var(--sg-accent) 80%, transparent);
-  --sg-lyric-shadow: 0 25px 50px -12px rgb(0 0 0 / .25);
+  --sg-lyric-shadow: var(--sg-shadow);
 
   /* 图片浮层控件：独立层，只把色温贴到中性墨青，透明度不动 */
   --sg-indicator-bg: rgba(8, 12, 14, .44);
