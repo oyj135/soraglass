@@ -62,6 +62,15 @@ export function initSidebarData(): void {
     }
   };
 
+  /** 底部虚线附加行：节气与日出日落都为空时整行收起（源站 extraHTML 无内容即返回空串）。 */
+  const syncExtra = (): void => {
+    const extra = root.querySelector<HTMLElement>('[data-sg-calendar-extra]');
+    if (!extra) return;
+    const term = extra.querySelector<HTMLElement>('[data-sg-calendar-term]');
+    const sun = extra.querySelector<HTMLElement>('[data-sg-sun]');
+    extra.hidden = !(term?.textContent ?? '').trim() && (!sun || sun.hidden);
+  };
+
   const paintContext = (data: Context): void => {
     paintLocation(data.location);
     const sun = root.querySelector<HTMLElement>('[data-sg-sun]');
@@ -69,11 +78,11 @@ export function initSidebarData(): void {
       sun.hidden = data.sun.status !== 'ok';
       if (!sun.hidden) {
         sun.title = `${data.sun.city ?? ''} · ${data.sun.timezone ?? ''} · ${data.sun.date ?? ''} · 天文估算`;
-        put(sun, '[data-sg-sun-city]', data.sun.city ?? '');
-        put(sun, '[data-sg-sun-rise]', `日出 ${data.sun.rise ?? '—'}`);
-        put(sun, '[data-sg-sun-set]', `日落 ${data.sun.set ?? '—'}`);
+        put(sun, '[data-sg-sun-rise]', `☀️ ${data.sun.rise ?? '—'}`);
+        put(sun, '[data-sg-sun-set]', `🌙 ${data.sun.set ?? '—'}`);
       }
     }
+    syncExtra();
     if (!weather) return;
     const current = data.weather;
     const valid = current.status === 'ok' && typeof current.temperature === 'number' && typeof current.humidity === 'number' && typeof current.condition === 'string';
@@ -105,12 +114,11 @@ export function initSidebarData(): void {
     const key = dateKey(date);
     const facts = calendarFacts(date);
     if (calendar && key !== lastDay) {
-      put(calendar, '[data-sg-calendar-day]', String(date.day));
-      put(calendar, '[data-sg-calendar-ym]', `${date.year} 年 ${date.month} 月`);
-      put(calendar, '[data-sg-calendar-week]', `第${facts.week}周 · 周${WEEKDAYS[facts.weekday]}`);
-      put(calendar, '[data-sg-calendar-doy]', `第 ${facts.dayOfYear} 天`);
-      put(calendar, '[data-sg-calendar-today]', `今天 · ${date.month} 月 ${date.day} 日`);
-      put(calendar, '[data-sg-calendar-weekday]', `星期${WEEKDAYS[facts.weekday]}`);
+      put(calendar, '[data-sg-calendar-day]', String(date.day).padStart(2, '0'));
+      put(calendar, '[data-sg-calendar-ym]', `${date.year}年${date.month}月`);
+      put(calendar, '[data-sg-calendar-week]', `第${facts.week}周 周${WEEKDAYS[facts.weekday]}`);
+      put(calendar, '[data-sg-calendar-doy]', `第${facts.dayOfYear}天`);
+      calendar.title = `${date.year}年${date.month}月${date.day}日 星期${WEEKDAYS[facts.weekday]}`;
       const table = calendar.querySelector<HTMLTableElement>('.sg-hcal-grid');
       const tbody = table?.tBodies[0];
       if (tbody) {
@@ -124,7 +132,12 @@ export function initSidebarData(): void {
             const day = row * 7 + col - first + 1;
             const cell = document.createElement('td'); cell.className = 'sg-hcal-cell';
             if (day < 1 || day > days) cell.classList.add('is-empty');
-            else { cell.textContent = String(day); if (day === date.day) { cell.classList.add('is-today'); cell.setAttribute('aria-current', 'date'); } }
+            else {
+              const label = document.createElement('span');
+              label.textContent = String(day);
+              cell.append(label);
+              if (day === date.day) { cell.classList.add('is-today'); cell.setAttribute('aria-current', 'date'); }
+            }
             tr.append(cell);
           }
           fragment.append(tr);
@@ -138,7 +151,14 @@ export function initSidebarData(): void {
         const lunar = lunarFacts(date, calendarLibrary);
         if (cfg.detail && calendar) {
           put(calendar, '[data-sg-calendar-lunar]', lunar.label);
-          put(calendar, '[data-sg-calendar-term]', lunar.term);
+          // 节气名单独加粗（对应源站 .cal-term 的 <em>），前缀保持常规字重。
+          const term = calendar.querySelector<HTMLElement>('[data-sg-calendar-term]');
+          if (term && term.dataset.sgTerm !== lunar.term) {
+            const name = document.createElement('strong');
+            name.textContent = lunar.termName;
+            term.replaceChildren(lunar.term.slice(0, lunar.term.length - lunar.termName.length), name);
+            term.dataset.sgTerm = lunar.term;
+          }
         }
         target = lunar.festival ?? target;
       } catch {
@@ -146,17 +166,18 @@ export function initSidebarData(): void {
       }
     }
     if (countdown) {
-      put(countdown, '[data-sg-cd-date]', target?.date ?? '日期待更新');
+      put(countdown, '[data-sg-cd-date]', target ? (target.days === 0 ? '就是今天' : target.date) : '日期待更新');
       put(countdown, '[data-sg-cd-days]', target ? String(target.days) : '—');
       countdown.dataset.sgCdTarget = target?.date ?? '';
       countdown.querySelectorAll<HTMLElement>('.sg-hcd-row').forEach((row, index) => {
         const progress = facts.progress[index];
         const bar = row.querySelector<HTMLElement>('.sg-hcd-bar i');
         if (bar) bar.style.width = `${progress.percent}%`;
-        put(row, 'em', `${progress.percent}%`);
-        put(row, '[data-sg-cd-remaining]', `剩 ${progress.remaining} 天`);
+        put(row, 'em', `${progress.percent.toFixed(2)}%`);
+        put(row, '[data-sg-cd-remaining]', `还剩 ${progress.remaining} 天`);
       });
     }
+    syncExtra();
     lastDay = key;
     if (welcome) {
       const hour = now.getHours();

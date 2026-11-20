@@ -50,7 +50,9 @@ function sg_sidebar_date(?DateTimeImmutable $now = null): array
     $progress = [];
     foreach ([[$yearStart, $yearStart->modify('+1 year')], [$monthStart, $monthStart->modify('+1 month')], [$monday, $monday->modify('+7 days')]] as [$start, $end]) {
         $a = $ordinal($start); $b = $ordinal($end);
-        $progress[] = ['percent' => (int) round(($day + $fraction - $a) / ($b - $a) * 100), 'remaining' => $b - $day - 1];
+        // 两位小数：与源站 aside-calendar.js 的 (Math.round(pct*10000)/100) 逐位一致，
+        // 60 秒刷新时进度条才会缓慢前移；整数会让它在 1% 刻度上停住。
+        $progress[] = ['percent' => round(max(0, min(100, ($day + $fraction - $a) / ($b - $a) * 100)), 2), 'remaining' => $b - $day - 1];
     }
     $dates = ['2026-02-17', '2027-02-06', '2028-01-26', '2029-02-13', '2030-02-03', '2031-01-23', '2032-02-11', '2033-01-31', '2034-02-19'];
     $target = null;
@@ -224,11 +226,9 @@ function sg_sidebar_sun(?array $city, ?DateTimeImmutable $now = null): array
     try { $timezone = new DateTimeZone($city['timezone']); } catch (Throwable $e) { return ['status' => 'unavailable']; }
     $today = ($now ?? new DateTimeImmutable('now'))->setTimezone($timezone)->setTime(0, 0);
     $sun = date_sun_info($today->getTimestamp(), $coords['latitude'], $coords['longitude']);
-    $format = static function ($value) use ($timezone): string {
-        if ($value === true) return '极昼';
-        if ($value === false) return '极夜';
-        return (new DateTimeImmutable('@' . (int) $value))->setTimezone($timezone)->format('H:i');
-    };
+    // 极昼极夜（true/false）不输出该行，与源站 sunTimes 返回 null 的处理一致。
+    if (!is_int($sun['sunrise']) || !is_int($sun['sunset'])) return ['status' => 'unavailable', 'reason' => 'polar'];
+    $format = static fn(int $value): string => (new DateTimeImmutable('@' . $value))->setTimezone($timezone)->format('H:i');
     return ['status' => 'ok', 'date' => $today->format('Y-m-d'), 'timezone' => $timezone->getName(), 'city' => $city['city'], 'rise' => $format($sun['sunrise']), 'set' => $format($sun['sunset'])];
 }
 

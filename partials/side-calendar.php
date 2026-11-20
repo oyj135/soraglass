@@ -1,6 +1,10 @@
 <?php
 /**
- * 首页日期首帧；sidebar-data.ts 增强农历/节气、跨天刷新及天气。
+ * 首页日期卡首帧。结构对齐源站 aside-calendar.js 的 renderToday()：
+ *   左栏 44%（周次 星期 → 大日期 → 年月 第N天 → 农历）+ 右栏当月月历
+ *   → 底部一条虚线附加行（节气 · 日出日落）→ 可选天气块。
+ * sidebar-data.ts 负责农历/节气、跨天刷新及天气。
+ * 卡片标题行是 Soraglass 自有语言（源站两卡隐藏 item-headline），已与用户确认保留。
  */
 $sgSideCfg = sg_sidebar_cfg();
 $sgCalNow = sg_sidebar_date()['now'];
@@ -10,45 +14,49 @@ $sgCalToday = (int) $sgCalNow->format('j');
 $sgCalDaysInMonth = (int) $sgCalNow->format('t');
 $sgCalFirstWeekday = (int) $sgCalNow->setDate($sgCalYear, $sgCalMonth, 1)->format('w');
 $sgCalWeekNames = ['日', '一', '二', '三', '四', '五', '六'];
+$sgCalWeekday = (int) $sgCalNow->format('w');
+$sgCalTitle = $sgCalYear . '年' . $sgCalMonth . '月' . $sgCalToday . '日 星期' . $sgCalWeekNames[$sgCalWeekday];
 ?>
-<section class="sg-hcard sg-hcal" aria-label="本月日历" data-sg-calendar>
+<section class="sg-hcard sg-hcal" aria-label="本月日历" data-sg-calendar title="<?php echo sg_e($sgCalTitle); ?>">
   <noscript><style>[data-sg-calendar-lunar], [data-sg-calendar-term], [data-sg-weather] { display: none; }</style></noscript>
   <div class="sg-hcard-head">
     <span class="sg-hcard-title"><?php echo sg_icon_color('calendar'); ?>日历</span>
-    <span class="sg-hcal-ym" data-sg-calendar-week>第<?php echo $sgCalNow->format('W'); ?>周 · 周<?php echo $sgCalWeekNames[(int) $sgCalNow->format('w')]; ?></span>
   </div>
-  <?php if ($sgSideCfg['detail']) : ?>
-  <div class="sg-hcal-summary">
-    <span class="sg-hcal-day" data-sg-calendar-day><?php echo $sgCalToday; ?></span>
-    <div><span class="sg-hcal-month" data-sg-calendar-ym><?php echo $sgCalYear; ?> 年 <?php echo $sgCalMonth; ?> 月</span><span class="sg-hcal-doy" data-sg-calendar-doy>第 <?php echo (int) $sgCalNow->format('z') + 1; ?> 天</span><span class="sg-hcal-lunar" data-sg-calendar-lunar>农历与节气加载中</span></div>
-  </div>
-  <?php else : ?>
-  <span class="sg-hcal-ym" data-sg-calendar-ym><?php echo $sgCalYear; ?> 年 <?php echo $sgCalMonth; ?> 月</span>
-  <?php endif; ?>
-  <table class="sg-hcal-grid" aria-label="<?php echo $sgCalYear; ?>年<?php echo $sgCalMonth; ?>月">
-    <thead><tr>
-    <?php foreach ($sgCalWeekNames as $sgCalW) : ?>
-    <th class="sg-hcal-wd" scope="col"><?php echo $sgCalW; ?></th>
-    <?php endforeach; ?>
-    </tr></thead>
-    <tbody>
-    <?php for ($sgCalRow = 0; $sgCalRow < (int) ceil(($sgCalFirstWeekday + $sgCalDaysInMonth) / 7); $sgCalRow++) : ?>
-    <tr>
-      <?php for ($sgCalCol = 0; $sgCalCol < 7; $sgCalCol++) : ?>
-      <?php $sgCalD = $sgCalRow * 7 + $sgCalCol - $sgCalFirstWeekday + 1; ?>
-      <?php if ($sgCalD < 1 || $sgCalD > $sgCalDaysInMonth) : ?>
-      <td class="sg-hcal-cell is-empty"></td>
-      <?php else : ?>
-      <td class="sg-hcal-cell<?php echo $sgCalD === $sgCalToday ? ' is-today' : ''; ?>"<?php echo $sgCalD === $sgCalToday ? ' aria-current="date"' : ''; ?>><?php echo $sgCalD; ?></td>
+  <div class="sg-hcal-main">
+    <div class="sg-hcal-left<?php echo $sgSideCfg['detail'] ? '' : ' is-slim'; ?>">
+      <?php if ($sgSideCfg['detail']) : ?>
+      <span class="sg-hcal-week" data-sg-calendar-week>第<?php echo $sgCalNow->format('W'); ?>周 周<?php echo $sgCalWeekNames[$sgCalWeekday]; ?></span>
+      <span class="sg-hcal-day" data-sg-calendar-day><?php echo sprintf('%02d', $sgCalToday); ?></span>
       <?php endif; ?>
+      <span class="sg-hcal-solar"><span data-sg-calendar-ym><?php echo $sgCalYear; ?>年<?php echo $sgCalMonth; ?>月</span><?php if ($sgSideCfg['detail']) : ?> <span data-sg-calendar-doy>第<?php echo (int) $sgCalNow->format('z') + 1; ?>天</span><?php endif; ?></span>
+      <?php if ($sgSideCfg['detail']) : ?><span class="sg-hcal-lunar" data-sg-calendar-lunar>农历加载中</span><?php endif; ?>
+    </div>
+    <table class="sg-hcal-grid" aria-label="<?php echo $sgCalYear; ?>年<?php echo $sgCalMonth; ?>月">
+      <thead><tr>
+      <?php foreach ($sgCalWeekNames as $sgCalW) : ?>
+      <th class="sg-hcal-wd" scope="col"><?php echo $sgCalW; ?></th>
+      <?php endforeach; ?>
+      </tr></thead>
+      <tbody>
+      <?php for ($sgCalRow = 0; $sgCalRow < (int) ceil(($sgCalFirstWeekday + $sgCalDaysInMonth) / 7); $sgCalRow++) : ?>
+      <tr>
+        <?php for ($sgCalCol = 0; $sgCalCol < 7; $sgCalCol++) : ?>
+        <?php $sgCalD = $sgCalRow * 7 + $sgCalCol - $sgCalFirstWeekday + 1; ?>
+        <?php if ($sgCalD < 1 || $sgCalD > $sgCalDaysInMonth) : ?>
+        <td class="sg-hcal-cell is-empty"></td>
+        <?php else : ?>
+        <td class="sg-hcal-cell<?php echo $sgCalD === $sgCalToday ? ' is-today' : ''; ?>"<?php echo $sgCalD === $sgCalToday ? ' aria-current="date"' : ''; ?>><span><?php echo $sgCalD; ?></span></td>
+        <?php endif; ?>
+        <?php endfor; ?>
+      </tr>
       <?php endfor; ?>
-    </tr>
-    <?php endfor; ?>
-    </tbody>
-  </table>
-  <div class="sg-hcal-foot"><span class="sg-hcal-today" data-sg-calendar-today>今天 · <?php echo $sgCalMonth; ?> 月 <?php echo $sgCalToday; ?> 日</span><span class="sg-hcal-week" data-sg-calendar-weekday>星期<?php echo $sgCalWeekNames[(int) $sgCalNow->format('w')]; ?></span></div>
-  <?php if ($sgSideCfg['detail']) : ?><div class="sg-hcal-term" data-sg-calendar-term></div><?php endif; ?>
-  <div class="sg-hcal-sun" data-sg-sun hidden><span data-sg-sun-city></span><span data-sg-sun-rise></span><span data-sg-sun-set></span></div>
+      </tbody>
+    </table>
+  </div>
+  <div class="sg-hcal-extra" data-sg-calendar-extra hidden>
+    <?php if ($sgSideCfg['detail']) : ?><span class="sg-hcal-term" data-sg-calendar-term></span><?php endif; ?>
+    <span class="sg-hcal-sun" data-sg-sun hidden><span data-sg-sun-rise></span><span data-sg-sun-set></span></span>
+  </div>
   <?php if ($sgSideCfg['weather']) : ?>
   <div class="sg-hweather" data-sg-weather data-state="loading">
     <div class="sg-hweather-main">

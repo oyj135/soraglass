@@ -328,39 +328,32 @@ html.dark .sg-hcard { background-color: var(--sg-card); background-image: var(--
 }
 .sg-hcard-title svg { width: .95rem; height: .95rem; }
 
-/* ---------- 日历卡 ---------- */
-.sg-sidebar-data { display: flex; flex-direction: column; gap: 1.5rem; min-width: 0; }
-.sg-hcal [hidden], .sg-hweather [hidden] { display: none; }
-.sg-hcal-summary { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; min-height: 5rem; }
-.sg-hcal-day { flex: none; min-width: 1.4em; color: var(--sg-accent-ink); font-size: 3rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
-.sg-hcal-summary > div { display: flex; flex-direction: column; gap: .3rem; min-width: 0; }
-.sg-hcal-month { font-size: .86rem; color: var(--sg-text); }
-.sg-hcal-doy, .sg-hcal-lunar { font-size: .72rem; color: var(--sg-muted); }
-.sg-hcal-lunar { min-height: 1.5em; }
-.sg-hcal-ym { font-family: var(--font-sans); font-size: .7rem; color: var(--sg-faint); letter-spacing: .02em; }
-.sg-hcal-grid { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: .15rem; text-align: center; }
-.sg-hcal-wd { font-family: var(--font-sans); font-size: .66rem; font-weight: 400; color: var(--sg-faint); padding-bottom: .35rem; }
-.sg-hcal-cell {
-  height: 2.25rem;
-  vertical-align: middle;
-  font-family: var(--font-sans);
-  font-size: .72rem;
-  color: var(--sg-muted);
-  border-radius: .45rem;
-}
+/* ---------- 日历卡（对齐源站 aside-calendar.css：左栏 44% 文本 + 右栏月历 + 底部虚线附加行） ---------- */
+/* 两张卡间距收到 12px、内边距 14/15px，与源站 #aside-calendar / #aside-countdown 同参数。
+   只作用于这两张卡，作者/音乐/欢迎/资讯卡的内边距不动。 */
+.sg-sidebar-data { display: flex; flex-direction: column; gap: .75rem; min-width: 0; }
+.sg-hcal, .sg-hcd { padding: .875rem .9375rem; }
+.sg-hcal .sg-hcard-head, .sg-hcd .sg-hcard-head { margin-bottom: .55rem; }
+.sg-hcal [hidden], .sg-hweather [hidden], .sg-hcd [hidden] { display: none; }
+.sg-hcal-main { display: flex; align-items: flex-start; gap: .5rem; }
+.sg-hcal-left { flex: 0 0 44%; min-width: 0; display: flex; flex-direction: column; align-items: center; align-self: center; text-align: center; }
+.sg-hcal-left.is-slim { align-self: flex-start; }
+.sg-hcal-week { font-family: var(--font-sans); font-size: .82rem; font-weight: 600; line-height: 1.3; color: var(--sg-text); white-space: nowrap; }
+.sg-hcal-day { font-size: 2.3rem; font-weight: 700; line-height: 1.08; color: var(--sg-accent-ink); font-variant-numeric: tabular-nums; }
+.sg-hcal-solar { display: block; max-width: 100%; font-family: var(--font-sans); font-size: .72rem; line-height: 1.45; color: var(--sg-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sg-hcal-solar span + span { color: var(--sg-muted); }
+.sg-hcal-lunar { display: block; max-width: 100%; font-size: .72rem; line-height: 1.45; color: var(--sg-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sg-hcal-grid { flex: 1 1 auto; min-width: 0; table-layout: fixed; border-collapse: collapse; text-align: center; font-family: var(--font-sans); font-size: .68rem; }
+.sg-hcal-wd { font-weight: 400; color: var(--sg-faint); padding-bottom: 2px; font-size: .95em; }
+.sg-hcal-cell { height: 1.68em; padding: 0; vertical-align: middle; color: var(--sg-text); font-variant-numeric: tabular-nums; }
+.sg-hcal-cell > span { display: flex; margin: 0 auto; align-items: center; justify-content: center; width: 1.68em; height: 1.68em; border-radius: 50%; line-height: 1; }
 .sg-hcal-cell.is-empty { visibility: hidden; }
-.sg-hcal-cell.is-today {
-  color: #fff;
-  font-weight: 700;
-  background: var(--sg-accent);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--sg-accent) 40%, transparent);
-}
-.sg-hcal-foot { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-top: .85rem; padding-top: .7rem; border-top: 1px solid var(--sg-line); font-family: var(--font-sans); font-size: .7rem; color: var(--sg-muted); }
-.sg-hcal-today { color: var(--sg-accent-ink); font-weight: 600; }
-
-.sg-hcal-term { min-height: 1.5em; margin-top: .65rem; font-size: .78rem; color: var(--sg-accent-ink); }
-.sg-hcal-sun { display: flex; flex-wrap: wrap; gap: .3rem .55rem; margin-top: .45rem; font-size: .72rem; color: var(--sg-muted); }
-.sg-hcal-sun > :first-child { flex-basis: 100%; color: var(--sg-text); }
+.sg-hcal-cell.is-today > span { color: #fff; font-weight: 600; background: var(--sg-accent); box-shadow: 0 1px 4px color-mix(in srgb, var(--sg-accent) 40%, transparent); }
+/* 附加行：源站 .cal-extra（虚线上边线 + 居中 + 节气在前、日出日落在后） */
+.sg-hcal-extra { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .25rem .75rem; margin-top: .5rem; padding-top: .44rem; border-top: 1px dashed color-mix(in srgb, var(--sg-accent) 22%, var(--sg-line)); font-size: .72rem; color: var(--sg-muted); white-space: nowrap; }
+.sg-hcal-term { font-size: .78rem; color: var(--sg-muted); }
+.sg-hcal-term strong { font-weight: 700; color: var(--sg-accent-ink); }
+.sg-hcal-sun { display: inline-flex; gap: .7rem; }
 .sg-hweather { margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--sg-line); min-height: 6rem; }
 .sg-hweather-main { display: flex; align-items: center; gap: .35rem; font-size: .85rem; color: var(--sg-text); }
 .sg-hweather-icon { flex: none; display: inline-flex; width: 1.35rem; height: 1.35rem; }
@@ -381,22 +374,26 @@ html.dark .sg-hcard { background-color: var(--sg-card); background-image: var(--
 .sg-hwelcome-refresh:disabled { opacity: .6; cursor: default; }
 [data-sg-welcome-feedback] { color: var(--sg-muted); font-size: .72rem; line-height: 1.6; }
 
-/* ---------- 春节倒计时卡 ---------- */
-.sg-hcd-date { font-family: var(--font-sans); font-size: .7rem; color: var(--sg-faint); }
-.sg-hcd-main { display: flex; align-items: center; gap: .75rem; }
-.sg-hcd-left { flex: 0 0 30%; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; text-align: center; }
-.sg-hcd-label { flex: 0 0 100%; font-size: .72rem; color: var(--sg-muted); }
-/* 2026-11-19 第二阶段：进度条与数字仪表化——数字统一等宽字形，进度条走
-   青瓷渐变，与年度柱状 .sg-hinfo-bar-track i 同一套语言。 */
-.sg-hcd-num { font-size: 2em; font-weight: 700; line-height: 1.1; color: var(--sg-accent-ink); font-variant-numeric: tabular-nums; }
-.sg-hcd-unit { font-size: .7rem; color: var(--sg-muted); margin-left: .15rem; }
-.sg-hcd-rows { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .4rem; }
-.sg-hcd-row { display: flex; align-items: center; flex-wrap: wrap; gap: .2rem .4rem; font-family: var(--font-sans); font-size: .68rem; color: var(--sg-muted); }
-.sg-hcd-remaining { flex-basis: 100%; text-align: end; font-size: .65rem; color: var(--sg-faint); }
-.sg-hcd-rlabel { flex: 0 0 2.2em; }
-.sg-hcd-bar { flex: 1; height: .5rem; border-radius: .35rem; background: var(--sg-chip); overflow: hidden; }
-.sg-hcd-bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--sg-accent-deep), var(--sg-accent-soft)); }
-.sg-hcd-row em { flex: 0 0 2.4em; text-align: right; font-style: normal; }
+/* ---------- 春节倒计时卡（对齐源站 #aside-countdown：左栏 30% 居中，百分比与还剩天数嵌在条内） ---------- */
+.sg-hcd-main { display: flex; align-items: center; gap: 0 .625rem; }
+.sg-hcd-left { flex: 0 0 30%; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.sg-hcd-label { font-family: var(--font-sans); font-size: .72rem; line-height: 1.3; color: var(--sg-muted); white-space: nowrap; }
+/* 数字等宽字形；源站把「天」隐藏并把目标日期放在数字下方，这里同版式。 */
+.sg-hcd-num { font-size: 2rem; font-weight: 700; line-height: 1.05; color: var(--sg-accent-ink); font-variant-numeric: tabular-nums; }
+.sg-hcd-date { font-family: var(--font-sans); font-size: .72rem; line-height: 1.3; color: var(--sg-muted); white-space: nowrap; }
+.sg-hcd-rows { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .3rem; }
+.sg-hcd-row { display: flex; align-items: center; gap: .3rem; font-family: var(--font-sans); font-size: .68rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.sg-hcd-rlabel { flex: 0 0 2.25em; color: var(--sg-text); }
+.sg-hcd-bar { position: relative; flex: 1 1 auto; min-width: 0; height: 1.8em; border-radius: .45em; background: var(--sg-chip); overflow: hidden; }
+/* 填充按源站 34% 上下的浓度走：条内要压「百分比」和「还剩 N 天」两段文字，
+   满色渐变会把右侧文字吃掉（88% 那一行尤其明显）。 */
+.sg-hcd-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: inherit; background: linear-gradient(90deg, color-mix(in srgb, var(--sg-accent) 62%, transparent), color-mix(in srgb, var(--sg-accent) 26%, transparent)); transition: width .6s var(--sg-ease); }
+.sg-hcd-bar em { position: relative; z-index: 1; display: block; padding-left: .55em; line-height: 1.8em; font-style: normal; font-weight: 600; color: var(--sg-text); }
+.sg-hcd-bar b { position: absolute; z-index: 1; right: .55em; top: 0; line-height: 1.8em; font-weight: 400; color: var(--sg-muted); text-shadow: 0 0 3px var(--sg-card); }
+/* 窄屏侧栏是整宽，内容别拉太散（源站同款 380px 上限） */
+@media (max-width: 900px) {
+  .sg-hcal-main, .sg-hcd-main { max-width: 380px; margin: 0 auto; }
+}
 
 /* ---------- 小站资讯卡（对齐 Fomalhaut card_webinfo 新版：KPI + 时间条 + 年度产出柱状） ---------- */
 .sg-hinfo-kpi { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }

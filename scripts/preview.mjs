@@ -372,7 +372,7 @@ const featureCard = (title, desc, ago, cat, tags) => `
   </div>
 </article>`;
 
-/* 侧栏日历：与 side-calendar.php 同构，按本机当月生成 */
+/* 侧栏日历：与 side-calendar.php 同构（左栏 44% 文本 + 右栏表格月历 + 底部虚线附加行） */
 const calNow = new Date();
 const calY = calNow.getFullYear();
 const calM = calNow.getMonth() + 1;
@@ -380,42 +380,65 @@ const calD = calNow.getDate();
 const calDays = new Date(calY, calM, 0).getDate();
 const calFirst = new Date(calY, calM - 1, 1).getDay();
 const calWd = ['日', '一', '二', '三', '四', '五', '六'];
+const calWeek = (() => {
+  const t = new Date(calY, calM - 1, calD);
+  t.setDate(t.getDate() - ((t.getDay() + 6) % 7) + 3);
+  const isoYear = t.getFullYear();
+  const jan4 = new Date(isoYear, 0, 4);
+  const week1 = new Date(isoYear, 0, 4 - ((jan4.getDay() + 6) % 7) + 3);
+  return 1 + Math.round((t - week1) / 604800000);
+})();
+const calDoy = Math.round((new Date(calY, calM - 1, calD) - new Date(calY, 0, 1)) / 86400000) + 1;
+const calRows = Array.from({ length: Math.ceil((calFirst + calDays) / 7) }, (_, row) => `<tr>${Array.from({ length: 7 }, (_, col) => {
+  const day = row * 7 + col - calFirst + 1;
+  if (day < 1 || day > calDays) return '<td class="sg-hcal-cell is-empty"></td>';
+  const today = day === calD;
+  return `<td class="sg-hcal-cell${today ? ' is-today' : ''}"${today ? ' aria-current="date"' : ''}><span>${day}</span></td>`;
+}).join('')}</tr>`).join('');
 const calendar = `
-<section class="sg-hcard sg-hcal" aria-label="本月日历">
+<section class="sg-hcard sg-hcal" aria-label="本月日历" data-sg-calendar title="${calY}年${calM}月${calD}日 星期${calWd[calNow.getDay()]}">
   <div class="sg-hcard-head">
     <span class="sg-hcard-title">${icons.calendar}日历</span>
-    <span class="sg-hcal-ym">${calY} 年 ${calM} 月</span>
   </div>
-  <div class="sg-hcal-grid" role="grid" aria-label="${calY}年${calM}月">
-    ${calWd.map((w) => `<span class="sg-hcal-wd" role="columnheader">${w}</span>`).join('')}
-    ${Array.from({ length: calFirst }, () => '<span class="sg-hcal-cell is-empty" aria-hidden="true"></span>').join('')}
-    ${Array.from({ length: calDays }, (_, i) => `<span class="sg-hcal-cell${i + 1 === calD ? ' is-today' : ''}"${i + 1 === calD ? ' aria-current="date"' : ''}>${i + 1}</span>`).join('')}
+  <div class="sg-hcal-main">
+    <div class="sg-hcal-left">
+      <span class="sg-hcal-week">第${calWeek}周 周${calWd[calNow.getDay()]}</span>
+      <span class="sg-hcal-day">${String(calD).padStart(2, '0')}</span>
+      <span class="sg-hcal-solar"><span>${calY}年${calM}月</span> <span>第${calDoy}天</span></span>
+      <span class="sg-hcal-lunar">丙午马年 十月十二</span>
+    </div>
+    <table class="sg-hcal-grid" aria-label="${calY}年${calM}月">
+      <thead><tr>${calWd.map((w) => `<th class="sg-hcal-wd" scope="col">${w}</th>`).join('')}</tr></thead>
+      <tbody>${calRows}</tbody>
+    </table>
   </div>
-  <div class="sg-hcal-foot"><span class="sg-hcal-today">今天 · ${calM} 月 ${calD} 日</span><span class="sg-hcal-week">星期${calWd[calNow.getDay()]}</span></div>
+  <div class="sg-hcal-extra">
+    <span class="sg-hcal-term">2天后是<strong>小雪</strong></span>
+    <span class="sg-hcal-sun"><span>☀️ 06:44</span><span>🌙 17:41</span></span>
+  </div>
 </section>`;
 
 const cdTarget = '2027-02-06';
 const cdDays = Math.max(0, Math.ceil((new Date(cdTarget) - new Date(calY, calM - 1, calD)) / 86400000));
-const cdYearPct = Math.round(((calNow - new Date(calY, 0, 1)) / 86400000 + 1) / 365 * 100);
-const cdMonthPct = Math.round(calD / calDays * 100);
-const cdWeekPct = Math.round(calNow.getDay() / 7 * 100);
+const cdSub = cdDays === 0 ? '就是今天' : cdTarget;
+const pct2 = (n) => Math.min(100, Math.max(0, n)).toFixed(2);
+const cdYearPct = pct2(((calDoy - 1) / 365) * 100);
+const cdMonthPct = pct2(((calD - 1) / calDays) * 100);
+const cdWeekPct = pct2((((calNow.getDay() + 6) % 7) / 7) * 100);
+const cdRows = [['本年', cdYearPct, 365 - calDoy], ['本月', cdMonthPct, calDays - calD], ['本周', cdWeekPct, 6 - ((calNow.getDay() + 6) % 7)]]
+  .map(([label, pct, remain]) => `<div class="sg-hcd-row"><span class="sg-hcd-rlabel">${label}</span><span class="sg-hcd-bar"><i style="width:${pct}%"></i><em>${pct}%</em><b>还剩 ${remain} 天</b></span></div>`).join('');
 const countdown = `
 <section class="sg-hcard sg-hcd" aria-label="春节倒计时" data-sg-countdown data-sg-cd-target="${cdTarget}">
   <div class="sg-hcard-head">
     <span class="sg-hcard-title">${icons.star}春节倒计时</span>
-    <span class="sg-hcd-date" data-sg-cd-date>${cdTarget}</span>
   </div>
   <div class="sg-hcd-main">
     <div class="sg-hcd-left">
       <span class="sg-hcd-label">距离春节</span>
       <span class="sg-hcd-num" data-sg-cd-days>${cdDays}</span>
-      <span class="sg-hcd-unit">天</span>
+      <span class="sg-hcd-date" data-sg-cd-date>${cdSub}</span>
     </div>
-    <div class="sg-hcd-rows">
-      <div class="sg-hcd-row"><span class="sg-hcd-rlabel">本年</span><span class="sg-hcd-bar"><i style="width:${cdYearPct}%"></i></span><em>${cdYearPct}%</em></div>
-      <div class="sg-hcd-row"><span class="sg-hcd-rlabel">本月</span><span class="sg-hcd-bar"><i style="width:${cdMonthPct}%"></i></span><em>${cdMonthPct}%</em></div>
-      <div class="sg-hcd-row"><span class="sg-hcd-rlabel">本周</span><span class="sg-hcd-bar"><i style="width:${cdWeekPct}%"></i></span><em>${cdWeekPct}%</em></div>
-    </div>
+    <div class="sg-hcd-rows">${cdRows}</div>
   </div>
 </section>`;
 
