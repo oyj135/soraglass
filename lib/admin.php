@@ -248,6 +248,120 @@ HTML;
 }
 
 /**
+ * 后台「按城市名查询坐标」按钮（2026-11-20），挂在「站长城市」输入框的 description 上。
+ *
+ * 为什么要服务端代理：和风 GeoAPI 要用专属 Host + 凭据（API KEY 或 JWT 私钥签名），
+ * 私钥不能出现在浏览器里；所以后台只把城市名发到 `/?sg-geo=杭州`，由 PHP 取坐标回传。
+ * 该端点只读（返回 lat/lon/tz），不写配置，保存仍然走最下面「保存设置」。
+ */
+function sg_admin_geo_lookup(): string
+{
+    $base = '';
+    try {
+        $base = rtrim((string) \Widget\Options::alloc()->siteUrl, '/');
+    } catch (\Throwable $e) {
+        return '';
+    }
+    if ($base === '') {
+        return '';
+    }
+
+    $endpointJson = json_encode($base . '/?sg-geo=', JSON_UNESCAPED_SLASHES);
+
+    return <<<HTML
+<script>
+(function () {
+  var endpoint = {$endpointJson};
+  var OK = '#646970';
+  var BAD = '#d63638';
+  var ERRORS = {
+    'host-missing': '先把上面的「和风 API Host」填好（形如 abc1234xyz.re.qweatherapi.com）',
+    'credential-missing': '先把和风 API KEY 或 JWT 三项 + 私钥填好，GeoAPI 用的是同一套凭据',
+    'lookup-failed': '和风没识别这个城市，换个写法试试（如 杭州 / Hangzhou / 杭州,CN）',
+    'invalid-city': '城市名不能为空，长度不超过 40 个字符',
+    'forbidden': '登录状态已失效，请重新登录后台'
+  };
+
+  function fieldOf(name) {
+    return document.querySelector('input[name="' + name + '"],textarea[name="' + name + '"]');
+  }
+
+  function boot() {
+    var city = fieldOf('sgSiteCity');
+    if (!city || city.getAttribute('data-sg-geo-ready')) { return; }
+    city.setAttribute('data-sg-geo-ready', '1');
+
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin:.5rem 0 0';
+
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn btn-s';
+    btn.textContent = '按城市名查询坐标';
+
+    var tip = document.createElement('span');
+    tip.style.cssText = 'font-size:12px;color:' + OK;
+
+    btn.addEventListener('click', function () {
+      var name = city.value.trim();
+      if (name === '') {
+        tip.style.color = BAD;
+        tip.textContent = '先在上面填城市名，例如 杭州';
+        city.focus();
+        return;
+      }
+      btn.disabled = true;
+      tip.style.color = OK;
+      tip.textContent = '查询中…';
+      fetch(endpoint + encodeURIComponent(name), { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+        .then(function (res) {
+          return res.text().then(function (body) {
+            var text = body.replace(/^\s+/, '');
+            if (text.charAt(0) !== '{') {
+              throw new Error('接口返回的不是 JSON（HTTP ' + res.status + '），检查站点伪静态是否把 /index.php 也拦掉了');
+            }
+            return JSON.parse(text);
+          });
+        })
+        .then(function (json) {
+          if (!json.ok) {
+            tip.style.color = BAD;
+            tip.textContent = '查询失败：' + (ERRORS[json.error] || ('和风返回 ' + (json.error || '未知错误')));
+            return;
+          }
+          var lat = fieldOf('sgSiteLatitude');
+          var lon = fieldOf('sgSiteLongitude');
+          var tz = fieldOf('sgSiteTimezone');
+          if (lat) { lat.value = json.latitude; }
+          if (lon) { lon.value = json.longitude; }
+          if (tz && json.timezone) { tz.value = json.timezone; }
+          tip.style.color = OK;
+          tip.textContent = '已回填 ' + json.name + (json.adm ? '（' + json.adm + '）' : '')
+            + ' → ' + json.latitude + ', ' + json.longitude + ' · ' + json.timezone + '；点最下方「保存设置」生效';
+        })
+        .catch(function (err) {
+          tip.style.color = BAD;
+          tip.textContent = '查询失败：' + (err && err.message ? err.message : '网络不可达');
+        })
+        .then(function () { btn.disabled = false; });
+    });
+
+    wrap.appendChild(btn);
+    wrap.appendChild(tip);
+    city.insertAdjacentElement('afterend', wrap);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+HTML;
+}
+
+/**
  * 后台「从 GitHub 拉取仓库」小部件，挂在「仓库清单」文本域的 description 上。
  *
  * 走的是浏览器直连 api.github.com：该接口带 `Access-Control-Allow-Origin: *`，
@@ -467,10 +581,10 @@ function themeConfig($form): void
     $form->addInput(new Radio('sgCalendarDetail', $effectOptions, 'on', _t('首页详细日期'), _t('显示大日期、农历、生肖、节气与年内第几天。公历月历和春节倒计时始终保留。')));
     $form->addInput(new Text('sgCalendarTimezone', null, 'Asia/Shanghai', _t('日历时区'), _t('公历、农历、春节与进度条共同使用的时区，例如 Asia/Shanghai；无效值回退上海时区。')));
     $form->addInput(new Select('sgSidebarLocation', ['off' => _t('关闭欢迎卡'), 'site' => _t('站长城市'), 'visitor' => _t('访客 IP 归属地')], 'site', _t('首页欢迎信息'), _t('站长城市模式不查询访客位置；访客模式通过服务端定位，默认不显示 IP 地址。定位失败时显示通用欢迎，天气回退站长城市。')));
-    $form->addInput(new Text('sgSiteCity', null, '', _t('站长城市'), _t('用于欢迎、天气回退和距离基点。留空不输出虚构城市，例如填写自己的城市名称。')));
-    $form->addInput(new Text('sgSiteLatitude', null, '', _t('站长城市纬度'), _t('十进制度数，范围 -90 到 90；使用城市代表位置的 WGS84 坐标，不需要精确住址。')));
-    $form->addInput(new Text('sgSiteLongitude', null, '', _t('站长城市经度'), _t('十进制度数，范围 -180 到 180；与纬度共同填写，用于估算距离及日出日落。')));
-    $form->addInput(new Text('sgSiteTimezone', null, 'Asia/Shanghai', _t('站长城市时区'), _t('例如 Asia/Shanghai。日出日落按对应城市时区显示，独立于日历时区。')));
+    $form->addInput(new Text('sgSiteCity', null, '', _t('站长城市'), _t('用于欢迎、天气回退和距离基点。留空不输出虚构城市，例如填写自己的城市名称。填好后可点下面按钮用和风 GeoAPI 反查坐标与时区。') . sg_admin_geo_lookup()));
+    $form->addInput(new Text('sgSiteLatitude', null, '', _t('站长城市纬度'), _t('十进制度数，范围 -90 到 90；使用城市代表位置的 WGS84 坐标，不需要精确住址。留空时按「站长城市」用和风 GeoAPI 自动解析（需配好 API Host 与凭据）。')));
+    $form->addInput(new Text('sgSiteLongitude', null, '', _t('站长城市经度'), _t('十进制度数，范围 -180 到 180；与纬度共同填写，用于估算距离及日出日落。留空时同纬度一样自动解析。')));
+    $form->addInput(new Text('sgSiteTimezone', null, 'Asia/Shanghai', _t('站长城市时区'), _t('例如 Asia/Shanghai。日出日落按对应城市时区显示，独立于日历时区。清空后采用 GeoAPI 返回的时区。')));
     $sgGeoDescription = '腾讯位置服务 WebService Key，仅用于访客模式，密钥留服务端。可在腾讯控制台限制到服务器出口 IP；代理部署须由 Nginx real_ip 还原 REMOTE_ADDR，主题不信任客户端转发头。';
     if (sg_opt('sgSidebarLocation', 'site') === 'visitor' && sg_sidebar_private_dir() === '') $sgGeoDescription .= ' 当前无法使用站点之外的私有临时缓存目录，访客定位将停用；请放行 PHP 临时目录写入，不使用公开 dist 目录。';
     $form->addInput(new Text('sgGeoKey', null, '', _t('访客定位密钥'), _t($sgGeoDescription)));

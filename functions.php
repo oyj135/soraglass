@@ -25,6 +25,7 @@ function themeInit($archive): void
     }
 
     sg_sidebar_dispatch();
+    sg_sidebar_geo_dispatch();
 
     // 模板不输出分页条；0 表示沿用 Typecho 阅读设置的每页文章数。
     $size = (int) sg_opt('sgPageSize', '200');

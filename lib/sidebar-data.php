@@ -39,6 +39,10 @@ function sg_sidebar_cfg(): array
     return [
         'mode' => $mode, 'detail' => sg_opt('sgCalendarDetail', 'on') === 'on',
         'timezone' => sg_sidebar_timezone()->getName(), 'site' => $site,
+        // 城市名单独留一份：经纬度留空时用它走 GeoAPI 反查坐标（见 sg_sidebar_geo_city）。
+        'cityName' => mb_substr($city, 0, 80),
+        // 时区设置原值：留空才采用 GeoAPI 返回的 IANA 时区，填了就尊重填写值。
+        'siteTimezone' => trim((string) sg_opt('sgSiteTimezone', '')),
         'geoKey' => trim(sg_opt('sgGeoKey')), 'weatherKey' => trim(sg_opt('sgWeatherKey')),
         'weatherHost' => $host, 'weather' => sg_opt('sgWeather', 'off') === 'on',
         'jwt' => [
@@ -273,6 +277,37 @@ function sg_sidebar_geo(string $ip, string $key, float $deadline): ?array
     ]);
 }
 
+/**
+ * 和风 GeoAPI 按城市名解析坐标与时区（2026-11-20）。
+ *
+ * 和风 `/{host}/geo/v2/city/lookup` 的 location 既吃经纬度也吃城市名/拼音/LocationID，
+ * 返回的 lat / lon / tz 正好就是「站长城市纬度 / 经度 / 时区」三个输入框要填的东西。
+ * 凭据与 Host 与天气同一套，所以这里只做代理、不引入新配置；密钥始终留在服务端。
+ */
+function sg_sidebar_geo_city(string $name, array $cfg, float $deadline, ?array $headers = null): ?array
+{
+    $name = trim($name);
+    if ($name === '' || $cfg['weatherHost'] === '') return null;
+    $headers = $headers ?? sg_sidebar_weather_auth($cfg);
+    if ($headers === null) return null;
+    $data = sg_sidebar_get_json('https://' . $cfg['weatherHost'] . '/geo/v2/city/lookup?' . http_build_query([
+        'location' => $name, 'lang' => 'zh', 'number' => 1,
+    ], '', '&', PHP_QUERY_RFC3986), $headers, $deadline);
+    $location = $data['location'][0] ?? null;
+    if (($data['code'] ?? '') !== '200' || !is_array($location)) return null;
+    $point = sg_sidebar_coordinates($location['lat'] ?? null, $location['lon'] ?? null);
+    if (!$point) return null;
+    $tz = (string) ($location['tz'] ?? '');
+    try { new DateTimeZone($tz); } catch (Throwable $e) { $tz = ''; }
+    $label = (string) ($location['name'] ?? $name);
+    return array_merge($point, [
+        'city' => mb_substr($label, 0, 80), 'label' => mb_substr($label, 0, 80),
+        'timezone' => $tz !== '' ? $tz : sg_sidebar_timezone()->getName(),
+        'adm' => trim(implode(' · ', array_filter([(string) ($location['adm1'] ?? ''), (string) ($location['adm2'] ?? '')]))),
+        'source' => 'geo', 'observedAt' => time(),
+    ]);
+}
+
 function sg_sidebar_distance(array $a, array $b): ?int
 {
     $x = sg_sidebar_coordinates($a['latitude'] ?? null, $a['longitude'] ?? null);
@@ -351,7 +386,10 @@ function sg_sidebar_context(bool $refresh = false): array
     $location = ['status' => $cfg['mode'] === 'off' ? 'disabled' : 'unavailable', 'reason' => 'not-configured'];
     $weather = ['status' => $cfg['weather'] ? 'unavailable' : 'disabled'];
     $dir = ''; $identity = ''; $allowed = false;
-    if (($cfg['mode'] === 'visitor' && $cfg['geoKey'] !== '') || $cfg['weather']) {
+    // 站点模式只填了城市名、没填经纬度时也要备好缓存目录与限流身份 —— 解析结果要落盘缓存。
+    // 欢迎卡关闭（mode=off）但开了天气时同样要解析：天气只需要坐标，与欢迎卡开关无关。
+    $needsGeoLookup = $city === null && $cfg['cityName'] !== '' && ($cfg['mode'] !== 'off' || $cfg['weather']);
+    if (($cfg['mode'] === 'visitor' && $cfg['geoKey'] !== '') || $cfg['weather'] || $needsGeoLookup) {
         $dir = sg_sidebar_private_dir();
         $secret = $dir !== '' ? sg_sidebar_secret($dir) : '';
         $identity = $secret !== '' ? hash_hmac('sha256', sg_sidebar_client_ip() ?: (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown'), $secret) : '';
@@ -359,6 +397,23 @@ function sg_sidebar_context(bool $refresh = false): array
         if (!$allowed) $location['reason'] = $dir === '' ? 'private-cache-unavailable' : 'rate-limited';
     }
     $deadline = microtime(true) + 6;
+    // 城市名 → 坐标兜底（2026-11-20）：站长城市纬度/经度留空时，用和风 GeoAPI 反查并缓存 30 天。
+    // 这样后台只填「杭州」也能有日出日落、距离与天气；缓存键含城市名，改城市会立即重新解析。
+    if ($needsGeoLookup) {
+        $auth = $cfg['weatherHost'] !== '' ? sg_sidebar_weather_auth($cfg) : null;
+        if ($auth === null) {
+            $location['reason'] = 'geo-credential-missing';
+        } else {
+            $value = sg_sidebar_cached($dir, 'geo-city|' . hash('sha256', $cfg['weatherHost'] . '|' . $cfg['cityName']), 2592000, 2592000, $refresh && $allowed,
+                static fn() => sg_sidebar_geo_city($cfg['cityName'], $cfg, $deadline, $auth), $allowed);
+            if ($value) {
+                // 显式填写的时区优先；没填时用 GeoAPI 返回的 IANA 时区。
+                $city = $cfg['siteTimezone'] !== '' ? array_merge($value, ['timezone' => $cfg['timezone']]) : $value;
+            } else {
+                $location['reason'] = $allowed ? 'geo-unavailable' : 'rate-limited';
+            }
+        }
+    }
     if ($cfg['mode'] === 'visitor' && $identity !== '' && $cfg['geoKey'] !== '') {
         $ip = sg_sidebar_client_ip();
         $geo = $ip !== '' ? sg_sidebar_cached($dir, 'geo|' . hash('sha256', $cfg['geoKey']) . '|' . $identity, 43200, 43200, $refresh && $allowed,
@@ -413,4 +468,41 @@ function sg_sidebar_dispatch(): void
     try { $data = sg_sidebar_context(($_GET['refresh'] ?? '') === '1'); }
     catch (Throwable $e) { $data = ['location' => ['status' => 'unavailable'], 'weather' => ['status' => 'unavailable'], 'sun' => ['status' => 'unavailable'], 'generatedAt' => time()]; }
     echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG); exit;
+}
+
+/**
+ * 后台「按城市名查询坐标」的只读端点：`/?sg-geo=杭州`。
+ *
+ * 只返回 name / lat / lon / tz，不写任何配置、不改任何状态，所以不需要 _ 令牌；
+ * 但仍要求管理员身份，密钥也只在服务端参与请求（浏览器只看到一个城市名）。
+ */
+function sg_sidebar_geo_dispatch(): void
+{
+    if (!isset($_GET['sg-geo']) || !is_string($_GET['sg-geo'])) return;
+    header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: private, no-store');
+    header('X-Content-Type-Options: nosniff');
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+        // Typecho 的 Response 在 shutdown 时会把状态码写回 200，所以两边都要设。
+        http_response_code(405);
+        try { \Typecho\Response::getInstance()->setStatus(405); } catch (\Throwable $e) {}
+        header('Allow: GET'); echo '{"error":"method-not-allowed"}'; exit;
+    }
+    if (!sg_user_is_admin()) {
+        http_response_code(403);
+        try { \Typecho\Response::getInstance()->setStatus(403); } catch (\Throwable $e) {}
+        echo '{"error":"forbidden"}'; exit;
+    }
+    $name = trim(preg_replace('/\s+/u', ' ', (string) $_GET['sg-geo']));
+    if ($name === '' || mb_strlen($name) > 40) { echo '{"error":"invalid-city"}'; exit; }
+    $cfg = sg_sidebar_cfg();
+    if ($cfg['weatherHost'] === '') { echo '{"error":"host-missing"}'; exit; }
+    $auth = sg_sidebar_weather_auth($cfg);
+    if ($auth === null) { echo '{"error":"credential-missing"}'; exit; }
+    $value = sg_sidebar_geo_city($name, $cfg, microtime(true) + 6, $auth);
+    if (!$value) { echo '{"error":"lookup-failed"}'; exit; }
+    echo json_encode([
+        'ok' => true, 'name' => $value['city'], 'adm' => $value['adm'] ?? '',
+        'latitude' => $value['latitude'], 'longitude' => $value['longitude'], 'timezone' => $value['timezone'],
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG); exit;
 }
