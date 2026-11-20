@@ -67,6 +67,9 @@ $sgPrev = sg_adjacent_post($this, 'prev');
 $sgNext = sg_adjacent_post($this, 'next');
 ?>
 <main id="sg-main" tabindex="-1" class="sg-main sg-article-layout" data-sg-page="post" data-sg-origin="<?php echo $sgIsNote ? 'note' : 'article'; ?>">
+  <?php /* 公告跑马灯（2026-11-20）：原侧栏公告卡改为正文上方的横向滚动条，
+         独占一行横跨正文与侧栏；内容取「顶部公告条」，为空则不输出。 */ ?>
+  <?php $this->need('partials/ticker.php'); ?>
   <?php /* 文章页顶部（2026-11-17 第六轮）：背景图移除（用户反馈），回到
          Fomalhaut not-top-img 的 #post > #post-info 形态 —— 标题左对齐、
          normal 字重、下缘分隔线；元信息两行 #78818a 灰，图标保留彩色。 */ ?>
@@ -183,10 +186,10 @@ $sgNext = sg_adjacent_post($this, 'next');
   </article>
   <aside class="sg-aside">
     <?php /* 整列吸顶（2026-11-16 第三轮）：作者卡不再随滚动滑走，
-       公告 / 目录全部展示不内滚；列太高时由 article.ts 改为底对齐。 */ ?>
+       目录完整展示不内滚；列太高时由 article.ts 改为底对齐。
+       2026-11-20：公告卡改为正文上方的跑马灯，侧栏只剩作者卡 + 目录。 */ ?>
     <div class="sg-aside-pin" data-sg-aside-pin>
       <?php $this->need('partials/author-card.php'); ?>
-      <?php $this->need('sidebar.php'); ?>
       <?php $this->need('partials/toc.php'); ?>
     </div>
   </aside>

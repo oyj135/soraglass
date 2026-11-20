@@ -277,9 +277,12 @@ function sg_sidebar_geo(string $ip, string $key, float $deadline): ?array
         : $nation;
     if ($label === '') $label = implode(' ', array_unique(array_filter([$nation, $province, $city])));
     // IP 只回显给访客本人（源站把 IP 印在欢迎语末尾）；经纬度仍然不下发。
+    // 腾讯正常会回 result.ip，个别网关/缓存链路会缺这一项 —— 回落到我们查的入参 IP，
+    // 否则前端拿不到 ip 就把整段「IP 地址：…」省掉，看起来像功能没生效。
+    $shownIp = $text($result['ip'] ?? '');
     return array_merge($coords ?? ['latitude' => null, 'longitude' => null], [
         'label' => $label, 'city' => $city, 'nation' => $nation,
-        'province' => $province, 'district' => $district, 'ip' => $text($result['ip'] ?? ''),
+        'province' => $province, 'district' => $district, 'ip' => $shownIp !== '' ? $shownIp : $ip,
         'timezone' => $nation === '中国' ? 'Asia/Shanghai' : '',
         'source' => 'tencent', 'observedAt' => time(),
     ]);
@@ -449,7 +452,10 @@ function sg_sidebar_context(bool $refresh = false): array
     }
     if ($cfg['mode'] === 'visitor' && $identity !== '' && $cfg['geoKey'] !== '') {
         $ip = sg_sidebar_client_ip();
-        $geo = $ip !== '' ? sg_sidebar_cached($dir, 'geo|' . hash('sha256', $cfg['geoKey']) . '|' . $identity, 43200, 43200, $refresh && $allowed,
+        /* 缓存键带载荷版本号：访客定位结果按 IP 落盘 12 小时，若键只含密钥与身份，
+           升级改了字段（如 2026-11-20 的 label 口径与 ip 字段）后旧载荷会继续命中，
+           前台就会出现「字段老一套、IP 缺失」的怪象。改结构必须递增这个版本号。 */
+        $geo = $ip !== '' ? sg_sidebar_cached($dir, 'geo|2|' . hash('sha256', $cfg['geoKey']) . '|' . $identity, 43200, 43200, $refresh && $allowed,
             static fn() => sg_sidebar_geo($ip, $cfg['geoKey'], $deadline), $allowed) : null;
         if ($geo) {
             $city = $geo;

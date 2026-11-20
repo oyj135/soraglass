@@ -38,6 +38,61 @@ html.dark .sg-post-banner::before { background: radial-gradient(ellipse 72% 68% 
   0% { transform: translate3d(-90px, 0, 0); }
   100% { transform: translate3d(85px, 0, 0); }
 }
+
+/* ---------- 顶部公告跑马灯（2026-11-20，替代原侧栏公告卡） ----------
+   .sg-article-layout 在 ≥1024px 是 flex wrap，flex:0 0 100% 让它独占一行、
+   横跨正文与侧栏；材质对齐 .sg-hcard（日间实卡，夜间顶光渐变 + 内高光）。
+   轨道里两份内容首尾相接，整体左移一份宽度即为无缝循环；
+   速度由 ticker.ts 按内容宽度换算成 --sg-ticker-duration，缺 JS 时用 26s。 */
+.sg-ticker {
+  flex: 0 0 100%;
+  /* flex-basis:100% 只给「宽度」，flex 项的 min-width:auto 仍会把它撑到轨道内容宽，
+     结果整条公告条比正文宽、冲出色块。锁 0 才能老实等于容器宽度。 */
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  min-height: 2.75rem;
+  padding: .4rem .8rem;
+  border: 1px solid var(--sg-line);
+  border-radius: var(--sg-radius-inner);
+  background-color: var(--sg-card);
+  background-image: var(--sg-card-image, none);
+  box-shadow: var(--sg-card-sheen, 0 0 0 transparent), var(--sg-shadow);
+}
+.sg-ticker-badge {
+  flex: none;
+  padding: .1rem .5rem;
+  border-radius: 999px;
+  background: var(--sg-chip);
+  color: var(--sg-accent-ink);
+  font-size: .72rem;
+  line-height: 1.8;
+  letter-spacing: .08em;
+}
+.sg-ticker-window { position: relative; flex: 1 1 auto; min-width: 0; overflow: hidden; }
+.sg-ticker-track {
+  display: flex;
+  width: max-content;
+  animation: sg-ticker-move var(--sg-ticker-duration, 26s) linear infinite;
+  will-change: transform;
+}
+.sg-ticker-group { display: flex; flex: none; align-items: center; padding-right: 1.5rem; }
+.sg-ticker-item { color: var(--sg-text); font-size: .82rem; line-height: 1.7; white-space: nowrap; }
+.sg-ticker-dot { margin: 0 .75rem; color: var(--sg-faint); }
+@keyframes sg-ticker-move {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(var(--sg-ticker-shift, -50%), 0, 0); }
+}
+/* 悬停暂停，方便读长公告；键盘进入同样暂停（标签条内暂无焦点元素，留作以后加链接） */
+.sg-ticker:hover .sg-ticker-track,
+.sg-ticker:focus-within .sg-ticker-track { animation-play-state: paused; }
+/* 减少动效：不滚动，改为可横向滑动，重复组隐藏避免出现两遍同样的文字 */
+@media (prefers-reduced-motion: reduce) {
+  .sg-ticker-track { animation: none; }
+  .sg-ticker-group[aria-hidden="true"] { display: none; }
+  .sg-ticker-window { overflow-x: auto; }
+}
 @media (prefers-reduced-motion: reduce) { .sg-post-waves .parallax > use { animation: none; } }
 @media (max-width: 767.98px) { .sg-post-waves { height: 2.5rem; } }
 /* 夜间隐藏（源站 [data-theme=dark] .main-hero-waves-area display:none 同款） */

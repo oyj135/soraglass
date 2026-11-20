@@ -13,11 +13,57 @@ $sgFrontName  = sg_opt('sgNavTitle', (string) $this->options->title);
 $sgFrontAfter = sg_opt('sgNavAfter', '空璃');
 $sgFrontSub   = (string) $this->options->description;
 $sgFrontSocial = sg_json('sgSocial', 'social', []);
+
+/* 首屏标语（2026-11-20）：后台「首屏打字机」填 JSON 时优先，留空/解析失败回落到站点副标题。
+   兼容两种写法：纯字符串数组 ["第一句","第二句"]，或带配置的对象
+   {"lines":[…],"loop":true,"speed":90,"hold":2200,"erase":40}。
+   文案只做纯文本输出，emoji 原样保留（前端按字素切分，不会把 emoji 拆成半个）。 */
+$sgTyping = ['lines' => [], 'loop' => true, 'speed' => 90, 'hold' => 2200, 'erase' => 40];
+$sgTypingClamp = static fn($value, int $min, int $max, int $fallback): int => is_numeric($value)
+    ? max($min, min($max, (int) $value))
+    : $fallback;
+$sgTypingRaw = trim(sg_opt('sgFrontTyping', ''));
+if ($sgTypingRaw !== '') {
+    $sgTypingData = json_decode($sgTypingRaw, true);
+    if (is_array($sgTypingData)) {
+        if (array_is_list($sgTypingData)) {
+            $sgTypingData = ['lines' => $sgTypingData];
+        }
+        foreach ((array) ($sgTypingData['lines'] ?? []) as $sgTypingLine) {
+            if (!is_scalar($sgTypingLine)) {
+                continue;
+            }
+            $sgTypingLine = trim((string) $sgTypingLine);
+            if ($sgTypingLine === '') {
+                continue;
+            }
+            $sgTyping['lines'][] = mb_substr($sgTypingLine, 0, 120);
+            if (count($sgTyping['lines']) >= 6) {
+                break;
+            }
+        }
+        if ($sgTyping['lines']) {
+            $sgTyping['loop'] = !array_key_exists('loop', $sgTypingData) || (bool) $sgTypingData['loop'];
+            $sgTyping['speed'] = $sgTypingClamp($sgTypingData['speed'] ?? null, 30, 400, 90);
+            $sgTyping['hold'] = $sgTypingClamp($sgTypingData['hold'] ?? null, 400, 20000, 2200);
+            $sgTyping['erase'] = $sgTypingClamp($sgTypingData['erase'] ?? null, 10, 300, 40);
+        }
+    }
+}
+if (!$sgTyping['lines'] && $sgFrontSub !== '') {
+    foreach (preg_split('/\R/u', $sgFrontSub) ?: [] as $sgTypingLine) {
+        $sgTypingLine = trim($sgTypingLine);
+        if ($sgTypingLine !== '') {
+            $sgTyping['lines'][] = mb_substr($sgTypingLine, 0, 120);
+        }
+    }
+    $sgTyping['loop'] = count($sgTyping['lines']) > 1;
+}
 ?>
 <section class="sg-front" data-sg-front aria-label="站点首屏">
   <div class="sg-front-inner">
     <h1 class="sg-front-title"><?php echo sg_e($sgFrontName); ?><span class="sg-front-title-mark">· <?php echo sg_e($sgFrontAfter); ?></span></h1>
-    <?php if ($sgFrontSub !== '') : ?><p class="sg-front-sub" data-sg-typewriter="<?php echo sg_e($sgFrontSub); ?>"><?php echo sg_e($sgFrontSub); ?></p><?php endif; ?>
+    <?php if ($sgTyping['lines']) : ?><p class="sg-front-sub" data-sg-typewriter="<?php echo sg_e((string) json_encode($sgTyping, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)); ?>"><?php echo sg_e($sgTyping['lines'][0]); ?></p><?php endif; ?>
     <?php if ($sgFrontSocial) : ?>
     <div class="sg-front-social">
       <?php foreach ($sgFrontSocial as $sgFrontItem) : ?>

@@ -5,6 +5,7 @@ import { isSmallScreen,reducedMotion } from './runtime';
  *   DOM 契约（partials/home-front.php）：
  *     [data-sg-front]          100vh 首屏容器
  *     [data-sg-front-next]     向下滚动按钮
+ *     [data-sg-typewriter]     副标题（属性值是打字机配置 JSON）
  *     [data-sg-nav]            顶栏（core.ts 已在管 is-hidden，这里只加透明态）
  *
  * 全部按挂点自判存在，缺失就空跑；只作用于首页，不碰其它页面导航。
@@ -46,26 +47,80 @@ function initFrontNav(): void {
   });
 }
 
-/** 首屏标语 · Text Scramble 文字解码（第十六轮 P1，替换原打字机，源自「16 种 UI 动效」清单第 7 项）：
-    标语先整句变成随机字符，再按随机进度从左到右逐字还原；多行标语循环时
-    旧句随机化湮灭 → 新句解码进场。参考 Codrops TextScramble 的帧驱动模型。
-    随机字符池以全角假名为主（与中文标语等宽，解码抖动最小），可按口味调整。
-    减少动效时保留服务端渲染的静态全文；静态全文与视觉解码层分开。 */
-const SG_SCRAMBLE_CHARS = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホ<>*+-=#01';
+/** 首屏标语 · 打字机（2026-11-20，替换原 Text Scramble 解码）：
+    逐字打出 → 整句停留 → 逐字删除 → 下一条，loop 打开时末条回到第一条。
+    文案与节奏全部来自后台「首屏打字机」JSON（partials/home-front.php 解析并以
+    data-sg-typewriter 下发），后台留空时回落到站点副标题。
+    逐字以「字素」为单位切分（Intl.Segmenter）：emoji、带修饰符/ZWJ 的组合表情
+    不会被拆成半个字符；旧环境退回按码点切分。
+    减少动效时不建 DOM、直接显示第一条，保留服务端渲染的静态文本。 */
+type TypingConfig = { lines: string[]; loop: boolean; speed: number; hold: number; erase: number };
 
-function initScramble(): void {
+type GraphemeSegmenter = new (locale?: string, options?: { granularity: 'grapheme' }) => {
+  segment(input: string): Iterable<{ segment: string }>;
+};
+
+const SG_TYPING_DEFAULT: TypingConfig = { lines: [], loop: true, speed: 90, hold: 2200, erase: 40 };
+
+function readTypingConfig(raw: string): TypingConfig | null {
+  let data: unknown;
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    const lines = raw.split(/\r?\n/).map(line => line.trim()).filter(line => line !== '');
+    return lines.length > 0 ? { ...SG_TYPING_DEFAULT, lines } : null;
+  }
+  const source = Array.isArray(data) ? { lines: data } : data;
+  if (!source || typeof source !== 'object') return null;
+  const bag = source as Record<string, unknown>;
+  const lines = (Array.isArray(bag.lines) ? bag.lines : [])
+    .filter((line): line is string => typeof line === 'string')
+    .map(line => line.trim())
+    .filter(line => line !== '')
+    .slice(0, 6);
+  if (lines.length === 0) return null;
+  const clamp = (value: unknown, min: number, max: number, fallback: number): number =>
+    typeof value === 'number' && Number.isFinite(value) ? Math.min(max, Math.max(min, Math.round(value))) : fallback;
+  return {
+    lines,
+    loop: bag.loop === undefined ? true : Boolean(bag.loop),
+    speed: clamp(bag.speed, 30, 400, 90),
+    hold: clamp(bag.hold, 400, 20000, 2200),
+    erase: clamp(bag.erase, 10, 300, 40),
+  };
+}
+
+const SG_SEGMENTER = (Intl as unknown as { Segmenter?: GraphemeSegmenter }).Segmenter;
+
+function splitGraphemes(text: string): string[] {
+  if (SG_SEGMENTER) {
+    try {
+      return Array.from(new SG_SEGMENTER(undefined, { granularity: 'grapheme' }).segment(text), part => part.segment);
+    } catch { /* Segmenter 不支持 grapheme 时退回码点 */ }
+  }
+  return Array.from(text);
+}
+
+function initTypewriter(): void {
   const el = document.querySelector<HTMLElement>('.sg-front-sub[data-sg-typewriter]');
-  if (!el || reducedMotion()) return;
-  const strings = (el.dataset.sgTypewriter ?? '')
-    .split(/\r?\n/)
-    .map(s => s.trim())
-    .filter(s => s !== '');
-  if (strings.length === 0) return;
+  const config = el ? readTypingConfig(el.dataset.sgTypewriter ?? '') : null;
+  if (!el || !config) return;
+  if (reducedMotion()) {
+    el.textContent = config.lines[0];
+    return;
+  }
 
+  /* 逐字打出时行数会从 1 行涨到多行，下方的社交图标会被一路顶下去。
+     先用最长一条量出高度锁成 min-height（此处字体已按首屏字号解析），后续打字不再重排。 */
+  const longest = config.lines.reduce((a, b) => (b.length > a.length ? b : a), '');
+  el.textContent = longest;
+  const reserve = el.offsetHeight;
   el.textContent = '';
+  if (reserve > 0) el.style.minHeight = `${reserve}px`;
+
   const accessibleText = document.createElement('span');
   accessibleText.className = 'sr-only';
-  accessibleText.textContent = strings.join(' ');
+  accessibleText.textContent = config.lines.join(' ');
   const text = document.createElement('span');
   text.className = 'sg-front-type-text';
   text.setAttribute('aria-hidden', 'true');
@@ -74,70 +129,47 @@ function initScramble(): void {
   caret.setAttribute('aria-hidden', 'true');
   el.append(accessibleText, text, caret);
 
-  const randomChar = (): string => SG_SCRAMBLE_CHARS[Math.floor(Math.random() * SG_SCRAMBLE_CHARS.length)];
-  /** str 的第 resolvedFrom 位之前为已还原字符，其余渲染成随机字符（空格保持空格防抖动） */
-  const render = (str: string, resolvedFrom: number): void => {
-    let out = '';
-    for (let i = 0; i < str.length; i++) {
-      const ch = str[i];
-      out += (ch === ' ' || i < resolvedFrom) ? ch : randomChar();
-    }
-    text.textContent = out;
-  };
+  let index = 0;
+  let chars = splitGraphemes(config.lines[0]);
+  let typed = 0;
+  let phase: 'typing' | 'hold' | 'erasing' = 'typing';
 
-  const STEP = 70;            // ≈14fps 的解码节奏（第十八轮：整段解码放缓到 3-4s）
-  const IN_BASE = 12;         // 解码先整句乱码 12 帧（≈0.8s）再开始逐字还原
-  const IN_JITTER = 8;        // 每字还原帧的随机抖动（解码感的杂乱来源）
-  const OUT_FRAMES = 12;      // 旧句湮灭时长
-  const HOLD_FRAMES = 75;     // 解码完成后停留 ≈5.3s
-
-  let si = 0;
-  let frame = 0;
-  let endAt: number[] = [];
-  let phase: 'in' | 'hold' | 'out' = 'in';
-  let outLeft = 0;
-
-  const arm = (str: string): void => {
-    endAt = str.split('').map((_, i) => IN_BASE + Math.round(i * 1.9) + Math.floor(Math.random() * IN_JITTER));
-    frame = 0;
-    phase = 'in';
-  };
-  arm(strings[0]);
+  const paint = (): void => { text.textContent = chars.slice(0, typed).join(''); };
 
   const step = (): void => {
     if (!el.isConnected) return;
-    const str = strings[si];
-    frame += 1;
-
-    if (phase === 'in') {
-      /* endAt 递增序列：从左到右逐字锁定，锁定前该位显示随机字符 */
-      let resolved = 0;
-      while (resolved < endAt.length && frame >= endAt[resolved]) resolved += 1;
-      render(str, resolved);
-      if (resolved >= str.length) {
-        text.textContent = str;
+    if (document.hidden) { pageTimeout(step, 600); return; }   // 后台标签页不烧 CPU
+    if (phase === 'typing') {
+      typed = Math.min(chars.length, typed + 1);
+      paint();
+      if (typed >= chars.length) {
         phase = 'hold';
-        if (strings.length === 1) return;   // 单条标语解码完成即定格
+        pageTimeout(step, config.hold);
+        return;
       }
-      pageTimeout(step, STEP);
+      // ±35% 的随机抖动，避免节奏像节拍器
+      pageTimeout(step, config.speed + Math.round(Math.random() * config.speed * 0.35));
       return;
     }
     if (phase === 'hold') {
-      if (frame < HOLD_FRAMES) { pageTimeout(step, STEP); return; }
-      phase = 'out';
-      outLeft = OUT_FRAMES;
-      render(str, 0);                        // 整句随机化（湮灭开始）
-      pageTimeout(step, STEP);
+      // 不循环时停在最后一条，光标继续闪，不再清屏
+      if (!config.loop && index >= config.lines.length - 1) return;
+      phase = 'erasing';
+      pageTimeout(step, Math.max(140, config.erase * 2));
       return;
     }
-    /* out：旧句随机化湮灭完毕 → 解码下一句 */
-    outLeft -= 1;
-    if (outLeft > 0) { render(str, 0); pageTimeout(step, STEP); return; }
-    si = (si + 1) % strings.length;
-    arm(strings[si]);
-    pageTimeout(step, STEP);
+    typed = Math.max(0, typed - 1);
+    paint();
+    if (typed === 0) {
+      index = (index + 1) % config.lines.length;
+      chars = splitGraphemes(config.lines[index]);
+      phase = 'typing';
+      pageTimeout(step, 420);
+      return;
+    }
+    pageTimeout(step, config.erase);
   };
-  pageTimeout(step, STEP);
+  pageTimeout(step, config.speed);
 }
 
 /** 首屏视差（第十六轮 P1，源自「16 种 UI 动效」清单第 9 项）：
@@ -173,5 +205,5 @@ function initFrontParallax(): void {
 export function initHome(): void {
   initFrontNav();
   initFrontParallax();
-  initScramble();
+  initTypewriter();
 }

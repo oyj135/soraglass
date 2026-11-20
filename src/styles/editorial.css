@@ -321,13 +321,6 @@ html.dark .sg-nav { background: var(--sg-card); border-bottom-color: var(--sg-re
 }
 
 /* ---------- 侧栏卡片 ---------- */
-.sg-side-notice p {
-  margin: 0;
-  color: var(--sg-muted);
-  font-size: .875rem;
-  line-height: 1.8;
-}
-
 .sg-side-terms {
   display: flex;
   flex-direction: column;

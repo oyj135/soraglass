@@ -53,7 +53,7 @@ function sg_page_url($slug) { return 'https://example.invalid/sub/'; }
 $calls=[];
 function sg_http_get($url, $headers=[], $timeout=6, $deadline=null): string {
  global $calls; $calls[]=[$url,$headers,$deadline];
- if (strpos($url,'map.qq.com')!==false) { parse_str(parse_url($url,PHP_URL_QUERY),$q); $city=$q['ip']==='8.8.8.8'?'广州':'北京'; return json_encode(['status'=>0,'result'=>['location'=>['lat'=>23.13,'lng'=>113.26],'ad_info'=>['nation'=>'中国','province'=>'广东省','city'=>$city]]]); }
+ if (strpos($url,'map.qq.com')!==false) { parse_str(parse_url($url,PHP_URL_QUERY),$q); $city=$q['ip']==='8.8.8.8'?'广州':'北京'; return json_encode(['status'=>0,'result'=>['ip'=>$q['ip'],'location'=>['lat'=>23.13,'lng'=>113.26],'ad_info'=>['nation'=>'中国','province'=>'广东省','city'=>$city,'district'=>'天河区']]]); }
  if (strpos($url,'/geo/')!==false) return json_encode(['code'=>'200','location'=>[['name'=>'广州','lat'=>'23.13','lon'=>'113.26','tz'=>'Asia/Shanghai']]]);
  return gzencode(json_encode(['validTime'=>'2026-11-19T03:00Z','temperature'=>['value'=>18.5,'unit'=>'°C'],'condition'=>['text'=>'多云','code'=>'101'],'humidity'=>0.65,'metadata'=>['attributions'=>['https://example.invalid/attribution']]]));
 }
@@ -68,7 +68,11 @@ $first=sg_sidebar_context(); verify($first['location']['status']==='ok','locatio
 verify($first['weather']['humidity']===65 && $first['weather']['temperature']===18.5,'weather-schema');
 verify($first['weather']['observedAt']==='2026-11-19T03:00Z','validTime');
 verify(count($calls)===3 && strpos($calls[0][0],'ip=8.8.8.8')!==false,'visitor-ip');
-verify(!isset($first['location']['latitude']) && strpos(json_encode($first),'fixture-key')===false && strpos(json_encode($first),'8.8.8.8')===false,'privacy');
+/* 2026-11-20：欢迎语要印访客 IP（对齐源站），端点又是 Cache-Control: private,no-store，
+   所以 ip 允许回显、且必须只回显本人；真正的隐私红线是经纬度与凭据不能出去。 */
+verify(!isset($first['location']['latitude']) && strpos(json_encode($first),'fixture-key')===false,'privacy');
+verify($first['location']['ip']==='8.8.8.8','own-ip-only');
+verify($first['location']['label']==='广东省 广州 天河区','label-district');
 $second=sg_sidebar_context(); verify(count($calls)===3 && $second['location']['label']===$first['location']['label'],'cache-hit');
 $_SERVER['REMOTE_ADDR']='1.1.1.1'; $third=sg_sidebar_context(); verify($third['location']['label']!==$first['location']['label'],'cache-isolation');
 $_SERVER['REMOTE_ADDR']='::ffff:8.8.8.8'; verify(sg_sidebar_client_ip()==='8.8.8.8','mapped-ip');

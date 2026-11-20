@@ -11,6 +11,7 @@ import { initArticle } from './modules/article';
 import { initNotes } from './modules/notes';
 import { initNavigation } from './modules/navigation';
 import { initHome } from './modules/home';
+import { initTicker } from './modules/ticker';
 import { initRightside } from './modules/rightside';
 import { initNeko } from './modules/neko';
 import { initScrollbar } from './modules/scrollbar';
@@ -50,6 +51,7 @@ function mountPage(): void {
   safe('article', initArticle);
   safe('notes', initNotes);
   safe('home', initHome);
+  safe('ticker', initTicker);
   safe('sidebar-data', initSidebarData);
   safe('rightside', initRightside);
   safe('neko', initNeko);
