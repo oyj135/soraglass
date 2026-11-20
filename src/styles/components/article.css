@@ -404,11 +404,10 @@ html.dark .sg-prose a { color: var(--sg-indigo-soft); }
 }
 @media (min-width: 768px) { .sg-page-sub { font-size: 1.125rem; } }
 
-/* 2026-11-20 第二十九轮：页头恢复白字 + 深色描边，与首页首屏及全站导航同一套。
-   上一轮为「纯黑无阴影」的日间覆盖已撤销；夜间配方走上面的基础规则与 interactions.css。 */
+/* 2026-11-20 第二十九轮补正：页头白字去掉四向硬描边，只留柔和投影。 */
 html:not(.dark) .sg-page-title {
   color: var(--sg-wall-white-ink);
-  text-shadow: var(--sg-wall-white-edge);
+  text-shadow: 0 2px 14px rgba(6, 14, 26, .6);
   font-weight: 900;
   letter-spacing: .1em;
   line-height: 1.2;
@@ -416,7 +415,7 @@ html:not(.dark) .sg-page-title {
 }
 html:not(.dark) .sg-page-sub {
   color: var(--sg-wall-white-ink);
-  text-shadow: var(--sg-wall-white-halo);
+  text-shadow: 0 1px 8px rgba(6, 14, 26, .62);
   line-height: 1.7;
 }
 
