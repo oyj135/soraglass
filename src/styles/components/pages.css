@@ -954,11 +954,62 @@ html.dark .sg-archive-tag { color: var(--sg-accent-soft); }
 
 .sg-gallery-detail-count b { font-size: 1.05rem; color: var(--sg-accent-ink); }
 
+/* 2026-11-20 第二十轮：详情页头部文字统一白色加粗（与列表页 .sg-curated-*、
+   页头页脚同一套语言）。这一块原来是 --sg-text/--sg-muted/--sg-faint 的近黑体系，
+   直接压在壁纸上对比度还行，但和已改白的列表页/照片说明放在一起就断档了。
+   深色投影只给日间：白字压亮壁纸要靠它托底（--sg-wall-white-halo 小字档 /
+   --sg-wall-white-edge 大字档）；夜间本就是暗底白字，暗影只会把字边啃掉一圈，显细。 */
+.sg-gallery-detail-top .sg-back,
+.sg-gallery-detail-date,
+.sg-gallery-detail-count,
+.sg-gallery-detail-count b,
+.sg-gallery-detail-title h1,
+.sg-gallery-detail-title p { color: var(--sg-wall-white-ink); }
+.sg-gallery-detail-top .sg-back:hover { color: var(--sg-wall-white-ink); }
+.sg-gallery-detail-title p { font-weight: 600; }
+.sg-gallery-detail-dot { background: rgba(255, 255, 255, .78); }
+.sg-gallery-detail-head { border-bottom-color: rgba(255, 255, 255, .34); }
+html:not(.dark) .sg-gallery-detail-top .sg-back,
+html:not(.dark) .sg-gallery-detail-date,
+html:not(.dark) .sg-gallery-detail-count,
+html:not(.dark) .sg-gallery-detail-title p { text-shadow: var(--sg-wall-white-halo); }
+html:not(.dark) .sg-gallery-detail-title h1 { text-shadow: var(--sg-wall-white-edge); }
+html:not(.dark) .sg-gallery-detail-dot { box-shadow: var(--sg-wall-white-halo); }
+html.dark .sg-gallery-detail-head { border-bottom-color: var(--sg-line); }
+html.dark .sg-gallery-detail-title h1,
+html.dark .sg-gallery-detail-title p,
+html.dark .sg-gallery-detail-top .sg-back,
+html.dark .sg-gallery-detail-date,
+html.dark .sg-gallery-detail-count { text-shadow: none; }
+
 /* 详情用 multi-column 瀑布流，比 grid 更接近源站（图片高度不齐） */
 .sg-gallery-masonry { columns: 2; column-gap: .875rem; }
 @media (min-width: 768px) { .sg-gallery-masonry { columns: 3; } }
 @media (min-width: 1100px) { .sg-gallery-masonry { columns: 4; } }
 .sg-gallery-masonry .sg-photo { break-inside: avoid; margin-bottom: .875rem; aspect-ratio: auto; }
+/* 2026-11-20 第二十轮：详情页照片加「发丝描边 + 柔和投影」。
+   用 box-shadow 而不是 border：border 会吃掉 2px 显示宽度，multi-column 瀑布流
+   跟着重算列高，切页时会出现可见的跳动；box-shadow 不参与布局。
+   0 0 0 1px 那层是纯描边（不吃空间），下压投影固定 -8px 扩散，避免在密集排列里糊成一片。
+   .is-justified 等高模式下 img 被 object-fit:cover 铺满容器，描边同样挂在 .sg-photo 上即可。 */
+[data-sg-gallery] .sg-gallery-masonry .sg-photo {
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .42), 0 10px 26px -8px rgba(8, 18, 32, .42);
+  transition: box-shadow .28s ease;
+}
+[data-sg-gallery] .sg-gallery-masonry .sg-photo img { border-radius: 4px; }
+html.dark [data-sg-gallery] .sg-gallery-masonry .sg-photo {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .3), 0 10px 26px -8px rgba(0, 0, 0, .62);
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  [data-sg-gallery] .sg-gallery-masonry .sg-photo:hover {
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, .72), 0 14px 32px -8px rgba(8, 18, 32, .52);
+  }
+  html.dark [data-sg-gallery] .sg-gallery-masonry .sg-photo:hover {
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, .52), 0 14px 32px -8px rgba(0, 0, 0, .7);
+  }
+}
+@media (prefers-reduced-motion: reduce) { [data-sg-gallery] .sg-gallery-masonry .sg-photo { transition: none; } }
 /* 兜底高度：外链图片 403 / 断网时 `<img>` 会塌成 0 高，整面墙退化成一条条文字。
    给个下限，至少还看得出是相片卡。正常图片有自己的比例，不受影响。 */
 .sg-gallery-masonry .sg-photo img { height: auto; min-height: 8rem; }
