@@ -581,11 +581,41 @@ function themeConfig($form): void
     $form->addInput(new Radio('sgCalendarDetail', $effectOptions, 'on', _t('首页详细日期'), _t('显示大日期、农历、生肖、节气与年内第几天。公历月历和春节倒计时始终保留。')));
     $form->addInput(new Text('sgCalendarTimezone', null, 'Asia/Shanghai', _t('日历时区'), _t('公历、农历、春节与进度条共同使用的时区，例如 Asia/Shanghai；无效值回退上海时区。')));
     $form->addInput(new Select('sgSidebarLocation', ['off' => _t('关闭欢迎卡'), 'site' => _t('站长城市'), 'visitor' => _t('访客 IP 归属地')], 'site', _t('首页欢迎信息'), _t('站长城市模式不查询访客位置；访客模式通过服务端定位，默认不显示 IP 地址。定位失败时显示通用欢迎，天气回退站长城市。')));
-    $form->addInput(new Text('sgSiteCity', null, '', _t('站长城市'), _t('用于欢迎、天气回退和距离基点。留空不输出虚构城市，例如填写自己的城市名称。填好后可点下面按钮用和风 GeoAPI 反查坐标与时区。') . sg_admin_geo_lookup()));
-    $form->addInput(new Text('sgSiteLatitude', null, '', _t('站长城市纬度'), _t('十进制度数，范围 -90 到 90；使用城市代表位置的 WGS84 坐标，不需要精确住址。留空时按「站长城市」用和风 GeoAPI 自动解析（需配好 API Host 与凭据）。')));
-    $form->addInput(new Text('sgSiteLongitude', null, '', _t('站长城市经度'), _t('十进制度数，范围 -180 到 180；与纬度共同填写，用于估算距离及日出日落。留空时同纬度一样自动解析。')));
-    $form->addInput(new Text('sgSiteTimezone', null, 'Asia/Shanghai', _t('站长城市时区'), _t('例如 Asia/Shanghai。日出日落按对应城市时区显示，独立于日历时区。清空后采用 GeoAPI 返回的时区。')));
-    $sgGeoDescription = '腾讯位置服务 WebService Key，仅用于访客模式，密钥留服务端。可在腾讯控制台限制到服务器出口 IP；代理部署须由 Nginx real_ip 还原 REMOTE_ADDR，主题不信任客户端转发头。';
+    $form->addInput(new Text('sgSiteCity', null, '', _t('站长城市'), _t(
+        '<b>填什么</b>：你所在城市的名称，例如「杭州」。它决定欢迎卡上显示的城市名、天气取不到时的回退城市，以及访客模式下「距离你约 xx 公里」的基准点。<br>'
+        . '<b>三种用法</b>：① 只填城市名 → 下面经纬度留空，由和风 GeoAPI 按名字解析坐标与时区，最省事；② 城市名 + 手动经纬度 → 解析不再依赖接口，换服务器或接口故障都不受影响，最稳；③ 只填经纬度、城市名留空 → 城市名由坐标反查得到。<br>'
+        . '<b>留空</b>：不会编造城市，欢迎卡显示通用文案，天气与距离相关数据一并不可用。'
+    ) . sg_admin_geo_lookup()));
+    $form->addInput(new Text('sgSiteLatitude', null, '', _t('站长城市纬度'), _t(
+        '<b>填什么</b>：十进制度数（不是「30°14′45″」这种度分秒），北纬为正、南纬为负，范围 -90 到 90。杭州约 <code>30.24603</code>。<br>'
+        . '<b>怎么取</b>：点上一行「按城市名查询坐标」让和风自动回填最省事。手动填写时用地图网站查即可：理想值是 WGS84 原始坐标，国内地图（高德 / 腾讯 / 百度）显示的是加密偏移后的 GCJ-02、BD-09，用来算距离和日出日落误差可忽略，不必换算。<br>'
+        . '<b>精度</b>：小数点后 4~6 位足够（4 位约 11 米），填城市中心或区中心即可，不需要精确到住址。<br>'
+        . '<b>别写反</b>：国内经度在 73~135、纬度在 4~54 之间，如果填成 <code>120, 30</code> 这种顺序就是经纬度颠倒了，点位会跑到境外，日出日落与距离都会明显异常。<br>'
+        . '<b>留空时</b>：与经度一起留空，才会按「站长城市」用和风 GeoAPI 自动解析（结果缓存 30 天，需配好 API Host 与凭据）；只留空其中一个也会触发解析，但建议成对填写。'
+    )));
+    $form->addInput(new Text('sgSiteLongitude', null, '', _t('站长城市经度'), _t(
+        '<b>填什么</b>：十进制度数，东经为正、西经为负，范围 -180 到 180。杭州约 <code>120.21079</code>。<br>'
+        . '<b>成对才生效</b>：只有经纬度都齐全时，才会计算日出日落，以及在访客模式下显示「距离你约 xx 公里」；缺任意一项就视为没填，回退到 GeoAPI 解析。<br>'
+        . '<b>留空时</b>：与纬度行为一致，用「站长城市」自动解析。'
+    )));
+    $form->addInput(new Text('sgSiteTimezone', null, 'Asia/Shanghai', _t('站长城市时区'), _t(
+        '<b>填什么</b>：IANA 时区名，例如 <code>Asia/Shanghai</code>、<code>Asia/Tokyo</code>、<code>Europe/London</code>；不要填 <code>+08:00</code> 这类纯偏移量。<br>'
+        . '<b>只管什么</b>：只决定日出日落时间按哪个时区显示，与上面的「日历时区」互不影响。访客模式下若定位到别人的城市，会临时改用那座城市的时区，这里的值只对站长城市生效。<br>'
+        . '<b>留空时</b>：采用 GeoAPI 返回的时区；GeoAPI 也不可用时回退站点默认时区。'
+    )));
+    $sgGeoDescription = '<b>干什么用</b>：只在上面「首页欢迎信息」选「访客 IP 归属地」时需要。主题在服务端拿访客 IP 调腾讯位置服务换城市名、坐标与距离，密钥不出服务端、不下发浏览器；不填就完全不发请求，欢迎卡一直显示「位置暂不可用」。<br>'
+        . '<b>怎么拿</b>：① 打开 lbs.qq.com，用 QQ / 微信登录并补全个人信息成为个人开发者（免费，个人额度为日 1 万次、并发 5 次/秒）；'
+        . '② 控制台「应用管理 → 我的应用」创建应用，再「添加 Key」，产品只勾 <b>WebServiceAPI</b>；'
+        . '③ 该 Key 的安全方式选<b>「授权 IP」</b>——不要选域名白名单（服务端请求没有 Referer，会被全部拒绝），也不要选签名校验（需要在每次请求上附加用 SK 算出的 sig，本主题未实现）；'
+        . '白名单里填服务器公网出口 IP，在服务器上执行 <code>curl -s https://ipinfo.io/ip</code> 即可看到；'
+        . '④ 到「配额管理 → 账户额度 → 一键分配」，确认 IP 定位接口有额度；'
+        . '⑤ 把这串 Key 粘贴到这里，点页面最下方「保存设置」。<br>'
+        . '<b>不生效时</b>：访问 <code>你的域名/index.php?sg-sidebar=context&amp;refresh=1</code> 看 <code>location.reason</code>：'
+        . '<code>not-configured</code> 是这里没填或没保存；'
+        . '<code>non-public-ip</code> 是 PHP 只拿到 127.0.0.1 / 内网地址（用了反向代理或 CDN 时须由 Nginx real_ip 还原 REMOTE_ADDR，主题不信任客户端转发头）；'
+        . '<code>provider-unavailable</code> / <code>rate-limited</code> 是腾讯返回失败或触发限流；'
+        . '返回 <code>"status":"ok"</code> 且 <code>"source":"tencent"</code> 才算通。<br>'
+        . '<b>注意</b>：填的是服务器用的 Key 与服务器 IP，和你本机无关；换服务器或换弹性 IP 后要回来改白名单，否则会返回未授权。';
     if (sg_opt('sgSidebarLocation', 'site') === 'visitor' && sg_sidebar_private_dir() === '') $sgGeoDescription .= ' 当前无法使用站点之外的私有临时缓存目录，访客定位将停用；请放行 PHP 临时目录写入，不使用公开 dist 目录。';
     $form->addInput(new Text('sgGeoKey', null, '', _t('访客定位密钥'), _t($sgGeoDescription)));
     $form->addInput(new Radio('sgWeather', $effectOptions, 'off', _t('首页天气'), _t('开启后在日历底部显示城市天气、温度、湿度与更新时间；需填写下面的和风 Host 和密钥。未配置或失败时显示「天气暂不可用」。')));
