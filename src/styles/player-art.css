@@ -124,3 +124,15 @@ html.dark .sg-music-controls button[data-sg-prev]:hover,html.dark .sg-music-cont
   .sg-album-rotor { transform:none; }
   .sg-album-sleeve img { transition:none; }
 }
+/* ---------- 首页音乐卡压缩（2026-11-20） ----------
+   源站侧栏没有音乐卡（用 APlayer 浮动播放器），无「一致」基准；
+   此处按「比作者卡轻一档」定尺寸，目标 ≈325px。元素全部保留。 */
+.sg-home-aside .sg-player-card { padding: 1rem 1.25rem .875rem; }
+.sg-home-aside .sg-player { gap: .2rem; }
+.sg-home-aside .sg-player .sg-album-art { max-width: 8rem; margin-top: .35rem; margin-bottom: .1rem; }
+.sg-home-aside .sg-player .sg-player-wave { height: 16px; margin-top: .15rem; }
+.sg-home-aside .sg-player-title { font-size: 1rem; }
+.sg-home-aside .sg-player-lyric { min-height: .95rem; font-size: .66rem; }
+.sg-home-aside .sg-player-progress { font-size: 10px; gap: .25rem; }
+.sg-home-aside .sg-player-controls button { width: 1.9rem; height: 1.9rem; }
+.sg-home-aside .sg-player-controls button svg { width: 1.05rem; height: 1.05rem; }

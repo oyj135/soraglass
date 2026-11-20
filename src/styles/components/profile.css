@@ -348,4 +348,14 @@ html.dark .sg-social { background: rgba(51, 65, 85, .50); color: #cbd5e1; }
 @media (min-width: 768px) { .sg-social { width: 2.5rem; height: 2.5rem; } }
 .sg-social:hover { background: var(--sg-indigo); color: #fff; transform: translateY(-2px); }
 .sg-social svg { width: 1rem; height: 1rem; }
-
+/* ---------- 首页作者卡尺寸对齐源站（2026-11-20） ----------
+   源站 fomal.cc 在 1440 视口实测卡片 330×410：.card-widget 内边距 20px、
+   顶部没有横幅留白带、块间用 margin 而非 14.4px gap、统计区 64px。
+   这里只覆盖首页实例（.sg-home-aside），文章页 .sg-author-card 保持原密度。 */
+.sg-home-aside .sg-glass.sg-profile { padding: 1.25rem; gap: .4rem; }
+.sg-home-aside .sg-profile-top { padding-top: 1.75rem; }
+.sg-home-aside .sg-profile .sg-stats { margin-top: .1rem; padding: .2rem 0; }
+.sg-home-aside .sg-profile .sg-profile-name { margin-top: .5rem; }
+/* 卡高收到 410 后文字区上移约 64px，横幅插图仍按顶对齐 → 鲸鱼下缘会压到简介。
+   插图整体上移 36px，把鲸鱼让到名字之上，文字区回到纱的干净段。 */
+.sg-home-aside .sg-profile-banner { background-position: center -2.25rem; }
