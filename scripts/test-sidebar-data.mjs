@@ -122,6 +122,15 @@ if (function_exists('sodium_crypto_sign_seed_keypair')) {
   verify(sg_sidebar_weather_auth(sg_sidebar_cfg())[1]==='X-QW-Api-Key: fallback-key','jwt-incomplete-falls-back');
   $jwtOk=true;
 }
+// 天气失败原因可回读：host 非法 / 凭据缺失 两种最常见路径。
+$options['sgWeatherHost']='';
+$ctx=sg_sidebar_context();
+verify($ctx['weather']['status']==='unavailable' && $ctx['weather']['reason']==='host-invalid','weather-reason-host');
+$options['sgWeatherHost']='abc1234xyz.re.qweatherapi.com';
+$options['sgWeatherKey']='';
+$options['sgWeatherJwtKid']=''; $options['sgWeatherDevId']=''; $options['sgWeatherProjectId']=''; $options['sgWeatherJwtKey']='';
+$ctx=sg_sidebar_context();
+verify($ctx['weather']['reason']==='credential-missing','weather-reason-credential');
 echo json_encode(['count'=>$count,'progress'=>$date['progress'],'cacheDir'=>$dir,'jwt'=>$jwtOk]);
 `;
   const phpFile = path.join(temp, 'fixture.php'); fs.writeFileSync(phpFile, fixture);

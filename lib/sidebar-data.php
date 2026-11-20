@@ -296,11 +296,11 @@ function sg_sidebar_sun(?array $city, ?DateTimeImmutable $now = null): array
     return ['status' => 'ok', 'date' => $today->format('Y-m-d'), 'timezone' => $timezone->getName(), 'city' => $city['city'], 'rise' => $format($sun['sunrise']), 'set' => $format($sun['sunset'])];
 }
 
-function sg_sidebar_weather(array $city, array $cfg, float $deadline): ?array
+function sg_sidebar_weather(array $city, array $cfg, float $deadline, ?array $headers = null): ?array
 {
     $coords = sg_sidebar_coordinates($city['latitude'] ?? null, $city['longitude'] ?? null);
     if (!$coords || $cfg['weatherHost'] === '') return null;
-    $headers = sg_sidebar_weather_auth($cfg);
+    $headers = $headers ?? sg_sidebar_weather_auth($cfg);
     if ($headers === null) return null;
     $base = 'https://' . $cfg['weatherHost'];
     // GeoAPI resolves a city and its WGS84 weather coordinates/timezone, rather than blindly reusing map coordinates.
@@ -354,14 +354,31 @@ function sg_sidebar_context(bool $refresh = false): array
             $location = array_merge($geo, ['status' => 'ok', 'distance' => $cfg['site'] ? sg_sidebar_distance($cfg['site'], $geo) : null]);
         } else $location['reason'] = $ip === '' ? 'non-public-ip' : 'provider-unavailable';
     } elseif ($cfg['mode'] === 'site' && $city) $location = array_merge($city, ['status' => 'site']);
-    if ($cfg['weather'] && $identity !== '' && $city) {
-        // 凭据标识随认证方式变化（JWT 用 kid，API KEY 用 key 的哈希），换认证不会吃到旧缓存。
-        $credential = sg_sidebar_jwt_ready($cfg['jwt']) ? 'jwt|' . $cfg['jwt']['kid'] : 'key|' . $cfg['weatherKey'];
-        $key = 'weather|' . hash('sha256', $cfg['weatherHost'] . '|' . $credential) . '|' . round((float) $city['latitude'], 2) . ',' . round((float) $city['longitude'], 2);
-        $value = sg_sidebar_cached($dir, $key, 900, 7200, false, static fn() => sg_sidebar_weather($city, $cfg, $deadline), $allowed);
-        if ($value) {
-            $weather = array_merge($value, ['status' => 'ok']);
-            $city = array_merge($city, ['latitude' => $value['latitude'], 'longitude' => $value['longitude'], 'timezone' => $value['timezone'], 'city' => $value['city']]);
+    // 天气失败原因要能回读：/index.php?sg-sidebar=context 里的 weather.reason 直接说明卡在哪一步，
+    // 否则 host 非法、凭据缺失、sodium 不可用、上游 401、限流全都会显示同一句「天气暂不可用」。
+    if ($cfg['weather']) {
+        if (!$city) {
+            $weather['reason'] = 'city-missing';
+        } elseif ($cfg['weatherHost'] === '') {
+            $weather['reason'] = 'host-invalid';
+        } elseif (($authHeaders = sg_sidebar_weather_auth($cfg)) === null) {
+            if (!sg_sidebar_jwt_ready($cfg['jwt'])) $weather['reason'] = 'credential-missing';
+            elseif (!sg_sidebar_jwt_supported()) $weather['reason'] = 'signing-unavailable';
+            elseif (sg_sidebar_jwt_seed($cfg['jwt']['key']) === null) $weather['reason'] = 'key-unreadable';
+            else $weather['reason'] = 'credential-invalid';
+        } elseif ($identity === '') {
+            $weather['reason'] = 'cache-unavailable';
+        } else {
+            // 凭据标识随认证方式变化（JWT 用 kid，API KEY 用 key 的哈希），换认证不会吃到旧缓存。
+            $credential = sg_sidebar_jwt_ready($cfg['jwt']) ? 'jwt|' . $cfg['jwt']['kid'] : 'key|' . $cfg['weatherKey'];
+            $key = 'weather|' . hash('sha256', $cfg['weatherHost'] . '|' . $credential) . '|' . round((float) $city['latitude'], 2) . ',' . round((float) $city['longitude'], 2);
+            $value = sg_sidebar_cached($dir, $key, 900, 7200, false, static fn() => sg_sidebar_weather($city, $cfg, $deadline, $authHeaders), $allowed);
+            if ($value) {
+                $weather = array_merge($value, ['status' => 'ok']);
+                $city = array_merge($city, ['latitude' => $value['latitude'], 'longitude' => $value['longitude'], 'timezone' => $value['timezone'], 'city' => $value['city']]);
+            } else {
+                $weather['reason'] = $allowed ? 'provider-unavailable' : 'rate-limited';
+            }
         }
     }
     // Coordinates are used internally; the browser gets display data, never the visitor IP or precise location.

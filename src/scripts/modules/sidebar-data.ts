@@ -3,7 +3,7 @@ import { civilDate, dateKey, dayOrdinal, calendarFacts, fallbackFestival, loadCa
 
 type SidebarConfig = { timezone: string; detail: boolean; mode: 'off' | 'site' | 'visitor'; weather: boolean; endpoint: string; fallbackDates: string[]; initial: Context };
 type LocationData = { status: string; label?: string; observedAt?: number; stale?: boolean; distance?: number | null; source?: string };
-type WeatherData = { status: string; city?: string; condition?: string; temperature?: number; humidity?: number; icon?: string; observedAt?: string; fetchedAt?: number; stale?: boolean; attributions?: string[] };
+type WeatherData = { status: string; reason?: string; city?: string; condition?: string; temperature?: number; humidity?: number; icon?: string; observedAt?: string; fetchedAt?: number; stale?: boolean; attributions?: string[] };
 type SunData = { status: string; date?: string; timezone?: string; city?: string; rise?: string; set?: string };
 type Context = { location: LocationData; weather: WeatherData; sun: SunData; generatedAt: number };
 const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六'];
@@ -94,6 +94,8 @@ export function initSidebarData(): void {
     }
     put(weather, '[data-sg-weather-meta]', valid ? `湿度 ${current.humidity}%${update ? ` · ${current.stale ? '最近记录' : '更新于'} ${update}` : ''}` : '稍后会自动重试');
     weather.dataset.state = valid ? (current.stale ? 'stale' : 'ready') : 'error';
+    // 失败原因只放在 data 属性上供站长排查（枚举值，无凭据信息），界面文案仍是「稍后会自动重试」。
+    weather.dataset.reason = valid ? '' : (current.reason ?? '');
     weather.querySelectorAll<HTMLElement>('[data-sg-weather-icon]').forEach(icon => { icon.hidden = !valid || icon.dataset.sgWeatherIcon !== weatherIcon(current.icon ?? ''); });
     const credits = weather.querySelector<HTMLElement>('[data-sg-weather-attributions]');
     if (credits) {
