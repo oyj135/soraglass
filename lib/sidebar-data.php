@@ -27,7 +27,9 @@ function sg_sidebar_cfg(): array
     ]) : null;
     $host = strtolower(trim(sg_opt('sgWeatherHost')));
     // A dedicated QWeather host, no user-controlled scheme, port, path or redirect.
-    if (!preg_match('/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.qweatherapi\.com$/D', $host)) $host = '';
+    // 和风 2026 起改用账号专属 Host，形如 abc1234xyz.re.qweatherapi.com（可为 1–3 级子域），
+    // 旧规则只认单级子域，会把合法 Host 判为非法后静默清空。
+    if (!preg_match('/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.){1,3}qweatherapi\.com$/D', $host)) $host = '';
     return [
         'mode' => $mode, 'detail' => sg_opt('sgCalendarDetail', 'on') === 'on',
         'timezone' => sg_sidebar_timezone()->getName(), 'site' => $site,

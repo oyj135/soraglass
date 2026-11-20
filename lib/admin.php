@@ -475,8 +475,8 @@ function themeConfig($form): void
     if (sg_opt('sgSidebarLocation', 'site') === 'visitor' && sg_sidebar_private_dir() === '') $sgGeoDescription .= ' 当前无法使用站点之外的私有临时缓存目录，访客定位将停用；请放行 PHP 临时目录写入，不使用公开 dist 目录。';
     $form->addInput(new Text('sgGeoKey', null, '', _t('访客定位密钥'), _t($sgGeoDescription)));
     $form->addInput(new Radio('sgWeather', $effectOptions, 'off', _t('首页天气'), _t('开启后在日历底部显示城市天气、温度、湿度与更新时间；需填写下面的和风 Host 和密钥。未配置或失败时显示「天气暂不可用」。')));
-    $form->addInput(new Text('sgWeatherHost', null, '', _t('和风 API Host'), _t('填写和风控制台的专属域名，例如 abc123.qweatherapi.com，仅域名、不含 https:// 或路径。使用当前实时天气产品和 GeoAPI 城市查询。')));
-    $form->addInput(new Text('sgWeatherKey', null, '', _t('和风 API Key'), _t('服务端使用 X-QW-Api-Key 请求头认证，不下发浏览器。需开通当前实时天气与城市查询；天气成功缓存 15 分钟，失败时保留带时间的最近记录。')));
+    $form->addInput(new Text('sgWeatherHost', null, '', _t('和风 API Host'), _t('和风控制台「设置 → API Host」里那串专属域名，形如 abc1234xyz.re.qweatherapi.com（可含 .re 等子段）；只填域名，不含 https:// 或路径，不要填 console.qweather.com。使用当前实时天气产品和 GeoAPI 城市查询。')));
+    $form->addInput(new Text('sgWeatherKey', null, '', _t('和风 API Key'), _t('在和风控制台「项目 → 凭据 → 添加凭据（API KEY）」生成，只显示一次；服务端用 X-QW-Api-Key 请求头认证，不下发浏览器。需开通当前实时天气与城市查询；天气成功缓存 15 分钟，失败时保留带时间的最近记录。')));
     $form->addInput(new Textarea('sgNotice', null, '', _t('侧栏公告'), _t('显示在文章页与独立页右侧栏的公告卡；留空则不输出该卡。支持换行，按纯文本处理。')));
     $form->addInput(new Text('sgSidebar', null, 'notice', _t('侧栏卡片与顺序'), _t(
         '文章页侧栏固定为「作者卡 / 公告 / 目录」三张。此项仅 <code>notice</code> 生效（控制公告卡是否显示，'

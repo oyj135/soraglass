@@ -85,6 +85,8 @@ $date=sg_sidebar_date(new DateTimeImmutable('2026-11-19T12:00:00+08:00'));
 verify($date['target']['days']===79 && $date['progress'][2]['remaining']===3,'date');
 verify(sg_sidebar_date(new DateTimeImmutable('2035-03-01'))['target']===null,'exhausted-table');
 $options['sgWeatherHost']='localhost:8080'; verify(sg_sidebar_cfg()['weatherHost']==='','host-validation');
+$options['sgWeatherHost']='abc1234xyz.re.qweatherapi.com'; verify(sg_sidebar_cfg()['weatherHost']==='abc1234xyz.re.qweatherapi.com','host-subdomain');
+$options['sgWeatherHost']='console.qweather.com'; verify(sg_sidebar_cfg()['weatherHost']==='','host-console-url');
 echo json_encode(['count'=>$count,'progress'=>$date['progress'],'cacheDir'=>$dir]);
 `;
   const phpFile = path.join(temp, 'fixture.php'); fs.writeFileSync(phpFile, fixture);
