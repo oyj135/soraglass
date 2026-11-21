@@ -368,7 +368,7 @@ html.dark .sg-hcard { background-color: var(--sg-card); background-image: var(--
 /* 欢迎语对齐源站：一段话 + 主色高亮数字/地名/IP（2026-11-20）。 */
 .sg-hwelcome-location { margin: 0; font-size: .88rem; color: var(--sg-text); line-height: 1.85; overflow-wrap: anywhere; }
 .sg-hwelcome--visitor .sg-hwelcome-location { min-height: 6em; }
-.sg-hwelcome-location .sg-hw-strong { color: var(--sg-accent-ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.sg-hwelcome-location .sg-hw-strong { color: var(--sg-warm); font-weight: 600; font-variant-numeric: tabular-nums; }
 .sg-hwelcome-meta { margin: .3rem 0 0; font-size: .72rem; line-height: 1.7; color: var(--sg-muted); }
 
 /* ---------- 春节倒计时卡（对齐源站 #aside-countdown：左栏 30% 居中，百分比与还剩天数嵌在条内） ---------- */

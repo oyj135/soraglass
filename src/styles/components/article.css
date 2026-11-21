@@ -1454,7 +1454,7 @@ html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6)
 .sg-feature-taxonomy > span { display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .3rem; min-width: 0; max-width: 100%; }
 .sg-feature-taxonomy .sg-meta-link { overflow-wrap: anywhere; }
 .sg-feature-meta svg { width: .9rem; height: .9rem; flex: none; }
-/* 元信息图标为多色填充（sg_icon_color，2026-11-18）：颜色走 --sg-icon-* 语义 token，
+/* 元信息图标为源站 iconfont 真彩色 sprite（sg_icon_color，2026-11-21）：色内嵌在 path 里，
    日期独占一行，分类与标签在细线下自然换行，不产生行首竖线。 */
 .sg-feature-meta .sg-meta-link { color: inherit; transition: color .25s var(--sg-ease); }
 .sg-feature-meta .sg-meta-link:hover { color: var(--sg-accent-ink); }

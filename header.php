@@ -61,6 +61,8 @@ $sgLoadingAvatar = sg_media((string) sg_opt('sgAvatarUrl', ''), sg_theme_url('di
 </head>
 <body class="sg-body">
 <?php echo sg_asset_missing_notice(); ?>
+<?php /* 真彩色语义图标 sprite（2026-11-21）：隐藏 <symbol> 常驻 body，PJAX 只换 #sg-main 不受影响 */ ?>
+<?php echo sg_icon_sprite_defs(); ?>
 <a class="sg-skip" href="#sg-main">跳到正文</a>
 <?php if ($sgSplash) : ?>
 <div class="sg-splash" aria-hidden="true"><span class="sg-splash-mark">空 璃</span></div>
