@@ -21,10 +21,10 @@ html.dark .sg-nav.is-front { background: linear-gradient(180deg, rgba(2, 6, 23, 
 .sg-nav.is-front .sg-brand,
 .sg-nav.is-front .sg-brand-accent,
 .sg-nav.is-front .sg-nav-link,
-.sg-nav.is-front .sg-nav-more-btn { color: #fff; opacity: 1; text-shadow: 0 1px 10px rgba(0, 0, 0, .55); }
+.sg-nav.is-front .sg-nav-more-btn { color: #fff; opacity: 1; text-shadow: none; }
 /* 首屏向下滚时浮出的页名跟站名一起转白，避免深色字压在暗 scrim 上；
    显隐仍由 is-hidden 控制，这里只改配色。 */
-.sg-nav.is-front .sg-nav-page { color: #fff; text-shadow: 0 1px 10px rgba(0, 0, 0, .55); }
+.sg-nav.is-front .sg-nav-page { color: #fff; text-shadow: none; }
 .sg-nav.is-front .sg-nav-link.is-active::before { background: #fff; }
 /* 首屏 hover（2026-11-18 用户反馈：原来 base 与 hover 都压白、且 !important 锁死，
    悬浮毫无变化）：base 满白保醒目，hover 换青瓷浅色 + 同色下划线，变化一眼可见。
@@ -164,9 +164,9 @@ html.dark .sg-front-title, html.dark .sg-front-sub { text-shadow: none; animatio
   background: none;
   color: #fff;
   cursor: pointer;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, .5);
+  text-shadow: none;
 }
-.sg-front-next-label { font-size: .72rem; letter-spacing: .25em; opacity: .85; text-shadow: 0 2px 14px rgba(0, 0, 0, .45); }
+.sg-front-next-label { font-size: .72rem; letter-spacing: .25em; opacity: .85; text-shadow: none; }
 .sg-front-next svg { width: 1.75rem; height: 1.75rem; animation: sg-front-bob 2s var(--sg-ease) infinite; }
 @keyframes sg-front-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
 @media (prefers-reduced-motion: reduce) { .sg-front-next svg { animation: none; } }
@@ -463,12 +463,12 @@ html:not(.dark) a.sg-home-cate:hover {
 
 /* ---------- 日间首屏（2026-11-21 用户回调：黑遮罩 + 白字，对齐源站） ----------
    源站 #page-header:before = alpha($dark-black, .3) = rgba(0,0,0,.3)，
-   #site-title 纯白、#site-subtitle 浅灰；Soraglass 日间壁纸偏亮，
-   白字靠四向深硬影描边（--sg-wall-white-*）托底，遮罩浓度按源站 .30。 */
+   #site-title 纯白、#site-subtitle 浅灰。**白字一律不带描边/阴影**（用户明确要求），
+   可读性全部交给遮罩浓度。 */
 html:not(.dark) .sg-front { color: #fff; }
 html:not(.dark) .sg-front::before { background: rgba(0, 0, 0, .30); }
-html:not(.dark) .sg-front-title { color: #fff; text-shadow: var(--sg-wall-white-edge); }
-html:not(.dark) .sg-front-sub { color: #fff; text-shadow: var(--sg-wall-white-halo); }
+html:not(.dark) .sg-front-title { color: #fff; text-shadow: none; }
+html:not(.dark) .sg-front-sub { color: #fff; text-shadow: none; }
 html:not(.dark) .sg-front-caret { background: #fff; }
 html:not(.dark) .sg-front-read {
   border-color: rgba(255, 255, 255, .6);
@@ -482,7 +482,7 @@ html:not(.dark) .sg-front-social-link {
   color: #fff;
 }
 html:not(.dark) .sg-front-social-link:hover { background: rgba(255, 255, 255, .26); }
-html:not(.dark) .sg-front-next { color: #fff; text-shadow: 0 2px 10px rgba(0, 0, 0, .5); }
-html:not(.dark) .sg-front-next-label { text-shadow: 0 2px 14px rgba(0, 0, 0, .45); }
+html:not(.dark) .sg-front-next { color: #fff; text-shadow: none; }
+html:not(.dark) .sg-front-next-label { text-shadow: none; }
 /* 日间不再单独覆盖 .sg-nav.is-front —— 全站导航统一在 components/nav.css 里给配方，
    两处各写一套会导致「首页导航与其他页导航不同色」的旧问题复发。 */

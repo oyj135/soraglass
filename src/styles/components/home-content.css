@@ -238,7 +238,7 @@ button.sg-progress:hover { background: var(--sg-indicator-bg-hot); }
 .sg-poster-wide .sg-veil { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0, 0, 0, .72), rgba(0, 0, 0, .34) 60%, rgba(0, 0, 0, .18)); transition: background-color .5s; }
 html.dark .sg-poster-wide .sg-veil { background: linear-gradient(to top, rgba(0, 0, 0, .78), rgba(0, 0, 0, .5) 60%, rgba(0, 0, 0, .4)); }
 
-.sg-poster-body { position: absolute; left: 1rem; right: 1.5rem; bottom: 1rem; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, .55); }
+.sg-poster-body { position: absolute; left: 1rem; right: 1.5rem; bottom: 1rem; color: #fff; text-shadow: none; }
 @media (min-width: 640px) { .sg-poster-body { left: 1.5rem; bottom: 1.5rem; } }
 
 .sg-poster-body h3 {
@@ -287,7 +287,7 @@ html.dark .sg-poster-wide .sg-veil { background: linear-gradient(to top, rgba(0,
   min-height: 12.5rem;
   padding: 1.5rem;
   color: #fff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, .55);
+  text-shadow: none;
 }
 
 @media (min-width: 768px) { .sg-chatter-body { padding: 2rem; width: 85%; } }
@@ -489,7 +489,7 @@ html.dark .sg-i-moon { display: inline-flex; }
   font-weight: 900;
   line-height: 1.25;
   letter-spacing: .04em;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, .40);
+  text-shadow: none;
 }
 
 @media (min-width: 640px) { .sg-briefing-title { font-size: 1.9rem; } }
