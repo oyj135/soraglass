@@ -119,19 +119,11 @@ html.sg-splash-pending .sg-splash { animation: sg-splash-auto .45s ease 1.2s for
 html[data-sg-blur="soft"] { --sg-bg-blur: 5px; --sg-bg-blur-scale: 1.04; }
 html[data-sg-blur="strong"] { --sg-bg-blur: 12px; --sg-bg-blur-scale: 1.08; }
 
-/* 夜间全屏遮罩（2026-11-21 第三十三轮，对齐源站 darkmode.styl）：
-   源站 `#web_bg:before / #footer:before / #page-header:before { background: rgba(#000, .7) }`。
-   这里只取「整页背景」那一层，压在壁纸(z1) / 色相层(z3) / 光球(z4) 之上（z5）。
-   **只在 html.dark 生效**：日间仍然不加全屏蒙版，内容直接叠壁纸的结论不变；
-   夜间这条是导航去实底、白字可读的托底，也是卡片与壁纸重新分层的前提。 */
-html.dark .sg-bg::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  background: rgba(0, 0, 0, .7);
-  pointer-events: none;
-}
+/* 夜间全屏遮罩（2026-11-21 第三十三轮加、第三十五轮按用户要求撤除）：
+   源站 darkmode.styl 确有 `#web_bg:before { rgba(#000,.7) }`，但实测压在壁纸上过黑
+   （用户原话「夜间模式不需要首屏遮罩了」）。已整层删除，不要再加回：
+   夜间可读性改由「下滑出底的深玻璃导航 + 局部卡片底 + 页脚/页头自身托底」承担，
+   壁纸保持原亮度。 */
 
 /* 2026-11-20：壁纸与内容之间的背景遮罩（.sg-bg-veil 与三档 data-sg-veil）整层移除。
    用户要求内容直接叠在壁纸上，不再压一层半透明蒙版；可读性改由各自的局部托底承担：

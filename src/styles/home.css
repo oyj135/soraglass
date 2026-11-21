@@ -52,6 +52,9 @@ html:not(.dark) .sg-nav.is-front .sg-nav-link.is-active::before { background: #f
 @media (prefers-reduced-motion: reduce), (pointer: coarse), (max-width: 899px) {
   .sg-front::before { background: rgba(0, 0, 0, .42); }
 }
+/* 夜间首屏不压遮罩（2026-11-21 用户要求）：壁纸保持原亮度，
+   配合夜间无全屏遮罩，首屏就是壁纸本色 + 白字。 */
+html.dark .sg-front::before { background: transparent; }
 /* 首屏文案层；日间深墨字 + 浅色提亮遮罩，夜间宣纸白 + 低饱和竹青霓虹。 */
 .sg-front-inner {
   position: relative;
@@ -182,6 +185,9 @@ html:not(.dark) .sg-front-title { text-wrap: balance; }
 .sg-home-latest { scroll-margin-top: 5rem; margin-top: -.5rem; }
 .sg-home-section-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: .75rem; }
 .sg-home-section-title { display: inline-flex; align-items: center; gap: .5rem; margin: 0; font-size: 1.25rem; font-weight: 700; }
+/* 日间「精选」文字压白色（2026-11-21 用户指定），前面 book-open 图标保留竹青彩色，
+   两者色相拉开；夜间标题本就随正文色（浅色），不重复声明。 */
+html:not(.dark) .sg-home-section-title { color: #fff; }
 .sg-home-section-title svg { width: 1.15rem; height: 1.15rem; color: var(--sg-accent-ink); }
 
 /* 首页文章栅格（2026-11-18 视觉改造）：≥1280 三列（卡宽 ≈293px，同源站 multicard）、

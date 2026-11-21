@@ -9,23 +9,51 @@
   position: fixed;
   inset: 0 0 auto;
   z-index: 50;
-  /* 2026-11-21 第三十三轮：昼夜都无底色、无下边框细线，直接压在壁纸上。
-     夜间那条 rgba(26,34,37,.98) 实底已删——它在壁纸上是一条边界生硬的横条
-     （用户反馈「其他页面的导航栏有背景卡片」）。夜间可读性改由
-     `.sg-bg::after` 的全屏 70% 暗遮罩承担（effects.css，对齐源站 darkmode）。 */
+  /* 2026-11-21 第三十五轮（用户定档）：
+     顶部（y < 56）= 完全透明，只有一层自上下渐隐的极淡 scrim 兜白字；
+     下滑后（is-scrolled）= 出背景色（日间浅玻璃 / 夜间深玻璃）+ 模糊，
+     导航栏与居中页名共用这一条底，回到顶部再平滑退回透明。
+     旧写法把「无底色」写死成昼夜恒定，导致下滑时白字压在浅卡片上消失，已废。 */
   background: transparent;
-  transition: background-color 1s, box-shadow .3s var(--sg-ease);
+  transition: background-color .35s var(--sg-ease), box-shadow .35s var(--sg-ease);
 }
+
+/* 顶部 scrim 单独放伪元素：background-color 才能与滚动态玻璃底平滑过渡
+   （gradient 与 color 之间不可插值）。z-index:-1 落在导航自身层叠上下文里，
+   只压背景、不盖文字。 */
+.sg-nav::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(2, 6, 23, .18), rgba(2, 6, 23, 0));
+  opacity: 1;
+  transition: opacity .35s var(--sg-ease);
+}
+html.dark .sg-nav::before { background: linear-gradient(180deg, rgba(2, 6, 23, .30), rgba(2, 6, 23, 0)); }
+.sg-nav.is-scrolled::before { opacity: 0; }
 
 /* 向下滚（is-hidden）：顶栏常驻贴顶，让位给居中页名（源站向下标题态），
    不再整条滑出——页名是顶栏子元素，若整条 translateY(-105%) 会一起消失。 */
 .sg-nav.is-hidden {
-  transition: background-color 1s, box-shadow .3s var(--sg-ease);
+  transition: background-color .35s var(--sg-ease), box-shadow .35s var(--sg-ease);
 }
 
-/* 固定态阴影（源站 head.styl nav-fixed）2026-11-21 移除：
-   `0 5px 6px -5px` 在浅色壁纸上就是导航下面那条 1px 灰线，用户要求去掉。 */
-.sg-nav.is-scrolled { box-shadow: none; }
+/* 滑动后的导航/页名底（2026-11-21 用户要求）：不画分隔线（那条 1px 灰线早已删），
+   只用一层玻璃底 + 极软投影把顶栏从内容里托起来。 */
+html:not(.dark) .sg-nav.is-scrolled {
+  background: rgba(251, 248, 242, .86);
+  -webkit-backdrop-filter: blur(18px) saturate(1.12);
+  backdrop-filter: blur(18px) saturate(1.12);
+  box-shadow: 0 14px 30px -26px rgba(2, 6, 23, .55);
+}
+html.dark .sg-nav.is-scrolled {
+  background: rgba(18, 24, 27, .82);
+  -webkit-backdrop-filter: blur(18px) saturate(1.08);
+  backdrop-filter: blur(18px) saturate(1.08);
+  box-shadow: 0 14px 30px -26px rgba(0, 0, 0, .85);
+}
 
 /* 载入淡入（sg-ready 由 head 内联脚本打标；无 JS 时导航始终可见） */
 html.sg-ready .sg-nav { animation: sg-nav-in .5s var(--sg-ease) both; }
@@ -144,7 +172,11 @@ html.dark .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent-ink);
    `left:0 / bottom:0 / width:0 → 100% / height:3px / all .3s ease-in-out`，
    直角、纯色、从左侧长满（原来是 2px + scaleX 合成层写法，形态与源站不一致）。
    颜色取源站 `lighten($theme-color, 30%)` 的手法：主色提亮到浅档。 */
-.sg-nav-link { display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .65rem; margin-inline: -.65rem; border-radius: .5rem; transition: color .3s, opacity .3s; }
+.sg-nav-link { display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .65rem; margin-inline: -.65rem; border-radius: .6rem; transition: color .3s, opacity .3s, background-color .25s var(--sg-ease); }
+/* 悬浮青色底板（2026-11-21 用户指定）：圆角矩形、低饱和竹青，
+   压在壁纸/玻璃底上都看得出，不抢下划线的位置。 */
+.sg-nav-link:is(:hover, :focus-visible) { background: rgba(60, 92, 95, .26); }
+html.dark .sg-nav-link:is(:hover, :focus-visible) { background: rgba(143, 217, 201, .20); }
 .sg-nav-link::after {
   content: '';
   position: absolute;
@@ -327,16 +359,9 @@ html.dark .sg-sheet-panel {
 .sg-sheet-close:is(:hover, :focus-visible) { color: var(--sg-accent-ink); }
 .sg-sheet .sg-sheet-link { flex-shrink: 0; min-height: 2.75rem; }
 
-/* ---------- 全站导航（2026-11-21 第三十三轮：昼夜统一「无底 + 白字 + 青瓷下划线」） ----------
-   无实底、无下边框。日间只留 16% 的顶部渐隐 scrim（比原 .26 更淡，几乎看不出边界），
-   夜间完全透明，靠全屏暗遮罩托底。
-   hover 反馈改「两处同时加重」，解决用户「字体颜色和下划线都不明显」：
-   · 字色 白 → 薄荷青 #9fe8d8（色相拉开，暗底亮底都辨得出）
-   · 下划线 浅混色 → 实色 3px：日间非首屏底亮用深竹青 #3c5c5f，首屏与夜间（底是暗遮罩）
-     用亮青 #8fd9c9；线宽仍按源站 .3s ease-in-out 从左长满。 */
-html:not(.dark) .sg-nav {
-  background: linear-gradient(180deg, rgba(2, 6, 23, .16), rgba(2, 6, 23, 0));
-}
+/* ---------- 全站导航（2026-11-21 第三十五轮：顶部透明 / 下滑出底） ----------
+   顶部只留一层伪元素 scrim（见上），导航本体保持透明；
+   hover 反馈三件套：青色圆角底板 + 字色薄荷青 + 3px 下划线（源站 .3s 从左长满）。 */
 html:not(.dark) .sg-nav :is(.sg-brand, .sg-brand-accent, .sg-nav-link, .sg-nav-more-btn, .sg-nav-page) {
   color: #fff;
   opacity: 1;
@@ -353,17 +378,20 @@ html:not(.dark) .sg-nav.is-front .sg-nav-link::after { background: #8fd9c9; }
 html.dark .sg-nav .sg-nav-link::after { background: #8fd9c9; }
 html.dark .sg-nav .sg-nav-link:is(:hover, :focus-visible) { color: #b8f5e6; opacity: 1; }
 
-/* 日间滚进内容区之后（y > 56 且已离开首屏）：底不再是壁纸，而是 24% 白玻璃卡片，
-   白字会整块消失。这里**不加任何底色**（用户要求导航无背景卡片），只把字色切成深墨；
-   首屏 `is-front` 豁免——那时底是 0.30 黑遮罩 + 壁纸，白字才是对的。
-   回到顶部时 is-scrolled 移除，颜色由 .3s transition 平滑回白。 */
-html:not(.dark) .sg-nav.is-scrolled:not(.is-front) { background: none; }
-html:not(.dark) .sg-nav.is-scrolled:not(.is-front) :is(.sg-brand, .sg-nav-link, .sg-nav-more-btn, .sg-nav-page) { color: #22302f; }
-html:not(.dark) .sg-nav.is-scrolled:not(.is-front) .sg-brand-accent { color: #3c5c5f; }
-html:not(.dark) .sg-nav.is-scrolled:not(.is-front) .sg-nav-link.is-active { color: #3c5c5f; }
-html:not(.dark) .sg-nav.is-scrolled:not(.is-front) .sg-nav-link.is-active::before { background: #3c5c5f; }
-html:not(.dark) .sg-nav.is-scrolled:not(.is-front) .sg-nav-link::after { background: #3c5c5f; }
-html:not(.dark) .sg-nav.is-scrolled:not(.is-front) .sg-nav-link:is(:hover, :focus-visible) { color: #0f6b5f; }
+/* 下滑后（is-scrolled）：底色已是浅玻璃，白字会整块消失 → 字色切深墨，
+   下限线换深竹青。首屏 is-front 不再豁免——顶上时本就没底，一旦下滑就有玻璃底，
+   两种底统一按「深墨字」走，回到顶部 is-scrolled 移除后 .3s 平滑回白。 */
+html:not(.dark) .sg-nav.is-scrolled :is(.sg-brand, .sg-nav-link, .sg-nav-more-btn, .sg-nav-page) { color: #22302f; }
+html:not(.dark) .sg-nav.is-scrolled .sg-brand-accent { color: #3c5c5f; }
+html:not(.dark) .sg-nav.is-scrolled .sg-nav-link.is-active { color: #3c5c5f; }
+html:not(.dark) .sg-nav.is-scrolled .sg-nav-link.is-active::before { background: #3c5c5f; }
+html:not(.dark) .sg-nav.is-scrolled .sg-nav-link::after { background: #3c5c5f; }
+/* 下滑后底是浅玻璃：字色转深竹青，青色底板同时退淡
+   （中青底 + 深青字对比不足，只有淡底才留得住 4.5:1） */
+html:not(.dark) .sg-nav.is-scrolled .sg-nav-link:is(:hover, :focus-visible) {
+  color: #0f6b5f;
+  background: rgba(60, 92, 95, .14);
+}
 /* 下拉面板是实底卡，文字回落正文色，不能继承导航白字 */
 html:not(.dark) .sg-nav .sg-nav-more-menu { color: var(--sg-text); }
 html:not(.dark) .sg-nav :is(.sg-nav-more-link, .sg-sheet-link):is(:hover, :focus-visible) {
