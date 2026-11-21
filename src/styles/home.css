@@ -8,32 +8,11 @@
    全部颜色/间距走 tokens，不新增硬编码色值。
    ============================================================ */
 
-/* ---------- 首屏上的透明导航（滚动离开首屏后由 core.ts 去掉 is-front 恢复实底） ---------- */
-.sg-nav.is-front {
-  /* 顶部渐隐 scrim：壁纸上半可能很亮，纯白字压不住；一层自上而下的淡暗幕
-     保住对比，又不变成实底条（源站 #nav 无底，但其头图自带暗遮罩） */
-  /* 2026-11-18 .34 → .5：亮壁纸顶部白字实测只剩 1.5:1 */
-  background: linear-gradient(180deg, rgba(2, 6, 23, .5), rgba(2, 6, 23, 0));
-  border-bottom-color: transparent;
-  box-shadow: none;
-}
-html.dark .sg-nav.is-front { background: linear-gradient(180deg, rgba(2, 6, 23, .56), rgba(2, 6, 23, 0)); border-bottom-color: transparent; }
-.sg-nav.is-front .sg-brand,
-.sg-nav.is-front .sg-brand-accent,
-.sg-nav.is-front .sg-nav-link,
-.sg-nav.is-front .sg-nav-more-btn { color: #fff; opacity: 1; text-shadow: none; }
-/* 首屏向下滚时浮出的页名跟站名一起转白，避免深色字压在暗 scrim 上；
-   显隐仍由 is-hidden 控制，这里只改配色。 */
-.sg-nav.is-front .sg-nav-page { color: #fff; text-shadow: none; }
-.sg-nav.is-front .sg-nav-link.is-active::before { background: #fff; }
-/* 首屏 hover（2026-11-18 用户反馈：原来 base 与 hover 都压白、且 !important 锁死，
-   悬浮毫无变化）：base 满白保醒目，hover 换青瓷浅色 + 同色下划线，变化一眼可见。
-   2026-11-21：hover 由深青 #2f4c4f 改浅青 —— 深青压在暗 scrim 与亮壁纸两种底上
-   都读不清；下划线同步换成源站 lighten(主题色,30%) 的浅档。 */
-.sg-nav.is-front .sg-nav-link:is(:hover, :focus-visible) { color: #cfe6e0; opacity: 1; }
-.sg-nav.is-front .sg-nav-link::after { background: color-mix(in srgb, #3c5c5f 45%, #fff); }
-.sg-nav.is-front .sg-nav-link.is-active { color: #fff; }
-.sg-nav.is-front .sg-nav-more-menu { color: var(--sg-text); }
+/* ---------- 首屏导航（is-front 由 home.ts 按滚动位置维护） ----------
+   2026-11-21 第三十三轮：底色、白字、hover、下划线全部上收到 components/nav.css 一处维护
+   （原来这里另写一套 gradient + hover 浅青，和全站配方打架：首屏夜间 hover 用的是
+   被覆盖后的旧色）。这里只留「首屏激活项用纯白圆点」这一条差异化。 */
+html:not(.dark) .sg-nav.is-front .sg-nav-link.is-active::before { background: #fff; }
 /* 2026-11-19 撤销「日间瓷白导航条」：实底横条把首屏壁纸顶部整条挡住，
    用户要求回到夜间同款 —— 透明 + 顶部渐隐 scrim，文字压白。 */
 

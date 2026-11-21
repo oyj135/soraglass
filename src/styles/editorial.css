@@ -166,8 +166,9 @@
 .sg-toc-list li.is-active a { border-left-color: var(--sg-accent-ink); background: color-mix(in srgb, var(--sg-accent-ink) 8%, transparent); }
 
 /* 共享组件：同色系、轻反馈，项目与友链仍沿用自己的信息结构。 */
-/* 2026-11-21：导航下边框（含夜间那条弱线）整条下线，对齐源站 #nav 无边框。 */
-html.dark .sg-nav { background: var(--sg-card); }
+/* 2026-11-21 第三十三轮：导航下边框整条下线，夜间那条 `background: var(--sg-card)`
+   实底也一并删（用户：其他页面导航有背景卡片）。夜间可读性由 `.sg-bg::after`
+   的 70% 全屏暗遮罩承担，nav 本身昼夜都透明。 */
 .sg-filter-btn { min-height: 2.25rem; font-family: var(--font-sans); font-weight: 500; }
 .sg-project-meta { line-height: 1.8; }
 .sg-project:active { transform: translateY(-1px); }
