@@ -509,7 +509,8 @@ html.dark .sg-filter-btn.is-active {
      .imgBx::after    透明圆 80×80 + box-shadow:75px 70px 0 40px #fff → 右肩内凹圆缺口
    项目卡此前没有真实图区（用语言色头带 + 首字母水印冒充封面），这轮补成真的：
    有 cover 就放图，没有就用语言色渐变 + 首字母水印，几何完全共用同一套。
-   卡片高度仍由内容决定 —— 3 列网格里 hover 长高会把整行推下去。 */
+   悬停展开与源码同构：封面高度固定、信息面板靠简介展开长高（源码是图不动、白板长高）。
+   网格加了 `align-items: start`（layout.css），所以只长被悬停的那张，同排其它卡不动。 */
 .sg-project {
   --sg-proj-photo: 11.5rem;                     /* 封面高度 */
   --sg-proj-lip: 1.35rem;                       /* 圆肩半径 = 胶囊半高（源码 40/300） */
@@ -536,6 +537,7 @@ html.dark .sg-filter-btn.is-active {
   z-index: 0;
   flex: none;
   height: var(--sg-proj-photo);
+  transition: height var(--sg-dur-card) var(--sg-ease);
   background-image: linear-gradient(
     180deg,
     color-mix(in srgb, var(--sg-lang, var(--sg-accent)) 22%, var(--sg-panel-face)),
@@ -611,21 +613,25 @@ html.dark .sg-project-shot {
 /* 内容面板：从封面下沿开始，与圆肩同色，z-index 压在封面之上，
    胶囊探进面板的那半个被盖住 —— 视觉上就是白板吃掉了封面底部 */
 .sg-project-body {
+  --sg-proj-gap: .8125rem;      /* 提成变量：简介收起时要按它抵消上下两个 gap */
   position: relative;
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: .8125rem;
+  gap: var(--sg-proj-gap);
   padding: 1.05rem 1.25rem 1rem;
   background: var(--sg-proj-face);
 }
 @media (min-width: 768px) {
-  .sg-project-body { gap: .9375rem; padding: 1.15rem 1.375rem 1.0625rem; }
+  .sg-project-body { --sg-proj-gap: .9375rem; padding: 1.15rem 1.375rem 1.0625rem; }
 }
 
 /* 悬停：整卡上浮 + 柔影（源码只有 box-shadow，位移是本站既有的卡片语言）；
-   封面在支持 hover 的设备上由模糊转清晰并放大 10%（源码 .card:hover .imgBx） */
+   封面在支持 hover 的设备上由模糊转清晰并放大 10%（源码 .card:hover .imgBx）；
+   同时封面长高 2.25rem —— 项目卡没有源码那种「长高 120px 的白板」，
+   一点封面高度加上简介展开，合起来的位移量才够看出「卡片展开了」。 */
 .sg-project:is(:hover, :focus-within) {
+  --sg-proj-photo: 13.75rem;
   transform: translateY(-4px);
   box-shadow:
     0 18px 38px -14px rgba(23, 27, 29, .34),
@@ -645,10 +651,16 @@ html.dark .sg-project:is(:hover, :focus-within) {
   .sg-project--cover:is(:hover, :focus-within) .sg-project-photo img { transform: scale(1.1); }
 }
 
+/* 触屏：简介常显，卡片不展开（没有 hover 可触发） */
+@media (hover: none) {
+  .sg-project-desc { max-height: none; margin-block: 0; opacity: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sg-project,
   .sg-project-photo,
   .sg-project-photo img,
+  .sg-project-desc,
   .sg-project:is(:hover, :focus-within),
   .sg-project:is(:hover, :focus-within) .sg-project-avatar img { transition: none; transform: none; }
 }
@@ -711,15 +723,34 @@ html.dark .sg-project-badge { color: var(--sg-indigo-soft); }
   overflow-wrap: anywhere;
 }
 
-/* 描述固定两行：三行会让同一排卡片的高度差出一个行高，网格看着不齐 */
+/* 描述：静止收成 0，悬停展开两行 —— 这就是源码「`.content p` 静止 opacity:0 +
+   卡片 300→420 长高」的对应物，项目卡的「展开」全靠这一段。
+   flex 的 gap 是按「有几个子项」给的，收起的简介仍会占掉上下两个 gap，
+   所以用等量负 margin 抵掉；悬停时 margin 归零，间距自己回来。 */
 .sg-project-desc {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
+  max-height: 0;
+  margin-block: calc(var(--sg-proj-gap) * -1);
+  opacity: 0;
   font-size: .8125rem;
   line-height: 1.7;
   color: var(--sg-muted);
+  transition:
+    max-height var(--sg-dur-card) var(--sg-ease),
+    margin-block var(--sg-dur-card) var(--sg-ease),
+    opacity .22s var(--sg-ease) .06s;
+}
+
+/* 触屏没有「移开」这个动作，简介常显（不展开也不藏） */
+@media (hover: hover) {
+  .sg-project:is(:hover, :focus-within) .sg-project-desc {
+    max-height: 5rem;
+    margin-block: 0;
+    opacity: 1;
+  }
 }
 
 /* 语言 / 星数 / 分支数：一行等宽小字，用图标和色点代替文字前缀 */

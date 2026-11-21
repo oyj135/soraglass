@@ -127,7 +127,9 @@ body { overflow-x: clip; }
    原来沿用 .sg-card-grid：容器上限 72rem，1440px 屏下每张卡被拉到 560px 宽，
    描述行长达 100+ 字符，读起来很累。这里单列 → 两列 → 三列，每列稳定在 320–360px。
    不动 .sg-card-grid 本身：友链 / 说说 / 杂谈仍是两列。 */
-.sg-project-grid { display: grid; gap: 1.25rem; grid-template-columns: minmax(0, 1fr); }
+/* `align-items: start` 是给悬停展开用的：默认 stretch 会让同排每张卡都跟着被撑高，
+   只有 start 才能让「被悬停的那张自己长高、其它卡原样不动」。 */
+.sg-project-grid { display: grid; align-items: start; gap: 1.25rem; grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 640px) { .sg-project-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (min-width: 1200px) { .sg-project-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; } }
 

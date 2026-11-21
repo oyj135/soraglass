@@ -14,8 +14,11 @@
      ② 白板顶边不是左右对称的圆角，右边还有一个内凹圆缺口（外弯 + 内凹 = S 形交界）。
    本轮按源码补齐，尺寸按 40/300 的比例折成 1.35rem（卡宽 200 左右时比例最接近源站）。
 
-   唯一保留的差异：卡片高度固定（5 列网格里长高会把整行推下去），
-   改成信息面板在卡内长高、封面区随之收缩；几何关系与源站一致。
+   整卡展开照抄源码：`.card` 300 → `:hover` 420（1.4 倍）。这里用 `aspect-ratio: 1/1 → 1/1.4`
+   做高度过渡（Chromium 支持对 aspect-ratio 插值），面板和封面都用**卡片高度的百分比**，
+   1.4 倍下把面板比例从 36% 提到 54%，正好让封面高度几乎不变（0.64×1 = 0.46×1.4），
+   多出来的 80px 全部给信息面板 —— 与源码「图不动、白板从底部长高」一致。
+   网格 `align-items: start`，只让被悬停的那张往下长，同排其它卡顶端不动。
    外层保留一张玻璃卡托底：卡片直接压壁纸时简介只剩 2.4:1 对比。 */
 .sg-flink-list {
   display: grid;
@@ -49,6 +52,7 @@
   background: var(--sg-flink-face);
   box-shadow: 0 10px 24px -18px rgba(23, 27, 29, .40);
   transition:
+    aspect-ratio var(--sg-dur-card) var(--sg-ease),
     transform var(--sg-dur-card) var(--sg-ease),
     box-shadow var(--sg-dur-card) var(--sg-ease);
 }
@@ -212,6 +216,9 @@
 }
 
 .sg-flink-item:is(:hover, :focus-within) {
+  /* 整卡展开（源码 .card:hover 300→420 = 1.4 倍）：卡片长高，封面按百分比跟着不变，
+     多出来的高度全部落在信息面板上，简介才有地方显出来。 */
+  aspect-ratio: 1 / 1.4;
   --sg-flink-panel: clamp(6.8rem, 54%, 7.8rem);
   transform: translateY(-4px);
   box-shadow:
@@ -232,10 +239,14 @@ html.dark .sg-flink-item:is(:hover, :focus-within) {
 }
 
 /* 窄屏（两列、卡宽 165 上下）：面板高度按百分比算会不够装「头像+站名+域名」或两行简介，
-   卡片改 4:5 给纵向留位置 —— 封面仍有 130 左右，面板不会把图压没。 */
+   卡片改 4:5 给纵向留位置 —— 封面仍有 130 左右，面板不会把图压没。
+   悬停同样按比例长高（4:5 → 4:6），封面高度基本不变。 */
 @media (max-width: 599.98px) {
   .sg-flink-item { aspect-ratio: 4 / 5; }
-  .sg-flink-item:is(:hover, :focus-within) { --sg-flink-panel: clamp(6.6rem, 52%, 7.2rem); }
+  .sg-flink-item:is(:hover, :focus-within) {
+    aspect-ratio: 4 / 6;
+    --sg-flink-panel: clamp(6.6rem, 52%, 7.2rem);
+  }
 }
 
 /* 触屏没有 hover：封面常清晰、简介常显；域名行让位给简介（否则面板装不下两行） */
