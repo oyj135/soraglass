@@ -217,14 +217,6 @@
   /* 项目卡专用。2026-11-21 第三十九轮起卡面改成「封面 + 信息面板」（弯曲外部卡），
      卡面不再需要双层渐变 —— 统一用 --sg-card 实底，只留描边与胶囊这两组。
      （原 --sg-proj-face-a/b、--sg-proj-tint 随渐变卡面一起删除。） */
-  /* 弯曲卡（友链 / 项目）的面板色：**必须实色**。
-     圆肩胶囊与面板在交界处会叠两层，用 .98 的 --sg-card 会在面板顶部露出一块
-     比周围亮一档的方块（两层 alpha 复合的结果）。这里直接给不透明值。 */
-  --sg-panel-face: #fbf8f2;
-  /* 弯曲卡（友链 / 项目）的面板色：**必须实色**。
-     圆肩胶囊与面板在交界处会叠两层，用 .98 的 --sg-card 会在面板顶部露出一块
-     比周围亮一档的方块（两层 alpha 复合的结果）。这里直接给不透明值。 */
-  --sg-panel-face: #fbf8f2;
   --sg-proj-border: rgba(255, 255, 255, .58);      /* 静置描边：比通用卡亮一档，卡片才「有边」 */
   /* 原 --sg-proj-border-hot（hover 提亮描边）已随「同步源站」删除：
      悬浮不再改边框，只补 .site-card:hover 那组四层柔影 + 主体 1.02 缓放。 */
@@ -355,8 +347,6 @@ html.dark {
   --sg-indicator-track: rgba(255, 255, 255, .30);
 
   /* 项目卡：暗色下卡面走 --sg-card，胶囊统一 accent-soft，深底上才够对比 */
-  --sg-panel-face: #22272a;
-  --sg-panel-face: #22272a;
   --sg-proj-border: rgba(255, 255, 255, .12);
   --sg-proj-tag-bg: color-mix(in srgb, var(--sg-accent-soft) 16%, transparent);
   --sg-proj-tag-border: color-mix(in srgb, var(--sg-accent-soft) 28%, transparent);

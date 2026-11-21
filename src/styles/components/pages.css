@@ -8,10 +8,10 @@
 /* ---------- 卡片悬停旋转渐变边框（hereitis「CSS鼠标悬停边框动画」同风格） ----------
    conic-gradient 彩虹描边绕卡片旋转（@property 动画自定义角度）；
    不支持 @property 的浏览器退化为静态渐变描边（不影响布局）。
-   应用范围：知识档案/精选文章卡 + 项目卡。
-   友链卡 2026-11-19 起改为源站 volantis 形态，不再挂描边（只留截图 scale）。 */
-.sg-feature-card::before,
-.sg-project::after {
+   应用范围：知识档案 / 精选文章卡。
+   友链卡与项目卡 2026-11-21 起统一为源站 volantis 形态（细边框卡 + 截图 + 上浮光晕），
+   不再挂这圈描边 —— 彩虹环与外圈 1px 细边会叠成双层边，脏。 */
+.sg-feature-card::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -27,15 +27,13 @@
   transition: opacity .3s var(--sg-ease);
   pointer-events: none;
 }
-.sg-feature-card:is(:hover, :focus-within)::before,
-.sg-project:is(:hover, :focus-within)::after {
+.sg-feature-card:is(:hover, :focus-within)::before {
   opacity: 1;
   animation: sg-border-spin 3s linear infinite;
 }
 @keyframes sg-border-spin { to { --sg-angle: 360deg; } }
 @media (prefers-reduced-motion: reduce) {
-  .sg-feature-card:is(:hover, :focus-within)::before,
-  .sg-project:is(:hover, :focus-within)::after { animation: none; }
+  .sg-feature-card:is(:hover, :focus-within)::before { animation: none; }
 }
 
 .sg-btn {

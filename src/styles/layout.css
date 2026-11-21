@@ -129,7 +129,8 @@ body { overflow-x: clip; }
    不动 .sg-card-grid 本身：友链 / 说说 / 杂谈仍是两列。 */
 /* `align-items: start` 是给悬停展开用的：默认 stretch 会让同排每张卡都跟着被撑高，
    只有 start 才能让「被悬停的那张自己长高、其它卡原样不动」。 */
-.sg-project-grid { display: grid; align-items: start; gap: 1.25rem; grid-template-columns: minmax(0, 1fr); }
+/* 默认 stretch：同排卡片等高（源站 .site-card-group 也是 stretch） */
+.sg-project-grid { display: grid; gap: 1.25rem; grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 640px) { .sg-project-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (min-width: 1200px) { .sg-project-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; } }
 

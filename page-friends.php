@@ -51,28 +51,20 @@ $sgFriends = array_map(static function (array $row) use ($sgString): array {
   <?php if ($sgFriends) : ?>
   <div class="sg-flink-list">
     <?php foreach ($sgFriends as $sgFriend) : ?>
-    <?php /* 第四十一轮：展开改成「壳 + 浮层抽屉」。
-               壳（.sg-flink-shell）就是整卡链接、也承担卡片全部外观与圆角裁剪；
-               简介搬到卡外的 .sg-flink-drawer，绝对定位挂在卡片下沿，悬停才展开。
-               这样卡片布局高度恒定（1:1 由 .sg-flink-item 撑住），
-               网格行高不重算，页面下方内容不会被推走。 */ ?>
-    <div class="sg-flink-item">
-      <a class="sg-flink-shell" href="<?php echo sg_e($sgFriend['url']); ?>" target="_blank" rel="noopener noreferrer" title="<?php echo sg_e($sgFriend['name']); ?>" aria-label="<?php echo sg_e('访问 ' . $sgFriend['name'] . '（新窗口）'); ?>">
-        <?php /* 截图失败（thum.io 超时 / 站点拒绝）时只隐藏图片，保留占位层 ——
-                   弯曲卡的几何靠这层撑住，摘掉节点会让卡片塌成文字条 */ ?>
-        <span class="sg-flink-shot"><img src="<?php echo sg_e($sgFriend['siteshot']); ?>" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.style.display='none'"></span>
-        <span class="sg-flink-info">
-          <span class="sg-flink-icon"><img src="<?php echo sg_e($sgFriend['avatar']); ?>" alt="<?php echo sg_e($sgFriend['name']); ?>" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='<?php echo sg_e(sg_theme_url('dist/img/avatar.svg')); ?>'"></span>
-          <span class="sg-flink-name"><?php echo sg_e($sgFriend['name']); ?></span>
-          <?php if ($sgFriend['host'] !== '') : ?>
-          <span class="sg-flink-host"><?php echo sg_e($sgFriend['host']); ?></span>
-          <?php endif; ?>
-        </span>
-      </a>
-      <span class="sg-flink-drawer">
+    <?php /* 第四十二轮回到源站形态：整卡一个 <a>，内容是「16:10 截图 + 头像/站名/域名/简介」，
+               简介常显两行，不再有抽屉与展开；悬停只有上浮 + 光晕 + 截图微放大。 */ ?>
+    <a class="sg-flink-item" href="<?php echo sg_e($sgFriend['url']); ?>" target="_blank" rel="noopener noreferrer" title="<?php echo sg_e($sgFriend['name']); ?>" aria-label="<?php echo sg_e('访问 ' . $sgFriend['name'] . '（新窗口）'); ?>">
+      <?php /* 截图失败（thum.io 超时 / 站点拒绝）时只隐藏图片，16:10 的占位层还在，卡片不会塌 */ ?>
+      <span class="sg-flink-shot"><img src="<?php echo sg_e($sgFriend['siteshot']); ?>" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.style.display='none'"></span>
+      <span class="sg-flink-info">
+        <span class="sg-flink-icon"><img src="<?php echo sg_e($sgFriend['avatar']); ?>" alt="<?php echo sg_e($sgFriend['name']); ?>" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='<?php echo sg_e(sg_theme_url('dist/img/avatar.svg')); ?>'"></span>
+        <span class="sg-flink-name"><?php echo sg_e($sgFriend['name']); ?></span>
+        <?php if ($sgFriend['host'] !== '') : ?>
+        <span class="sg-flink-host"><?php echo sg_e($sgFriend['host']); ?></span>
+        <?php endif; ?>
         <span class="sg-flink-desc" title="<?php echo sg_e($sgFriend['description']); ?>"><?php echo sg_e($sgFriend['description']); ?></span>
       </span>
-    </div>
+    </a>
     <?php endforeach; ?>
   </div>
   <?php else : ?>
