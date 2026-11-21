@@ -40,20 +40,14 @@ $sgContent = (string) ob_get_clean();
 $sgRead = sg_reading_stats($sgContent);
 
 /* Typecho 的 $this->date() 直接 echo、返回 null：取值会把裸日期打到 <main> 之外。
-   日期一律用 date() 计算字符串，时区与 card-post.php 同口径。 */
-$sgTz = 0;
-try {
-    $sgTz = (int) \Widget\Options::alloc()->timezone;
-} catch (\Throwable $e) {
-    $sgTz = 0;
-}
+   日期一律用 sg_date_ts() + date() 计算字符串（站点时区口径，与 Typecho Date 一致）。 */
 $sgCreated = (int) $this->created;
 $sgModified = (int) $this->modified;
-$sgCreatedDate = $sgCreated > 0 ? date('Y-m-d', $sgCreated + $sgTz) : '';
+$sgCreatedDate = $sgCreated > 0 ? date('Y-m-d', sg_date_ts($sgCreated)) : '';
 $sgUpdated = '';
 $sgUpdatedAgo = '';
 if ($sgModified > 0 && $sgModified !== $sgCreated) {
-    $sgUpdated = date('Y-m-d', $sgModified + $sgTz);
+    $sgUpdated = date('Y-m-d', sg_date_ts($sgModified));
     $sgUpdatedAgo = sg_time_ago($sgModified);
 }
 /* 头图元信息（参考 Fomalhaut post-info 的信息完整度）：

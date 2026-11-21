@@ -824,6 +824,27 @@ html.dark .sg-archive-toolbar .sg-archive-tags .sg-filter-btn.is-active {
   font-weight: 700;
   box-shadow: 0 2px 12px color-mix(in srgb, var(--sg-filter-active) 40%, transparent);
 }
+/* 2026-11-22：恢复 PHP 注入的 --sg-tag-c 彩色标签 —— 上面的「统一玻璃胶囊」规则
+   与彩色规则特异性相同且写在后面，把昼夜的彩色全部盖成同一色。这里补一条更高
+   特异性的恢复规则：保留大胶囊/衬线字/尺寸，只把文字与描边换回每枚标签自己的颜色；
+   选中态 is-active 仍由上面两条实底白字规则接管（特异性更高，不受这里影响）。 */
+.sg-archive-toolbar .sg-archive-tags .sg-filter-btn:not(.is-active) {
+  /* 日间彩色原值压浅玻璃仅 1.6–2.8:1，混 45% 玄墨压暗保色相；
+     夜间深底上原色本身 4.7–8.5:1，直接用原色不再加深。 */
+  color: color-mix(in srgb, var(--sg-tag-c, var(--sg-text)) 55%, #252229);
+  border-color: color-mix(in srgb, var(--sg-tag-c, #64748b) 55%, transparent);
+  background: color-mix(in srgb, var(--sg-tag-c, #64748b) 10%, var(--sg-card-strong));
+}
+html.dark .sg-archive-toolbar .sg-archive-tags .sg-filter-btn:not(.is-active) {
+  color: var(--sg-tag-c, var(--sg-text));
+}
+.sg-archive-toolbar .sg-archive-tags .sg-filter-btn:not(.is-active):is(:hover, :focus-visible) {
+  color: #fff;
+  background: var(--sg-filter-active);
+  border-color: var(--sg-filter-active);
+  font-weight: 700;
+  box-shadow: 0 2px 12px color-mix(in srgb, var(--sg-filter-active) 40%, transparent);
+}
 .sg-archive-toolbar .sg-archive-tags .sg-filter-count { opacity: .68; margin-left: .3rem; font-weight: 400; }
 .sg-archive-toolbar .sg-archive-tags .sg-filter-btn.is-active .sg-filter-count { opacity: .9; }
 

@@ -232,8 +232,12 @@ button.sg-progress:hover { background: var(--sg-indicator-bg-hot); }
     box-shadow var(--sg-dur-card) var(--sg-ease);
 }
 
-.sg-poster-wide img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .9; transition: transform var(--sg-dur-card) var(--sg-ease); }
-.sg-poster-wide:hover img { transform: scale(1.1); }
+/* 2026-11-22：缩放效果对齐首页文章卡 .sg-feature-media img —— 同为 scale(1.1)
+   + all .6s ease-in-out，且只在「真 hover + 精确指针」生效（触屏不缩放）。 */
+.sg-poster-wide img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .9; transition: all .6s ease-in-out; }
+@media (hover: hover) and (pointer: fine) {
+  .sg-poster-wide:is(:hover, :focus-visible) img { transform: scale(1.1); }
+}
 /* 文字压在左下角：均匀 .30 暗幕在浅色封面上标题/摘要只剩 2–2.2:1，改成自下而上加深 */
 .sg-poster-wide .sg-veil { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0, 0, 0, .72), rgba(0, 0, 0, .34) 60%, rgba(0, 0, 0, .18)); transition: background-color .5s; }
 html.dark .sg-poster-wide .sg-veil { background: linear-gradient(to top, rgba(0, 0, 0, .78), rgba(0, 0, 0, .5) 60%, rgba(0, 0, 0, .4)); }
@@ -272,8 +276,10 @@ html.dark .sg-poster-wide .sg-veil { background: linear-gradient(to top, rgba(0,
     transform var(--sg-dur-card) var(--sg-ease),
     box-shadow var(--sg-dur-card) var(--sg-ease);
 }
-.sg-chatter img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .80; transition: transform var(--sg-dur-card) var(--sg-ease); }
-.sg-chatter:hover img { transform: scale(1.1); }
+.sg-chatter img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .80; transition: all .6s ease-in-out; }
+@media (hover: hover) and (pointer: fine) {
+  .sg-chatter:is(:hover, :focus-within) img { transform: scale(1.1); }
+}
 /* 正文占卡宽 85%，右段原先只剩 .10 暗幕，浅色配图上摘要跌到 1.2:1 */
 .sg-chatter .sg-veil { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0, 0, 0, .82), rgba(0, 0, 0, .58) 55%, rgba(0, 0, 0, .36)); }
 
@@ -322,8 +328,10 @@ html.dark .sg-poster-wide .sg-veil { background: linear-gradient(to top, rgba(0,
 /* 轮播单张：与 .sg-post-slide 同一套淡入逻辑，供 index.php 的杂谈轮播使用 */
 .sg-chatter-slide { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity .8s; }
 .sg-chatter-slide.is-active { opacity: 1; pointer-events: auto; }
-.sg-chatter-slide > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .80; transition: transform var(--sg-dur-card) var(--sg-ease); }
-.sg-chatter:hover .sg-chatter-slide.is-active > img { transform: scale(1.1); }
+.sg-chatter-slide > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .80; transition: all .6s ease-in-out; }
+@media (hover: hover) and (pointer: fine) {
+  .sg-chatter:is(:hover, :focus-within) .sg-chatter-slide.is-active > img { transform: scale(1.1); }
+}
 .sg-chatter-slide .sg-veil { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0, 0, 0, .80), rgba(0, 0, 0, .40) 55%, rgba(0, 0, 0, .10)); }
 .sg-chatter-slide .sg-chatter-body { min-height: 0; }
 

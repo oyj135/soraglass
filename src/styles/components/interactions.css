@@ -140,6 +140,7 @@ html:not(.dark) :is(.sg-page-title, .sg-about-title h1) {
   .sg-cover:hover img,
   .sg-poster-wide:hover img,
   .sg-chatter:hover img,
+  .sg-chatter:hover .sg-chatter-slide.is-active > img,
   .sg-about:hover .sg-about-banner > img,
   .sg-archive-card:hover .sg-archive-cover img {
     transform: none !important;

@@ -323,6 +323,31 @@ function sg_time_ago(int $timestamp): string
     return '';
 }
 
+/**
+ * 站点时区时间戳：给 PHP 的 date() 直接格式化，得到站点时区的墙上时间。
+ *
+ * Typecho 后台 timezone 是「相对 UTC 的秒偏移」，而数据库 created 存 UTC 时间戳。
+ * 早期写法 `date($f, $created + $tz)` 在服务器本身已是该时区（如宝塔 Asia/Shanghai，
+ * idate('Z')=28800）时会再加一次偏移 —— 时间整整快 8 小时（碎语卡 05:34 实为 21:34）。
+ * 正确口径与 Typecho 官方 \Typecho\Date 一致：加站点偏移、减服务器偏移。
+ * 服务器是 UTC 时 idate('Z')=0，退化为原来的 created+tz，行为不变。
+ *
+ * @param int $created UTC 时间戳（数据库 created / modified）
+ * @return int 可直接交给 date() 的时间戳
+ */
+function sg_date_ts(int $created): int
+{
+    if ($created <= 0) {
+        return 0;
+    }
+    try {
+        $tz = (int) \Widget\Options::alloc()->timezone;
+    } catch (\Throwable $e) {
+        $tz = (int) date('Z');
+    }
+    return $created + $tz - (int) date('Z');
+}
+
 /** 独立页副标题：优先自定义字段 subtitle */function sg_page_sub($archive, string $default = ''): string
 {
     try {

@@ -18,18 +18,11 @@ try {
 } catch (\Throwable $e) {
     $sgCardStamp = 0;
 }
-/* 时区偏移与首页列表（sg_latest_posts）同口径，避免跨时区差一天。 */
-$sgCardTz = 0;
-try {
-    $sgCardTz = (int) \Widget\Options::alloc()->timezone;
-} catch (\Throwable $e) {
-    $sgCardTz = 0;
-}
 $sgCardAgo = sg_time_ago($sgCardStamp);
 /* Typecho 的 $archive->date($format) 是直接 echo、返回 null 的方法（不是取值函数）。
    拼进字符串会把裸日期打到卡片 DOM 之外，成为栅格的匿名项挤乱三列布局；
    同时 dateText 只剩「发表于 」。这里改用 date() 计算字符串，与首页列表一致。 */
-$sgCardDateText = $sgCardAgo !== '' ? '发表于 ' . $sgCardAgo : '发表于 ' . date('Y.m.d', $sgCardStamp + $sgCardTz);
+$sgCardDateText = $sgCardAgo !== '' ? '发表于 ' . $sgCardAgo : '发表于 ' . date('Y.m.d', sg_date_ts($sgCardStamp));
 $sgCardCates = [];
 try {
     foreach ((array) $sgCardCtx->categories as $sgCate) {

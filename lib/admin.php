@@ -465,6 +465,17 @@ function sg_admin_github_picker(string $field, string $user = ''): string
     btn.className = 'btn btn-s';
     btn.textContent = '从 GitHub 拉取仓库';
 
+    /* 2026-11-22：仓库清单只拉一次，缓存到 cachedRepos。
+       「展示仓库」按钮只做折叠，从缓存重绘勾选态，不再请求 GitHub
+       （未登录每小时仅 60 次，反复开关很容易撞限流）。 */
+    var cachedRepos = null;
+    var showBtn = document.createElement('button');
+    showBtn.type = 'button';
+    showBtn.className = 'btn btn-s';
+    showBtn.textContent = '展示仓库';
+    showBtn.style.display = 'none';
+    var showState = { open: false };
+
     var tip = document.createElement('span');
     tip.style.cssText = 'font-size:12px;color:' + OK;
 
@@ -541,6 +552,23 @@ function sg_admin_github_picker(string $field, string $user = ''): string
       });
     }
 
+    /* 折叠/展开只重绘已缓存的列表，不碰网络。
+       每次展开都重新 render，是为了把输入框里的最新勾选态回填到 checkbox ——
+       这样改完清单、保存前再展开，看到的仍是当前勾选。 */
+    function togglePanel() {
+      showState.open = !showState.open;
+      if (showState.open && cachedRepos) { render(cachedRepos); }
+      panel.style.display = showState.open ? 'block' : 'none';
+      foot.style.display = showState.open ? 'flex' : 'none';
+      showBtn.textContent = showState.open ? '收起仓库' : '展示仓库';
+      showBtn.setAttribute('aria-expanded', showState.open ? 'true' : 'false');
+      if (showState.open) {
+        tip.style.color = OK;
+        tip.textContent = '已勾选的会高亮，调整后点下面按钮写回（无需重新拉取）';
+      }
+    }
+    showBtn.addEventListener('click', togglePanel);
+
     btn.addEventListener('click', function () {
       var name = account();
       if (!name) {
@@ -562,10 +590,15 @@ function sg_admin_github_picker(string $field, string $user = ''): string
         })
         .then(function (list) {
           if (!Array.isArray(list) || !list.length) { throw new Error('这个账号没有公开仓库'); }
+          cachedRepos = list;
           render(list);
           panel.style.display = 'block';
           foot.style.display = 'flex';
-          tip.textContent = '共 ' + list.length + ' 个仓库，勾选后点下面按钮写回';
+          showBtn.style.display = '';
+          showBtn.textContent = '收起仓库';
+          showBtn.setAttribute('aria-expanded', 'true');
+          showState.open = true;
+          tip.textContent = '共 ' + list.length + ' 个仓库；以后点「展示/收起仓库」即可调整勾选，不必重新拉取';
         })
         .catch(function (err) {
           tip.style.color = BAD;
@@ -617,6 +650,7 @@ function sg_admin_github_picker(string $field, string $user = ''): string
 
     foot.appendChild(applyBtn);
     wrap.appendChild(btn);
+    wrap.appendChild(showBtn);
     wrap.appendChild(tip);
     wrap.appendChild(panel);
     wrap.appendChild(foot);
@@ -793,9 +827,9 @@ function themeConfig($form): void
     $form->addInput(new Textarea('sgProjects', null, '', _t('项目 JSON'), _t('留空使用 dist/data/projects.json。<br>填了 GitHub 账号后，这里留空即自动用仓库列表；<b>两项都有时以这里为准</b>（想完全交给 GitHub 就清空本栏）')));
     $form->addInput(new Textarea('sgProjectList', null, '', _t('项目清单 · JSON'), _t(
         '2026-11-21 起「仓库清单 + 项目封面 + 简介覆盖」合并为一栏：<b>数组 JSON，一项一个仓库</b>，顺序即展示顺序。<br>'
-        . '<code>[{"name":"soraglass","cover":"usr/uploads/cover.webp","note":"Typecho 主题"},{"name":"oyj135/AiForge","note":"一句话简介"}]</code><br>'
+        . '<code>[{"name":"soraglass","cover":"https://bucket.cos.ap-guangzhou.myqcloud.com/cover.webp?x=1","note":"Typecho 主题"},{"name":"oyj135/AiForge","cover":"usr/uploads/cover.webp"}]</code><br>'
         . '<code>name</code> 写仓库名或 <code>owner/repo</code>（省略归属账号时用下面的 GitHub 账号）；'
-        . '<code>cover</code> 封面图，支持完整 URL / <code>usr/uploads/…</code> / 主题内相对路径，留空退化为语言色渐变 + 首字母水印；'
+        . '<code>cover</code> 封面图支持 <b>http:// / https:// 完整外链（如腾讯云 COS，含签名查询串也可）</b>、<code>usr/uploads/…</code> 与主题内相对路径，留空退化为语言色渐变 + 首字母水印；'
         . '<code>note</code> 覆盖仓库简介。<br>'
         . '留空这项时自动沿用旧的「仓库清单 + 项目封面」配置，迁移不会丢数据；'
         . '「项目 JSON」里单个项目的 <code>cover</code> 优先级仍最高。<br>'

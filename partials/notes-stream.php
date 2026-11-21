@@ -89,7 +89,7 @@ $sgAvatar = sg_media((string) sg_opt('sgAvatarUrl', ''), sg_theme_url('dist/img/
       <h2 class="sg-tl-month-label">
         <?php echo sg_icon_color('calendar'); ?>
         <span><?php echo sg_e($sgGroup['label']); ?></span>
-        <b><?php echo count($sgGroup['items']); ?></b>
+        <b><?php echo count($sgGroup['items']); ?> 条</b>
       </h2>
       <ol class="sg-tl-items" data-sg-tl-items>
         <?php foreach ($sgGroup['items'] as $sgNote) : ?>
@@ -116,7 +116,7 @@ $sgAvatar = sg_media((string) sg_opt('sgAvatarUrl', ''), sg_theme_url('dist/img/
                 <b><?php echo sg_e($sgAuthor); ?></b>
                 <span class="sg-tl-when">
                   <?php echo sg_icon_color('clock'); ?>
-                  <time datetime="<?php echo sg_e(date('c', $sgTs)); ?>"><?php echo sg_e((string) ($sgNote['date'] ?? '')); ?><?php if ((string) ($sgNote['time'] ?? '') !== '') : ?> <?php echo sg_e((string) $sgNote['time']); ?><?php endif; ?></time>
+                  <time datetime="<?php echo sg_e(gmdate('c', (int) ($sgNote['created'] ?? 0))); ?>"><?php echo sg_e((string) ($sgNote['date'] ?? '')); ?><?php if ((string) ($sgNote['time'] ?? '') !== '') : ?> <?php echo sg_e((string) $sgNote['time']); ?><?php endif; ?></time>
                 </span>
               </div>
               <?php if ($sgTag !== '') : ?><span class="sg-tl-tag">#<?php echo sg_e($sgTag); ?></span><?php endif; ?>
@@ -149,10 +149,12 @@ $sgAvatar = sg_media((string) sg_opt('sgAvatarUrl', ''), sg_theme_url('dist/img/
             </div>
             <?php endif; ?>
 
+            <?php /* 2026-11-22：移除「原文 ↗」跳转；地点为空时连 footer 一起不输出，避免空节点。 */ ?>
+            <?php if ($sgPlace !== '') : ?>
             <footer class="sg-tl-foot">
-              <?php if ($sgPlace !== '') : ?><span class="sg-tl-loc"><?php echo sg_icon_color('map-pin'); ?><?php echo sg_e($sgPlace); ?></span><?php endif; ?>
-              <?php if ($sgLink !== '') : ?><a class="sg-tl-more" href="<?php echo sg_e($sgLink); ?>">原文<?php echo sg_icon_color('arrow-up-right'); ?></a><?php endif; ?>
+              <span class="sg-tl-loc"><?php echo sg_icon_color('map-pin'); ?><?php echo sg_e($sgPlace); ?></span>
             </footer>
+            <?php endif; ?>
           </article>
         </li>
         <?php endforeach; ?>

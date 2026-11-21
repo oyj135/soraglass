@@ -554,12 +554,6 @@ function sg_related_posts($archive, int $limit = 6): array
             }
         }
 
-        $tz = 0;
-        try {
-            $tz = (int) \Widget\Options::alloc()->timezone;
-        } catch (\Throwable $e) {
-            $tz = 0;
-        }
         $options = sg_options();
         $fallbackCover = (string) sg_opt('sgDefaultCover', sg_theme_url('dist/img/cover-default.svg'));
 
@@ -595,7 +589,7 @@ function sg_related_posts($archive, int $limit = 6): array
             $out[] = [
                 'url'     => (string) \Typecho\Common::url($path, $options->index),
                 'cover'   => sg_media($cover),
-                'date'    => date('Y-m-d', ($modified > 0 ? $modified : (int) ($row['created'] ?? 0)) + $tz),
+                'date'    => date('Y-m-d', sg_date_ts($modified > 0 ? $modified : (int) ($row['created'] ?? 0))),
                 'title'   => trim((string) ($row['title'] ?? '')),
                 'weight'  => $scored[$rcid],
                 'created' => (int) ($row['created'] ?? 0),
@@ -680,12 +674,6 @@ function sg_home_articles(int $limit = 2): array
             }
         }
 
-        $tz = 0;
-        try {
-            $tz = (int) \Widget\Options::alloc()->timezone;
-        } catch (\Throwable $e) {
-            $tz = 0;
-        }
         $options = sg_options();
         $fallbackCover = (string) sg_opt('sgDefaultCover', sg_theme_url('dist/img/cover-default.svg'));
 
@@ -758,7 +746,7 @@ function sg_home_articles(int $limit = 2): array
                 'cover'    => sg_media($cover),
                 'quote'    => $quote,
                 'title'    => trim((string) ($row['title'] ?? '')),
-                'dateText' => $ago !== '' ? '发表于 ' . $ago : '发表于 ' . date('Y.m.d', $stamp + $tz),
+                'dateText' => $ago !== '' ? '发表于 ' . $ago : '发表于 ' . date('Y.m.d', sg_date_ts($stamp)),
                 'cates'    => $metaLink('category', $cats[$cid] ?? [], $cats[$cid . ':slug'] ?? []),
                 'tagRows'  => $metaLink('tag', $tags[$cid] ?? [], $tagSlugs[$cid] ?? []),
                 'sticky'   => $stickyMap[$cid] ?? 0,
@@ -1179,13 +1167,6 @@ function sg_notes_query(int $limit): array
             }
         }
 
-        $tz = 0;
-        try {
-            $tz = (int) \Widget\Options::alloc()->timezone;
-        } catch (\Throwable $e) {
-            $tz = 0;
-        }
-
         $out = [];
         foreach ($rows as $row) {
             $cid = (int) ($row['cid'] ?? 0);
@@ -1240,12 +1221,15 @@ function sg_notes_query(int $limit): array
             }
             $url = (string) \Typecho\Common::url($path, $options->index);
 
-            $ts = (int) ($row['created'] ?? 0) + $tz;
+            /* 2026-11-22：改用 sg_date_ts —— 旧的 created+tz 在服务器本身已是
+               站点时区时（宝塔 Asia/Shanghai）会再加一次 8 小时，碎语时间整体超前。 */
+            $ts = sg_date_ts((int) ($row['created'] ?? 0));
             $plain = trim(preg_replace('/\s+/u', ' ', strip_tags($text)) ?? '');
 
             $out[] = [
                 'cid'      => $cid,
                 'ts'       => $ts,
+                'created'  => (int) ($row['created'] ?? 0),
                 'date'     => date('Y.m.d', $ts),
                 'time'     => date('H:i', $ts),
                 'group'    => date('Y-m', $ts),
