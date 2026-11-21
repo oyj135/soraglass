@@ -362,14 +362,16 @@ html:not(.dark) .sg-nav :is(.sg-brand, .sg-brand-accent, .sg-nav-link, .sg-nav-m
   opacity: 1;
   text-shadow: none;
 }
+/* 2026-11-21：顶部 hover 原用月白 #eae5d6，与白字几乎同色；换成亮薄荷青，
+   在 .30 黑 scrim 上和夜间暗底上都能一眼看出当前指向。 */
 html:not(.dark) .sg-nav .sg-brand:hover,
-html:not(.dark) .sg-nav .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent-pale); opacity: 1; }
-html:not(.dark) .sg-nav .sg-nav-link::after { background: #919795; }
-/* 首屏（is-front）底是 .30 黑遮罩，深青线在暗底上等于没有，换亮青 */
-html:not(.dark) .sg-nav.is-front .sg-nav-link::after { background: #919795; }
-/* 夜间：底是 70% 暗遮罩，字与线都取亮档 */
-html.dark .sg-nav .sg-nav-link::after { background: var(--sg-accent-ink); }
-html.dark .sg-nav .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent-pale); opacity: 1; }
+html:not(.dark) .sg-nav .sg-nav-link:is(:hover, :focus-visible) { color: #b8f5e6; opacity: 1; }
+html:not(.dark) .sg-nav .sg-nav-link::after { background: #b8f5e6; }
+/* 首屏（is-front）底是 .30 黑遮罩，亮青线正是为了在这里可见 */
+html:not(.dark) .sg-nav.is-front .sg-nav-link::after { background: #b8f5e6; }
+/* 夜间：底是 70% 暗遮罩，字与线都取亮薄荷青 */
+html.dark .sg-nav .sg-nav-link::after { background: #b8f5e6; }
+html.dark .sg-nav .sg-nav-link:is(:hover, :focus-visible) { color: #b8f5e6; opacity: 1; }
 
 /* 下滑后（is-scrolled）：底色已是浅玻璃，白字会整块消失 → 非当前页字色切深墨，
    下划线换深竹青。首屏 is-front 不再豁免——顶上时本就没底，一旦下滑就有玻璃底，
@@ -378,8 +380,10 @@ html.dark .sg-nav .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-acce
 html:not(.dark) .sg-nav.is-scrolled :is(.sg-brand, .sg-nav-link:not(.is-active), .sg-nav-more-btn, .sg-nav-page) { color: #252229; }
 html:not(.dark) .sg-nav.is-scrolled .sg-brand-accent { color: #9d3b2f; }
 html:not(.dark) .sg-nav.is-scrolled .sg-nav-link::after { background: #252229; }
-/* 下滑后底是浅玻璃：悬浮字色转深竹青（无底板） */
-html:not(.dark) .sg-nav.is-scrolled .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent-ink); }
+/* 下滑后底是浅玻璃：原 hover 用 #6a706c，与深墨字 #252229 只差一点点；
+   改走深竹青 #0f6b5f，字与下划线同步，hover 状态一眼可辨。 */
+html:not(.dark) .sg-nav.is-scrolled .sg-nav-link:is(:hover, :focus-visible) { color: #0f6b5f; }
+html:not(.dark) .sg-nav.is-scrolled .sg-nav-link:is(:hover, :focus-visible)::after { background: #0f6b5f; }
 
 /* 当前页底板（2026-11-21 第三十六轮用户指定）：深青实底 + 纯白字，昼夜同款，
    顶部透明与下滑玻璃底两态都不变；hover/focus 保持白字（反馈只走字重与光标），

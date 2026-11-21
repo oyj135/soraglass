@@ -26,7 +26,7 @@ html.dark .sg-aside .sg-glass.sg-profile {
    夜间场景沿用第十二轮原画，一像素未改）：
    日间 = **青瓷晨光 · 金日淡晕**：淡青天光 + 两叠远山 + 山脚云海 + 三只飞鸟，
           右上角一枚金日（微椭暖金盘 + 一圈日晕 + 一笔极淡高光 + 与日等高的一道漫射暖光），
-          让在回形针下方、头像右侧的留白里，与左侧飞鸟分踞两边 ——
+          让在竹叶书签下方、头像右侧的留白里，与左侧飞鸟分踞两边 ——
           第十五轮移除了此前的青灰鲸鱼与其腹下云带（用户要求）；2026-11-19 用户反馈
           「太阳不美观」，去掉原来的 12 道等分射线 + 双圈描边（三样叠起来就是仪表盘），
           改为「金日压青瓷」：靠色相（金 ↔ 青）而不是明度拉开，取色关系参照尾形光琳
@@ -44,8 +44,8 @@ html.dark .sg-aside .sg-glass.sg-profile {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  /* 卡片不能靠 overflow 裁圆角 —— 回形针（.sg-author-card::after）要求卡片 overflow:visible，
-     否则针身探不出卡边。所以改由 banner 自己按 inherit 的圆角裁剪，
+  /*      卡片不能靠 overflow 裁圆角 —— 竹叶书签（.sg-author-card::after）要求卡片 overflow:visible，
+     否则叶尖探不出卡边。所以改由 banner 自己按 inherit 的圆角裁剪，
      不然场景的四个直角会直接盖住卡片圆角，看起来像没做圆角。 */
   border-radius: inherit;
   overflow: hidden;

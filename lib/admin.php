@@ -687,11 +687,6 @@ function themeConfig($form): void
     $form->addInput(new Text('sgWeatherDevId', null, '', _t('和风开发者 ID'), _t('控制台「设置」里的开发者 ID，Q 开头 10 位，即 JWT payload 的 iss。')));
     $form->addInput(new Text('sgWeatherProjectId', null, '', _t('和风项目 ID'), _t('控制台「项目管理」里该凭据所属项目的 ID，即 JWT payload 的 sub（不是项目名称）。')));
     $form->addInput(new Textarea('sgWeatherJwtKey', null, '', _t('和风 JWT 私钥'), _t('Ed25519 私钥全文，含 -----BEGIN PRIVATE KEY----- 与 -----END PRIVATE KEY-----；只存服务端，不下发浏览器。令牌由服务端每次签发（有效期 15 分钟，和风上限 24 小时）。' . $sgJwtHint)));
-    $form->addInput(new Textarea('sgNotice', null, '', _t('顶部公告条（跑马灯）'), _t(
-        '一行一条，横向循环滚动显示在文章页与独立页正文上方（2026-11-20 起替代原侧栏公告卡）；'
-        . '留空则不输出。纯文本，支持 emoji；超过 8 条只取前 8 条。'
-    )));
-
     /* ---------------- 首页三张卡 ---------------- */
     $form->addInput(new Text('sgDefaultCover', null, '', _t('默认文章封面'), _t(
         '<b>显示位置</b>：文章封面兜底图 —— 首页封面轮播、文章列表卡、文章详情页顶部大图、知识档案卡片缩略图；'

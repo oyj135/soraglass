@@ -40,7 +40,6 @@ if ($sgView !== '') {
 }
 ?>
 <main id="sg-main" tabindex="-1" class="sg-main sg-article-layout" data-sg-page="page">
-  <?php $this->need('partials/ticker.php'); ?>
   <article class="sg-glass sg-article">
     <div class="sg-cover">
       <img src="<?php echo sg_e(sg_cover($this)); ?>" alt="<?php echo sg_e((string) $this->title); ?>">

@@ -63,14 +63,18 @@ html.dark .sg-front::before { background: transparent; }
   text-align: center;
   padding-bottom: 4rem;
 }
-/* 首屏标题/副标题发光字（2026-11-17，复刻 Fomalhaut 夜间霓虹灯发光字）：
-   源站夜间给 #site-title / #site-subtitle 挂 text-shadow 动画（light_15px/10px/5px），
-   日间明确关掉；夜间主题色呼吸发光，日间瓷白底承托实色字。 */
+/* 首屏标题/副标题发光字（2026-11-21 重调）：
+   仍沿用源站 `#site-title / #site-subtitle` 的逐段换色节奏，但不用源站的
+   高饱和彩虹——只在主题已有的青瓷 #8fd9c9 / 月白 #eae5d6 / 淡朱 #d8a79e
+   三色间轮询，三层柔光固定半径，避免变成彩色霓虹灯。日间明确关掉。 */
 .sg-front-title, .sg-front-sub { text-shadow: none; }
-html.dark .sg-front-title, html.dark .sg-front-sub { text-shadow: none; animation: sg-front-neon 8s ease-in-out infinite; }
+html.dark .sg-front-title, html.dark .sg-front-sub { text-shadow: none; animation: sg-front-neon 12s linear infinite; }
 @keyframes sg-front-neon {
-  0%, 100% { text-shadow: 0 0 6px color-mix(in srgb, var(--sg-accent-soft) 75%, transparent), 0 0 18px color-mix(in srgb, var(--sg-accent-soft) 45%, transparent), 0 0 42px color-mix(in srgb, var(--sg-accent) 30%, transparent); }
-  50% { text-shadow: 0 0 2px color-mix(in srgb, var(--sg-accent-soft) 60%, transparent), 0 0 8px color-mix(in srgb, var(--sg-accent-soft) 30%, transparent); }
+  0%, 100% { text-shadow: 0 0 8px rgba(143, 217, 201, .70), 0 0 22px rgba(143, 217, 201, .42), 0 0 46px rgba(143, 217, 201, .24); }
+  12.5% { text-shadow: 0 0 8px rgba(234, 229, 214, .70), 0 0 22px rgba(234, 229, 214, .42), 0 0 46px rgba(234, 229, 214, .24); }
+  25%, 62.5% { text-shadow: 0 0 8px rgba(216, 167, 158, .70), 0 0 22px rgba(216, 167, 158, .42), 0 0 46px rgba(216, 167, 158, .24); }
+  37.5%, 75% { text-shadow: 0 0 8px rgba(143, 217, 201, .70), 0 0 22px rgba(143, 217, 201, .42), 0 0 46px rgba(143, 217, 201, .24); }
+  50%, 87.5% { text-shadow: 0 0 8px rgba(234, 229, 214, .70), 0 0 22px rgba(234, 229, 214, .42), 0 0 46px rgba(234, 229, 214, .24); }
 }
 @media (prefers-reduced-motion: reduce) { html.dark .sg-front-title, html.dark .sg-front-sub { animation: none; } }
 .sg-front-title {

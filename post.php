@@ -67,9 +67,6 @@ $sgPrev = sg_adjacent_post($this, 'prev');
 $sgNext = sg_adjacent_post($this, 'next');
 ?>
 <main id="sg-main" tabindex="-1" class="sg-main sg-article-layout" data-sg-page="post" data-sg-origin="<?php echo $sgIsNote ? 'note' : 'article'; ?>">
-  <?php /* 公告跑马灯（2026-11-20）：原侧栏公告卡改为正文上方的横向滚动条，
-         独占一行横跨正文与侧栏；内容取「顶部公告条」，为空则不输出。 */ ?>
-  <?php $this->need('partials/ticker.php'); ?>
   <?php /* 文章页顶部（2026-11-17 第六轮）：背景图移除（用户反馈），回到
          Fomalhaut not-top-img 的 #post > #post-info 形态 —— 标题左对齐、
          normal 字重、下缘分隔线；元信息两行 #78818a 灰，图标保留彩色。 */ ?>
@@ -102,20 +99,17 @@ $sgNext = sg_adjacent_post($this, 'next');
       </div>
     </div>
   </header>
-  <?php /* 横幅与正文之间的彩色波浪（源站 main-hero-waves-area 同结构：
-     gentle-wave 四层视差滑动，源站是白/黑单色，这里改走青瓷 token 彩色半透明）。 */ ?>
+  <?php /* 横幅与正文之间的主题波浪（源站 main-hero-waves-area 同结构：
+     gentle-wave 四层视差滑动；2026-11-21 去掉彩虹七色，改宣纸白 / 雾青 / 灰青主题渐变）。 */ ?>
   <section class="sg-post-waves" aria-hidden="true">
     <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
       <defs>
         <path id="sg-gentle-wave" d="M -160 44 c 30 0 58 -18 88 -18 s 58 18 88 18 s 58 -18 88 -18 s 58 18 88 18 v 44 h -352 Z"/>
         <linearGradient id="sg-rainbow" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="150" y2="0">
-          <stop offset="0" stop-color="#ff6b6b"/>
-          <stop offset=".16" stop-color="#ff9f43"/>
-          <stop offset=".33" stop-color="#f5b942"/>
-          <stop offset=".5" stop-color="#4cc38a"/>
-          <stop offset=".66" stop-color="#36cfc9"/>
-          <stop offset=".83" stop-color="#5ba0f0"/>
-          <stop offset="1" stop-color="#b37feb"/>
+          <stop offset="0" stop-color="#eae5d6"/>
+          <stop offset=".33" stop-color="#a8aeb2"/>
+          <stop offset=".66" stop-color="#919795"/>
+          <stop offset="1" stop-color="#eae5d6"/>
         </linearGradient>
       </defs>
       <g class="parallax">
@@ -187,7 +181,7 @@ $sgNext = sg_adjacent_post($this, 'next');
   <aside class="sg-aside">
     <?php /* 整列吸顶（2026-11-16 第三轮）：作者卡不再随滚动滑走，
        目录完整展示不内滚；列太高时由 article.ts 改为底对齐。
-       2026-11-20：公告卡改为正文上方的跑马灯，侧栏只剩作者卡 + 目录。 */ ?>
+       2026-11-21：跑马灯整块下线，侧栏只剩作者卡 + 目录。 */ ?>
     <div class="sg-aside-pin" data-sg-aside-pin>
       <?php $this->need('partials/author-card.php'); ?>
       <?php $this->need('partials/toc.php'); ?>
