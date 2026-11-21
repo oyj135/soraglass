@@ -501,33 +501,69 @@ html.dark .sg-filter-btn.is-active {
 .sg-filtered-out { display: none !important; }
 .sg-filter-empty { padding: 2.5rem 1rem; text-align: center; font-size: .9rem; color: var(--sg-muted); }
 
-/* ---------- 项目卡（2026-11-21 第三十九轮：按「弯曲外部卡片」源码重做） ----------
+/* ---------- 项目卡（2026-11-21 第四十一轮：展开改成浮层抽屉） ----------
    源码：github.com/Silvana-kite/html-css-js-project · CSS弯曲外部卡片UI设计带悬停效果
      .card            白底、radius 40、overflow hidden
      .imgBx           图片区，filter blur(25px)；hover background-size 100%→110% + blur(0)
      .imgBx::before   bottom:-40 / height:80 / radius:40 白胶囊 → 圆肩
      .imgBx::after    透明圆 80×80 + box-shadow:75px 70px 0 40px #fff → 右肩内凹圆缺口
-   项目卡此前没有真实图区（用语言色头带 + 首字母水印冒充封面），这轮补成真的：
+   项目卡此前没有真实图区（用语言色头带 + 首字母水印冒充封面），第三十九轮补成真的：
    有 cover 就放图，没有就用语言色渐变 + 首字母水印，几何完全共用同一套。
-   悬停展开与源码同构：封面高度固定、信息面板靠简介展开长高（源码是图不动、白板长高）。
-   网格加了 `align-items: start`（layout.css），所以只长被悬停的那张，同排其它卡不动。 */
+
+   第四十轮为止的展开是去改 `--sg-proj-photo`（封面长高 2.25rem）+ 简介 max-height 展开，
+   卡片真的变高 → 网格行高重算 → 同列下方卡片与页面后续内容全被推下去。
+   提高 z-index 治不了：层级只改绘制顺序，撑开网格的是布局盒子的真实高度。
+
+   本轮改结构：**布局高度恒定，长出来的白板是绝对定位的抽屉**。
+     .sg-project        只当网格占位与层级容器，透明无框（外观全部下放）
+     .sg-project-shell  卡片外观（背景/描边/圆角/阴影/封面裁剪）都在这一层
+     .sg-project-drawer top:100% 挂在壳下沿，静止 max-height 0 → 悬停展开
+   悬停时壳底角由圆变方、底边描边转透明、抽屉从底边接出 —— 就是源码「图不动、白板长高」，
+   但网格行高一动不动，抽屉压在网格 gap 与下一行卡片上，靠 item 的 z-index 浮到最上层。 */
 .sg-project {
-  --sg-proj-photo: 11.5rem;                     /* 封面高度 */
+  --sg-proj-photo: 11.5rem;                     /* 封面高度（悬停也不变） */
   --sg-proj-lip: 1.35rem;                       /* 圆肩半径 = 胶囊半高（源码 40/300） */
   --sg-proj-blur: 12px;
   --sg-proj-face: var(--sg-panel-face);
+  --sg-proj-radius: var(--sg-radius);
+  position: relative;
+  display: block;                               /* flex 列交给 .sg-project-shell */
+  overflow: visible;                            /* 抽屉要探到卡片下沿之外 */
+  padding: 0;
+  /* .sg-glass 带来的底色 / 描边 / 圆角 / 阴影在这里逐条压掉：
+     外层若还留着背板，抽屉从底边接出去时会露出一圈圆角缺口。 */
+  background: transparent;
+  border: 0;
+  /* 圆角留着只为 pages.css 那圈悬停彩虹描边（.sg-project::after 走 border-radius: inherit），
+     它本身不画任何底板。 */
+  border-radius: var(--sg-proj-radius);
+  box-shadow: none;
+  transition: transform var(--sg-dur-card) var(--sg-ease);
+}
+
+/* 悬停描边：底边必须让给抽屉。
+   描边是 inset:0 + padding 2px + mask 的 2px 环，位置永远在卡片外缘一圈；
+   卡片展开后底边正好横穿「壳 / 抽屉」的接缝，远看就是一条突兀的青绿细线。
+   用 clip-path 把最下面 2px 裁掉，描边就只剩上、左、右三边，与抽屉顶边严丝合缝。 */
+.sg-project:is(:hover, :focus-within)::after {
+  /* 裁 3px 而不是 2px：mask 环在 DPR 1 下有半像素抗锯齿，正好留 1px 淡青挂在接缝上 */
+  clip-path: inset(0 0 3px 0);
+}
+
+/* 壳：卡片外观全在这里，也是圆角裁剪的唯一位置（封面图片的模糊放大溢出靠它裁） */
+.sg-project-shell {
   position: relative;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 0;
+  border: 1px solid var(--sg-proj-border);
+  border-radius: var(--sg-proj-radius);
   background: var(--sg-proj-face);
-  border-color: var(--sg-proj-border);
   box-shadow: 0 12px 26px -18px rgba(23, 27, 29, .34);
   transition:
-    transform var(--sg-dur-card) var(--sg-ease),
-    box-shadow var(--sg-dur-card) var(--sg-ease),
-    border-color var(--sg-dur-card) var(--sg-ease);
+    border-radius var(--sg-dur-card) var(--sg-ease),
+    border-color var(--sg-dur-card) var(--sg-ease),
+    box-shadow var(--sg-dur-card) var(--sg-ease);
 }
 
 /* 封面区（源码 .imgBx）：不能 overflow:hidden —— 圆肩胶囊要探到面板上沿之外。
@@ -611,9 +647,10 @@ html.dark .sg-project-shot {
 }
 
 /* 内容面板：从封面下沿开始，与圆肩同色，z-index 压在封面之上，
-   胶囊探进面板的那半个被盖住 —— 视觉上就是白板吃掉了封面底部 */
+   胶囊探进面板的那半个被盖住 —— 视觉上就是白板吃掉了封面底部。
+   简介已经搬到卡外的抽屉里，gap 不再需要负 margin 抵消。 */
 .sg-project-body {
-  --sg-proj-gap: .8125rem;      /* 提成变量：简介收起时要按它抵消上下两个 gap */
+  --sg-proj-gap: .8125rem;      /* 面板内各行间距 */
   position: relative;
   z-index: 1;
   display: flex;
@@ -626,20 +663,54 @@ html.dark .sg-project-shot {
   .sg-project-body { --sg-proj-gap: .9375rem; padding: 1.15rem 1.375rem 1.0625rem; }
 }
 
-/* 悬停：整卡上浮 + 柔影（源码只有 box-shadow，位移是本站既有的卡片语言）；
-   封面在支持 hover 的设备上由模糊转清晰并放大 10%（源码 .card:hover .imgBx）；
-   同时封面长高 2.25rem —— 项目卡没有源码那种「长高 120px 的白板」，
-   一点封面高度加上简介展开，合起来的位移量才够看出「卡片展开了」。 */
+/* 抽屉：源码「卡片 300→420」多出来的那块白板。top:100% 挂在壳下沿之外，
+   静止 max-height 0（border-box 下连描边都压没），悬停靠 max-height 打开 ——
+   只当上限，实际高度由简介内容决定，摘要一两行都不会留白。
+   它完全脱离文档流，网格行高永远不参与计算：这才是「浮在最上层但不撑开网格」。 */
+.sg-project-drawer {
+  position: absolute;
+  /* 往上吃 1px：壳有 1px 描边，底边那圈描边在悬停时转成透明，
+     抽屉若不盖住它，抽屉的 box-shadow 会从这条缝里透出来变成一条灰线。 */
+  top: calc(100% - 1px);
+  left: 0;
+  right: 0;
+  z-index: 4;
+  max-height: 0;
+  overflow: hidden;
+  /* 同友链：静态不能留 1px 描边挂在卡片下沿外，宽度 0 → 1px 参与过渡 */
+  border-style: solid;
+  border-color: var(--sg-proj-border);
+  border-width: 0;
+  border-radius: 0 0 var(--sg-proj-radius) var(--sg-proj-radius);
+  background: var(--sg-proj-face);
+  box-shadow: 0 20px 30px -24px rgba(23, 27, 29, .40);
+  transition:
+    max-height var(--sg-dur-card) var(--sg-ease),
+    border-width var(--sg-dur-card) var(--sg-ease),
+    border-color var(--sg-dur-card) var(--sg-ease);
+}
+/* 悬停：整卡上浮 + 抬层级（抽屉要压住下一行卡片）；壳底角变方、底边描边转透明，
+   好让抽屉从底边无缝接出去 —— 视觉就是「卡片长高」，而布局高度一点没变。
+   封面在支持 hover 的设备上由模糊转清晰并放大 10%（源码 .card:hover .imgBx）。 */
 .sg-project:is(:hover, :focus-within) {
-  --sg-proj-photo: 13.75rem;
+  z-index: 2;
   transform: translateY(-4px);
+}
+.sg-project:is(:hover, :focus-within) .sg-project-shell {
+  border-radius: var(--sg-proj-radius) var(--sg-proj-radius) 0 0;
+  border-bottom-color: transparent;
   box-shadow:
     0 18px 38px -14px rgba(23, 27, 29, .34),
     0 8px 18px -10px rgba(23, 27, 29, .20),
     0 0 28px -4px color-mix(in srgb, var(--sg-accent) 28%, transparent);
 }
+.sg-project:is(:hover, :focus-within) .sg-project-drawer {
+  max-height: 10rem;
+  border-width: 1px 1px 1px;
+  border-top-width: 0;
+}
 /* 夜间：黑底吃掉暗影，靠冷光晕交代浮起；不叠 1px 描边（卡面自带 --sg-proj-border） */
-html.dark .sg-project:is(:hover, :focus-within) {
+html.dark .sg-project:is(:hover, :focus-within) .sg-project-shell {
   box-shadow:
     0 24px 46px -16px rgba(0, 0, 0, .85),
     0 0 34px -6px color-mix(in srgb, var(--sg-accent-soft) 40%, transparent);
@@ -651,13 +722,24 @@ html.dark .sg-project:is(:hover, :focus-within) {
   .sg-project--cover:is(:hover, :focus-within) .sg-project-photo img { transform: scale(1.1); }
 }
 
-/* 触屏：简介常显，卡片不展开（没有 hover 可触发） */
+/* 触屏没有 hover：抽屉回文档流常显（否则每张卡都盖上下一行），卡片高度随内容增长 */
 @media (hover: none) {
-  .sg-project-desc { max-height: none; margin-block: 0; opacity: 1; }
+  .sg-project-shell {
+    border-bottom-color: transparent;
+    border-radius: var(--sg-proj-radius) var(--sg-proj-radius) 0 0;
+  }
+  .sg-project-drawer {
+    position: static;
+    max-height: none;
+    overflow: visible;
+    box-shadow: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .sg-project,
+  .sg-project-shell,
+  .sg-project-drawer,
   .sg-project-photo,
   .sg-project-photo img,
   .sg-project-desc,
@@ -723,34 +805,33 @@ html.dark .sg-project-badge { color: var(--sg-indigo-soft); }
   overflow-wrap: anywhere;
 }
 
-/* 描述：静止收成 0，悬停展开两行 —— 这就是源码「`.content p` 静止 opacity:0 +
-   卡片 300→420 长高」的对应物，项目卡的「展开」全靠这一段。
-   flex 的 gap 是按「有几个子项」给的，收起的简介仍会占掉上下两个 gap，
-   所以用等量负 margin 抵掉；悬停时 margin 归零，间距自己回来。 */
+/* 描述：住在卡外的抽屉里（.sg-project-drawer），静止随抽屉高度收成 0，
+   悬停由抽屉展开带出来 —— 这就是源码「`.content p` 静止 opacity:0」的对应物。
+   收起不需要负 margin 抵 gap：抽屉自己就是 0 高度的绝对定位盒子。 */
 .sg-project-desc {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   overflow: hidden;
-  max-height: 0;
-  margin-block: calc(var(--sg-proj-gap) * -1);
+  padding: .7rem 1.25rem .85rem;
   opacity: 0;
   font-size: .8125rem;
   line-height: 1.7;
   color: var(--sg-muted);
-  transition:
-    max-height var(--sg-dur-card) var(--sg-ease),
-    margin-block var(--sg-dur-card) var(--sg-ease),
-    opacity .22s var(--sg-ease) .06s;
+  transition: opacity .22s var(--sg-ease) .06s;
+}
+@media (min-width: 768px) {
+  .sg-project-desc { padding: .7rem 1.375rem .9rem; }
 }
 
-/* 触屏没有「移开」这个动作，简介常显（不展开也不藏） */
+/* 悬停才淡入；触屏没有「移开」这个动作，简介常显。
+   这两条必须写在 opacity:0 之后 —— 同特异性下先写的会被后面的基础规则吃掉。 */
 @media (hover: hover) {
-  .sg-project:is(:hover, :focus-within) .sg-project-desc {
-    max-height: 5rem;
-    margin-block: 0;
-    opacity: 1;
-  }
+  .sg-project:is(:hover, :focus-within) .sg-project-desc { opacity: 1; }
+}
+@media (hover: none) {
+  .sg-project-desc { opacity: 1; }
 }
 
 /* 语言 / 星数 / 分支数：一行等宽小字，用图标和色点代替文字前缀 */

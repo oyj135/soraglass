@@ -99,10 +99,15 @@ $sgHead = [
             }));
         }
         ?>
-    <article class="sg-glass sg-project<?php echo $sgCover !== '' ? ' sg-project--cover' : ''; ?>" data-sg-filter-item data-keywords="<?php echo sg_e($sgKeywords); ?>"<?php if ($sgLang !== '') : ?> style="--sg-lang: <?php echo sg_e(sg_lang_color($sgLang)); ?>"<?php endif; ?>>
+    <?php /* 第四十一轮：卡片外观下放到 .sg-project-shell，简介搬到卡外的 .sg-project-drawer。
+               外层不再挂 .sg-glass（那套底色/描边/圆角/阴影会在大卡外面留一层背板，
+               抽屉从底边接出去时露出圆角缺口），外观全部由壳自己承担。
+               布局高度恒定，悬停只展开绝对定位的抽屉，网格行高不重算。 */ ?>
+    <article class="sg-project<?php echo $sgCover !== '' ? ' sg-project--cover' : ''; ?>" data-sg-filter-item data-keywords="<?php echo sg_e($sgKeywords); ?>"<?php if ($sgLang !== '') : ?> style="--sg-lang: <?php echo sg_e(sg_lang_color($sgLang)); ?>"<?php endif; ?>>
       <?php if ($sgUrl !== '') : ?>
       <a class="sg-project-link" href="<?php echo sg_e($sgUrl); ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php echo sg_e($sgName); ?>"></a>
       <?php endif; ?>
+      <div class="sg-project-shell">
       <?php /* 封面区（源码 .imgBx）：有 cover 就放图，没有就用语言色渐变 + 首字母水印。
                弯曲几何（圆肩胶囊 + 内凹圆缺口）挂在这层的伪元素上，别摘这个节点。 */ ?>
       <div class="sg-project-shot">
@@ -123,7 +128,6 @@ $sgHead = [
         <span class="sg-project-badge"><?php echo sg_e(implode(' · ', array_map('strval', $sgBadge))); ?></span>
         <?php endif; ?>
       </div>
-      <p class="sg-project-desc"><?php echo sg_e($sgDesc); ?></p>
       <?php if ($sgLang !== '' || $sgStars > 0 || $sgForks > 0) : ?>
       <div class="sg-project-facts">
         <?php if ($sgLang !== '') : ?>
@@ -151,6 +155,12 @@ $sgHead = [
       </div>
       <?php endif; ?>
       </div><?php /* /.sg-project-body */ ?>
+      </div><?php /* /.sg-project-shell */ ?>
+      <?php /* 抽屉：绝对定位挂在壳下沿之外，静止 0 高，悬停展开简介。
+               它不参与文档流，所以卡片被悬停时长高的部分永远不会撑开网格。 */ ?>
+      <div class="sg-project-drawer">
+        <p class="sg-project-desc"><?php echo sg_e($sgDesc); ?></p>
+      </div>
     </article>
     <?php endforeach; ?>
   </div>

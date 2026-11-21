@@ -1,4 +1,4 @@
-/* 友链页（2026-11-21 第三十九轮：按源码重做「弯曲外部卡片」）
+/* 友链页（2026-11-21 第四十一轮：展开改成浮层抽屉，不再撑开网格）
    源码：github.com/Silvana-kite/html-css-js-project · CSS弯曲外部卡片UI设计带悬停效果
 
      .card            300×300、radius 40、overflow hidden、box-shadow 0 20px 25px
@@ -7,19 +7,20 @@
      .imgBx::before   bottom:-40 / height:80 / border-radius:40 / #fff   → 白胶囊顶出圆肩
      .imgBx::after    right:0 / bottom:40 / 80×80 圆 + box-shadow:75px 70px 0 40px #fff
                       → 透明圆当挖刀，白色硬阴影填右下，右肩留下内凹圆缺口
-     .content         top:-40、z-index:10、p 静止 opacity 0
 
-   上一轮只抄了「胶囊唇边」，漏掉了两件真正决定观感的东西：
-     ① 静止时封面是模糊的（blur 25px），悬停才清晰并放大 10% —— 「悬停效果」的主角；
-     ② 白板顶边不是左右对称的圆角，右边还有一个内凹圆缺口（外弯 + 内凹 = S 形交界）。
-   本轮按源码补齐，尺寸按 40/300 的比例折成 1.35rem（卡宽 200 左右时比例最接近源站）。
+   第四十轮为止的写法是改 `aspect-ratio`（1/1 → 1/1.4）让整卡真的长高 —— 观感对，
+   但卡片高度一涨，网格行高就得重算，页面下方内容整块被推下去（源码的 flex 行同样如此）。
+   提高 z-index 解决不了：层级只改绘制顺序，撑开网格的是布局盒子的真实高度。
 
-   整卡展开照抄源码：`.card` 300 → `:hover` 420（1.4 倍）。这里用 `aspect-ratio: 1/1 → 1/1.4`
-   做高度过渡（Chromium 支持对 aspect-ratio 插值），面板和封面都用**卡片高度的百分比**，
-   1.4 倍下把面板比例从 36% 提到 54%，正好让封面高度几乎不变（0.64×1 = 0.46×1.4），
-   多出来的 80px 全部给信息面板 —— 与源码「图不动、白板从底部长高」一致。
-   网格 `align-items: start`，只让被悬停的那张往下长，同排其它卡顶端不动。
-   外层保留一张玻璃卡托底：卡片直接压壁纸时简介只剩 2.4:1 对比。 */
+   本轮改结构：**布局高度恒定，长出来的白板是绝对定位的抽屉**。
+     .sg-flink-item    1:1 定高，只当网格占位；overflow 必须 visible
+     .sg-flink-shell   卡片外观全在这里（背景/描边/圆角/阴影/裁剪），= 整卡链接
+     .sg-flink-drawer  top:100%，静止 max-height 0 → 悬停展开，完全脱离文档流
+
+   于是悬停时：壳底角由圆变方、底边描边转透明、抽屉从底边接出 —— 视觉上就是
+   「白板从底部长高」（与源码图不动、白板变高完全同构），但网格行高一动不动，
+   抽屉压在网格 gap 与下一行卡片上，靠 item 的 z-index 浮到最上层。
+   抽屉内容自适应（max-height 只当上限），摘要一两行都不会留白。 */
 .sg-flink-list {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -36,25 +37,54 @@
 @media (max-width: 899.98px) { .sg-flink-list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 599.98px) { .sg-flink-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; padding: .75rem; } }
 
+/* 占位盒：高度就是卡片高度（1:1），与是否悬停无关 —— 网格只认它 */
 .sg-flink-item {
-  --sg-flink-panel: clamp(4.5rem, 36%, 5.2rem);   /* 静止：头像 + 站名 + 域名 */
+  --sg-flink-panel: clamp(4.5rem, 36%, 5.2rem);   /* 头像 + 站名 + 域名 */
   --sg-flink-lip: 1.35rem;                       /* 圆肩半径 = 胶囊半高（源码 40/300） */
   --sg-flink-blur: 10px;                         /* 源码 blur 25px @ 300 宽 */
   --sg-flink-face: var(--sg-panel-face);
+  --sg-flink-radius: var(--sg-radius-outer);
   position: relative;
+  min-width: 0;
+  aspect-ratio: 1 / 1;
+  /* 抽屉要探到卡片下沿之外，这里绝不能裁剪（裁剪已经下放到壳上） */
+  overflow: visible;
+  transition: transform var(--sg-dur-card) var(--sg-ease);
+}
+/* 悬停：整卡轻微上浮 + 抬层级（抽屉要压住下一行卡片），
+   位置只走 transform，不参与布局，所以下方内容依旧不动。 */
+.sg-flink-item:is(:hover, :focus-within) {
+  z-index: 2;
+  transform: translateY(-4px);
+}
+
+/* 壳 = 整卡链接：卡片的所有外观（背景、描边、圆角、阴影、圆角裁剪）都在这一层。
+   悬停时底角由圆变方、底边描边转透明，好让抽屉从底边无缝接出去。 */
+.sg-flink-shell {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
-  min-width: 0;
   overflow: hidden;
-  aspect-ratio: 1 / 1;
   border: 1px solid var(--sg-card-border);
-  border-radius: 20px;
+  border-radius: var(--sg-flink-radius);
   background: var(--sg-flink-face);
   box-shadow: 0 10px 24px -18px rgba(23, 27, 29, .40);
+  color: var(--sg-text);
+  text-decoration: none;
   transition:
-    aspect-ratio var(--sg-dur-card) var(--sg-ease),
-    transform var(--sg-dur-card) var(--sg-ease),
+    border-radius var(--sg-dur-card) var(--sg-ease),
+    border-color var(--sg-dur-card) var(--sg-ease),
     box-shadow var(--sg-dur-card) var(--sg-ease);
+}
+.sg-flink-shell:focus-visible { outline: 2px solid var(--sg-accent-ink); outline-offset: 3px; }
+.sg-flink-item:is(:hover, :focus-within) .sg-flink-shell {
+  border-radius: var(--sg-flink-radius) var(--sg-flink-radius) 0 0;
+  border-bottom-color: transparent;
+  box-shadow:
+    0 18px 36px -14px rgba(23, 27, 29, .36),
+    0 8px 18px -10px rgba(23, 27, 29, .20),
+    0 0 26px -4px color-mix(in srgb, var(--sg-accent) 28%, transparent);
 }
 
 /* 封面区：flex 撑满面板以上。不能 overflow:hidden ——
@@ -123,35 +153,21 @@
 }
 
 /* 信息面板：从封面下沿开始，和圆肩胶囊同色；z-index 压在封面之上，
-   胶囊探进面板的那半个被面板盖住，视觉上就是「白板从底部长高」。 */
+   胶囊探进面板的那半个被面板盖住，视觉上就是「白板从底部长高」。
+   简介已经移出这一层（进抽屉），面板只剩两行，高度固定，不再随悬停变化。 */
 .sg-flink-info {
   position: relative;
   z-index: 3;
   flex: none;
   display: grid;
   grid-template-columns: 2rem minmax(0, 1fr);
-  grid-template-rows: 2rem auto auto;
+  grid-template-rows: 2rem auto;
   column-gap: .55rem;
   align-content: start;
   height: var(--sg-flink-panel);
   padding: calc(var(--sg-flink-lip) * .62) .9rem .5rem;
   overflow: hidden;
   background: var(--sg-flink-face);
-  transition:
-    height var(--sg-dur-card) var(--sg-ease),
-    padding-bottom var(--sg-dur-card) var(--sg-ease);
-}
-
-/* 整张卡片就是一个链接：a 铺满卡面，同时它自己得是 flex 容器 ——
-   封面（flex:1）与面板（定高）是 a 的子节点，不是 .sg-flink-item 的直接子节点。 */
-.sg-flink-item a {
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  display: flex;
-  flex-direction: column;
-  color: var(--sg-text);
-  text-decoration: none;
 }
 
 .sg-flink-icon {
@@ -176,7 +192,7 @@
   text-overflow: ellipsis;
   transition: color .3s;
 }
-/* 站名下面那行：源站 h3 里的 span，这里放域名，静止时就看得见 */
+/* 站名下面那行：源站 h3 里的 span，这里放域名（简介搬进抽屉后它不用再让位了） */
 .sg-flink-host {
   grid-area: 2 / 2 / 3 / 3;
   display: block;
@@ -189,82 +205,107 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: height var(--sg-dur-card) var(--sg-ease), opacity .22s var(--sg-ease);
 }
-/* 悬停时域名让位给简介：这一行高度收成 0，简介整体上移一格，
-   比硬塞两行文字更省面板高度（面板越矮，封面留得越多）。 */
-.sg-flink-item:is(:hover, :focus-within) .sg-flink-host { height: 0; opacity: 0; }
-/* 简介：源码里的 p 静止 opacity 0，跟着面板长高一起淡入 */
+
+/* 抽屉：源码「卡片 300→420」多出来的那块白板。
+   top:100% 挂在卡片下沿之外，静止 max-height 0（border-box 下高度压到 0，连描边都不显），
+   悬停靠 max-height 打开 —— 只当上限，实际高度由简介内容决定，一两行都不留白。
+   因为完全脱离文档流，网格行高永远不参与计算，下方内容零位移。 */
+.sg-flink-drawer {
+  position: absolute;
+  /* 往上吃 1px：壳有 1px 描边，底边那圈描边在悬停时转成透明，
+     抽屉若不盖住它，抽屉的 box-shadow 会从这条缝里透出来变成一条灰线。 */
+  top: calc(100% - 1px);
+  left: 0;
+  right: 0;
+  z-index: 2;
+  max-height: 0;
+  overflow: hidden;
+  /* 描边不能用 `border: 1px solid` 常驻：那 1px 在静态时会挂在卡片下沿外面，
+     像卡片底边多了一条发丝。宽度 0 → 1px 是可过渡的，悬停时和高度一起长出来。 */
+  border-style: solid;
+  border-color: var(--sg-card-border);
+  border-width: 0;
+  border-radius: 0 0 var(--sg-flink-radius) var(--sg-flink-radius);
+  background: var(--sg-flink-face);
+  box-shadow: 0 20px 28px -22px rgba(23, 27, 29, .42);
+  transition:
+    max-height var(--sg-dur-card) var(--sg-ease),
+    border-width var(--sg-dur-card) var(--sg-ease),
+    border-color var(--sg-dur-card) var(--sg-ease);
+}
+.sg-flink-item:is(:hover, :focus-within) .sg-flink-drawer {
+  max-height: 9rem;
+  border-width: 1px 1px 1px;
+  border-top-width: 0;
+}
+
+/* 抽屉里的简介（源码的 .content p，静止 opacity 0） */
 .sg-flink-desc {
-  grid-area: 3 / 1 / 4 / 3;
-  margin-top: .4rem;
-  font-size: .78rem;
-  line-height: 1.45;
-  color: var(--sg-muted);
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   overflow: hidden;
+  padding: .7rem .9rem .85rem;
+  font-size: .78rem;
+  line-height: 1.55;
+  color: var(--sg-muted);
   word-break: break-word;
   opacity: 0;
-  transform: translateY(4px);
-  transition:
-    color .3s,
-    opacity .3s var(--sg-ease) .08s,
-    transform .3s var(--sg-ease) .08s;
+  transition: color .3s, opacity .28s var(--sg-ease) .1s;
 }
-
-.sg-flink-item:is(:hover, :focus-within) {
-  /* 整卡展开（源码 .card:hover 300→420 = 1.4 倍）：卡片长高，封面按百分比跟着不变，
-     多出来的高度全部落在信息面板上，简介才有地方显出来。 */
-  aspect-ratio: 1 / 1.4;
-  --sg-flink-panel: clamp(6.8rem, 54%, 7.8rem);
-  transform: translateY(-4px);
-  box-shadow:
-    0 18px 36px -14px rgba(23, 27, 29, .36),
-    0 8px 18px -10px rgba(23, 27, 29, .20),
-    0 0 26px -4px color-mix(in srgb, var(--sg-accent) 28%, transparent);
+.sg-flink-item:is(:hover, :focus-within) .sg-flink-desc {
+  opacity: 1;
+  color: var(--sg-text);
 }
-.sg-flink-item:is(:hover, :focus-within) .sg-flink-info { padding-bottom: .9rem; }
-.sg-flink-item:is(:hover, :focus-within) .sg-flink-desc { opacity: 1; transform: none; }
-.sg-flink-item:is(:hover, :focus-within) .sg-flink-name { color: var(--sg-text); }
-.sg-flink-item:is(:hover, :focus-within) .sg-flink-desc { color: var(--sg-text); }
 
 /* 夜间：黑底吃暗影，靠冷光晕交代浮起 */
-html.dark .sg-flink-item:is(:hover, :focus-within) {
+html.dark .sg-flink-item:is(:hover, :focus-within) .sg-flink-shell {
   box-shadow:
     0 24px 46px -16px rgba(0, 0, 0, .85),
     0 0 34px -6px color-mix(in srgb, var(--sg-accent-soft) 40%, transparent);
 }
 
-/* 窄屏（两列、卡宽 165 上下）：面板高度按百分比算会不够装「头像+站名+域名」或两行简介，
-   卡片改 4:5 给纵向留位置 —— 封面仍有 130 左右，面板不会把图压没。
-   悬停同样按比例长高（4:5 → 4:6），封面高度基本不变。 */
+/* 窄屏（两列、卡宽 165 上下）：面板按百分比算会装不下「头像+站名+域名」，
+   卡片改 4:5 给纵向留位置 —— 封面仍有 130 左右，面板不会把图压没。 */
 @media (max-width: 599.98px) {
   .sg-flink-item { aspect-ratio: 4 / 5; }
-  .sg-flink-item:is(:hover, :focus-within) {
-    aspect-ratio: 4 / 6;
-    --sg-flink-panel: clamp(6.6rem, 52%, 7.2rem);
-  }
 }
 
-/* 触屏没有 hover：封面常清晰、简介常显；域名行让位给简介（否则面板装不下两行） */
+/* 触屏没有 hover：抽屉回文档流常显（不然每张卡都盖上下一行），
+   壳改成流内元素、自己用 aspect-ratio 定高，卡片整体高度随简介自然长。 */
 @media (hover: none) {
-  .sg-flink-item { --sg-flink-panel: clamp(6.6rem, 52%, 7.4rem); }
+  .sg-flink-item { aspect-ratio: auto; }
+  .sg-flink-shell {
+    position: relative;
+    inset: auto;
+    aspect-ratio: 1 / 1;
+    border-bottom-color: transparent;
+    border-radius: var(--sg-flink-radius) var(--sg-flink-radius) 0 0;
+  }
+  .sg-flink-drawer {
+    position: static;
+    max-height: none;
+    border-top: 0;
+    box-shadow: none;
+  }
+  .sg-flink-desc { opacity: 1; -webkit-line-clamp: 2; }
   .sg-flink-host { display: none; }
-  .sg-flink-desc { opacity: 1; transform: none; }
+}
+@media (max-width: 599.98px) and (hover: none) {
+  .sg-flink-shell { aspect-ratio: 4 / 5; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .sg-flink-item,
+  .sg-flink-shell,
   .sg-flink-shot img,
   .sg-flink-icon img,
-  .sg-flink-name,
   .sg-flink-desc,
-  .sg-flink-info { transition: none; }
-  /* 降级不只是关动画：位移与缩放都要归零，否则会瞬间跳一下 */
+  .sg-flink-drawer { transition: none; }
+  /* 降级不只是关动画：位移与缩放都要归零，否则会瞬间跳一下。
+     封面图那层 scale 不动 —— 它是遮 blur 白边的，不是动效。 */
   .sg-flink-item:is(:hover, :focus-within),
   .sg-flink-item:is(:hover, :focus-within) .sg-flink-icon img { transform: none; }
-  .sg-flink-desc { transform: none; }
 }
