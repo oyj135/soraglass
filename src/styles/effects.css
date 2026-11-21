@@ -345,7 +345,7 @@ html.dark .sg-bg::after {
 @media print {
   html, body { background: #fff !important; }
   .sg-bg, .sg-glow, .sg-gradient, .sg-effects, .sg-danmaku, .sg-ripple,
-  .sg-splash, .sg-nav, .sg-disc, .sg-sheet, .sg-toolbox, .sg-toast { display: none !important; }
+  .sg-splash, .sg-nav, .sg-disc, .sg-sheet, .sg-toast { display: none !important; }
   .sg-main { animation: none !important; padding-top: 1rem; }
   .sg-glass, .sg-glass-strong {
     background: #fff !important;

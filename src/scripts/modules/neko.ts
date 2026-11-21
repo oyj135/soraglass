@@ -9,7 +9,7 @@ import { reducedMotion } from './runtime';
  * ≤768px 由 CSS 隐藏，模块直接空跑。
  */
 
-const INTERACTIVE = 'a, button, input, select, textarea, label, summary, [onclick], [role="button"], [role="link"], [data-sg-rightside], .sg-toolbox';
+const INTERACTIVE = 'a, button, input, select, textarea, label, summary, [onclick], [role="button"], [role="link"], [data-sg-rightside]';
 
 export function initNeko(): void {
   const rope = document.querySelector<HTMLElement>('[data-sg-neko-rope]');

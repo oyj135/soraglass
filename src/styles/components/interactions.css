@@ -61,24 +61,16 @@
   mask-image: radial-gradient(ellipse 70% 58% at 50% 0%, #000 28%, transparent 76%);
 }
 
-/* 夜间保留原有渐变标题；日间同样走「白色字」，靠深色投影托底
-   （2026-11-20 第十九轮：原本日间是青瓷实色 --sg-accent-deep，用户要求顶部文字统一白色，
-   这条规则特异度高于 components/article.css 的基础声明，必须在这里一并改掉）。 */
+/* 2026-11-21 第五十轮：夜间页头标题由「渐变透明字」改为月白纯色字，
+   与文章标题/首屏/元信息统一走三色轮询发光。渐变透明字（text-fill-color:transparent）
+   挂不上 text-shadow —— 光晕会从透明字形里透成脏影，所以必须改成实色字；
+   animation 就近挂在 article.css 的夜间规则（sg-post-neon 在那里定义）。 */
 html.dark .sg-page-title,
 html.dark .sg-about-title h1 {
-  background-image: linear-gradient(110deg, var(--sg-text) 20%, var(--sg-accent-soft) 66%, var(--sg-accent-pale) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: none; /* 渐变填充是透明的，暗投影会从字形里透出来变成脏影 */
-}
-@supports not ((-webkit-background-clip: text) or (background-clip: text)) {
-  html.dark .sg-page-title,
-  html.dark .sg-about-title h1 {
-    background-image: none;
-    -webkit-text-fill-color: currentColor;
-    color: var(--sg-text);
-  }
+  background-image: none;
+  -webkit-text-fill-color: currentColor;
+  color: var(--sg-wall-white-ink);
+  text-shadow: none;
 }
 /* 2026-11-21 用户回调：日间页头标题保留白字，并恢复四向深硬影（大字档）。 */
 html:not(.dark) :is(.sg-page-title, .sg-about-title h1) {
@@ -437,7 +429,6 @@ html.dark .sg-home-aside .sg-profile::after {
    下列控件的视觉尺寸保持原样（裸图标按钮、窄翻页键），用透明 ::before 向外
    撑出 ≥44px 的命中方块；position:absolute 让它不参与 grid 布局、不改变视觉。
    position:relative 只建包含块，不改任何现有定位（这些控件原本 static）。 */
-.sg-tool,
 .sg-rightside-btn,
 .sg-player-controls button,
 .sg-music-controls button,
@@ -445,7 +436,6 @@ html.dark .sg-home-aside .sg-profile::after {
 .sg-filter-btn { position: relative; }
 /* 搜索框是替换元素，撑不了伪元素，直接抬 min-height（2.5→2.75rem，视觉仅高 4px） */
 .sg-playlist-search input { min-height: 2.75rem; }
-.sg-tool::before,
 .sg-rightside-btn::before,
 .sg-player-controls button::before,
 .sg-music-controls button::before,

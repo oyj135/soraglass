@@ -21,6 +21,7 @@ function sg_admin_json_tools(): string
         'sgSocial',
         'sgFriends',
         'sgProjects',
+        'sgProjectList',
         'sgPoster',
         'sgFrontTyping',
     ], JSON_UNESCAPED_SLASHES);
@@ -477,7 +478,7 @@ function sg_admin_github_picker(string $field, string $user = ''): string
     var applyBtn = document.createElement('button');
     applyBtn.type = 'button';
     applyBtn.className = 'btn btn-s btn-primary';
-    applyBtn.textContent = '写入到「仓库清单」';
+    applyBtn.textContent = '写入到「项目清单」';
 
     function account() {
       var box = document.querySelector('input[name="sgGithubUser"]');
@@ -485,9 +486,24 @@ function sg_admin_github_picker(string $field, string $user = ''): string
       return value || defaultUser;
     }
 
+    /* 已选仓库：新字段是数组 JSON（每项 name/cover/note），旧的仓库清单是逐行文本。
+       两种都读，保证从旧格式迁移过来时勾选状态不丢。 */
     function currentSet() {
       var set = {};
-      String(input.value || '').split(/\\r?\\n/).forEach(function (line) {
+      var raw = String(input.value || '').trim();
+      if (raw.charAt(0) === '[') {
+        try {
+          var arr = JSON.parse(raw);
+          if (Array.isArray(arr)) {
+            arr.forEach(function (item) {
+              var name = String((item && item.name) || '').trim().split('/').pop().trim().toLowerCase();
+              if (name) { set[name] = true; }
+            });
+            return set;
+          }
+        } catch (err) { /* JSON 暂时写坏，退回逐行解析让勾选仍能显示 */ }
+      }
+      raw.split(/\\r?\\n/).forEach(function (line) {
         var name = line.split('|')[0].trim().split('/').pop().trim().toLowerCase();
         if (name) { set[name] = true; }
       });
@@ -568,10 +584,35 @@ function sg_admin_github_picker(string $field, string $user = ''): string
         tip.textContent = '一个都没勾，清单保持原样；想用自动模式请直接清空清单';
         return;
       }
-      input.value = names.join('\\n');
+      /* 先把当前输入框里的 cover/note 按仓库名索引，写回时原样带过去 ——
+         这样从 GitHub 重新勾选不会把站长填好的封面和简介冲掉。 */
+      var prev = {};
+      var raw = String(input.value || '').trim();
+      if (raw.charAt(0) === '[') {
+        try {
+          var old = JSON.parse(raw);
+          if (Array.isArray(old)) {
+            old.forEach(function (item) {
+              var key = String((item && item.name) || '').trim().split('/').pop().trim().toLowerCase();
+              if (key) { prev[key] = item; }
+            });
+          }
+        } catch (err) { /* 原值写坏就从空映射重建，不动勾选结果 */ }
+      }
+      var list = names.map(function (name) {
+        var key = name.trim().toLowerCase();
+        var item = { name: name };
+        var kept = prev[key];
+        if (kept) {
+          if (kept.cover) { item.cover = kept.cover; }
+          if (kept.note) { item.note = kept.note; }
+        }
+        return item;
+      });
+      input.value = JSON.stringify(list, null, 2);
       input.dispatchEvent(new Event('input', { bubbles: true }));
       tip.style.color = OK;
-      tip.textContent = '已写入 ' + names.length + ' 个仓库名，记得点最下方「保存设置」';
+      tip.textContent = '已写入 ' + names.length + ' 个仓库（原有封面/简介已保留），记得点最下方「保存设置」';
     });
 
     foot.appendChild(applyBtn);
@@ -612,6 +653,7 @@ function themeConfig($form): void
     $form->addInput(new Text('sgNavTitle', null, '', _t('导航前缀'), _t('留空则使用站点名称')));
     $form->addInput(new Text('sgNavSuffix', null, 'の', _t('导航分隔符'), _t('例：の')));
     $form->addInput(new Text('sgNavAfter', null, '空璃', _t('导航后缀'), _t('例：空璃')));
+    $form->addInput(new Text('sgFrontTitle', null, '', _t('首屏大标题'), _t('2026-11-21 新增：填了就作为首页首屏大标题整段显示（例：<code>OJ\'s Tech Stack · 空璃</code>）；留空则沿用「导航前缀 + 后缀」的拼法。下方小字不受影响')));
     $form->addInput(new Textarea('sgFrontTyping', null, '', _t('首屏打字机 · JSON'), _t(
         '<b>显示位置</b>：首页首屏副标题，逐字打出 → 整句停留 → 逐字删除 → 下一条。<br>'
         . '<b>格式</b>：<code>{"lines":["把喜欢的文字留在夜里 🎐","第二句"],"loop":true,"speed":90,"hold":2200,"erase":40}</code><br>'
@@ -749,23 +791,18 @@ function themeConfig($form): void
     $form->addInput(new Textarea('sgSocial', null, '', _t('社交链接 JSON'), _t('格式：[{"name":"GitHub","url":"...","icon":"github"}]') . sg_admin_json_tools()));
     $form->addInput(new Textarea('sgFriends', null, '', _t('友链 JSON'), _t('留空使用 dist/data/friends.json')));
     $form->addInput(new Textarea('sgProjects', null, '', _t('项目 JSON'), _t('留空使用 dist/data/projects.json。<br>填了 GitHub 账号后，这里留空即自动用仓库列表；<b>两项都有时以这里为准</b>（想完全交给 GitHub 就清空本栏）')));
-    $form->addInput(new Textarea('sgProjectCovers', null, '', _t('项目封面'), _t(
-        '给项目卡配封面图，<b>一行一个</b>：<code>仓库名 | 图片地址</code><br>'
-        . '左边写仓库名（<code>soraglass</code>）、全名（<code>oyj135/soraglass</code>）或项目名；'
-        . '右边支持完整 URL、<code>usr/uploads/…</code> 与主题内相对路径。<br>'
-        . '也可以直接写 JSON 对象：<code>{"soraglass":"https://…/cover.webp"}</code>。<br>'
-        . '项目 JSON 里单个项目的 <code>cover</code> 字段优先级更高；两处都没有时封面退化为语言色渐变 + 首字母水印。'
-    )));
+    $form->addInput(new Textarea('sgProjectList', null, '', _t('项目清单 · JSON'), _t(
+        '2026-11-21 起「仓库清单 + 项目封面 + 简介覆盖」合并为一栏：<b>数组 JSON，一项一个仓库</b>，顺序即展示顺序。<br>'
+        . '<code>[{"name":"soraglass","cover":"usr/uploads/cover.webp","note":"Typecho 主题"},{"name":"oyj135/AiForge","note":"一句话简介"}]</code><br>'
+        . '<code>name</code> 写仓库名或 <code>owner/repo</code>（省略归属账号时用下面的 GitHub 账号）；'
+        . '<code>cover</code> 封面图，支持完整 URL / <code>usr/uploads/…</code> / 主题内相对路径，留空退化为语言色渐变 + 首字母水印；'
+        . '<code>note</code> 覆盖仓库简介。<br>'
+        . '留空这项时自动沿用旧的「仓库清单 + 项目封面」配置，迁移不会丢数据；'
+        . '「项目 JSON」里单个项目的 <code>cover</code> 优先级仍最高。<br>'
+        . '也可以用下面的按钮拉取账号仓库勾选写入。'
+    ) . sg_admin_json_tools() . sg_admin_github_picker('sgProjectList', 'oyj135')));
     $form->addInput(new Text('sgGithubUser', null, 'oyj135', _t('GitHub 账号'), _t('「项目」页从这里列仓库。填用户名即可，例如 <code>oyj135</code>；留空则不启用 GitHub 数据源')));
-    $form->addInput(new Textarea('sgGithubRepos', null, '', _t('仓库清单'), _t(
-        '决定「项目」页显示哪些仓库，<b>一行一个</b>，留空表示自动（按最近推送取前 N 个，跳过 fork 与已归档）：<br>'
-        . '<code>soraglass</code>　只写仓库名，归属账号取上面的 GitHub 账号<br>'
-        . '<code>oyj135/AiForge</code>　写全名，可混着别的账号<br>'
-        . '<code>soraglass | Typecho 主题</code>　竖线后面覆盖简介<br>'
-        . '<code># 开头</code>的行是注释，不参与显示<br>'
-        . '顺序就是展示顺序；已经删除或改名的仓库会被静默跳过。'
-    ) . sg_admin_github_picker('sgGithubRepos', 'oyj135')));
-    $form->addInput(new Text('sgGithubLimit', null, '12', _t('仓库上限（个）'), _t('只在「仓库清单」留空（自动模式）时生效，默认 12；想全量显示填 0。手填的清单不受此限')));
+    $form->addInput(new Text('sgGithubLimit', null, '12', _t('仓库上限（个）'), _t('只在「项目清单」留空（自动模式）时生效，默认 12；想全量显示填 0。手填的清单不受此限')));
     $form->addInput(new Text('sgPlaylist', null, '', _t('Meting 歌单接口地址'), _t(
         '填写一条完整的 Meting 接口地址，例如 '
         . '<code>https://api.injahow.cn/meting/?server=netease&amp;type=playlist&amp;id=2619366284</code>，'

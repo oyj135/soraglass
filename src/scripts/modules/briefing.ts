@@ -101,9 +101,10 @@ export function initBriefing(): void {
         body.hidden = true;
       } else {
         /* 收起时等过渡走完再 hidden，否则内容会瞬间消失 */
+        /* 与 CSS .sg-briefing-body 的 .48s 展开曲线保持一致，留一点余量再 hidden */
         closeTimer = pageTimeout(() => {
           if (!root.classList.contains('is-open')) body.hidden = true;
-        }, 430);
+        }, 500);
       }
     }
     toggle?.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -181,25 +182,12 @@ export function initBriefing(): void {
       const weekday = data.weekday ? ` · ${data.weekday}` : '';
       elSubline.textContent = `${data.date ?? ''}${weekday} · ${total} 则选刊`;
     }
-    if (elHeadline) elHeadline.textContent = data.date === issues[0]?.dataset.date ? '本期来信' : '往期来信';
-    const picker = root.querySelector<HTMLSelectElement>('[data-sg-briefing-select]'); if (picker) picker.value = data.date || '';
+    /* 2026-11-21「往期查看」移除：翻页只在当天主题间进行，标题固定「本期来信」。 */
+    if (elHeadline) elHeadline.textContent = '本期来信';
     root.querySelectorAll<HTMLButtonElement>('[data-sg-briefing-prev],[data-sg-briefing-next]').forEach(b => { b.disabled = available.length < 2; });
 
     applySavedFilter();
   };
-
-  const select = root.querySelector<HTMLSelectElement>('[data-sg-briefing-select]');
-  if (select) {
-    select.addEventListener('change', () => {
-      available = issues.map((issue, i) => issue.dataset.date === select.value ? i : -1).filter(i => i >= 0);
-      if (available.length) {
-        paintIssue(available[0]); startAuto(); announce(`已切换到 ${select.value}`);
-      } else {
-        announce(`${select.value} 未生成日报，仍显示当前期`);
-      }
-    });
-    select.value = issues[0]?.dataset.date || '';
-  }
 
   /* issues 由服务端按「新 → 旧」渲染，下标越大越早。
      › 往更早翻（下标 +1）、‹ 往更新翻（下标 -1）。
@@ -237,14 +225,7 @@ export function initBriefing(): void {
   root.addEventListener('pointerleave', () => { hovered = false; });
   pageOn(document, 'visibilitychange', () => { if (!document.hidden) startAuto(); });
 
-  /* ---------------- 往期面板 ---------------- */
-  const archiveToggle = root.querySelector<HTMLButtonElement>('[data-sg-briefing-archive-toggle]');
-  const archive = root.querySelector<HTMLElement>('[data-sg-briefing-archive]');
-  archiveToggle?.addEventListener('click', () => {
-    const open = archiveToggle.getAttribute('aria-expanded') !== 'true';
-    archiveToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    if (archive) archive.hidden = !open;
-  });
+  /* 2026-11-21：往期面板（archive-toggle / archive / select）已整块移除，首页只看当天选刊。 */
 
   /* ---------------- 只看收藏 ---------------- */
   const savedBtn = root.querySelector<HTMLButtonElement>('[data-sg-briefing-saved]');

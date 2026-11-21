@@ -38,7 +38,7 @@ if ($sgName === '') {
 </footer>
 </div>
 
-<?php $this->need('partials/toolbox.php'); ?>
+<?php /* 2026-11-21：左下音乐馆圆钮已并入 partials/rightside.php 展开组， toolbox.php 下线。 */ ?>
 <?php $this->need('partials/rightside.php'); ?>
 
 <?php /* 右缘小猫滚动进度（2026-11-16 第三轮，对齐 Fomalhaut nekoScroll）：

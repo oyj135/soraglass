@@ -1,33 +1,5 @@
-/* ---------- 左下悬浮工具箱 ---------- */
-.sg-toolbox {
-  position: fixed;
-  left: calc(1.5rem + env(safe-area-inset-left, 0px));
-  bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
-  z-index: 90;
-  display: flex;
-  flex-direction: column;
-  gap: .75rem;
-}
-
-.sg-tool {
-  width: 3rem;
-  height: 3rem;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--sg-border);
-  border-radius: 50%;
-  background: var(--sg-card-strong);
-  box-shadow: var(--sg-shadow);
-  transition: transform .3s, background-color .3s, color .3s;
-}
-
-.sg-tool:hover { transform: scale(1.06); background: var(--sg-indigo); color: #fff; }
-.sg-tool svg { width: 1.125rem; height: 1.125rem; }
-
-@media (max-width: 767.98px) {
-  .sg-toolbox { left: calc(.75rem + env(safe-area-inset-left, 0px)); bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); gap: .5rem; }
-  .sg-tool { width: 2.75rem; height: 2.75rem; }
-}
+/* 2026-11-21：左下悬浮工具箱（.sg-toolbox / .sg-tool，仅一枚音乐馆圆钮）已下线，
+   音乐入口并入右侧 .sg-rightside-hidden 展开组，避免与右下常驻按钮组重叠。 */
 
 /* ---------- 右侧悬浮按钮组（对齐 Fomalhaut #rightside，AI 助手不加） ---------- */
 .sg-rightside {
@@ -71,7 +43,7 @@
   .sg-rightside { right: calc(.75rem + env(safe-area-inset-right, 0px)); bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); }
 }
 @media (max-width: 1023.98px), (pointer: coarse) {
-  .sg-rightside-btn, .sg-tool { min-width: 2.75rem; min-height: 2.75rem; }
+  .sg-rightside-btn { min-width: 2.75rem; min-height: 2.75rem; }
   .sg-rightside > .sg-rightside-down { display: none; }
   .sg-rightside-hidden .sg-rightside-down { display: flex; }
   html { scroll-padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px)); }

@@ -30,6 +30,7 @@ function sg_github_cfg(): array
     return [
         'user'   => trim((string) sg_opt('sgGithubUser', '')),
         'repos'  => trim((string) sg_opt('sgGithubRepos', '')),
+        'list'   => trim((string) sg_opt('sgProjectList', '')),
         'limit'  => (int) sg_opt('sgGithubLimit', '12'),
         'token'  => trim($token),
     ];
@@ -196,6 +197,69 @@ function sg_github_parse_selection(string $raw): array
     return $list;
 }
 
+/**
+ * 项目清单统一解析（2026-11-21：仓库清单 + 项目封面 + 简介覆盖合并为一栏）。
+ *
+ * 优先读后台「项目清单 · JSON」sgProjectList —— 数组 JSON，一项一个仓库：
+ *   [{"name":"soraglass","cover":"usr/uploads/cover.webp","note":"Typecho 主题"}]
+ * name 可写仓库名或 owner/repo（归属账号错了无所谓，以末段仓库名为准）；
+ * cover / note 都可省略。解析不出有效项时，回落到旧的两栏配置：
+ *   sgGithubRepos（逐行仓库清单）+ sgProjectCovers（仓库名 => 封面地址）。
+ *
+ * @return array<int,array{name:string,note:string,cover:string}>
+ */
+function sg_project_list(): array
+{
+    static $cache = null;
+    if ($cache !== null) {
+        return $cache;
+    }
+
+    $list = [];
+    $raw = trim((string) sg_opt('sgProjectList', ''));
+    if ($raw !== '') {
+        $decoded = json_decode($raw, true);
+        if (is_array($decoded) && $decoded && array_is_list($decoded)) {
+            foreach ($decoded as $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+                $name = trim((string) ($item['name'] ?? ''));
+                if ($name === '') {
+                    continue;
+                }
+                if (str_contains($name, '/')) {
+                    $parts = explode('/', $name);
+                    $name = trim((string) end($parts));
+                }
+                if ($name === '') {
+                    continue;
+                }
+                $list[] = [
+                    'name'  => $name,
+                    'note'  => trim((string) ($item['note'] ?? '')),
+                    'cover' => trim((string) ($item['cover'] ?? '')),
+                ];
+            }
+        }
+        if ($list) {
+            return $cache = $list;
+        }
+    }
+
+    // 兼容旧值：旧的仓库清单决定顺序与简介，旧的项目封面映射补 cover。
+    $covers = sg_project_covers_map();
+    foreach (sg_github_parse_selection(trim((string) sg_opt('sgGithubRepos', ''))) as $item) {
+        $key = strtolower($item['name']);
+        $list[] = [
+            'name'  => $item['name'],
+            'note'  => $item['note'],
+            'cover' => $covers[$key] ?? '',
+        ];
+    }
+    return $cache = $list;
+}
+
 /** 语言 → 卡片左上角那个字符（沿用现有 1.75rem emoji 位，不引图标库） */
 function sg_github_icon(string $language): string
 {
@@ -312,7 +376,9 @@ function sg_github_projects(?int $limit = null): array
         $cap = 0;
     }
 
-    $selection = sg_github_parse_selection($cfg['repos']);
+    /* 2026-11-21：清单来源改为「项目清单 · JSON」sgProjectList（内部兼容旧的
+       sgGithubRepos 文本）。新结构每项还带 cover，一并带进 $picked 注入卡片。 */
+    $selection = sg_project_list();
     $picked = [];
 
     if ($selection) {
@@ -323,7 +389,7 @@ function sg_github_projects(?int $limit = null): array
                 $missing[] = $item['name'];
                 continue;
             }
-            $picked[] = ['repo' => $byName[$key], 'note' => $item['note']];
+            $picked[] = ['repo' => $byName[$key], 'note' => $item['note'], 'cover' => $item['cover']];
         }
         $GLOBALS['SG_GITHUB_MISSING'] = $missing;
         if ($cap > 0) {
@@ -345,7 +411,7 @@ function sg_github_projects(?int $limit = null): array
             $auto = array_slice($auto, 0, $cap);
         }
         foreach ($auto as $repo) {
-            $picked[] = ['repo' => $repo, 'note' => ''];
+            $picked[] = ['repo' => $repo, 'note' => '', 'cover' => ''];
         }
     }
 
@@ -397,6 +463,9 @@ function sg_github_projects(?int $limit = null): array
 
         $projects[] = [
             'name'        => $name,
+            /* 2026-11-21：新清单里直接给封面时优先用它（模板会对 cover 做 sg_bg_url 归一化）；
+               留空则由 page-projects.php 再走 sg_project_cover() 查旧封面映射。 */
+            'cover'       => trim((string) ($entry['cover'] ?? '')),
             'description' => $description,
             'icon'        => sg_github_icon($language),
             'tags'        => $tags,
@@ -434,7 +503,7 @@ function sg_github_source_line(?int $count = null): string
         /* 取数失败时页面展示的是兜底数据，别再声称「项目来自 GitHub」 */
         return '';
     }
-    $picked = count(sg_github_parse_selection($cfg['repos']));
+    $picked = count(sg_project_list());
     if ($picked > 0 && $count !== null) {
         $line = '项目来自 GitHub · @' . $cfg['user'] . '（清单挑选 ' . $count . ' / ' . $picked . ' 个）';
         return $line;
@@ -458,7 +527,29 @@ function sg_github_source_line(?int $count = null): string
  * @return array<int,array<string,mixed>>
  */
 /**
- * 项目封面映射：后台「项目封面」栏。
+ * 项目封面统一映射：优先「项目清单 · JSON」里的 cover，其次旧「项目封面」栏。
+ *
+ * @return array<string,string> 小写键 => 图片地址
+ */
+function sg_project_covers(): array
+{
+    static $map = null;
+    if ($map !== null) {
+        return $map;
+    }
+    $map = sg_project_covers_map();
+    // 新清单里的 cover 优先级低于旧的独立封面栏（旧栏是站长显式指定的兜底）
+    foreach (sg_project_list() as $item) {
+        $key = strtolower($item['name']);
+        if ($item['cover'] !== '' && !isset($map[$key])) {
+            $map[$key] = $item['cover'];
+        }
+    }
+    return $map;
+}
+
+/**
+ * 旧「项目封面」栏的映射（2026-11-21 起由 sgProjectList 取代，作为兼容读取保留）。
  *
  * GitHub 模式下列表是接口给的，本身没有封面字段，所以补一张独立的映射表：
  *   soraglass | https://.../cover.webp
@@ -467,7 +558,7 @@ function sg_github_source_line(?int $count = null): string
  *
  * @return array<string,string> 小写键 => 图片地址
  */
-function sg_project_covers(): array
+function sg_project_covers_map(): array
 {
     static $map = null;
     if ($map !== null) {

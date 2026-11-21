@@ -176,12 +176,10 @@ const foot = (readmode = false) => `
   </div>
 </footer>
 </div>
-<div class="sg-toolbox">
-  <a class="sg-tool" href="#" aria-label="音乐馆">${icons.music}</a>
-</div>
 <div class="sg-pace" data-sg-pace aria-hidden="true"><span class="sg-pace-progress"></span></div>
 <div class="sg-rightside" data-sg-rightside>
   <div class="sg-rightside-hidden" data-sg-rightside-hidden>
+    <a class="sg-rightside-btn" data-sg-music-entry href="#" aria-label="音乐馆">${icons.music}</a>
     <button class="sg-rightside-btn" type="button" data-sg-theme-toggle aria-label="切换昼夜模式">${icons.sun.replace('<svg', '<svg class="sg-i-sun"')}${icons.moon.replace('<svg', '<svg class="sg-i-moon"')}</button>
     ${readmode ? `<button class="sg-rightside-btn" type="button" data-sg-readmode-toggle aria-label="切换阅读模式" aria-pressed="false">${icons.bookOpen}</button>` : ''}
   </div>
@@ -295,8 +293,6 @@ const briefing = `
     <div class="sg-briefing-title"><h2>每日选刊</h2><span>共 3 期</span></div>
     <div class="sg-briefing-actions">
       <button type="button" data-sg-briefing-toggle><span data-sg-briefing-toggle-text>收起</span>${icons.chevronDown}</button>
-      <span class="sg-briefing-sep" aria-hidden="true"></span>
-      <button type="button" data-sg-briefing-jump>${icons.folder}往期</button>
     </div>
   </div>
   <div class="sg-briefing-body">

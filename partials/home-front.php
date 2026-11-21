@@ -11,6 +11,9 @@
  */
 $sgFrontName  = sg_opt('sgNavTitle', (string) $this->options->title);
 $sgFrontAfter = sg_opt('sgNavAfter', '空璃');
+/* 2026-11-21：首屏大标题可在后台单独配置（sgFrontTitle）。填了就整体作为标题输出；
+   留空沿用「导航前缀 sgNavTitle + · 后缀 sgNavAfter」。小字仍走打字机/站点副标题。 */
+$sgFrontTitle = trim(sg_opt('sgFrontTitle', ''));
 $sgFrontSub   = (string) $this->options->description;
 $sgFrontSocial = sg_json('sgSocial', 'social', []);
 
@@ -62,7 +65,11 @@ if (!$sgTyping['lines'] && $sgFrontSub !== '') {
 ?>
 <section class="sg-front" data-sg-front aria-label="站点首屏">
   <div class="sg-front-inner">
+    <?php if ($sgFrontTitle !== '') : ?>
+    <h1 class="sg-front-title"><?php echo sg_e($sgFrontTitle); ?></h1>
+    <?php else : ?>
     <h1 class="sg-front-title"><?php echo sg_e($sgFrontName); ?><span class="sg-front-title-mark">· <?php echo sg_e($sgFrontAfter); ?></span></h1>
+    <?php endif; ?>
     <?php if ($sgTyping['lines']) : ?><p class="sg-front-sub" data-sg-typewriter="<?php echo sg_e((string) json_encode($sgTyping, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)); ?>"><?php echo sg_e($sgTyping['lines'][0]); ?></p><?php endif; ?>
     <?php if ($sgFrontSocial) : ?>
     <div class="sg-front-social">

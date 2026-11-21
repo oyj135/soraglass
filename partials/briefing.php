@@ -4,7 +4,7 @@
  *
  * 结构对齐源站 components/DailyBriefing.tsx：
  *   封面横幅（DAILY SIGNAL / 日期 / 大标题 / 导语 / 频道计数 / 展开按钮 / 期号翻页）
- *   └ 展开区（本期来信 + 往期查看 + 只看收藏 + 双栏目录 + 页脚说明）
+ *   └ 展开区（本期来信 + 只看收藏 + 双栏目录 + 页脚说明；2026-11-21 移除往期查看）
  *
  * 数据只有一个来源：lib/ai.php 的 sg_ai_issues()（读取缓存，响应后由模型从 RSS 候选里挑）。
  * 没有 AI 期就不输出这一块 —— 静态「每日选刊 JSON」已在第二十二轮删除。
@@ -18,7 +18,14 @@ if (!defined('SG_ROOT')) {
 /* 第二十一轮起：首页这一块**只用 AI 日报**。
    模型每天挑一份（见 lib/ai.php），拿不到（没配 Key / 没配 RSS / 接口报错）就整块不输出 ——
    不再有「静态选刊」兜底，免得页面上一半是手写数据一半是模型数据，分不清哪条该信。 */
-$sgIssues = sg_ai_issues(5);
+/* 2026-11-21：移除「往期查看」后，首页只看最新一天的选刊（当天可能有多个主题，
+   由「期号翻页」在它们之间切换）。多取几天再按首日过滤，避免只取到当天的某一期。 */
+$sgAllIssues = sg_ai_issues(7);
+$sgLatestDate = $sgAllIssues[0]['date'] ?? '';
+$sgIssues = array_values(array_filter(
+    $sgAllIssues,
+    static fn($issue) => ($issue['date'] ?? '') === $sgLatestDate
+));
 $sgAiIssue = $sgIssues[0] ?? null;
 
 if (!is_array($sgAiIssue) || empty($sgAiIssue['items'])) {
@@ -43,24 +50,9 @@ $sgChannels = [
     ['id' => 'paper', 'name' => '研究与探索'],
 ];
 
-/* 箭头只翻所选日期的主题，历史日期由「往期查看」切换。 */
+/* 2026-11-21「往期查看」移除后：$sgIssues 已全是同一天，翻页只在这些主题间进行。 */
 $sgFirst = $sgIssues[0];
-$sgTotal = count(array_filter($sgIssues, static fn($issue) => $issue['date'] === $sgFirst['date']));
-$sgDates = array_values(array_unique(array_column($sgIssues, 'date')));
-
-/* 往期查看固定提供最近三天（今天/昨天/前天，按站点时区）：
-   已生成的日期标「最新/已生成」，没生成的也列出（选中时 JS 会提示当日未生成）。 */
-$sgRecentDates = [];
-try {
-    $sgBriefTz = new DateTimeZone((string) (\Widget\Options::alloc()->timezone ?? date_default_timezone_get()));
-} catch (\Throwable $e) {
-    $sgBriefTz = new DateTimeZone(date_default_timezone_get());
-}
-$sgBriefCursor = new DateTime('now', $sgBriefTz);
-for ($sgDayOffset = 0; $sgDayOffset < 3; $sgDayOffset++) {
-    $sgRecentDates[] = $sgBriefCursor->format('Y-m-d');
-    $sgBriefCursor->modify('-1 day');
-}
+$sgTotal = count($sgIssues);
 
 /** 某一期里真正有条目的栏目（空栏目直接不渲染，避免大片「这一栏还没有条目」） */
 $sgIssueChannels = static function (array $issue) use ($sgChannels): array {
@@ -166,22 +158,8 @@ $sgBgTotal = $sgBgList ? count($sgBgList) : count($sgIssues);
           <span data-sg-briefing-subline><?php echo sg_e($sgFirst['date']); ?><?php echo $sgFirst['weekday'] !== '' ? ' · ' . sg_e($sgFirst['weekday']) : ''; ?> · <?php echo count($sgFirst['items']); ?> 则选刊</span>
         </div>
         <div class="sg-briefing-tools">
-          <button type="button" data-sg-briefing-archive-toggle aria-expanded="false"><?php echo sg_icon_color('history'); ?>往期查看</button>
           <button type="button" data-sg-briefing-saved aria-pressed="false"><?php echo sg_icon_color('bookmark'); ?>只看收藏</button>
         </div>
-      </div>
-
-      <div class="sg-briefing-archive" data-sg-briefing-archive hidden>
-        <span class="sg-briefing-archive-label">最近三天</span>
-        <select id="sg-briefing-select" data-sg-briefing-select aria-label="选择选刊日期">
-          <?php foreach ($sgRecentDates as $sgDate) : ?>
-          <?php
-            $sgHasIssue = in_array($sgDate, $sgDates, true);
-            $sgMark = $sgHasIssue ? ($sgDate === ($sgDates[0] ?? '') ? ' · 最新' : ' · 已生成') : ' · 未生成';
-          ?>
-          <option value="<?php echo sg_e($sgDate); ?>"><?php echo sg_e($sgDate . $sgMark); ?></option>
-          <?php endforeach; ?>
-        </select>
       </div>
 
       <?php foreach ($sgIssues as $sgIndex => $sgIssue) : ?>

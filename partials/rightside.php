@@ -4,11 +4,30 @@
  * DOM 挂点：[data-sg-pace] [data-sg-rightside] [data-sg-rightside-config]
  *           [data-sg-go-up] [data-sg-go-up-percent] [data-sg-go-down]
  * 昼夜 / 阅读模式按钮复用 core.ts 的 data-sg-theme-toggle / data-sg-readmode-toggle 挂点。
- */
+ * 2026-11-21：原左下角音乐馆圆钮（partials/toolbox.php）并入这里展开组的第一项。
+ *
+ * 找「音乐」独立页的 permalink；找不到就不渲染这个按钮（与旧 toolbox.php 同逻辑）。 */
+$sgMusicHref = '';
+try {
+    $this->widget('Widget_Contents_Page_List')->to($sgMusicPages);
+    while ($sgMusicPages->next()) {
+        if ((string) $sgMusicPages->slug === 'music') {
+            $sgMusicHref = (string) $sgMusicPages->permalink;
+            break;
+        }
+    }
+} catch (\Throwable $e) {
+    $sgMusicHref = '';
+}
 ?>
 <div class="sg-pace" data-sg-pace aria-hidden="true"><span class="sg-pace-progress"></span></div>
 <div class="sg-rightside" data-sg-rightside>
   <div class="sg-rightside-hidden" id="sg-rightside-hidden" data-sg-rightside-hidden>
+    <?php if ($sgMusicHref !== '') : ?>
+    <a class="sg-rightside-btn" data-sg-music-entry href="<?php echo sg_e($sgMusicHref); ?>" aria-label="音乐馆" title="音乐馆">
+      <?php echo sg_icon_color('music'); ?>
+    </a>
+    <?php endif; ?>
     <button class="sg-rightside-btn" type="button" data-sg-theme-toggle aria-label="切换昼夜模式">
       <?php echo sg_icon_color('sun', 'sg-i-sun'); ?>
       <?php echo sg_icon_color('moon', 'sg-i-moon'); ?>
