@@ -1310,12 +1310,14 @@ html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6)
 }
 /* 摘要覆盖层：与封面同裁切，半透明深底承托白字。
    2026-11-18 第六轮：暗幕基础态满值（触屏/无 hover 设备常显）；
-   精确指针设备下默认压到 .62 让封面更干净，hover/focus 恢复到 1 承托淡入的文字。 */
+   精确指针设备下默认压到 .62 让封面更干净，hover/focus 恢复到 1 承托淡入的文字。
+   2026-11-22 第五十三轮：白底插画/浅色照片上引文只剩 1.4–2:1，暗幕整体加深一档
+   （.70/.45/.30 → .86/.62/.40），亮图上也够压。 */
 .sg-feature-media::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(4, 18, 24, .70), rgba(4, 18, 24, .45) 45%, rgba(4, 18, 24, .30));
+  background: linear-gradient(to top, rgba(4, 18, 24, .86), rgba(4, 18, 24, .62) 45%, rgba(4, 18, 24, .40));
   pointer-events: none;
 }
 /* 引号摘要：位于封面内，默认常显。
@@ -1326,7 +1328,16 @@ html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6)
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-  margin: 0 1.5rem 2.1rem;
+  margin: 0 1.1rem 1.7rem;
+  padding: .55rem .95rem;
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 12px;
+  /* 2026-11-22 第五十三轮：只加深暗幕仍不够——白底插画（如浅色 Java 图）上白字
+     实测只剩 1.4–2:1。给引文一层很轻的雾面底（42% 深底 + 6px 模糊），
+     观感仍是「压在图上」，但任何封面都能读。 */
+  background: rgba(6, 13, 18, .42);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
   color: #fff;
   font-family: var(--font-serif);
   font-size: 1rem;
@@ -1434,7 +1445,7 @@ html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6)
 @container (max-width: 339px) {
   .sg-feature-title { -webkit-line-clamp: 1; font-size: 1.1875rem; }
   .sg-feature-meta { font-size: .8125rem; }
-  .sg-feature-quote { font-size: .95rem; margin: 0 1.25rem 1.9rem; }
+  .sg-feature-quote { font-size: .95rem; margin: 0 .7rem 1.3rem; padding: .5rem .7rem; }
   .sg-feature-body { padding: .75rem 1rem 1rem; gap: .4rem; }
 }
 html.dark .sg-feature-card { background: var(--sg-card-strong); }

@@ -45,11 +45,18 @@
   .sg-music.is-blocked [data-sg-play] { animation: none; }
 }
 
-/* ---------- 视觉手法 2：页头网格底纹（静态，无动画） ---------- */
-.sg-main[data-sg-grid]::before {
+/* ---------- 视觉手法 2：页头网格底纹（静态，无动画） ----------
+   2026-11-22 第五十三轮：原来只挂 timeline / about 两页（data-sg-grid 白名单），
+   现在同步到所有带页头的页面（:has(> .sg-page-head)），首页与文章页天然排除；
+   同时改成 100vw 居中出血，横向铺满视口（body 已有 overflow-x: clip，不出横滚条）。
+   :has 与主题已在用的 @container 同代支持（Chrome 105+ / Safari 16+），不额外降级。 */
+.sg-main[data-sg-grid]::before,
+.sg-main:has(> .sg-page-head)::before {
   content: '';
   position: absolute;
-  inset: -2rem -1rem auto;
+  top: -2rem;
+  left: calc(50% - 50vw);
+  width: 100vw;
   height: 30rem;
   z-index: -1;
   pointer-events: none;
@@ -57,8 +64,8 @@
     linear-gradient(to right, var(--sg-line) 1px, transparent 1px),
     linear-gradient(to bottom, var(--sg-line) 1px, transparent 1px);
   background-size: 3rem 3rem;
-  -webkit-mask-image: radial-gradient(ellipse 70% 58% at 50% 0%, #000 28%, transparent 76%);
-  mask-image: radial-gradient(ellipse 70% 58% at 50% 0%, #000 28%, transparent 76%);
+  -webkit-mask-image: radial-gradient(ellipse 76% 60% at 50% 0%, #000 24%, transparent 88%);
+  mask-image: radial-gradient(ellipse 76% 60% at 50% 0%, #000 24%, transparent 88%);
 }
 
 /* 2026-11-21 第五十轮：夜间页头标题由「渐变透明字」改为月白纯色字，

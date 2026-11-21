@@ -18,6 +18,13 @@ if (!in_array($sgBlur, ['none', 'soft', 'strong'], true)) {
 /* 换页加载遮罩（2026-11-21，对齐源站 heo preloader）：圆头像 + 绿点，
    只在软换页（PJAX）时由 loading.ts 揭开/盖上，首屏不参与避免与开屏叠加。 */
 $sgLoadingAvatar = sg_media((string) sg_opt('sgAvatarUrl', ''), sg_theme_url('dist/img/avatar.svg'));
+
+/* 网站图标（2026-11-22 第五十三轮）：后台「网站图标」可填 https/http 外链
+   （如对象存储 / CDN），也支持 usr/uploads/… 与主题内相对路径；留空回退自带 SVG。 */
+$sgFavicon = sg_bg_url((string) sg_opt('sgFavicon', ''));
+if ($sgFavicon === '') {
+    $sgFavicon = sg_theme_url('dist/favicon.svg');
+}
 ?>
 <!DOCTYPE html>
 <html lang="zh-CN" data-sg-blur="<?php echo sg_e($sgBlur); ?>">
@@ -35,7 +42,7 @@ $sgLoadingAvatar = sg_media((string) sg_opt('sgAvatarUrl', ''), sg_theme_url('di
     }
     $this->options->title();
     ?></title>
-<link rel="icon" href="<?php echo sg_e(sg_theme_url('dist/favicon.svg')); ?>">
+<link rel="icon" href="<?php echo sg_e($sgFavicon); ?>">
 <?php /* 阿里 iconfont 多色语义图标（对齐源站 fomal.cc）：4 个 async JS 向 body 首部注入
         隐藏 <symbol>，每枚内嵌独立品牌色；页面用 <use href="#icon-*"> 引用（见 icons.php）。
         symbol 常驻 DOM，PJAX 只换 #sg-main 不受影响；CDN 不可达时图标位留白但布局不塌。 */ ?>

@@ -181,8 +181,6 @@ html:not(.dark) .sg-front-title { text-wrap: balance; }
 }
 @media (min-width: 1280px) {
   .sg-home-aside { width: 21rem; flex-basis: 21rem; }
-  /* 三列卡需要源站同款主栏宽度（≈912px → 卡宽 ≈293px）；只放宽首页，其余页保持 72rem */
-  .sg-main--home { max-width: 80rem; }
 }
 
 /* ---------- 首页文章列表区 ---------- */
@@ -197,6 +195,11 @@ html:not(.dark) .sg-home-section-title { color: #fff; }
 /* 首页文章栅格（2026-11-18 视觉改造）：≥1280 三列（卡宽 ≈293px，同源站 multicard）、
    572–1279 两列、更窄单列；6 篇在三种列数下都整行收尾。行/列间距同源站 20px。
    卡内标题/元信息行数改由容器查询按卡宽决定（components.css），不再按视口 override。 */
+/* 2026-11-22 第五十三轮：首页主栏加宽 —— 基础档 72 → 78rem、≥1280 三栏档 80 → 84rem，
+   精选卡单卡宽度约 +8~11%，封面更舒展；其它页面仍走 layout.css 的 72rem，不受影响。 */
+.sg-main[data-sg-page="index"] { max-width: 78rem; }
+@media (min-width: 1280px) { .sg-main[data-sg-page="index"] { max-width: 84rem; } }
+
 .sg-home-grid { display: grid; gap: 1.25rem; grid-template-columns: minmax(0, 1fr); align-items: stretch; }
 @media (min-width: 572px) { .sg-home-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (min-width: 1280px) { .sg-home-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
@@ -221,11 +224,19 @@ html:not(.dark) .sg-home-section-title { color: #fff; }
 }
 /* 悬浮：源站侧栏分类列表同款「填色 + 左内边距外扩」，整条染主题色压白字，
    箭头右送；计数与图标随底换色。 */
+/* 2026-11-22 第五十三轮：悬浮底由玄墨 --sg-accent 换朱批实底。
+   玄墨 #252229 叠在深色玻璃面板上几乎看不出反馈（用户反馈「不明显」）；
+   朱批与导航当前页/选中态同族，白字 7:1。夜间 --sg-warm 是淡朱（浅底压白字会糊），
+   单独压到深朱 #7d3229 承托白字。 */
 a.sg-home-cate:hover {
-  background: var(--sg-accent);
+  background: var(--sg-warm);
   color: #fff;
   padding-left: 1.2rem;
-  box-shadow: 0 6px 16px -8px color-mix(in srgb, var(--sg-accent) 65%, transparent);
+  box-shadow: 0 6px 16px -8px color-mix(in srgb, var(--sg-warm) 70%, transparent);
+}
+html.dark a.sg-home-cate:hover {
+  background: #7d3229;
+  box-shadow: 0 6px 16px -8px rgba(0, 0, 0, .6);
 }
 a.sg-home-cate:hover .sg-home-cate-count { color: rgba(255, 255, 255, .78); }
 a.sg-home-cate:hover > svg:last-child { color: #fff; transform: translateX(2px); }

@@ -684,6 +684,12 @@ function themeConfig($form): void
     $form->addInput(new Text('sgAuthorName', null, '博主', _t('博主昵称'), _t('显示在首页个人卡片')));
     $form->addInput(new Text('sgAuthorStatus', null, '', _t('作者状态气泡'), _t('显示在作者卡头像右下角，可带 emoji；留空不显示')));
     $form->addInput(new Text('sgAvatarUrl', null, '', _t('头像地址'), _t('留空使用主题内置 SVG 头像')));
+    $form->addInput(new Text('sgFavicon', null, '', _t('网站图标'), _t(
+        '浏览器标签页 / 收藏夹里那个小图标。<b>支持 https/http 外链</b>：'
+        . '<code>https://cdn.example.com/icon.png</code>（可直接用对象存储或 CDN 地址，带查询串也行）；'
+        . '也可以填 <code>usr/uploads/icon.png</code> 或主题内相对路径（如 <code>dist/favicon.svg</code>）。<br>'
+        . '留空则使用主题自带的 <code>dist/favicon.svg</code>。建议正方形、不小于 64×64，格式 PNG / SVG / ICO。'
+    )));
     $form->addInput(new Text('sgNavTitle', null, '', _t('导航前缀'), _t('留空则使用站点名称')));
     $form->addInput(new Text('sgNavSuffix', null, 'の', _t('导航分隔符'), _t('例：の')));
     $form->addInput(new Text('sgNavAfter', null, '空璃', _t('导航后缀'), _t('例：空璃')));

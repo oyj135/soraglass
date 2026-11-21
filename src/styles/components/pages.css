@@ -833,7 +833,9 @@ html.dark .sg-archive-toolbar .sg-archive-tags .sg-filter-btn.is-active {
      夜间深底上原色本身 4.7–8.5:1，直接用原色不再加深。 */
   color: color-mix(in srgb, var(--sg-tag-c, var(--sg-text)) 55%, #252229);
   border-color: color-mix(in srgb, var(--sg-tag-c, #64748b) 55%, transparent);
-  background: color-mix(in srgb, var(--sg-tag-c, #64748b) 10%, var(--sg-card-strong));
+  /* 2026-11-22 第五十三轮：底色交还给上面的「统一玻璃胶囊」
+     （color-mix(--sg-card-strong 78%, transparent)）。上一轮这里混了 10% 标签色，
+     胶囊在亮壁纸上泛出一层脏淡色、看着像没有底；只保留文字与描边的彩色。 */
 }
 html.dark .sg-archive-toolbar .sg-archive-tags .sg-filter-btn:not(.is-active) {
   color: var(--sg-tag-c, var(--sg-text));
