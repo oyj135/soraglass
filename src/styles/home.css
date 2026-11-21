@@ -27,11 +27,11 @@ html.dark .sg-nav.is-front { background: linear-gradient(180deg, rgba(2, 6, 23, 
 .sg-nav.is-front .sg-nav-page { color: #fff; text-shadow: 0 1px 10px rgba(0, 0, 0, .55); }
 .sg-nav.is-front .sg-nav-link.is-active::before { background: #fff; }
 /* 首屏 hover（2026-11-18 用户反馈：原来 base 与 hover 都压白、且 !important 锁死，
-   悬浮毫无变化）：base 满白保醒目，hover 换青瓷浅色 + 同色下划线，变化一眼可见 */
-.sg-nav.is-front .sg-nav-link:is(:hover, :focus-visible) { color: #2f4c4f; opacity: 1; }
-html.dark .sg-nav.is-front .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent-ink); }
-.sg-nav.is-front .sg-nav-link::after { background: #3c5c5f; }
-html.dark .sg-nav.is-front .sg-nav-link::after { background: var(--sg-accent-ink); }
+   悬浮毫无变化）：base 满白保醒目，hover 换青瓷浅色 + 同色下划线，变化一眼可见。
+   2026-11-21：hover 由深青 #2f4c4f 改浅青 —— 深青压在暗 scrim 与亮壁纸两种底上
+   都读不清；下划线同步换成源站 lighten(主题色,30%) 的浅档。 */
+.sg-nav.is-front .sg-nav-link:is(:hover, :focus-visible) { color: #cfe6e0; opacity: 1; }
+.sg-nav.is-front .sg-nav-link::after { background: color-mix(in srgb, #3c5c5f 45%, #fff); }
 .sg-nav.is-front .sg-nav-link.is-active { color: #fff; }
 .sg-nav.is-front .sg-nav-more-menu { color: var(--sg-text); }
 /* 2026-11-19 撤销「日间瓷白导航条」：实底横条把首屏壁纸顶部整条挡住，
@@ -460,38 +460,29 @@ html:not(.dark) a.sg-home-cate:hover {
   background: var(--sg-filter-active);
   box-shadow: 0 6px 16px -8px color-mix(in srgb, var(--sg-filter-active) 65%, transparent);
 }
-html:not(.dark) .sg-front-read:is(:hover, :focus-visible) { background: var(--sg-filter-active); }
 
-/* ---------- 墨分五色 · 日间首屏（2026-11-21） ----------
-   日间壁纸为宣纸米白 / 淡墨浅调：白字 + 深黑遮罩会糊成「灰底白字」，
-   故改为「深墨字 + 浅色提亮遮罩」，且按用户要求不加任何描边 / 投影。
-   夜间仍走原有白字 + 深色遮罩 + 低饱和竹青霓虹（下面规则只在 html:not(.dark) 生效）。
-   遮罩这里用固定浅色，不再读 home.ts 写入的 --sg-front-veil 视差（仅夜间用）。 */
-html:not(.dark) .sg-front { color: #22282a; }
-html:not(.dark) .sg-front::before { background: rgba(244, 240, 232, .55); }
-html:not(.dark) .sg-front-title,
-html:not(.dark) .sg-front-sub { text-shadow: none; }
-html:not(.dark) .sg-front-caret { background: #22282a; }
+/* ---------- 日间首屏（2026-11-21 用户回调：黑遮罩 + 白字，对齐源站） ----------
+   源站 #page-header:before = alpha($dark-black, .3) = rgba(0,0,0,.3)，
+   #site-title 纯白、#site-subtitle 浅灰；Soraglass 日间壁纸偏亮，
+   白字靠四向深硬影描边（--sg-wall-white-*）托底，遮罩浓度按源站 .30。 */
+html:not(.dark) .sg-front { color: #fff; }
+html:not(.dark) .sg-front::before { background: rgba(0, 0, 0, .30); }
+html:not(.dark) .sg-front-title { color: #fff; text-shadow: var(--sg-wall-white-edge); }
+html:not(.dark) .sg-front-sub { color: #fff; text-shadow: var(--sg-wall-white-halo); }
+html:not(.dark) .sg-front-caret { background: #fff; }
 html:not(.dark) .sg-front-read {
-  border-color: rgba(34, 40, 42, .28);
-  background: rgba(251, 248, 242, .82);
-  color: #22282a;
+  border-color: rgba(255, 255, 255, .6);
+  background: rgba(2, 6, 23, .55);
+  color: #fff;
 }
-html:not(.dark) .sg-front-read:is(:hover, :focus-visible) { background: var(--sg-accent); color: #ece9e3; }
+html:not(.dark) .sg-front-read:is(:hover, :focus-visible) { background: var(--sg-filter-active); color: #fff; }
 html:not(.dark) .sg-front-social-link {
-  border-color: rgba(34, 40, 42, .28);
-  background: rgba(251, 248, 242, .72);
-  color: #22282a;
+  border-color: rgba(255, 255, 255, .38);
+  background: rgba(255, 255, 255, .10);
+  color: #fff;
 }
-html:not(.dark) .sg-front-social-link:hover { background: rgba(236, 233, 227, .92); }
-html:not(.dark) .sg-front-next { color: #22282a; text-shadow: none; }
-html:not(.dark) .sg-front-next-label { text-shadow: none; }
-html:not(.dark) .sg-nav.is-front {
-  background: linear-gradient(180deg, rgba(244, 240, 232, .72), rgba(244, 240, 232, 0));
-}
-html:not(.dark) .sg-nav.is-front :is(.sg-brand, .sg-brand-accent, .sg-nav-link, .sg-nav-more-btn, .sg-nav-page) {
-  color: #22282a; text-shadow: none;
-}
-html:not(.dark) .sg-nav.is-front .sg-nav-link.is-active::before { background: #3c5c5f; }
-html:not(.dark) .sg-nav.is-front .sg-nav-link:is(:hover, :focus-visible) { color: #2f4c4f; }
-html:not(.dark) .sg-nav.is-front .sg-nav-link::after { background: #3c5c5f; }
+html:not(.dark) .sg-front-social-link:hover { background: rgba(255, 255, 255, .26); }
+html:not(.dark) .sg-front-next { color: #fff; text-shadow: 0 2px 10px rgba(0, 0, 0, .5); }
+html:not(.dark) .sg-front-next-label { text-shadow: 0 2px 14px rgba(0, 0, 0, .45); }
+/* 日间不再单独覆盖 .sg-nav.is-front —— 全站导航统一在 components/nav.css 里给配方，
+   两处各写一套会导致「首页导航与其他页导航不同色」的旧问题复发。 */

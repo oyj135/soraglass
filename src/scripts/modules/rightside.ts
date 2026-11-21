@@ -90,53 +90,57 @@ function initConfig(): void {
   });
 }
 
-/** 顶部胶囊：加载期渐进到 ~90%，load 后补满淡出；reduced-motion 直接跳过。 */
+/** 顶部胶囊：加载期渐进到 ~90%，结束后补满淡出；reduced-motion 直接跳过。
+ *  2026-11-21 改为可重入：软换页时由 navigation.ts 调 paceStart / paceFinish，
+ *  对齐源站 pace.js 在 pjax 期间「胶囊跑进度」的表现（首屏仍走下面 initPace）。 */
+let paceTimer = 0;
+let paceValue = 0;
+
+const paceNode = (): HTMLElement | null => document.querySelector<HTMLElement>('[data-sg-pace]');
+
+export function paceStart(): void {
+  const node = paceNode();
+  const fill = node?.querySelector<HTMLElement>('.sg-pace-progress');
+  if (!node || !fill || reducedMotion()) return;
+  window.clearTimeout(paceTimer);
+  paceValue = 0;
+  node.classList.remove('is-done');
+  node.classList.add('is-active');
+  fill.style.transform = 'translateX(-100%)';
+  const tick = (): void => {
+    paceValue = Math.min(90, paceValue + (90 - paceValue) * 0.1 + 0.6);
+    fill.style.transform = `translateX(${paceValue - 100}%)`;
+    paceTimer = window.setTimeout(tick, 150);
+  };
+  paceTimer = window.setTimeout(tick, 150);
+}
+
+export function paceFinish(): void {
+  const node = paceNode();
+  const fill = node?.querySelector<HTMLElement>('.sg-pace-progress');
+  window.clearTimeout(paceTimer);
+  if (!node || !fill) return;
+  fill.style.transform = 'translateX(0)';
+  node.classList.add('is-done');
+  node.classList.remove('is-active');
+}
+
 function initPace(): void {
-  const pace = document.querySelector<HTMLElement>('[data-sg-pace]');
+  const pace = paceNode();
   if (!pace) return;
-  const fill = pace.querySelector<HTMLElement>('.sg-pace-progress');
-  if (!fill || reducedMotion()) {
+  if (reducedMotion()) {
     pace.remove();
     return;
   }
-
-  let value = 0;
-  let done = false;
-  let timer = 0;
-
-  const render = (): void => {
-    fill.style.transform = `translateX(${value - 100}%)`;
-  };
-  const finish = (): void => {
-    if (done) return;
-    done = true;
-    window.clearTimeout(timer);
-    value = 100;
-    render();
-    pageTimeout(() => {
-      pace.classList.add('is-done');
-      pageTimeout(() => pace.remove(), 400);
-    }, 200);
-  };
-
-  pace.classList.add('is-active');
-  render();
-  const tick = (): void => {
-    if (done) return;
-    value = Math.min(90, value + (90 - value) * 0.08 + 0.5);
-    render();
-    timer = pageTimeout(tick, 200);
-  };
-  timer = pageTimeout(tick, 200);
-
+  paceStart();
   if (document.readyState === 'complete') {
-    finish();
+    paceFinish();
   } else {
-    pageOn(window, 'load', finish, { once: true });
+    pageOn(window, 'load', paceFinish, { once: true });
     // 兜底：个别外链图挂住 load 时，8s 后也收尾，不让胶囊常驻
-    pageTimeout(finish, 8000);
+    pageTimeout(paceFinish, 8000);
   }
-  onPageDispose(() => window.clearTimeout(timer));
+  onPageDispose(() => window.clearTimeout(paceTimer));
 }
 
 export function initRightside(): void {

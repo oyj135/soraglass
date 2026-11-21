@@ -166,8 +166,8 @@
 .sg-toc-list li.is-active a { border-left-color: var(--sg-accent-ink); background: color-mix(in srgb, var(--sg-accent-ink) 8%, transparent); }
 
 /* 共享组件：同色系、轻反馈，项目与友链仍沿用自己的信息结构。 */
-/* 2026-11-20：日间顶栏按用户要求不再画分隔线，只有夜间沿用阅读面弱线 */
-html.dark .sg-nav { background: var(--sg-card); border-bottom-color: var(--sg-reading-border); }
+/* 2026-11-21：导航下边框（含夜间那条弱线）整条下线，对齐源站 #nav 无边框。 */
+html.dark .sg-nav { background: var(--sg-card); }
 .sg-filter-btn { min-height: 2.25rem; font-family: var(--font-sans); font-weight: 500; }
 .sg-project-meta { line-height: 1.8; }
 .sg-project:active { transform: translateY(-1px); }

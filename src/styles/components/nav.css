@@ -9,27 +9,25 @@
   position: fixed;
   inset: 0 0 auto;
   z-index: 50;
-  /* 2026-11-20：日间按源站 #nav 去掉实底与分隔线，直接压在壁纸上；
-     夜间仍保留原来的深玻璃底，避免亮色壁纸把白字吃掉。 */
+  /* 2026-11-21 用户回调：对齐源站 #nav —— 无实底、无下边框细线，直接压在壁纸上；
+     夜间保留深玻璃底兜可读性（亮壁纸日间靠文字描边解决）。 */
   background: transparent;
-  border-bottom: 1px solid transparent;
-  transition: background-color 1s, border-color 1s, box-shadow .3s var(--sg-ease);
+  transition: background-color 1s, box-shadow .3s var(--sg-ease);
 }
 
 html.dark .sg-nav {
   background: rgba(26, 34, 37, .98);
-  border-bottom-color: rgba(255, 255, 255, .10);
 }
 
 /* 向下滚（is-hidden）：顶栏常驻贴顶，让位给居中页名（源站向下标题态），
    不再整条滑出——页名是顶栏子元素，若整条 translateY(-105%) 会一起消失。 */
 .sg-nav.is-hidden {
-  transition: background-color 1s, border-color 1s, box-shadow .3s var(--sg-ease);
+  transition: background-color 1s, box-shadow .3s var(--sg-ease);
 }
 
-/* 固定态阴影（源站 head.styl nav-fixed） */
-.sg-nav.is-scrolled { box-shadow: 0 5px 6px -5px rgba(133, 133, 133, .6); }
-html.dark .sg-nav.is-scrolled { box-shadow: 0 5px 6px -5px rgba(0, 0, 0, .55); }
+/* 固定态阴影（源站 head.styl nav-fixed）2026-11-21 移除：
+   `0 5px 6px -5px` 在浅色壁纸上就是导航下面那条 1px 灰线，用户要求去掉。 */
+.sg-nav.is-scrolled { box-shadow: none; }
 
 /* 载入淡入（sg-ready 由 head 内联脚本打标；无 JS 时导航始终可见） */
 html.sg-ready .sg-nav { animation: sg-nav-in .5s var(--sg-ease) both; }
@@ -144,25 +142,22 @@ html.sg-ready .sg-nav { animation: sg-nav-in .5s var(--sg-ease) both; }
 html.dark .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent-ink); }
 
 /* 导航条目图标（2026-11-17）：内联 SVG 与文字同行，激活态随链接色走。
-   悬浮下划线（2026-11-18，对齐源站 #nav .site-page:after 的「从左长出」下划线）：
-   水平 padding 保住命中区，下划线用 scaleX(0→1) 从左展开，只动合成层。 */
+   悬浮下划线 2026-11-21 按源站 #nav .site-page:not(.child):after 逐项对齐：
+   `left:0 / bottom:0 / width:0 → 100% / height:3px / all .3s ease-in-out`，
+   直角、纯色、从左侧长满（原来是 2px + scaleX 合成层写法，形态与源站不一致）。
+   颜色取源站 `lighten($theme-color, 30%)` 的手法：主色提亮到浅档。 */
 .sg-nav-link { display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .65rem; margin-inline: -.65rem; border-radius: .5rem; transition: color .3s, opacity .3s; }
 .sg-nav-link::after {
   content: '';
   position: absolute;
   left: .65rem;
-  right: .65rem;
-  bottom: .05rem;
-  height: 2px;
-  border-radius: 2px;
-  /* 源站 `.site-page:not(.child):after` 实测 #80c8f8 / 3px（墨分五色后改竹青） */
-  background: #3c5c5f;
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: transform .3s ease-in-out;
+  bottom: 0;
+  width: 0;
+  height: 3px;
+  background: color-mix(in srgb, #3c5c5f 45%, #fff);
+  transition: width .3s ease-in-out;
 }
-html.dark .sg-nav-link::after { background: var(--sg-accent-ink); }
-.sg-nav-link:is(:hover, :focus-visible)::after { transform: scaleX(1); }
+.sg-nav-link:is(:hover, :focus-visible)::after { width: calc(100% - 1.3rem); }
 @media (prefers-reduced-motion: reduce) { .sg-nav-link::after { transition: none; } }
 .sg-nav-more-link, .sg-sheet-link { display: flex; align-items: center; gap: .45rem; }
 /* 下拉条目横排后的尺寸/hover/选中态统一在 editorial.css 的「更多」下拉段维护 */
@@ -334,35 +329,26 @@ html.dark .sg-sheet-panel {
 .sg-sheet-close:is(:hover, :focus-visible) { color: var(--sg-accent-ink); }
 .sg-sheet .sg-sheet-link { flex-shrink: 0; min-height: 2.75rem; }
 
-/* ---------- 全站导航（2026-11-21 墨分五色：日间深墨 / 夜间宣纸白） ----------
-   根因：白字 + 顶部暗幕原先只挂在 `.sg-nav.is-front`（仅首页首屏由 home.ts 打标），
-   其他页面走基础黑字规则，所以「同一个导航栏」在两处观感不同。
-   这里把首页那套日间配方提升到全站；夜间深玻璃底与青瓷字保持原样。 */
+/* ---------- 全站导航（2026-11-21 用户回调：对齐源站 #nav） ----------
+   源站 #nav 无实底、无下边框，链接 `color: var(--light-grey)`、hover 转纯白，
+   靠 `text-shadow: 1px 1px 2px rgba(0,0,0,.3)` 压在头图上。这里同配方：
+   顶部一层极淡的暗 scrim 兜住亮壁纸，白字 + 贴边影，悬浮只改字色、出下划线，
+   不再有竹青药丸实底与圆角阴影。夜间深玻璃底与青瓷字维持原样。 */
 html:not(.dark) .sg-nav {
-  background: linear-gradient(180deg, rgba(244, 240, 232, .72), rgba(244, 240, 232, 0));
-  border-bottom-color: transparent;
+  background: linear-gradient(180deg, rgba(2, 6, 23, .26), rgba(2, 6, 23, 0));
 }
 html:not(.dark) .sg-nav :is(.sg-brand, .sg-brand-accent, .sg-nav-link, .sg-nav-more-btn, .sg-nav-page) {
-  color: #22282a;
+  color: #fff;
   opacity: 1;
-  text-shadow: none;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, .55);
 }
-html:not(.dark) .sg-nav .sg-nav-link.is-active::before { background: #3c5c5f; }
-html:not(.dark) .sg-nav .sg-nav-link.is-active { color: #22282a; }
-html:not(.dark) .sg-nav .sg-nav-link:is(:hover, :focus-visible) { color: #2f4c4f; opacity: 1; }
-html:not(.dark) .sg-nav .sg-nav-link::after { background: #3c5c5f; }
+html:not(.dark) .sg-nav .sg-brand:hover,
+html:not(.dark) .sg-nav .sg-nav-link:is(:hover, :focus-visible) { color: #cfe6e0; opacity: 1; }
+html:not(.dark) .sg-nav .sg-nav-link.is-active { color: #fff; }
+html:not(.dark) .sg-nav .sg-nav-link.is-active::before { background: #fff; }
+html:not(.dark) .sg-nav .sg-nav-link::after { background: color-mix(in srgb, #3c5c5f 45%, #fff); }
 /* 下拉面板是实底卡，文字回落正文色，不能继承导航白字 */
 html:not(.dark) .sg-nav .sg-nav-more-menu { color: var(--sg-text); }
-
-/* 2026-11-21 墨分五色：导航文字悬浮用竹青药丸实底压白字（替掉 #5457c9）。
-   悬浮下划线收起（药丸已是明确反馈），夜间深玻璃底与青瓷悬浮色保持原样。 */
-html:not(.dark) .sg-nav .sg-nav-link:is(:hover, :focus-visible) {
-  color: #fff;
-  background: var(--sg-filter-active);
-  border-radius: 999px;
-  box-shadow: 0 2px 12px color-mix(in srgb, var(--sg-filter-active) 40%, transparent);
-}
-html:not(.dark) .sg-nav .sg-nav-link:is(:hover, :focus-visible)::after { background: transparent; }
 html:not(.dark) .sg-nav :is(.sg-nav-more-link, .sg-sheet-link):is(:hover, :focus-visible) {
   background: var(--sg-filter-active);
   color: #fff;

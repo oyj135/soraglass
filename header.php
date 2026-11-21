@@ -14,6 +14,10 @@ $sgBlur = (string) sg_opt('sgBgBlur', 'none');
 if (!in_array($sgBlur, ['none', 'soft', 'strong'], true)) {
     $sgBlur = 'none';
 }
+
+/* 换页加载遮罩（2026-11-21，对齐源站 heo preloader）：圆头像 + 绿点，
+   只在软换页（PJAX）时由 loading.ts 揭开/盖上，首屏不参与避免与开屏叠加。 */
+$sgLoadingAvatar = sg_media((string) sg_opt('sgAvatarUrl', ''), sg_theme_url('dist/img/avatar.svg'));
 ?>
 <!DOCTYPE html>
 <html lang="zh-CN" data-sg-blur="<?php echo sg_e($sgBlur); ?>">
@@ -61,6 +65,10 @@ if (!in_array($sgBlur, ['none', 'soft', 'strong'], true)) {
 <?php if ($sgSplash) : ?>
 <div class="sg-splash" aria-hidden="true"><span class="sg-splash-mark">空 璃</span></div>
 <?php endif; ?>
+<div class="sg-loading" id="sg-loading" data-sg-loading aria-hidden="true">
+  <img class="sg-loading-img" src="<?php echo sg_e($sgLoadingAvatar); ?>" alt="" decoding="async">
+  <span class="sg-loading-dot"></span>
+</div>
 <div class="sg-bg" aria-hidden="true">
   <div class="sg-bg-images" data-sg-bg data-interval="<?php echo max(0, min(120, (int) sg_opt('sgBgInterval', '9'))) * 1000; ?>">
     <?php foreach ($sgWallpapers as $sgMode => $sgImages): ?>

@@ -30,6 +30,52 @@ html.sg-ready .sg-splash { opacity: 0; visibility: hidden; }
 html.sg-splash-pending .sg-splash { animation: sg-splash-auto .45s ease 1.2s forwards; }
 .sg-splash-mark { font-size: 1.5rem; font-weight: 900; letter-spacing: .3em; color: var(--sg-accent-ink); animation: sg-breathe 1.4s ease-in-out infinite; }
 
+/* ---------- 换页加载遮罩（2026-11-21，对齐源站 heo preloader） ----------
+   源站 #loading-box：`.loading-bg` 全屏 var(--loading-color) 铺底，中心 100px 圆头像
+   （4px #f0f0f2 边、.3s alternate 呼吸）、右下 30px 绿点 #6bdf8f + 6px 白边；
+   pjax:complete 时 .loaded 让遮罩 opacity 0 + z-index -1000（transition .3s）。
+   Soraglass 只在软换页启用（首屏有开屏，不叠加）：容器常驻，默认不可见，
+   `.is-on` 时盖上，揭开走同一条 .3s 过渡。 */
+.sg-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 1001;
+  display: grid;
+  place-items: center;
+  background: var(--sg-loading-bg);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .3s linear, visibility .3s linear;
+}
+/* `.is-on` 出现必须瞬时（本地换页 30ms 就完成，带淡入的话盖子还没不透明就被揭开，
+   观感是「内容先出、白幕又叠上来」）；只有揭开走 .3s 淡出，与源站相反方向的节奏一致。 */
+.sg-loading.is-on { opacity: 1; visibility: visible; transition: none; }
+.sg-loading-img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 4px solid #f0f0f2;
+  object-fit: cover;
+  animation: sg-loading-breath .3s ease-in-out infinite alternate;
+}
+.sg-loading-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #6bdf8f;
+  border: 6px solid #fff;
+  transform: translate(18px, 24px);
+}
+@keyframes sg-loading-breath { from { opacity: 1; } to { opacity: .4; } }
+@media (prefers-reduced-motion: reduce) {
+  .sg-loading { transition: none; }
+  .sg-loading-img { animation: none; }
+}
+
 /* 背景栈 */
 .sg-bg {
   position: fixed;

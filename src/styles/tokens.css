@@ -44,14 +44,24 @@
   --sg-faint: #6b716d;                      /* 三级文字（清墨）：宣纸卡面 4.71:1（原 #5b6b80 贴 AA 线，已弃用） */
   /* 壁纸遮罩已于 2026-11-20 整层移除（内容直接叠在壁纸上），--sg-veil 随之删除。
      注意 `#index.php` 里的 `.sg-veil` 是海报/碎语卡内部的压暗层，与这个全局遮罩无关，不受影响。 */
-  /* 墨分五色（2026-11-21）：日间壁纸文字改深墨色，按用户要求暂不加描边/光晕；
-     夜间在 html.dark 块恢复「宣纸白 + 四向深硬影」以适配焦墨调壁纸。
-     变量名沿用历史命名，语义现为「壁纸前景色：日间深墨 / 夜间宣纸白」。 */
+  /* 2026-11-21（用户回调）：日间壁纸文字回到「宣纸白 + 四向深硬影」。
+     同日早些时候的「墨分五色」曾把日间压成深墨 #22282a 并去掉描边，实测在
+     亮壁纸/相册图上缺层次；配黑遮罩首屏后统一回白，描边是唯一可读保障
+     （纯模糊暗影在浅底会糊成脏影，必须四向 1–2px 硬边）。
+     变量名沿用历史命名，语义 = 「壁纸前景色：昼夜同为宣纸白」。 */
   --sg-wall-halo: none;
   --sg-wall-ink: #22282a;
-  --sg-wall-white-ink: #22282a;
-  --sg-wall-white-halo: none;
-  --sg-wall-white-edge: none;
+  --sg-wall-white-ink: #ece9e3;
+  --sg-wall-white-halo:
+    1px 0 0 rgba(6, 10, 12, .82), -1px 0 0 rgba(6, 10, 12, .82),
+    0 1px 0 rgba(6, 10, 12, .82), 0 -1px 0 rgba(6, 10, 12, .82),
+    0 2px 12px rgba(6, 10, 12, .6);
+  --sg-wall-white-edge:
+    2px 0 0 rgba(6, 10, 12, .7), -2px 0 0 rgba(6, 10, 12, .7),
+    0 2px 0 rgba(6, 10, 12, .7), 0 -2px 0 rgba(6, 10, 12, .7),
+    0 6px 28px rgba(6, 10, 12, .64);
+  /* 换页加载遮罩底色（对齐源站 --loading-color，日间 .92）。 */
+  --sg-loading-bg: rgba(251, 248, 242, .92);
   /* 首屏遮罩：0.3 是源站配暗壁纸的档，亮暖壁纸实测不够；提 .42，夜间 .45 */
   --sg-front-veil: .42;
   --sg-line: rgba(34, 40, 42, .24);      /* 分隔线 */
@@ -356,20 +366,12 @@ html.dark {
   --sg-proj-tag-border: color-mix(in srgb, var(--sg-accent-soft) 28%, transparent);
   --sg-proj-tag-fg: var(--sg-accent-pale);
   /* ---- 墨分五色 · 夜间补充档（2026-11-21）----
-     :root 里的 wall 组已改成「日间深墨 + 零描边」；夜间壁纸为焦墨调，
-     前景必须回到宣纸白并恢复四向深硬影托底，故在此单独覆盖（只夜间生效）。 */
+     壁纸白字组已提到 :root（昼夜同值），此处不再重复。 */
   --sg-warm: #cf9d94;              /* 淡朱印章：暗卡 6.40:1 */
   --sg-warm-bright: #d8a79e;
   --sg-sakura-ink: #c9909c;        /* 樱粉夜档，仅点缀 */
-  --sg-wall-white-ink: #ece9e3;
-  --sg-wall-white-halo:
-    1px 0 0 rgba(6, 10, 12, .82), -1px 0 0 rgba(6, 10, 12, .82),
-    0 1px 0 rgba(6, 10, 12, .82), 0 -1px 0 rgba(6, 10, 12, .82),
-    0 2px 12px rgba(6, 10, 12, .6);
-  --sg-wall-white-edge:
-    2px 0 0 rgba(6, 10, 12, .7), -2px 0 0 rgba(6, 10, 12, .7),
-    0 2px 0 rgba(6, 10, 12, .7), 0 -2px 0 rgba(6, 10, 12, .7),
-    0 6px 28px rgba(6, 10, 12, .64);
+  /* 夜间加载遮罩：源站 [data-theme="dark"] 的 rgba(25,25,25,.92) */
+  --sg-loading-bg: rgba(25, 25, 25, .92);
 }
 
 @layer base {

@@ -80,13 +80,13 @@ html.dark .sg-about-title h1 {
     color: var(--sg-text);
   }
 }
-/* 2026-11-20 第三十轮：日间页头标题保留白字，柔影也一并去掉。 */
+/* 2026-11-21 用户回调：日间页头标题保留白字，并恢复四向深硬影（大字档）。 */
 html:not(.dark) :is(.sg-page-title, .sg-about-title h1) {
   background-image: none;
   -webkit-text-fill-color: currentColor;
   -webkit-text-stroke: 0;
   color: var(--sg-wall-white-ink);
-  text-shadow: none;
+  text-shadow: var(--sg-wall-white-edge);
   filter: none;
 }
 

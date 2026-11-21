@@ -1,5 +1,7 @@
 import { disposePage } from './lifecycle';
 import { closeNavigationUI } from './navigation-ui';
+import { loadingHide, loadingShow } from './loading';
+import { paceFinish, paceStart } from './rightside';
 let render: (() => void) | null = null, active: AbortController | null = null, version = 0;
 let pendingHref: string | null = null;
 const key = 'sg-navigation';
@@ -23,6 +25,8 @@ function position(url: URL, y = 0): void {
 }
 function cancelNavigation(): void {
   active?.abort(); active = null; pendingHref = null; version++;
+  loadingHide();
+  paceFinish();
   document.documentElement.classList.remove('sg-navigating');
   document.querySelector('#sg-main')?.removeAttribute('aria-busy');
 }
@@ -44,6 +48,10 @@ export async function navigate(href: string, push = true, y = 0): Promise<void> 
   const timeout = window.setTimeout(() => controller.abort(), 8000);
   document.documentElement.classList.add('sg-navigating');
   document.querySelector('#sg-main')?.setAttribute('aria-busy', 'true');
+  /* 源站 pjax:send 同款：请求一发出就盖上全屏加载遮罩（heo 圆头像 + 绿点），
+     顶部胶囊同时跑进度（源站 pace.js 在 pjax 期间的表现） */
+  loadingShow();
+  paceStart();
   try {
     const response = await fetch(url, { signal: controller.signal, credentials: 'same-origin', headers: { 'X-Soraglass-Navigation': '1' } });
     const html = await response.text(); if (id !== version) return;
@@ -64,6 +72,7 @@ export async function navigate(href: string, push = true, y = 0): Promise<void> 
       replaceState({ ...history.state, [key]: true, y: scrollY }, location.href);
       pushState({ [key]: true, y: 0 }, destination.href);
     }
+    paceFinish();
     disposePage();
     document.querySelectorAll('.sg-lightbox').forEach(n => n.remove());
     closeNavigationUI();
@@ -81,8 +90,12 @@ export async function navigate(href: string, push = true, y = 0): Promise<void> 
       if (previous && replacement) previous.replaceWith(replacement);
     }
     render(); main.setAttribute('tabindex', '-1'); (main as HTMLElement).focus({ preventScroll: true }); position(new URL(location.href), y);
+    /* 新页已挂载，揭遮罩（源站 pjax:complete → endLoading） */
+    loadingHide();
     document.dispatchEvent(new CustomEvent('sg:navigated'));
   } catch {
+    loadingHide();
+    paceFinish();
     if (id === version) location.assign(url.href);
   } finally {
     clearTimeout(timeout); if (id === version) { active = null; pendingHref = null; document.documentElement.classList.remove('sg-navigating'); document.querySelector('#sg-main')?.removeAttribute('aria-busy'); }

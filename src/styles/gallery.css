@@ -72,17 +72,16 @@ html:not(.dark) .sg-photo-caption>span{color:var(--sg-wall-white-ink)}
 @media(prefers-reduced-motion:reduce){.sg-album-front,.sg-album-paper,.sg-album-open{transition:none}}
 @media(max-width:600px){.sg-album-front,.sg-album-paper{border-width:5px}.sg-album-stack{max-width:86%}.sg-album-paper--1{transform:rotate(5deg) translate(12px,6px)}}
 
-/* 2026-11-20 第三十轮（用户反馈：柔影也去除）：日间白字不带任何 text-shadow，
-   字号层级不变；夜间白字配方不动；等高画廊压图 hover 图注保持白字。 */
+/* 2026-11-21 用户回调：日间相册标题/日期/图注恢复白字 + 四向深硬影
+   （第三十轮曾把影子去掉，白字压亮壁纸发虚）。字号层级不变。 */
 html:not(.dark) .sg-curated-heading,
 html:not(.dark) .sg-curated-meta,
-html:not(.dark) .sg-photo-caption { color: var(--sg-wall-white-ink); text-shadow: none; }
-html:not(.dark) .sg-curated-meta h2,
+html:not(.dark) .sg-photo-caption { color: var(--sg-wall-white-ink); text-shadow: var(--sg-wall-white-halo); }
+html:not(.dark) .sg-curated-meta h2 { color: var(--sg-wall-white-ink); text-shadow: var(--sg-wall-white-edge); font-size: 1.375rem; }
 html:not(.dark) .sg-curated-date,
 html:not(.dark) .sg-curated-meta p,
 html:not(.dark) .sg-photo-caption time,
-html:not(.dark) .sg-photo-caption > span { color: var(--sg-wall-white-ink); text-shadow: none; }
-html:not(.dark) .sg-curated-meta h2 { font-size: 1.375rem; text-shadow: none; }
+html:not(.dark) .sg-photo-caption > span { color: var(--sg-wall-white-ink); text-shadow: var(--sg-wall-white-halo); }
 html:not(.dark) .sg-curated-date { font-size: .8125rem; }
 html:not(.dark) .sg-curated-meta p { font-size: .875rem; }
 @media (max-width: 600px) { html:not(.dark) .sg-curated-meta h2 { font-size: 1.125rem; } }
