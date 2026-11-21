@@ -28,9 +28,9 @@ html.dark .sg-nav.is-front { background: linear-gradient(180deg, rgba(2, 6, 23, 
 .sg-nav.is-front .sg-nav-link.is-active::before { background: #fff; }
 /* 首屏 hover（2026-11-18 用户反馈：原来 base 与 hover 都压白、且 !important 锁死，
    悬浮毫无变化）：base 满白保醒目，hover 换青瓷浅色 + 同色下划线，变化一眼可见 */
-.sg-nav.is-front .sg-nav-link:is(:hover, :focus-visible) { color: #80c8f8; opacity: 1; }
+.sg-nav.is-front .sg-nav-link:is(:hover, :focus-visible) { color: #2f4c4f; opacity: 1; }
 html.dark .sg-nav.is-front .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent-ink); }
-.sg-nav.is-front .sg-nav-link::after { background: #80c8f8; }
+.sg-nav.is-front .sg-nav-link::after { background: #3c5c5f; }
 html.dark .sg-nav.is-front .sg-nav-link::after { background: var(--sg-accent-ink); }
 .sg-nav.is-front .sg-nav-link.is-active { color: #fff; }
 .sg-nav.is-front .sg-nav-more-menu { color: var(--sg-text); }
@@ -419,7 +419,7 @@ html.dark .sg-hcard { background-color: var(--sg-card); background-image: var(--
 /* ---------- 小站资讯卡（对齐 Fomalhaut card_webinfo 新版：KPI + 时间条 + 年度产出柱状） ---------- */
 .sg-hinfo-kpi { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
 .sg-hinfo-kpi-item { display: flex; flex-direction: column; align-items: center; gap: .2rem; padding: .6rem .2rem; border-radius: .6rem; background: var(--sg-chip); text-decoration: none; transition: background-color .25s ease-in-out, transform .25s ease-in-out; }
-/* 2026-11-20 第三十轮：小卡悬浮底统一为「全部档案」同款 #5457c9 实底压白字 */
+/* 2026-11-21 墨分五色：悬浮底统一为竹青实底压白字（替掉蓝紫 #5457c9），走 --sg-filter-active */
 html:not(.dark) .sg-hinfo-kpi-item:is(:hover, :focus-visible),
 html:not(.dark) .sg-hinfo-visit-item:is(:hover, :focus-visible) {
   background-color: var(--sg-filter-active);
@@ -457,10 +457,44 @@ html:not(.dark) a.sg-hinfo-kpi-item:hover { background: var(--sg-filter-active);
 .sg-hinfo-visit-num { font-size: 1.35rem; font-weight: 700; line-height: 1.1; color: var(--sg-accent-ink); font-variant-numeric: tabular-nums; }
 .sg-hinfo-visit-label { font-family: var(--font-sans); font-size: .66rem; color: var(--sg-muted); }
 
-/* 2026-11-20 第三十轮：首页分类小卡与「浏览最新文章」按钮悬浮底统一 #5457c9；
+/* 2026-11-21 墨分五色：首页分类小卡与「浏览最新文章」按钮悬浮底统一竹青实底；
    夜间仍走原有主题色悬浮。 */
 html:not(.dark) a.sg-home-cate:hover {
   background: var(--sg-filter-active);
   box-shadow: 0 6px 16px -8px color-mix(in srgb, var(--sg-filter-active) 65%, transparent);
 }
 html:not(.dark) .sg-front-read:is(:hover, :focus-visible) { background: var(--sg-filter-active); }
+
+/* ---------- 墨分五色 · 日间首屏（2026-11-21） ----------
+   日间壁纸为宣纸米白 / 淡墨浅调：白字 + 深黑遮罩会糊成「灰底白字」，
+   故改为「深墨字 + 浅色提亮遮罩」，且按用户要求不加任何描边 / 投影。
+   夜间仍走原有白字 + 深色遮罩 + 低饱和竹青霓虹（下面规则只在 html:not(.dark) 生效）。
+   遮罩这里用固定浅色，不再读 home.ts 写入的 --sg-front-veil 视差（仅夜间用）。 */
+html:not(.dark) .sg-front { color: #22282a; }
+html:not(.dark) .sg-front::before { background: rgba(244, 240, 232, .55); }
+html:not(.dark) .sg-front-title,
+html:not(.dark) .sg-front-sub { text-shadow: none; }
+html:not(.dark) .sg-front-caret { background: #22282a; }
+html:not(.dark) .sg-front-read {
+  border-color: rgba(34, 40, 42, .28);
+  background: rgba(251, 248, 242, .82);
+  color: #22282a;
+}
+html:not(.dark) .sg-front-read:is(:hover, :focus-visible) { background: var(--sg-accent); color: #ece9e3; }
+html:not(.dark) .sg-front-social-link {
+  border-color: rgba(34, 40, 42, .28);
+  background: rgba(251, 248, 242, .72);
+  color: #22282a;
+}
+html:not(.dark) .sg-front-social-link:hover { background: rgba(236, 233, 227, .92); }
+html:not(.dark) .sg-front-next { color: #22282a; text-shadow: none; }
+html:not(.dark) .sg-front-next-label { text-shadow: none; }
+html:not(.dark) .sg-nav.is-front {
+  background: linear-gradient(180deg, rgba(244, 240, 232, .72), rgba(244, 240, 232, 0));
+}
+html:not(.dark) .sg-nav.is-front :is(.sg-brand, .sg-brand-accent, .sg-nav-link, .sg-nav-more-btn, .sg-nav-page) {
+  color: #22282a; text-shadow: none;
+}
+html:not(.dark) .sg-nav.is-front .sg-nav-link.is-active::before { background: #3c5c5f; }
+html:not(.dark) .sg-nav.is-front .sg-nav-link:is(:hover, :focus-visible) { color: #2f4c4f; }
+html:not(.dark) .sg-nav.is-front .sg-nav-link::after { background: #3c5c5f; }

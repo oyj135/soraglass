@@ -76,15 +76,18 @@ function sg_asset(string $entry = 'src/scripts/main.ts'): string
  * 否则页面主色已经是青的、顶上两个光斑还是紫粉的，比不换更难看。
  *
  * 但 Typecho 的设置一旦保存过就落在 options 表里，改代码里的默认值**不会**覆盖它。
- * 所以这里额外判断一次：如果存下来的正是 indigo 时代那串默认值，就按「未设置」处理。
- * 只精确匹配那一串，用户自己配过的任何颜色都不会被动到。
+ * 所以这里额外判断一次：如果存下来的正是历代默认值，就按「未设置」处理。
+ * 只精确匹配这几串，用户自己配过的任何颜色都不会被动到。
  */
 function sg_theme_colors(): array
 {
-    $default = '#5f9299,#8ec5c9,#b8d8dc,#dcebed';
-    $legacy = '#a18cd1,#fbc2eb,#a1c4fd,#c2e9fb';   // indigo 时代的默认值
+    $default = '#3c5c5f,#5a7d7f,#a9c0b8,#e8e4da';  // 墨分五色：墨竹青四档
+    $legacy = [
+        '#a18cd1,#fbc2eb,#a1c4fd,#c2e9fb',          // indigo 时代的默认值
+        '#5f9299,#8ec5c9,#b8d8dc,#dcebed',          // 青瓷时代的默认值
+    ];
     $raw = trim((string) sg_opt('sgThemeColors', $default));
-    if (strtolower($raw) === $legacy) {
+    if (in_array(strtolower($raw), $legacy, true)) {
         $raw = $default;
     }
     // P2-10：这组值会由 media.ts 直接拼进 linear-gradient()，必须限定为纯 hex 颜色，

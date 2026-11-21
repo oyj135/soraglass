@@ -19,7 +19,6 @@ import { initLazyload } from './modules/lazyload';
 import { initReveal } from './modules/reveal';
 import { initStatsCache } from './modules/stats-cache';
 import { initSidebarData } from './modules/sidebar-data';
-import { initUniverse } from './modules/universe';
 
 /**
  * 单独兜住每个模块的异常。
@@ -59,7 +58,6 @@ function mountPage(): void {
   safe('lazyload', initLazyload);
   safe('reveal', initReveal);
   safe('stats-cache', initStatsCache);
-  safe('universe', initUniverse);
 }
 function boot(): void {
   mountPage(); safe('effects', initEffects); initNavigation(mountPage);

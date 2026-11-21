@@ -20,69 +20,45 @@
   /* 2026-11-17 第十四轮：卡面质感——日间回落实色近白，
      夜间由 --sg-card-image 顶光渐变 + --sg-card-sheen 内高光提供「被照亮」的层次
      （光从上打下来，与项目卡同一设计语言），见 html.dark 块。 */
-  --sg-page: #f2f5f6;                       /* 月白 */
-  --sg-card: rgba(250, 250, 250, .98);      /* 卡面：源站 --trans-light 98% */
-  --sg-card-strong: rgba(250, 250, 250, .98); /* 文章卡 / 弹窗，同步实色 */
+  --sg-page: #f4f0e8;                       /* 月白 */
+  --sg-card: rgba(251, 248, 242, .98);      /* 卡面：源站 --trans-light 98% */
+  --sg-card-strong: rgba(251, 248, 242, .98); /* 文章卡 / 弹窗，同步实色 */
   /* 卡面质感（2026-11-17 第十四轮）：夜间给卡面加顶光渐变（image 层）与顶部 1px 内高光
      （sheen），白天两张都回落到「无」—— 实色决策不变，只是夜里把光还给卡面。 */
   --sg-card-image: none;
   --sg-card-sheen: 0 0 0 transparent;
-  --sg-panel: #ffffff;                      /* 阅读弹窗 */
+  --sg-panel: #f8f5ee;                      /* 阅读弹窗 */
   /* 个人刊物：阅读表面与实色辅助卡分工，明暗主题同一条 token 路径。 */
-  --sg-reading-surface: rgba(250, 253, 253, .98);
+  --sg-reading-surface: rgba(253, 251, 246, .98);
   /* 日间页头与页脚：固定瓷白底隔离壁纸，实色文字无需描边或光晕。 */
-  --sg-wall-surface: #f7faf8;
+  --sg-wall-surface: #f4f0e8;
   --sg-reading-border: color-mix(in srgb, var(--sg-accent) 17%, transparent);
-  --sg-shadow-reading: 0 8px 36px -16px rgb(10 24 26 / .16);
+  --sg-shadow-reading: 0 8px 36px -16px rgba(23, 27, 29, .16);
   --sg-space-section: clamp(2rem, 4vw, 3.5rem);
-  --sg-card-border: rgba(169, 169, 169, .28); /* 小卡弱描边 */
-  --sg-border-strong: rgba(169, 169, 169, .7); /* 源站大卡描边 --border-style：文章卡 / 页面容器 */
-  --sg-border: rgba(13, 43, 51, .12);    /* 结构线（表格 / 分页 / 输入框） */
-  --sg-chip: rgba(13, 43, 51, .06);      /* 元信息胶囊底（实色卡上的浅灰青） */
-  --sg-text: #0b1220;                       /* 正文，比 slate-900 再深一档 */
-  --sg-muted: #475569;                      /* 次要文字：slate-600 */
-  --sg-faint: #54647a;                      /* 三级文字：月白底 5.3:1（原 #5b6b80 在月白底只剩 4.97，贴线） */
+  --sg-card-border: rgba(34, 40, 42, .22); /* 小卡弱描边 */
+  --sg-border-strong: rgba(34, 40, 42, .42); /* 源站大卡描边 --border-style：文章卡 / 页面容器 */
+  --sg-border: rgba(34, 40, 42, .14);    /* 结构线（表格 / 分页 / 输入框） */
+  --sg-chip: rgba(34, 40, 42, .06);      /* 元信息胶囊底（实色卡上的浅灰青） */
+  --sg-text: #22282a;                       /* 正文，比 slate-900 再深一档 */
+  --sg-muted: #59605d;                      /* 次要文字：slate-600 */
+  --sg-faint: #6b716d;                      /* 三级文字（清墨）：宣纸卡面 4.71:1（原 #5b6b80 贴 AA 线，已弃用） */
   /* 壁纸遮罩已于 2026-11-20 整层移除（内容直接叠在壁纸上），--sg-veil 随之删除。
      注意 `#index.php` 里的 `.sg-veil` 是海报/碎语卡内部的压暗层，与这个全局遮罩无关，不受影响。 */
-  /* 直接压在壁纸上的文字（页头、页脚、相册说明）：逐字光晕充当局部底色，
-     壁纸再花也能读（2026-11-18 实测花图壁纸上无托底小字只剩 1.2–2:1）；
-     2026-11-19 方案二加档：字色 .86→.95、光晕半径/强度加大一档（高亮密集壁纸的兜底）。
-     2026-11-19 收紧：上一档把半径加到 18px，12–13px 的字被自己发出的白光糊掉边缘
-     （实测晕峰值 L≈0.93、字心 L≈0.02，读作「不清晰」而非「不够黑」）。
-     改为四向 1px 偏移合成真实描边 + 4px 柔光：笔画宽度不受侵蚀，最大半径 18→4px。 */
-  --sg-wall-halo:
-    1px 0 0 rgba(255, 255, 255, .95), -1px 0 0 rgba(255, 255, 255, .95),
-    0 1px 0 rgba(255, 255, 255, .95), 0 -1px 0 rgba(255, 255, 255, .95),
-    0 0 4px rgba(255, 255, 255, .5);
-  /* 与光晕配对的字色：muted 灰在中间调壁纸上只有 ~2:1，壁纸字统一压到近黑 */
-  --sg-wall-ink: rgba(15, 23, 42, .95);
-  /* 2026-11-20 第十九轮：用户要求「顶部 / 页脚 / 相册下方文字统一白色加粗」。
-     白字压在亮壁纸上对比度趋近 1:1，必须靠**深色**投影托底 —— 与上面那套
-     「深字 + 白描边」正好相反，所以单独开一组，昼夜同值（夜间本来就是暗底白字，
-     深色投影看不见但无害，一处声明管两种模式）。 */
-  --sg-wall-white-ink: #fff;
-  /* 白字要压在随便什么壁纸上都读得出来：单纯模糊投影只会在字边留一圈灰，字心还是白的。
-     这里与上面 `--sg-wall-halo`（深字 + 白描边）做**镜像** —— 四向 1px 硬影当「深色描边」，
-     再用一层扩散暗晕兜住中亮壁纸；小字靠硬影切边，大字靠扩散拉层次。 */
-  /* 小字档（12–18px）：1px 四向深描边 + 12px 暗晕
-     2026-11-20 第二十轮：.7 → .82。实测压在 bg-1 那类粉蓝极亮壁纸上，.7 的硬影
-     只能勉强勾个边，字心仍是「白压浅色」，整句读起来发虚；提到 .82 后轮廓才立住。 */
-  --sg-wall-white-halo:
-    1px 0 0 rgba(6, 14, 26, .82), -1px 0 0 rgba(6, 14, 26, .82),
-    0 1px 0 rgba(6, 14, 26, .82), 0 -1px 0 rgba(6, 14, 26, .82),
-    0 2px 12px rgba(6, 14, 26, .6);
-  /* 大字档（32px 以上）：2px 描边不会被字心吃掉，扩散半径再放大一档 */
-  --sg-wall-white-edge:
-    2px 0 0 rgba(6, 14, 26, .7), -2px 0 0 rgba(6, 14, 26, .7),
-    0 2px 0 rgba(6, 14, 26, .7), 0 -2px 0 rgba(6, 14, 26, .7),
-    0 6px 28px rgba(6, 14, 26, .64);
+  /* 墨分五色（2026-11-21）：日间壁纸文字改深墨色，按用户要求暂不加描边/光晕；
+     夜间在 html.dark 块恢复「宣纸白 + 四向深硬影」以适配焦墨调壁纸。
+     变量名沿用历史命名，语义现为「壁纸前景色：日间深墨 / 夜间宣纸白」。 */
+  --sg-wall-halo: none;
+  --sg-wall-ink: #22282a;
+  --sg-wall-white-ink: #22282a;
+  --sg-wall-white-halo: none;
+  --sg-wall-white-edge: none;
   /* 首屏遮罩：0.3 是源站配暗壁纸的档，亮暖壁纸实测不够；提 .42，夜间 .45 */
   --sg-front-veil: .42;
-  --sg-line: rgba(148, 163, 184, .45);      /* 分隔线 */
+  --sg-line: rgba(34, 40, 42, .24);      /* 分隔线 */
 
   /* 阴影对齐源站 cardHover：静止 .05，hover 加深到 .09。 */
-  --sg-shadow: 0 3px 8px 6px rgba(7, 17, 27, .05);
-  --sg-shadow-strong: 0 3px 8px 6px rgba(7, 17, 27, .09);
+  --sg-shadow: 0 3px 8px 6px rgba(23, 27, 29, .06);
+  --sg-shadow-strong: 0 3px 8px 6px rgba(23, 27, 29, .10);
   /* 圆角三档（2026-11-14 第三十五轮）：外框 20 / 内件 8 / 关于页大卡 28。
      卡片、面板、图片、封面、输入框一律走 outer；卡片内部的按钮、chip、代码块、
      缩略图、列表项一律走 inner；胶囊与圆形继续用 999px / 50%，不进档位。
@@ -92,46 +68,48 @@
   --sg-radius: var(--sg-radius-outer);  /* 兼容别名，历史代码仍写 var(--sg-radius) */
   --sg-radius-xl: 1.75rem;     /* 28px —— 仅 .sg-about 大卡 */
 
-  /* ---------- 签名色：青瓷（2026-11-13 第三十四轮）----------
+  /* ---------- 签名色：竹青（2026-11-21 墨分五色）----------
+   原青瓷 #35616b 已按「墨分五色」降饱和为竹青 #3c5c5f / #2f4c4f；
+   朱砂印章 #a8443c 接替稀缺强调，樱花粉只作点缀。下方为历史沿革记录。
      这里原来是 Tailwind indigo-500/600/400 的原值。indigo #6366f1 + rounded-3xl +
      shadow-xl + 毛玻璃，正好是 Butterfly / Aurora / Fluid 那一类主题的共同组合 ——
      不难看，但没有任何一个取值是自己定的，所以「像模板」。
      改青瓷：色相 191°、饱和 50%，中文语境里最接近「玻璃质」的颜色（汝窑天青），
      同类站点极少使用；且与正文的思源宋体属于同一套材质语言（瓷配纸）。
      对比度实测（白底 / 月白卡面）：主色 6.83 / 6.47，旧 indigo 只有 4.47 贴 AA 线。 */
-  --sg-accent: #35616b;                   /* 填充：按钮底 / 标签底 / 色块，上面恒压白字 */
-  --sg-accent-deep: #27474f;              /* 强对比档：正文链接、胶囊内文字（白底 10.0:1） */
-  --sg-accent-soft: #8ec5c9;              /* 亮档：只给压在深底/深图上的元素（暗卡 8.65:1） */
-  --sg-accent-2: #55868f;                 /* 渐变端点：同色相浅一档，用来替掉原来的紫色 */
-  --sg-accent-pale: #cde8ea;              /* 最浅档：只给深色歌词条上的五根波形与光标 */
-  --sg-warm-bright: #e07050;              /* 朱砂亮档：压在图片/深底上才够看（海报标题下划线） */
-  --sg-warm: #b4472e;                     /* 朱砂：只给「最新 / 原文」这类标记，≤3 处。
+  --sg-accent: #3c5c5f;                   /* 填充：按钮底 / 标签底 / 色块，上面恒压白字 */
+  --sg-accent-deep: #2f4c4f;              /* 强对比档：正文链接、胶囊内文字（白底 10.0:1） */
+  --sg-accent-soft: #7ba3a5;              /* 亮档：只给压在深底/深图上的元素（暗卡 8.65:1） */
+  --sg-accent-2: #5a7d7f;                 /* 渐变端点：同色相浅一档，用来替掉原来的紫色 */
+  --sg-accent-pale: #dbe8e7;              /* 最浅档：只给深色歌词条上的五根波形与光标 */
+  --sg-warm-bright: #c25a4d;              /* 朱砂亮档：压在图片/深底上才够看（海报标题下划线） */
+  --sg-warm: #a8443c;                     /* 朱砂：只给「最新 / 原文」这类标记，≤3 处。
                                              强调色的价值来自稀缺，哪都放就不再是强调 */
 
   /* 语义图标色（2026-11-18 源站多色填充图标）：五个语义族，昼夜各一档亮度。
      图标恒与文字标签并排，属装饰色，不受正文对比度约束；副色由渲染器
      color-mix 叠白派生。导航 / 播放等功能图标保持线条风格，走 --sg-accent-ink。 */
-  --sg-icon-time: #f28b8b;   /* 日期 / 发表：粉 */
-  --sg-icon-cate: #2fbf9a;   /* 分类：薄荷绿 */
-  --sg-icon-tag: #2f77f1;    /* 标签：蓝 */
-  --sg-icon-data: #0590df;   /* 更新 / 浏览 / 评论 / 统计：湖蓝 */
-  --sg-icon-mark: #e07050;   /* 星标 / 倒计时等标记：朱砂（与 warm 同族） */
+  --sg-icon-time: #a8566a;   /* 日期 / 发表：粉 */
+  --sg-icon-cate: #4a6b5d;   /* 分类：薄荷绿 */
+  --sg-icon-tag: #3c5c5f;    /* 标签：蓝 */
+  --sg-icon-data: #5a7d7f;   /* 更新 / 浏览 / 评论 / 统计：湖蓝 */
+  --sg-icon-mark: #a8443c;   /* 星标 / 倒计时等标记：朱砂（与 warm 同族） */
 
   /* 社交图标品牌色（2026-11-18 第五轮，源站 iconfont 多色 sprite 观感）：
      作者卡底部社交行按平台名上色，昼夜各一档亮度；与文字对比度无关（装饰色）。 */
-  --sg-brand-rss: #e8632a;
-  --sg-brand-github: #24292f;
-  --sg-brand-mail: #2563eb;
+  --sg-brand-rss: #b56a4b;
+  --sg-brand-github: #3a4245;
+  --sg-brand-mail: #5a7d7f;
   /* B 站用 TV 图标的蓝（#23ADE5），不再是品牌粉——图标本体已换成蓝色 TV 多色 glyph */
-  --sg-brand-bilibili: #23ade5;
-  --sg-brand-twitter: #1d9bf0;
-  --sg-brand-wechat: #2dc100;
-  --sg-brand-qq: #12b7f5;
-  --sg-brand-leetcode: #ffa116;
-  --sg-brand-link: #0d7d86;
+  --sg-brand-bilibili: #6f9a9c;
+  --sg-brand-twitter: #6b8a94;
+  --sg-brand-wechat: #5c7a5f;
+  --sg-brand-qq: #6f9a9c;
+  --sg-brand-leetcode: #b08b4e;
+  --sg-brand-link: #4a6b5d;
 
   /* 作者卡场景（2026-11-18 第十二轮起铺满整卡；第十四轮拆成昼夜两套，
-     Soraglass 独有，不借源站绿色极光）：日间「青瓷晨光·云海鲸影」、夜间「星海鲸航」，
+     Soraglass 独有，不借源站绿色极光）：日间「宣纸米白·朱砂日轮」、夜间「焦墨夜山」，
      两套都由 components.css 的 inline SVG 提供 —— 色值必须内联在 data URI 内，
      所以这里**没有**对应 token（SVG 作为 background-image 时读不到外部 CSS 变量）。
      卡内文字用组件层的 --sg-profile-* 两档局部变量，也不再从这里取昼夜 token。 */
@@ -154,10 +132,12 @@
   --sg-indigo-deep: var(--sg-accent-deep);
   --sg-indigo-soft: var(--sg-accent-soft);
 
-  --sg-purple: #9333ea;   /* 仅剩「分类彩标」在用（.is-purple），不参与主视觉 */
-  --sg-pink: #db2777;     /* 同上；简报小圆点也用 */
-  --sg-filter-active: #5457c9; /* 日间蓝紫实底：知识档案选中态与各小卡/导航文字悬浮底（参考图 #5457c9） */
-  --sg-green: #22c55e;    /* 状态绿：页脚「已稳定运行」的点，属语义色，不随签名色改 */
+  --sg-purple: #6b5a6e;   /* 仅剩「分类彩标」在用（.is-purple），不参与主视觉 */
+  --sg-pink: #9c3f57;
+  --sg-sakura: #f3d9df;        /* 樱花粉：仅图形/少量点缀，不做主色 */
+  --sg-sakura-ink: #9c3f57;    /* 樱深：需要当文字用时才用（6.07:1）；简报小圆点也用 */
+  --sg-filter-active: #3c5c5f; /* 竹青实底：知识档案选中态与各小卡/导航文字悬浮底（墨分五色后替掉蓝紫 #5457c9） */
+  --sg-green: #4a6b5d;    /* 状态绿：页脚「已稳定运行」的点，属语义色，不随签名色改 */
 
   --sg-glow-a: rgba(255, 255, 255, .40);
   --sg-glow-b: transparent;
@@ -190,12 +170,12 @@
 
   --sg-ring: #ffffff;      /* 关于页头像白描边 */
   /* 用户确认的 CD 播放器音浪，从青绿渐变到淡紫。 */
-  --sg-wave-a: #53b8c8;
-  --sg-wave-b: #be78ae;
+  --sg-wave-a: #4a6b5d;
+  --sg-wave-b: #a8443c;
 
   --sg-polaroid: #ffffff;  /* 拍立得相纸边框，暗色也保持白 */
   --sg-album-paper: #fff;
-  --sg-album-shadow: 0 10px 24px rgb(16 37 48 / .14);
+  --sg-album-shadow: 0 10px 24px rgba(23, 27, 29, .14);
 
   /* 歌词条（2026-11-19 第八轮）：用户要求卡面与其他卡片一致 —— 底色/描边/阴影
      全部对齐 .sg-hcard（--sg-card / --sg-card-border / --sg-shadow），
@@ -214,16 +194,15 @@
      原色在白卡上 6.5:1，做 38px 数字时笔画细处会发灰；按源站 aside-calendar 的
      color-mix(主题色 62%, #000) 压深一档到 10:1 左右，字重与对比一起提。
      夜间反相：mix(accent-ink 78%, #fff) 提亮，深卡上 8:1。 */
-  --sg-cal-strong: #213c42;
+  --sg-cal-strong: #2f4c4f;
   --sg-cal-strong: color-mix(in srgb, var(--sg-accent) 62%, #000);
   /* 今日圆里的数字：亮档是压深青底压白字；夜间圆底是亮青，字必须翻成近黑才不糊。 */
   --sg-cal-ink: #fff;
 
-  /* 歌词条的星空层（2026-11-18 第十四轮）不再自带 token：改为复用音乐卡的
-     `--sg-spark-dots`（9 颗星点坐标，声明在 components.css 的 .sg-player-card/.sg-lyric-bar）。
-     第十五轮起它跟音乐卡一样分昼夜两档：日间主色微光 + 主色光晕，暗色白光星点 + 冷蓝星云，
-     配方写在 .sg-lyric-bar 与 html.dark .sg-lyric-bar 两处。第十三轮的 --sg-starfield 已删除，
-     别再新增重复的星场配方。 */
+  /* 歌词条与音乐卡的星场层（2026-11-21「墨分五色」整改）已整体下线：
+     --sg-spark / --sg-spark-dots / --sg-starfield 与两层冷蓝星云全部删除，
+     音乐卡改由 --sg-ink-haze 一层低饱和墨晕托底（声明在 components/player.css）。
+     歌词条保持 --sg-card 实底纯卡片材质，别再新增任何星点 / 星场配方。 */
 
   /* 图片上的浮层控件（轮播进度轨，2026-11-13 第三十二轮）。
      和歌词栏同理：压在封面图上的东西必须自带深底，不能跟随页面主题 ——
@@ -252,10 +231,10 @@
      频次热力本质是明度梯度，不必绑定绿色。
      :root 给的是暗色档（深→亮），亮色档由 components.css 的 html:not(.dark) 覆盖。 */
   --sg-heat-0: color-mix(in srgb, var(--sg-accent-soft) 14%, transparent);
-  --sg-heat-1: #1e3d44;
-  --sg-heat-2: #2a545e;
-  --sg-heat-3: #3d7480;
-  --sg-heat-4: #7fb9c0;
+  --sg-heat-1: #3a4a46;
+  --sg-heat-2: #556b64;
+  --sg-heat-3: #7a938c;
+  --sg-heat-4: #a9c0b8;
 }
 
 html.dark {
@@ -267,64 +246,64 @@ html.dark {
      表面四级阶梯：page(16,20,24) → panel(22,27,32) → card(24,29,34) → reading(26,31,37)，
      卡面质感仍由 --sg-card-image 顶光渐变 + --sg-card-sheen 内高光提供。
      对比度实测（暗卡 #181d22）：填充白字 7.09 / ink 8.89 / deep 12.4 / soft 6.05 / faint 6.87。 */
-  --sg-page: #101418;                        /* 中性深灰蓝底 */
-  --sg-card: rgba(24, 29, 34, .98);          /* 卡面：比页面底亮一档，卡感成立 */
-  --sg-card-strong: rgba(24, 29, 34, .98);
+  --sg-page: #171b1d;                        /* 中性深灰蓝底 */
+  --sg-card: rgba(34, 39, 42, .98);          /* 卡面：比页面底亮一档，卡感成立 */
+  --sg-card-strong: rgba(42, 48, 51, .98);
   /* 顶光渐变：顶部被「照亮」、底部沉入页面底；底色仍是上面的实色卡
      （切换昼夜只过渡颜色，永不透底）。源站暗色卡死平 #1c1c1c 全靠描边撑质感，
      这里保留实色化决策（可读性不依赖壁纸、零性能开销）但把光还给卡面。 */
-  --sg-card-image: linear-gradient(180deg, rgba(32, 38, 44, .99) 0%, rgba(26, 31, 37, .98) 36%, rgba(20, 24, 29, .99) 100%);
-  --sg-card-sheen: inset 0 1px 0 rgba(255, 255, 255, .10);
-  --sg-panel: rgba(22, 27, 32, .98);
-  --sg-reading-surface: rgba(26, 31, 37, .98);
+  --sg-card-image: linear-gradient(180deg, rgba(44, 50, 53, .99) 0%, rgba(36, 41, 44, .98) 36%, rgba(27, 31, 34, .99) 100%);
+  --sg-card-sheen: inset 0 1px 0 rgba(236, 233, 227, .08);
+  --sg-panel: rgba(29, 34, 37, .98);
+  --sg-reading-surface: rgba(36, 41, 44, .98);
   --sg-reading-border: color-mix(in srgb, var(--sg-accent-ink) 20%, transparent);
   --sg-shadow-reading: 0 8px 36px -16px rgb(0 0 0 / .32);
-  --sg-album-paper: #e6e9ea;                /* 拍立得相纸：白里带一丝灰青 */
-  --sg-card-border: rgba(210, 220, 225, .26); /* 小卡弱描边（源站思路：描边是夜间卡面定义的主手段，提到可见档） */
-  --sg-border-strong: rgba(210, 220, 225, .48);  /* 大卡描边：对齐源站 rgba(169,169,169,.7) 的可见度 */
-  --sg-border: rgba(230, 240, 245, .16);    /* 结构线，比卡面描边亮一档 */
-  --sg-chip: rgba(255, 255, 255, .08);      /* 胶囊底 */
-  --sg-text: #f2f6f7;                       /* 冷白正文 */
-  --sg-muted: #c3cdd2;                      /* 暗卡 10.5:1 */
-  --sg-faint: #9aa7ad;                      /* 暗卡 6.87:1 */
+  --sg-album-paper: #ece9e3;                /* 拍立得相纸：白里带一丝灰青 */
+  --sg-card-border: rgba(236, 233, 227, .22); /* 小卡弱描边（源站思路：描边是夜间卡面定义的主手段，提到可见档） */
+  --sg-border-strong: rgba(236, 233, 227, .38);  /* 大卡描边：对齐源站 rgba(169,169,169,.7) 的可见度 */
+  --sg-border: rgba(236, 233, 227, .14);    /* 结构线，比卡面描边亮一档 */
+  --sg-chip: rgba(236, 233, 227, .08);      /* 胶囊底 */
+  --sg-text: #ece9e3;                       /* 冷白正文 */
+  --sg-muted: #b8bcb9;                      /* 暗卡 10.5:1 */
+  --sg-faint: #949b98;                      /* 暗卡 6.87:1 */
   --sg-wall-halo: 0 1px 3px rgba(2, 6, 23, .6), 0 0 14px rgba(2, 6, 23, .42);
   --sg-wall-ink: var(--sg-muted);
   --sg-front-veil: .45;
-  --sg-line: rgba(230, 240, 245, .15);
+  --sg-line: rgba(236, 233, 227, .13);
 
   --sg-shadow: 0 20px 25px -5px rgb(0 0 0 / .35), 0 8px 10px -6px rgb(0 0 0 / .30);
   --sg-shadow-strong: 0 25px 50px -12px rgb(0 0 0 / .45);
 
   /* 签名色青瓷夜档：填充压深（白字 7.09:1），前景/描边提亮（暗卡 8.89:1）。
      分裂逻辑见 :root 里 accent-ink 的注释。 */
-  --sg-accent: #2e5f68;                     /* 填充：青瓷压深，白字 7.09:1 */
-  --sg-accent-2: #477982;                   /* 渐变端点 / 播放主键暗色底 */
-  --sg-accent-pale: #cde8ea;                /* 最浅档（歌词条波形）：与昼同值 */
-  --sg-accent-ink: #8ec5c9;                 /* 前景：亮青，暗卡 8.89:1 */
+  --sg-accent: #3f5a58;                     /* 填充：竹青压深，白字 7.46:1 */
+  --sg-accent-2: #527370;                   /* 渐变端点 / 播放主键暗色底 */
+  --sg-accent-pale: #d5e4e1;                /* 最浅档（歌词条波形）：与昼同值 */
+  --sg-accent-ink: #a9c4be;                 /* 前景：亮青，暗卡 8.89:1 */
   --sg-ring-a: var(--sg-accent-2);
   --sg-ring-b: var(--sg-accent-soft);
-  --sg-accent-deep: #bfe3e6;                /* 暗色下 deep = 更强对比（正文链接级 12.4:1） */
-  --sg-accent-soft: #6fa3a9;                /* 弱化态，暗卡 6.05:1 */
-  --sg-filter-active: #5f62d6;             /* 知识档案选中蓝紫：语义色，白字 5.0:1（原 #6d70e0 仅 4.16） */
+  --sg-accent-deep: #cfe0dc;                /* 暗色下 deep = 更强对比（正文链接级 12.4:1） */
+  --sg-accent-soft: #7f9d99;                /* 弱化态，暗卡 6.05:1 */
+  --sg-filter-active: #3f5a58;             /* 知识档案选中态：竹青实底压白字，7.46:1（原蓝紫 #6d70e0 仅 4.16） */
   --sg-scroll-thumb: color-mix(in srgb, var(--sg-accent-soft) 34%, transparent);
   --sg-scroll-thumb-hot: var(--sg-accent-soft);
 
   /* 语义图标夜档：同色相提亮，压暗卡仍鲜亮（装饰色，见 :root 注释） */
-  --sg-icon-time: #ffa8a8;
-  --sg-icon-cate: #56e5be;
-  --sg-icon-tag: #7fb9ff;
-  --sg-icon-data: #5ab3ff;
-  --sg-icon-mark: #ff9a7a;
+  --sg-icon-time: #c9909c;
+  --sg-icon-cate: #8fb3a2;
+  --sg-icon-tag: #a9c4be;
+  --sg-icon-data: #94b3af;
+  --sg-icon-mark: #cf9d94;
 
   /* 社交品牌色夜档：压暗卡面要提亮，否则 GitHub 黑在深底上消失 */
-  --sg-brand-rss: #ff9a63;
-  --sg-brand-github: #f0f6fc;
-  --sg-brand-mail: #7fb9ff;
-  --sg-brand-bilibili: #64c4ec;
-  --sg-brand-twitter: #7fd4f7;
-  --sg-brand-wechat: #86e36c;
-  --sg-brand-qq: #74ccf8;
-  --sg-brand-leetcode: #ffbe55;
+  --sg-brand-rss: #cf9d94;
+  --sg-brand-github: #ece9e3;
+  --sg-brand-mail: #a9c4be;
+  --sg-brand-bilibili: #9fc0bd;
+  --sg-brand-twitter: #a5bebe;
+  --sg-brand-wechat: #9db8a1;
+  --sg-brand-qq: #9fc0bd;
+  --sg-brand-leetcode: #d0b48a;
   --sg-brand-link: var(--sg-accent-soft);
 
   --sg-glow-a: color-mix(in srgb, var(--sg-accent) 22%, transparent);
@@ -332,12 +311,12 @@ html.dark {
   --sg-gradient-opacity: .2;
 
   /* 头像描边跟着卡片底色走，暗色下用深灰青才不刺眼 */
-  --sg-ring: #14181d;
+  --sg-ring: #171b1d;
 
   /* 日历卡强调色夜间档（见亮色块注释）：提亮到深卡可见，不与白字抢对比 */
-  --sg-cal-strong: #a8d2d5;
+  --sg-cal-strong: #a9c4be;
   --sg-cal-strong: color-mix(in srgb, var(--sg-accent-ink) 78%, #fff);
-  --sg-cal-ink: #10131a;
+  --sg-cal-ink: #171b1d;
 
   /* 歌词栏夜间同样跟随卡片（2026-11-19）：卡面/描边/阴影不再单开一档，
      只保留波形与音符的亮色档（深底上深青会糊）。 */
@@ -348,7 +327,7 @@ html.dark {
   --sg-lyric-wave-b: var(--sg-accent-pale);
   --sg-lyric-wave-c: var(--sg-accent-2);
   --sg-lyric-icon: var(--sg-accent-soft);
-  --sg-lyric-text-shadow: 0 0 8px color-mix(in srgb, var(--sg-accent) 80%, transparent);
+  --sg-lyric-text-shadow: 0 0 8px color-mix(in srgb, var(--sg-accent) 55%, transparent);
   --sg-lyric-shadow: var(--sg-shadow);
 
   /* 图片浮层控件：独立层，只把色温贴到中性墨青，透明度不动 */
@@ -366,6 +345,21 @@ html.dark {
   --sg-proj-tag-bg: color-mix(in srgb, var(--sg-accent-soft) 16%, transparent);
   --sg-proj-tag-border: color-mix(in srgb, var(--sg-accent-soft) 28%, transparent);
   --sg-proj-tag-fg: var(--sg-accent-pale);
+  /* ---- 墨分五色 · 夜间补充档（2026-11-21）----
+     :root 里的 wall 组已改成「日间深墨 + 零描边」；夜间壁纸为焦墨调，
+     前景必须回到宣纸白并恢复四向深硬影托底，故在此单独覆盖（只夜间生效）。 */
+  --sg-warm: #cf9d94;              /* 淡朱印章：暗卡 6.40:1 */
+  --sg-warm-bright: #d8a79e;
+  --sg-sakura-ink: #c9909c;        /* 樱粉夜档，仅点缀 */
+  --sg-wall-white-ink: #ece9e3;
+  --sg-wall-white-halo:
+    1px 0 0 rgba(6, 10, 12, .82), -1px 0 0 rgba(6, 10, 12, .82),
+    0 1px 0 rgba(6, 10, 12, .82), 0 -1px 0 rgba(6, 10, 12, .82),
+    0 2px 12px rgba(6, 10, 12, .6);
+  --sg-wall-white-edge:
+    2px 0 0 rgba(6, 10, 12, .7), -2px 0 0 rgba(6, 10, 12, .7),
+    0 2px 0 rgba(6, 10, 12, .7), 0 -2px 0 rgba(6, 10, 12, .7),
+    0 6px 28px rgba(6, 10, 12, .64);
 }
 
 @layer base {
@@ -388,9 +382,9 @@ html.dark {
     /* 全局字号对齐 Fomalhaut（global-font-size: 15.5px）；
        竖向 flex：内容短时（归档/分类页）把页脚压到视口底部，
        不让仪表盘悬在半空。fixed 定位的子元素不参与此布局。 */
-    font-size: 15.5px;
+    font-size: 16.5px;
     /* 行距对齐 Fomalhaut（var.styl: $text-line-height = 2） */
-    line-height: 2;
+    line-height: 1.9;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -406,7 +400,7 @@ html.dark {
     -moz-osx-font-smoothing: grayscale;
   }
 
-  h1, h2, h3, h4 { font-weight: 900; letter-spacing: -.02em; margin: 0; }
+  h1, h2, h3, h4 { font-weight: 700; letter-spacing: -.02em; margin: 0; }
   p { margin: 0; }
   a { color: inherit; text-decoration: none; }
   img { display: block; max-width: 100%; }

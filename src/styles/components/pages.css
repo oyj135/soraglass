@@ -18,7 +18,7 @@
   z-index: 4;
   padding: 2px;
   border-radius: inherit;
-  background: conic-gradient(from var(--sg-angle), var(--sg-accent-soft), #f5b942, #ff6b6b, #b37feb, var(--sg-accent-2), var(--sg-accent-soft));
+  background: conic-gradient(from var(--sg-angle), var(--sg-accent-soft), #a9c0b8, #cf9d94, #6b5a6e, var(--sg-accent-2), var(--sg-accent-soft));
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
           mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
@@ -78,7 +78,7 @@
   background: rgba(9, 12, 20, .46);
 }
 html.dark .sg-footer-zone::before {
-  background: linear-gradient(to top, rgba(10, 13, 28, .58), rgba(10, 13, 28, 0) 62%);
+  background: linear-gradient(to top, rgba(23, 27, 29, .58), rgba(23, 27, 29, 0) 62%);
 }
 
 .sg-footer-wrap { position: relative; z-index: 2; width: 95%; max-width: 72rem; margin-inline: auto; }
@@ -92,7 +92,7 @@ html.dark .sg-footer-zone::before {
   text-align: center;
   font-family: var(--font-serif);
   color: var(--sg-wall-white-ink);
-  text-shadow: 0 1px 2px rgba(8, 12, 24, .6);
+  text-shadow: var(--sg-wall-white-halo);
 }
 
 .sg-footer p { margin: 0; }
@@ -302,7 +302,7 @@ html.dark .sg-footer-zone::before {
   transition: color .3s, border-color .3s, transform .3s, background-color .3s;
 }
 .sg-tag-chip:hover { color: var(--sg-accent-ink); border-color: var(--sg-accent-ink); transform: translateY(-1px); }
-/* 2026-11-20 第三十轮：标签小卡悬浮底与「全部档案」选中态同款 #5457c9 实底压白字 */
+/* 2026-11-21 墨分五色：标签小卡悬浮底与「全部档案」选中态统一竹青实底压白字 */
 html:not(.dark) .sg-tag-chip:is(:hover, :focus-visible) {
   background-color: var(--sg-filter-active);
   border-color: var(--sg-filter-active);
@@ -676,11 +676,11 @@ html:not(.dark) .sg-tag-chip:is(:hover, :focus-visible) {
 .sg-heat-cell[data-level="3"] { background: var(--sg-heat-3); }
 .sg-heat-cell[data-level="4"] { background: var(--sg-heat-4); }
 
-/* 浅色主题下深绿太闷，换成同色相的浅一档，保证「0 篇」与「有内容」区分得开 */
-html:not(.dark) .sg-heat-cell[data-level="1"] { background: #d9e8ea; }
-html:not(.dark) .sg-heat-cell[data-level="2"] { background: #a9ced3; }
-html:not(.dark) .sg-heat-cell[data-level="3"] { background: #6eaab2; }
-html:not(.dark) .sg-heat-cell[data-level="4"] { background: #35616b; }
+/* 墨分五色：浅色档走宣纸→淡墨→浓墨的明度梯度，保证「0 篇」与「有内容」区分得开 */
+html:not(.dark) .sg-heat-cell[data-level="1"] { background: #dfe3dd; }
+html:not(.dark) .sg-heat-cell[data-level="2"] { background: #b3c4bd; }
+html:not(.dark) .sg-heat-cell[data-level="3"] { background: #7a938c; }
+html:not(.dark) .sg-heat-cell[data-level="4"] { background: #3c5c5f; }
 
 .sg-heat-legend {
   display: flex;

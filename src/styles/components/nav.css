@@ -140,7 +140,7 @@ html.sg-ready .sg-nav { animation: sg-nav-in .5s var(--sg-ease) both; }
 }
 
 /* 2026-11-20：悬浮文字与下划线改用源站实测值（#nav a:hover / .site-page:not(.child):after） */
-.sg-nav-link:is(:hover, :focus-visible) { color: #49b1f5; opacity: 1; }
+.sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent-ink); opacity: 1; }
 html.dark .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent-ink); }
 
 /* 导航条目图标（2026-11-17）：内联 SVG 与文字同行，激活态随链接色走。
@@ -155,8 +155,8 @@ html.dark .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent-ink);
   bottom: .05rem;
   height: 2px;
   border-radius: 2px;
-  /* 源站 `.site-page:not(.child):after` 实测 #80c8f8 / 3px */
-  background: #80c8f8;
+  /* 源站 `.site-page:not(.child):after` 实测 #80c8f8 / 3px（墨分五色后改竹青） */
+  background: #3c5c5f;
   transform: scaleX(0);
   transform-origin: left center;
   transition: transform .3s ease-in-out;
@@ -301,13 +301,13 @@ html.sg-lock, html.sg-lock body { overflow: hidden; }
 
 /* 导航抽屉夜间毛玻璃（2026-11-17 第十四轮用户拍板）：全站唯一一处 backdrop-filter。
    只夜间启用——抽屉打开时背后必是壁纸，磨砂收益确定；白天维持实色卡。
-   .72 透明度是实测档：壁纸亮云透过模糊后菜单白字/亮紫字对比仍 ≥7:1。
+   .78 透明度是实测档：墨底透过滤镜后菜单宣纸白字对比仍 ≥7:1。
    打开时才采样一次，无滚动重采样开销。 */
 html.dark .sg-sheet-panel {
-  background: rgba(30, 32, 62, .72);
-  -webkit-backdrop-filter: blur(18px) saturate(1.25);
-  backdrop-filter: blur(18px) saturate(1.25);
-  border-left-color: rgba(199, 201, 235, .28);
+  background: rgba(29, 34, 37, .78);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
+  backdrop-filter: blur(18px) saturate(1.1);
+  border-left-color: rgba(236, 233, 227, .22);
 }
 
 .sg-sheet-panel {
@@ -334,27 +334,27 @@ html.dark .sg-sheet-panel {
 .sg-sheet-close:is(:hover, :focus-visible) { color: var(--sg-accent-ink); }
 .sg-sheet .sg-sheet-link { flex-shrink: 0; min-height: 2.75rem; }
 
-/* ---------- 全站导航统一首页白字体系（2026-11-20 第二十九轮） ----------
+/* ---------- 全站导航（2026-11-21 墨分五色：日间深墨 / 夜间宣纸白） ----------
    根因：白字 + 顶部暗幕原先只挂在 `.sg-nav.is-front`（仅首页首屏由 home.ts 打标），
    其他页面走基础黑字规则，所以「同一个导航栏」在两处观感不同。
    这里把首页那套日间配方提升到全站；夜间深玻璃底与青瓷字保持原样。 */
 html:not(.dark) .sg-nav {
-  background: linear-gradient(180deg, rgba(2, 6, 23, .5), rgba(2, 6, 23, 0));
+  background: linear-gradient(180deg, rgba(244, 240, 232, .72), rgba(244, 240, 232, 0));
   border-bottom-color: transparent;
 }
 html:not(.dark) .sg-nav :is(.sg-brand, .sg-brand-accent, .sg-nav-link, .sg-nav-more-btn, .sg-nav-page) {
-  color: #fff;
+  color: #22282a;
   opacity: 1;
   text-shadow: none;
 }
-html:not(.dark) .sg-nav .sg-nav-link.is-active::before { background: #fff; }
-html:not(.dark) .sg-nav .sg-nav-link.is-active { color: #fff; }
-html:not(.dark) .sg-nav .sg-nav-link:is(:hover, :focus-visible) { color: #80c8f8; opacity: 1; }
-html:not(.dark) .sg-nav .sg-nav-link::after { background: #80c8f8; }
+html:not(.dark) .sg-nav .sg-nav-link.is-active::before { background: #3c5c5f; }
+html:not(.dark) .sg-nav .sg-nav-link.is-active { color: #22282a; }
+html:not(.dark) .sg-nav .sg-nav-link:is(:hover, :focus-visible) { color: #2f4c4f; opacity: 1; }
+html:not(.dark) .sg-nav .sg-nav-link::after { background: #3c5c5f; }
 /* 下拉面板是实底卡，文字回落正文色，不能继承导航白字 */
 html:not(.dark) .sg-nav .sg-nav-more-menu { color: var(--sg-text); }
 
-/* 2026-11-20 第三十轮：导航文字悬浮也用「全部档案」同款 #5457c9 药丸实底压白字。
+/* 2026-11-21 墨分五色：导航文字悬浮用竹青药丸实底压白字（替掉 #5457c9）。
    悬浮下划线收起（药丸已是明确反馈），夜间深玻璃底与青瓷悬浮色保持原样。 */
 html:not(.dark) .sg-nav .sg-nav-link:is(:hover, :focus-visible) {
   color: #fff;

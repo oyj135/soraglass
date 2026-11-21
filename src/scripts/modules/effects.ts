@@ -1,11 +1,11 @@
 /**
- * 背景特效：季节粒子（樱花 / 飘雪 / 萤火虫 / 流星）、背景弹幕、点击涟漪。
+ * 背景特效：季节粒子（樱花 / 飘雪 / 萤火）、背景弹幕、点击涟漪。
  * 全部合到单个 canvas + 单个 rAF，避免多层 DOM 叠加导致滚动掉帧。
  * 移动端与 prefers-reduced-motion 下整体关闭（CSS 也同步隐藏）。
  *
- * 2026-11-20：新增「流星」（自下向上飞行，见 drawMeteor），且粒子支持多类型共存 ——
- * 后台下拉可选「樱花 + 流星」这类组合，JS 侧按英文逗号拆成 kinds 后同帧绘制，
- * 共享同一个 canvas 与 rAF，不会出现两层动画互相盖住或各自抢帧的问题。
+ * 2026-11-21 墨分五色：按用户要求移除全部星海 / 流星元素（全屏星空另见已删除的
+ * universe.ts），季节粒子配色降级为「墨粉 / 素白 / 淡竹青」低饱和色域；
+ * 夜间专用判断与「切主题重置」逻辑随之删除，只剩 reducedMotion / 小屏 / 可见性降级。
  */
 import { config,isSmallScreen,reducedMotion } from './runtime';
 
@@ -22,14 +22,12 @@ interface Particle {
   phase: number;
 }
 
-type Season = 'sakura' | 'snow' | 'fireflies' | 'meteor';
+type Season = 'sakura' | 'snow' | 'fireflies';
 
 const DENSITY: Record<Season, number> = {
-  sakura: 34,
-  snow: 60,
-  fireflies: 26,
-  // 流星宁少勿多：同屏十几道就够撑起夜空，再多会像下雨
-  meteor: 12,
+  sakura: 24,   // 墨分五色：降低密度，樱花粉只作少量点缀
+  snow: 48,
+  fireflies: 18,
 };
 
 function createParticle(kind: Season, width: number, height: number, seed = false): Particle {
@@ -58,15 +56,6 @@ function createParticle(kind: Season, width: number, height: number, seed = fals
     base.alpha = 0.2 + Math.random() * 0.35;
   }
 
-  if (kind === 'meteor') {
-    // 从视口下方往上飞：向右上斜掠，速度比飘落的粒子快一档，尾迹才有「划过」的感觉。
-    base.x = Math.random() * width;
-    base.y = seed ? Math.random() * height : height + 24 + Math.random() * 80;
-    base.vx = 0.35 + Math.random() * 0.95;
-    base.vy = -(2.1 + Math.random() * 3.1);
-    base.size = 1.1 + Math.random() * 1.1;
-    base.alpha = 0.45 + Math.random() * 0.5;
-  }
 
   return base;
 }
@@ -107,7 +96,7 @@ function initSeason(kinds: Season[]): void {
     ctx.rotate(p.rot);
     ctx.beginPath();
     ctx.ellipse(0, 0, p.size, p.size * 0.55, 0, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(251, 207, 232, ${p.alpha})`;
+    ctx.fillStyle = `rgba(201, 144, 156, ${p.alpha * 0.55})`; // 樱灰粉，仅点缀
     ctx.fill();
     ctx.restore();
   };
@@ -115,73 +104,23 @@ function initSeason(kinds: Season[]): void {
   const drawSnow = (p: Particle): void => {
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(241, 245, 249, ${p.alpha})`;
+    ctx.fillStyle = `rgba(236, 233, 227, ${p.alpha})`; // 宣纸素白
     ctx.fill();
   };
 
   const drawFirefly = (p: Particle): void => {
     const glow = p.size * 3.2;
     const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glow);
-    gradient.addColorStop(0, `rgba(253, 224, 71, ${p.alpha})`);
-    gradient.addColorStop(1, 'rgba(253, 224, 71, 0)');
+    gradient.addColorStop(0, `rgba(169, 196, 190, ${p.alpha})`); // 淡竹青微光
+    gradient.addColorStop(1, 'rgba(169, 196, 190, 0)');
     ctx.beginPath();
     ctx.arc(p.x, p.y, glow, 0, Math.PI * 2);
     ctx.fillStyle = gradient;
     ctx.fill();
   };
 
-  /* 流星：头部一个亮点 + 沿飞行反方向渐隐的拖尾。
-     2026-11-20 第十九轮：**只在夜间绘制**（用户要求）—— 日间壁纸偏亮，白光条会被
-     当成划痕，干脆不启用。颜色固定为夜间档（冰白头部 + 冷蓝尾）。
-     每帧读一次 html.dark，切到日间立刻停画；切回夜间时把流星送回底部重新出发，
-     免得夜里一上来全挤在屏幕中部。 */
-  const drawMeteor = (p: Particle): void => {
-    const tail = 52 + p.size * 46;
-    const length = Math.hypot(p.vx, p.vy) || 1;
-    const tailX = p.x - (p.vx / length) * tail;
-    const tailY = p.y - (p.vy / length) * tail;
-
-    const head = `rgba(255, 255, 255, ${p.alpha})`;
-    const mid = `rgba(186, 230, 253, ${p.alpha * 0.6})`;
-
-    const trail = ctx.createLinearGradient(p.x, p.y, tailX, tailY);
-    trail.addColorStop(0, head);
-    trail.addColorStop(0.45, mid);
-    trail.addColorStop(1, 'rgba(186, 230, 253, 0)');
-    ctx.strokeStyle = trail;
-    ctx.lineWidth = p.size * 1.3;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(p.x, p.y);
-    ctx.lineTo(tailX, tailY);
-    ctx.stroke();
-
-    const glow = p.size * 6;
-    const halo = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glow);
-    halo.addColorStop(0, `rgba(255, 255, 255, ${p.alpha * 0.9})`);
-    halo.addColorStop(1, 'rgba(255, 255, 255, 0)');
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, glow, 0, Math.PI * 2);
-    ctx.fillStyle = halo;
-    ctx.fill();
-  };
-
-  /* 流星只在夜间出现：每帧读一次主题，从夜间切到日间时把它们送回视口下方
-     （此时不绘制，位置无所谓），切回夜间便从头飞起，不会在屏幕中部堆一坨。 */
-  let night = document.documentElement.classList.contains('dark');
-
   const step = (): void => {
     if (!running) return;
-
-    const isNight = document.documentElement.classList.contains('dark');
-    if (isNight !== night) {
-      night = isNight;
-      if (!night) {
-        for (const p of particles) {
-          if (p.kind === 'meteor') Object.assign(p, createParticle('meteor', width, height));
-        }
-      }
-    }
 
     ctx.clearRect(0, 0, width, height);
 
@@ -197,20 +136,6 @@ function initSeason(kinds: Season[]): void {
         if (p.y > height + 20) p.y = -20;
         p.alpha = 0.12 + Math.abs(Math.sin(p.phase * 0.8)) * 0.45;
         drawFirefly(p);
-        continue;
-      }
-
-      /* 流星向上飞：越过顶部就回到底部重新出发（随机横向位置与速度），
-         左右越界从另一侧绕回，长跑不会在角落堆积。
-         非夜间直接跳过（不移动、不绘制），其他粒子照常。 */
-      if (p.kind === 'meteor') {
-        if (!night) continue;
-        p.x += p.vx;
-        p.y += p.vy;
-        if (p.y < -90) Object.assign(p, createParticle('meteor', width, height));
-        else if (p.x > width + 60) p.x = -60;
-        else if (p.x < -60) p.x = width + 60;
-        drawMeteor(p);
         continue;
       }
 
@@ -274,7 +199,7 @@ function initDanmaku(list: string[]): void {
  * 独立 canvas（.sg-ripple，z-index 9990），因为内容层 .sg-main 是 z-index:1，
  * 画在 .sg-effects 的 0 层会被卡片整块遮住。
  */
-const RIPPLE_RGB = '129, 140, 248';
+const RIPPLE_RGB = '60, 92, 95'; // 竹青，替代原 indigo
 
 interface Ripple {
   x: number;
@@ -370,7 +295,7 @@ function initClickEffect(): void {
   }, { passive: true });
 }
 
-const SEASONS: Season[] = ['sakura', 'snow', 'fireflies', 'meteor'];
+const SEASONS: Season[] = ['sakura', 'snow', 'fireflies'];
 
 export function initEffects(): void {
   const cfg = config();
@@ -383,8 +308,8 @@ export function initEffects(): void {
 
   if (off) return;
 
-  /* 后台的值可能是组合（`snow,meteor`），拆开后只保留认识的粒子名；
-     未知值（旧版本残留）自动忽略，不会把整组特效一起拖垮。 */
+  /* 后台的值可能是组合（`sakura,snow`），拆开后只保留认识的粒子名；
+     旧版本残留的 meteor 值会被静默忽略，不会把整组特效一起拖垮。 */
   const kinds = String(cfg.season ?? 'none')
     .split(',')
     .map((name) => name.trim())

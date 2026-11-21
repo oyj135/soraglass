@@ -601,7 +601,7 @@ html.dark .sg-nav { background: var(--sg-card); border-bottom-color: var(--sg-re
 .sg-share { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 2rem; }
 
 /* ---------- P1-8 代码块工具条（2026-11-16 改 mac 风格 + 折叠） ---------- */
-/* 代码区仍是固定深色（#0b1220）；工具条用 mac 窗口风格的稍浅深灰条 */
+/* 代码区走墨色底（#1d2225，见 components/article.css 的 .sg-prose pre）；工具条用稍浅一档的墨 (#24292c) */
 .sg-prose pre.sg-codeblock { position: relative; padding-top: 2.6rem; }
 .sg-prose pre.sg-codeblock > code { display: block; max-width: 100%; overflow-x: auto; }
 
@@ -616,18 +616,18 @@ html.dark .sg-nav { background: var(--sg-card); border-bottom-color: var(--sg-re
   padding: .45rem .8rem;
   border-bottom: 1px solid rgba(255, 255, 255, .07);
   border-radius: var(--sg-radius-inner) var(--sg-radius-inner) 0 0;
-  background: #1b2531;
+  background: #24292c;
 }
 
-/* mac 三色圆点：纯装饰，沿用 mac 交通灯配色 */
+/* mac 三色圆点：纯装饰，墨分五色后降为朱砂 / 淡墨金 / 竹青低饱和三档 */
 .sg-code-dots { display: inline-flex; align-items: center; gap: .38rem; flex: none; }
 .sg-code-dot { width: .7rem; height: .7rem; border-radius: 50%; }
-.sg-code-dot--red { background: #ff5f56; }
-.sg-code-dot--yellow { background: #ffbd2e; }
-.sg-code-dot--green { background: #27c93f; }
+.sg-code-dot--red { background: #c25a4d; }
+.sg-code-dot--yellow { background: #b09a6e; }
+.sg-code-dot--green { background: #6f8f87; }
 
 .sg-code-lang {
-  color: #9fb3c8;
+  color: #b8bcb9;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: .72rem;
   letter-spacing: .02em;
@@ -641,7 +641,7 @@ html.dark .sg-nav { background: var(--sg-card); border-bottom-color: var(--sg-re
   border: 1px solid rgba(255, 255, 255, .12);
   border-radius: .35rem;
   background: rgba(255, 255, 255, .04);
-  color: #9fb3c8;
+  color: #b8bcb9;
   font-family: var(--font-sans);
   font-size: .72rem;
   line-height: 1.4;
@@ -651,7 +651,7 @@ html.dark .sg-nav { background: var(--sg-card); border-bottom-color: var(--sg-re
 
 .sg-code-copy:is(:hover, :focus-visible),
 .sg-code-fold:is(:hover, :focus-visible) {
-  color: #e2e8f0;
+  color: #ece9e3;
   background: rgba(255, 255, 255, .12);
   border-color: rgba(255, 255, 255, .22);
 }

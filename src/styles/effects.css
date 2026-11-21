@@ -91,7 +91,7 @@ html[data-sg-blur="strong"] { --sg-bg-blur: 12px; --sg-bg-blur-scale: 1.08; }
   z-index: 3;
   opacity: var(--sg-gradient-opacity);
   mix-blend-mode: color;
-  background-image: linear-gradient(-45deg, #a18cd1, #fbc2eb, #a1c4fd, #c2e9fb);
+  background-image: linear-gradient(-45deg, #3c5c5f, #5a7d7f, #a9c0b8, #e8e4da);
   transform: translateZ(0);
   transition: opacity 1s;
 }
@@ -362,7 +362,7 @@ html.sg-ready .sg-post-hero img { animation: sg-imgblur .8s ease-in-out both; }
 }
 
 /* A4 页脚心跳（源站 iconAnimate：一次双跳节拍） */
-.sg-heart { display: inline-block; width: .9em; height: .9em; margin: 0 .12em; vertical-align: -.08em; color: #e8654a; animation: sg-heartbeat 1.4s ease-in-out infinite; }
+.sg-heart { display: inline-block; width: .9em; height: .9em; margin: 0 .12em; vertical-align: -.08em; color: #a8443c; animation: sg-heartbeat 1.4s ease-in-out infinite; }
 @keyframes sg-heartbeat {
   0%, 100% { transform: scale(1); }
   10%, 30% { transform: scale(.9); }
@@ -375,13 +375,7 @@ html.sg-ready .sg-post-hero img { animation: sg-imgblur .8s ease-in-out both; }
 
 /* A5 页脚波浪已于 2026-11-19 第三轮移除（用户要求），动画与 DOM 一并下线 */
 
-/* C3 夜间星空（2026-11-24 第二十四轮，源站 #universe 的自有版）：
-   固定全屏 canvas 垫在壁纸（z -10）之上、内容之下；只在 html.dark 显示，
-   日间/≤768px/reduced-motion 直接隐藏；JS 侧同步停 rAF。 */
-.sg-universe { position: fixed; inset: 0; z-index: -9; pointer-events: none; }
-html:not(.dark) .sg-universe { display: none; }
-@media (max-width: 767.98px) { .sg-universe { display: none; } }
-@media (prefers-reduced-motion: reduce) { .sg-universe { display: none; } }
+/* C3 夜间星空已于 2026-11-21「墨分五色」整改整体下线：universe.ts 与 .sg-universe 规则一并删除。 */
 
 /* A7 头像呼吸灯（源站 huxi：box-shadow 1px→5px 4s 呼吸；青瓷色，昼夜同 token） */
 @keyframes sg-huxi {

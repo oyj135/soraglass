@@ -5,34 +5,23 @@
    纵向空间全留给唱片（见文件末尾 .sg-hero-side 的覆盖规则）。 */
 .sg-player-card {
   position: relative;
-  /* 光点：亮色下白点等于没画，改用主色；暗色才用白（像星光） */
-  --sg-spark: color-mix(in srgb, var(--sg-accent) 52%, transparent);
+  /* 墨分五色：星点阵 / 星云已整体下线，这里只留一层低饱和竹青墨晕 */
+  --sg-ink-haze: color-mix(in srgb, var(--sg-accent) 10%, transparent);
   /* 内边距与原首页布局保持一致；相册封面在卡片内部排列。 */
   padding: 1.45rem 1.75rem 1.1rem;
   overflow: hidden;
 }
 
-html.dark .sg-player-card { --sg-spark: rgba(255, 255, 255, .55); }
+html.dark .sg-player-card { --sg-ink-haze: color-mix(in srgb, var(--sg-accent-soft) 12%, transparent); }
 
-/* 卡内背景层：
-   ① 主色光晕：--sg-cover-tint 由 player.ts 从封面采来（取不到就退回 accent），
-      从唱片中心向外淡出；
-   ② 星点阵：2026-11-18 第十三轮起由 3 颗扩到 9 颗，散在唱片四周留白处，与作者卡深空、
-      歌词条星场同一套语言。**亮色下这张卡是白卡，星点只能做主色微光**（再亮就成了脏点），
-      暗色卡面下 --sg-spark 自动转白光，才是真正的星点；暗色再额外叠两层星云薄雾。
-   装饰使用 ::after，和卡内其它伪元素分开。 */
-/* 星点坐标抽成变量：**只属于音乐卡**（2026-11-19 起歌词条改为纯卡片材质，不再叠星场）。 */
+/* 卡内背景层（2026-11-21 墨分五色）：
+   只保留封面 tint 的低饱和墨晕 --sg-cover-tint（由 player.ts 从封面采来，
+   取不到就退回 accent），从唱片中心向外淡出。
+   原 9 颗星点阵（--sg-spark / --sg-spark-dots）与夜间两层冷蓝星云已整体下线，
+   不再有「星海」语言；改由 --sg-ink-haze 一层淡墨晕托住留白。
+   装饰使用 ::after，和卡内其它伪元素分开。歌词条不共享此层。 */
 .sg-player-card {
-  --sg-spark-dots:
-    radial-gradient(2.5px 2.5px at 84% 13%, var(--sg-spark), transparent 100%),
-    radial-gradient(2px 2px at 14% 17%, var(--sg-spark), transparent 100%),
-    radial-gradient(1.5px 1.5px at 70% 29%, var(--sg-spark), transparent 100%),
-    radial-gradient(1.8px 1.8px at 26% 41%, var(--sg-spark), transparent 100%),
-    radial-gradient(1.4px 1.4px at 92% 47%, var(--sg-spark), transparent 100%),
-    radial-gradient(1.6px 1.6px at 7% 63%, var(--sg-spark), transparent 100%),
-    radial-gradient(1.8px 1.8px at 79% 67%, var(--sg-spark), transparent 100%),
-    radial-gradient(1.4px 1.4px at 41% 79%, var(--sg-spark), transparent 100%),
-    radial-gradient(1.4px 1.4px at 61% 92%, var(--sg-spark), transparent 100%);
+  --sg-ink-haze-layer: radial-gradient(120% 90% at 50% 18%, var(--sg-ink-haze) 0, transparent 68%);
 }
 
 .sg-player-card::after {
@@ -41,23 +30,21 @@ html.dark .sg-player-card { --sg-spark: rgba(255, 255, 255, .55); }
   inset: 0;
   pointer-events: none;
   background:
-    var(--sg-spark-dots),
+    var(--sg-ink-haze-layer),
     radial-gradient(88% 58% at 90% 94%,
-      color-mix(in srgb, var(--sg-cover-tint, var(--sg-accent)) 14%, transparent) 0,
+      color-mix(in srgb, var(--sg-cover-tint, var(--sg-accent)) 12%, transparent) 0,
       transparent 66%),
     radial-gradient(125% 88% at 50% 24%,
-      color-mix(in srgb, var(--sg-cover-tint, var(--sg-accent)) 26%, transparent) 0,
+      color-mix(in srgb, var(--sg-cover-tint, var(--sg-accent)) 20%, transparent) 0,
       transparent 64%);
 }
 
-/* 暗色主题：卡面本身就是夜色，此时才叠真正的星云薄雾，星点也转为白光 */
+/* 暗色主题：星云薄雾已移除，只留一层淡墨晕（封面 tint 仍保留） */
 html.dark .sg-player-card::after {
   background:
-    var(--sg-spark-dots),
-    radial-gradient(70% 52% at 12% 8%, rgba(43, 77, 112, .34) 0, transparent 68%),
-    radial-gradient(64% 46% at 92% 88%, rgba(31, 71, 99, .30) 0, transparent 66%),
+    var(--sg-ink-haze-layer),
     radial-gradient(125% 88% at 50% 24%,
-      color-mix(in srgb, var(--sg-cover-tint, var(--sg-accent)) 22%, transparent) 0,
+      color-mix(in srgb, var(--sg-cover-tint, var(--sg-accent)) 18%, transparent) 0,
       transparent 64%);
 }
 
@@ -627,7 +614,7 @@ html.dark .sg-song.is-active .sg-song-title { color: var(--sg-accent-soft); }
    2026-11-19 第八轮：用户要求「背景和其他卡片一致」—— 撤掉原先自带的两团主色光晕
    与 9 颗星点（暗色那套冷蓝星云一并删），改为与 .sg-hcard 完全同源的卡片材质：
    --sg-card 实底 + --sg-card-image 顶光 + --sg-card-border 描边 + sheen/--sg-shadow。
-   星场只留给音乐卡，歌词条不再共享星点坐标。 */
+   星场已在 2026-11-21「墨分五色」整改中随音乐卡一并下线，歌词条保持纯卡片材质。 */
 .sg-lyric-bar {
   position: relative;
   display: flex;

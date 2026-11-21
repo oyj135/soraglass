@@ -20,7 +20,7 @@ interface SGConfig {
   danmaku: string[];
   effects: boolean;
   clickEffect: boolean;
-  /** 季节粒子，可为英文逗号组合（如 `snow,meteor`）；effects.ts 负责拆包与白名单过滤 */
+  /** 季节粒子，可为英文逗号组合（如 `snow,fireflies`）；effects.ts 负责拆包与白名单过滤 */
   season: string;
   playlist: SGTrack[];
   nav: { name: string; href: string }[];
