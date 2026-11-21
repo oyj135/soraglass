@@ -85,56 +85,51 @@ function sg_icon(string $name, string $class = ''): string
 }
 
 /**
- * 真彩色语义图标 sprite（IconPark 多色版，2026-11-21 定档）。
- * 17 枚 path 取自字节跳动开源 IconPark（v1.4.2 / Apache-2.0，Iconify icon-park 集合），
- * 内嵌品牌蓝 #2F88FF + 青 #43CCF8，描边 #000 改为变量 --sg-ip-ink 以适配夜间深底。
- * 作为隐藏 <symbol> 注入 body；PJAX 只换 #sg-main，sprite 常驻不丢。
+ * 自绘真彩色语义图标 sprite（2026-11-21 定档）：
+ * 源站 iconfont 的 14 枚语义 symbol 走 CDN 注入（见 header.php），这里只放源站库里
+ * 没有贴合 symbol 的 3 枚（精选星 / 关于我 / 定位），颜色内嵌、CSS 改不动。
+ * 隐藏 <symbol> 注入 body 首部，PJAX 只换 #sg-main 不受影响。
  */
 function sg_icon_sprite_defs(): string
 {
     $glyphs = [
-        'calendar' => '<g fill="none" stroke-linejoin="round" stroke-width="4"><path fill="#2F88FF" stroke="var(--sg-ip-ink)" d="M5 19H43V40C43 41.1046 42.1046 42 41 42H7C5.89543 42 5 41.1046 5 40V19Z"/><path stroke="var(--sg-ip-ink)" d="M5 9C5 7.89543 5.89543 7 7 7H41C42.1046 7 43 7.89543 43 9V19H5V9Z"/><path stroke="var(--sg-ip-ink)" stroke-linecap="round" d="M16 4V12"/><path stroke="var(--sg-ip-ink)" stroke-linecap="round" d="M32 4V12"/><path stroke="#fff" stroke-linecap="round" d="M28 34H34"/><path stroke="#fff" stroke-linecap="round" d="M14 34H20"/><path stroke="#fff" stroke-linecap="round" d="M28 26H34"/><path stroke="#fff" stroke-linecap="round" d="M14 26H20"/></g>',
-        'clock' => '<g fill="none" stroke-linejoin="round" stroke-width="4"><path fill="#2F88FF" stroke="var(--sg-ip-ink)" d="M24 44C35.0457 44 44 35.0457 44 24C44 12.9543 35.0457 4 24 4C12.9543 4 4 12.9543 4 24C4 35.0457 12.9543 44 24 44Z"/><path stroke="#fff" stroke-linecap="round" d="M24.0084 12.0001L24.0072 24.0089L32.4866 32.4883"/></g>',
-        'tag' => '<g fill="none" stroke-linejoin="round" stroke-width="4"><path fill="#2F88FF" stroke="var(--sg-ip-ink)" d="M8 44L8 6C8 4.89543 8.89543 4 10 4H38C39.1046 4 40 4.89543 40 6V44L24 35.7273L8 44Z"/><path stroke="#fff" stroke-linecap="round" d="M16 18H32"/></g>',
-        'folder' => '<g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"><path fill="#2F88FF" stroke="var(--sg-ip-ink)" d="M7 6C7 4.89543 7.89543 4 9 4H39C40.1046 4 41 4.89543 41 6V42C41 43.1046 40.1046 44 39 44H9C7.89543 44 7 43.1046 7 42V6Z"/><path stroke="#fff" d="M16 29H20"/><path stroke="#fff" d="M16 35H26"/><path stroke="#fff" d="M8 5C8 5 11.7647 18 24 18C36.2353 18 40 5 40 5"/><circle cx="24" cy="18" r="4" fill="#43CCF8" stroke="#fff"/><path stroke="var(--sg-ip-ink)" d="M15 4H9C7.89543 4 7 4.89543 7 6V12"/><path stroke="var(--sg-ip-ink)" d="M33 4H39C40.1046 4 41 4.89543 41 6V12"/></g>',
-        'chart' => '<g fill="none" stroke="var(--sg-ip-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"><path d="M6 6V42H42"/><path d="M14 30V34"/><path d="M22 22V34"/><path d="M30 6V34"/><path d="M38 14V34"/></g>',
-        'update' => '<g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"><path fill="#2F88FF" stroke="var(--sg-ip-ink)" d="M24 44C35.0457 44 44 35.0457 44 24C44 12.9543 35.0457 4 24 4C12.9543 4 4 12.9543 4 24C4 35.0457 12.9543 44 24 44Z"/><path stroke="#fff" d="M33.5424 27C32.2681 31.0571 28.4778 34 24.0002 34C19.5226 34 15.7323 31.0571 14.458 27V33"/><path stroke="#fff" d="M33.5424 15V21C32.2681 16.9429 28.4778 14 24.0002 14C19.5226 14 15.7323 16.9429 14.458 21"/></g>',
-        'eye' => '<g fill="none" stroke-width="4"><path fill="#2F88FF" fill-rule="evenodd" stroke="var(--sg-ip-ink)" stroke-linejoin="round" d="M24 41C33.9411 41 42 32.678 42 27C42 21.322 33.9411 13 24 13C14.0589 13 6 21.3278 6 27C6 32.6722 14.0589 41 24 41Z" clip-rule="evenodd"/><path fill="#43CCF8" stroke="#fff" stroke-linejoin="round" d="M24 33C27.3137 33 30 30.3137 30 27C30 23.6863 27.3137 21 24 21C20.6863 21 18 23.6863 18 27C18 30.3137 20.6863 33 24 33Z"/><path stroke="var(--sg-ip-ink)" stroke-linecap="round" d="M13.2637 11.2661L15.8582 14.8863"/><path stroke="var(--sg-ip-ink)" stroke-linecap="round" d="M35.625 11.7104L33.0304 15.3307"/><path stroke="var(--sg-ip-ink)" stroke-linecap="round" d="M24.0088 7V13"/></g>',
-        'image' => '<g fill="none" stroke="var(--sg-ip-ink)" stroke-linejoin="round" stroke-width="4"><path stroke-linecap="round" d="M5 10C5 8.89543 5.89543 8 7 8L41 8C42.1046 8 43 8.89543 43 10V38C43 39.1046 42.1046 40 41 40H7C5.89543 40 5 39.1046 5 38V10Z" clip-rule="evenodd"/><path stroke-linecap="round" d="M14.5 18C15.3284 18 16 17.3284 16 16.5C16 15.6716 15.3284 15 14.5 15C13.6716 15 13 15.6716 13 16.5C13 17.3284 13.6716 18 14.5 18Z" clip-rule="evenodd"/><path fill="#2F88FF" d="M15 24L20 28L26 21L43 34V38C43 39.1046 42.1046 40 41 40H7C5.89543 40 5 39.1046 5 38V34L15 24Z"/></g>',
-        'type' => '<g fill="none" stroke-linejoin="round" stroke-width="4"><rect width="36" height="36" x="6" y="6" fill="#2F88FF" stroke="var(--sg-ip-ink)" rx="3"/><path stroke="#fff" stroke-linecap="round" d="M16 19V16H32V19"/><path stroke="#fff" stroke-linecap="round" d="M22 34H26"/><path stroke="#fff" stroke-linecap="round" d="M24 18L24 34"/></g>',
-        'history' => '<g fill="none" stroke="var(--sg-ip-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"><path d="M5.81836 6.72729V14H13.0911"/><path d="M4 24C4 35.0457 12.9543 44 24 44V44C35.0457 44 44 35.0457 44 24C44 12.9543 35.0457 4 24 4C16.598 4 10.1351 8.02111 6.67677 13.9981"/><path d="M24.005 12L24.0038 24.0088L32.4832 32.4882"/></g>',
-        'link' => '<path fill="none" stroke="var(--sg-ip-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M24.7073 9.56521L9.85801 24.4145C6.34329 27.9292 6.34329 33.6277 9.85801 37.1424V37.1424C13.3727 40.6571 19.0712 40.6571 22.5859 37.1424L40.2636 19.4647C42.6067 17.1216 42.6067 13.3226 40.2636 10.9794V10.9794C37.9205 8.63628 34.1215 8.63628 31.7783 10.9794L14.1007 28.6571C12.9291 29.8287 12.9291 31.7282 14.1007 32.8997V32.8997C15.2722 34.0713 17.1717 34.0713 18.3433 32.8997L33.1925 18.0505"/>',
-        'music' => '<g fill="none" stroke="var(--sg-ip-ink)" stroke-linejoin="round" stroke-width="4"><path fill="#2F88FF" d="M30 34.5C30 32.567 31.567 31 33.5 31H41V34.4C41 36.3882 39.3882 38 37.4 38H33.5C31.567 38 30 36.433 30 34.5Z"/><path fill="#2F88FF" d="M6 38.5C6 36.567 7.567 35 9.5 35H16V38.4C16 40.3882 14.3882 42 12.4 42H9.5C7.567 42 6 40.433 6 38.5Z"/><path stroke-linecap="round" d="M16 18.044V18.044L41 12.125"/><path stroke-linecap="round" d="M16 38V10L41 4V33.6924"/></g>',
-        'pin' => '<path fill="#2F88FF" stroke="var(--sg-ip-ink)" stroke-linejoin="round" stroke-width="4" d="M10.6963 17.5042C13.3347 14.8657 16.4701 14.9387 19.8781 16.8076L32.62 9.74509L31.8989 4.78683L43.2126 16.1005L38.2656 15.3907L31.1918 28.1214C32.9752 31.7589 33.1337 34.6647 30.4953 37.3032C30.4953 37.3032 26.235 33.0429 22.7171 29.525L6.44305 41.5564L18.4382 25.2461C14.9202 21.7281 10.6963 17.5042 10.6963 17.5042Z"/>',
-        'book-open' => '<g fill="#2F88FF" stroke="var(--sg-ip-ink)" stroke-linejoin="round" stroke-width="4"><path d="M5 7H16C20.4183 7 24 10.5817 24 15V42C24 38.6863 21.3137 36 18 36H5V7Z"/><path d="M43 7H32C27.5817 7 24 10.5817 24 15V42C24 38.6863 26.6863 36 30 36H43V7Z"/></g>',
-        'star' => '<path fill="#2F88FF" stroke="var(--sg-ip-ink)" stroke-linejoin="round" stroke-width="4" d="M23.9986 5L17.8856 17.4776L4 19.4911L14.0589 29.3251L11.6544 43L23.9986 36.4192L36.3454 43L33.9586 29.3251L44 19.4911L30.1913 17.4776L23.9986 5Z"/>',
-        'user' => '<g fill="none" stroke="var(--sg-ip-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"><circle cx="24" cy="12" r="8" fill="#2F88FF"/><path d="M42 44C42 34.0589 33.9411 26 24 26C14.0589 26 6 34.0589 6 44"/></g>',
-        'map-pin' => '<path fill="#2F88FF" stroke="var(--sg-ip-ink)" stroke-linejoin="round" stroke-width="4" d="M10.6963 17.5042C13.3347 14.8657 16.4701 14.9387 19.8781 16.8076L32.62 9.74509L31.8989 4.78683L43.2126 16.1005L38.2656 15.3907L31.1918 28.1214C32.9752 31.7589 33.1337 34.6647 30.4953 37.3032C30.4953 37.3032 26.235 33.0429 22.7171 29.525L6.44305 41.5564L18.4382 25.2461C14.9202 21.7281 10.6963 17.5042 10.6963 17.5042Z"/>',
+        'star' => '<path fill="#F2B544" stroke="#D98E2B" stroke-width=".8" stroke-linejoin="round" d="m12 2.6 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5-4.7-4.6 6.5-.9z"/>',
+        'user' => '<circle cx="12" cy="8" r="4.2" fill="#6BA9D6"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0z" fill="#3D7BB0"/>',
+        'map-pin' => '<path d="M12 22s7-6.4 7-12A7 7 0 0 0 5 10c0 5.6 7 12 7 12z" fill="#E2674E"/><circle cx="12" cy="10" r="2.6" fill="#fff"/>',
     ];
     $svg = '<svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">';
     foreach ($glyphs as $name => $inner) {
-        $svg .= '<symbol id="sg-ico-' . $name . '" viewBox="0 0 48 48">' . $inner . '</symbol>';
+        $svg .= '<symbol id="sg-ico-' . $name . '" viewBox="0 0 24 24">' . $inner . '</symbol>';
     }
     return $svg . '</svg>';
 }
 
 /**
- * 语义图标分派（2026-11-21 定档）：
- * - 内容/语义类（日历/时钟/标签/分类/图表/更新/眼睛/图片/字数/历史/链接/音乐/置顶/文章/精选星/关于我/定位）
- *   走真彩色 sprite —— 颜色内嵌在 path 里（对齐源站 iconfont 多色 symbol），CSS 改不动；
- * - 功能控件（箭头/播放/暂停/上下首/循环/音量/昼夜/设置/搜索/加号/关闭/分享/分支等）
+ * 语义图标分派（2026-11-21 定档，阿里 iconfont CDN 版）：
+ * - 内容/语义类（14 枚）：引用源站 iconfont CDN 注入的多色 symbol（#icon-*），
+ *   颜色内嵌在 path 里、每枚独立品牌色，与源站视觉一致，CSS 改不动；
+ * - 源站库缺项的 3 枚（精选星 / 关于我 / 定位）：走本地自绘 sprite（#sg-ico-*），同样内嵌色；
+ * - 功能控件（箭头/播放/暂停/上下首/循环/音量/昼夜/设置/搜索/加号/关闭/分享/分支等）：
  *   回落单色 sg_icon() —— 保证按钮态、currentColor 跟随、昼夜对比度可控。
  * 调用点统一写 sg_icon_color()，无需区分。
  */
 function sg_icon_color(string $name, string $class = ''): string
 {
-    /* 走真彩色 sprite 的语义名（与 sg_icon_sprite_defs() 的 symbol 一一对应） */
-    static $spriteNames = [
-        'calendar', 'clock', 'tag', 'folder', 'chart', 'update', 'eye', 'image',
-        'type', 'history', 'link', 'music', 'pin', 'book-open', 'star', 'user', 'map-pin',
+    /* 源站 iconfont 多色 symbol 名（14 枚，由 header.php 的 4 个 async JS 注入） */
+    static $cdnNames = [
+        'calendar' => 'icon-rili', 'clock' => 'icon-shizhong', 'tag' => 'icon-biaoqian',
+        'folder' => 'icon-guidang1', 'chart' => 'icon-shujutongji1', 'update' => 'icon-gengxin',
+        'eye' => 'icon-eye', 'image' => 'icon-tupian', 'type' => 'icon-charuword',
+        'history' => 'icon-lishi', 'link' => 'icon-lianjie', 'music' => 'icon-yinle',
+        'pin' => 'icon-tuding', 'book-open' => 'icon--article',
     ];
-    if (in_array($name, $spriteNames, true)) {
-        $cls = 'sg-ci' . ($class !== '' ? ' ' . $class : '');
+    $cls = 'sg-ci' . ($class !== '' ? ' ' . $class : '');
+    if (isset($cdnNames[$name])) {
+        return '<svg class="' . sg_e($cls) . '" aria-hidden="true">'
+            . '<use href="#' . $cdnNames[$name] . '"></use></svg>';
+    }
+    /* 源站库无贴合 symbol 的 3 枚：本地自绘彩色 sprite */
+    if (in_array($name, ['star', 'user', 'map-pin'], true)) {
         return '<svg class="' . sg_e($cls) . '" viewBox="0 0 24 24" aria-hidden="true">'
             . '<use href="#sg-ico-' . sg_e($name) . '"></use></svg>';
     }

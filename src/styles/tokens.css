@@ -97,11 +97,6 @@
   --sg-icon-data: #6d7370;   /* 更新 / 浏览 / 评论 / 统计：灰墨 */
   --sg-icon-mark: #9d3b2f;   /* 星标 / 倒计时等标记：印朱（与 warm 同族） */
 
-  /* IconPark 多色 sprite 描边色（2026-11-21）：原描边硬编码 #000，夜间深底会消失；
-     改为变量随昼夜切换，日档深墨（比纯黑柔和贴宣纸调性）。CSS 自定义属性可穿透
-     <use> 建立的 shadow DOM，symbol 内的 var() 生效。 */
-  --sg-ip-ink: #22302f;
-
   /* 社交图标品牌色（2026-11-18 第五轮，源站 iconfont 多色 sprite 观感）：
      作者卡底部社交行按平台名上色，昼夜各一档亮度；与文字对比度无关（装饰色）。 */
   --sg-brand-rss: #5f6563;
@@ -311,9 +306,6 @@ html.dark {
   --sg-icon-tag: #a8aeb2;
   --sg-icon-data: #9ba0a5;
   --sg-icon-mark: #d8a79e;
-
-  /* IconPark 描边夜档：浅墨，压在深底上仍能勾出图标轮廓（与蓝填充 #2F88FF 同显） */
-  --sg-ip-ink: #d8e0e2;
 
   /* 社交品牌色夜档：随淡墨提亮，GitHub 用纸白 */
   --sg-brand-rss: #a8aeb2;

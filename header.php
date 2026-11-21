@@ -36,6 +36,14 @@ $sgLoadingAvatar = sg_media((string) sg_opt('sgAvatarUrl', ''), sg_theme_url('di
     $this->options->title();
     ?></title>
 <link rel="icon" href="<?php echo sg_e(sg_theme_url('dist/favicon.svg')); ?>">
+<?php /* 阿里 iconfont 多色语义图标（对齐源站 fomal.cc）：4 个 async JS 向 body 首部注入
+        隐藏 <symbol>，每枚内嵌独立品牌色；页面用 <use href="#icon-*"> 引用（见 icons.php）。
+        symbol 常驻 DOM，PJAX 只换 #sg-main 不受影响；CDN 不可达时图标位留白但布局不塌。 */ ?>
+<link rel="dns-prefetch" href="https://at.alicdn.com">
+<script async src="https://at.alicdn.com/t/c/font_3586335_hsivh70x0fm.js"></script>
+<script async src="https://at.alicdn.com/t/c/font_3636804_glcijzcpx7f.js"></script>
+<script async src="https://at.alicdn.com/t/c/font_3612150_gkavascgf3n.js"></script>
+<script async src="https://at.alicdn.com/t/c/font_5239918_ta23cg9gek.js"></script>
 <script>
 (function () {
   var d = document.documentElement;
@@ -61,7 +69,8 @@ $sgLoadingAvatar = sg_media((string) sg_opt('sgAvatarUrl', ''), sg_theme_url('di
 </head>
 <body class="sg-body">
 <?php echo sg_asset_missing_notice(); ?>
-<?php /* 真彩色语义图标 sprite（2026-11-21）：隐藏 <symbol> 常驻 body，PJAX 只换 #sg-main 不受影响 */ ?>
+<?php /* 自绘真彩色图标（源站 iconfont 库无贴合 symbol 的 3 枚：精选星/关于我/定位）；
+        其余 14 枚语义图标由 head 里的 iconfont CDN 注入，此处不重复 */ ?>
 <?php echo sg_icon_sprite_defs(); ?>
 <a class="sg-skip" href="#sg-main">跳到正文</a>
 <?php if ($sgSplash) : ?>
