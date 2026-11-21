@@ -323,13 +323,13 @@ html.sg-ready .sg-reveal.is-revealed {
    lazyload 换装时移除 data-lazy-src，流光随之停止；加载完成另有 .is-lazy-in 淡入。 */
 img[data-lazy-src] {
   background:
-    linear-gradient(100deg, transparent 40%, var(--sg-shimmer, rgba(148, 163, 184, .22)) 50%, transparent 60%) no-repeat,
-    rgba(148, 163, 184, .12);
+    linear-gradient(100deg, transparent 40%, var(--sg-shimmer, rgba(107, 113, 109, .22)) 50%, transparent 60%) no-repeat,
+    rgba(107, 113, 109, .12);
   background-size: 220% 100%;
   animation: sg-shimmer 1.6s var(--sg-ease) infinite;
 }
 html.dark img[data-lazy-src] {
-  --sg-shimmer: rgba(142, 197, 201, .13);  /* 暗底上高光降一档，色相贴青瓷夜 */
+  --sg-shimmer: rgba(169, 192, 184, .13);  /* 暗底上高光降一档，墨分五色淡竹青 */
 }
 @keyframes sg-shimmer {
   from { background-position: 140% 0; }
