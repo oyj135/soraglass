@@ -1,13 +1,15 @@
-/* 友链页（2026-11-19 第六轮，改按源站 volantis 形态 —— _config.yml: flink_style: volantis，
-   themes/fomalhaut/source/css/_custom/custom.css:1013-1073 的覆盖为准）：
-   每张卡 = 16:10 站点截图（上） + 32px 圆头像 / 站名 1 行 / 简介 2 行（下）；
-   5 列（≤1200 四列 / ≤900 三列 / ≤600 两列）、18px 圆角、5px 内边距、1px 描边；
-   hover = 上浮 -4px + 卡级柔影/光晕 + 截图与头像 scale(1.05)（源站同款观感），
-   扫开动画与流光描边均已去掉。
+/* 友链页（2026-11-21 第三十八轮，改为「弯曲外部卡片」—— 对齐 B 站 BV1vkbtzbEmb /
+   OnlineTutorials 的 CSS Curve Outside Card）：
+   每张卡 = 站点截图铺满 + 底部信息面板（32px 圆头像 / 站名 / 简介）；
+   面板顶边用一条 lip 高的胶囊横条向上卷起（视频里 .imgBx::before 同款手法），
+   静止只露头像与站名，hover 面板从 26% 长到 66%，简介淡入、卡片上浮 + 背后柔光；
+   5 列（≤1200 四列 / ≤900 三列 / ≤600 两列）、正方形卡、20px 圆角、1px 描边；
+   触屏（hover: none）面板常开，简介不藏。
    外层保留一张玻璃卡托底：卡片直接压壁纸时简介只剩 2.4:1 对比。 */
 .sg-flink-list {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: start;
   gap: 1rem;
   padding: 1.25rem;
   border: 1px solid var(--sg-card-border);
@@ -20,79 +22,110 @@
 @media (max-width: 899.98px) { .sg-flink-list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 599.98px) { .sg-flink-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; padding: .75rem; } }
 
+/* 2026-11-21 第三十八轮：改为「弯曲外部卡片」，对齐 B 站 BV1vkbtzbEmb（OnlineTutorials）。
+   视频源码的手法：.card 定高、hover 长高；截图区 .imgBx 底部压一条 `bottom:-40px / height:80px /
+   border-radius:40px` 的白色胶囊，把信息面板的顶边从图片里「顶」出来，两端成圆头。
+   本主题不需要视频那种整卡长高（网格会跳），改成面板自己在卡内长高：
+   截图铺满整卡，面板 34% → 70%，图片被面板盖住的部分就是视频里「图片被压缩」的观感。 */
 .sg-flink-item {
+  --sg-flink-panel: clamp(3.6rem, 26%, 4.6rem);
+  --sg-flink-lip: 1.3rem;
+  --sg-flink-face: var(--sg-card);
+  position: relative;
   min-width: 0;
-  padding: 5px;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
   border: 1px solid var(--sg-card-border);
-  border-radius: 18px;
-  background-color: transparent;
+  border-radius: 20px;
+  background: var(--sg-chip);
   transition:
     transform var(--sg-dur-card) var(--sg-ease),
-    box-shadow var(--sg-dur-card) var(--sg-ease),
-    background-color var(--sg-dur-card) var(--sg-ease);
+    box-shadow var(--sg-dur-card) var(--sg-ease);
 }
 
-/* hover 三件套（2026-11-21 第三十七轮用户要求「卡片上浮 + 背后光晕 + 图片放大」）：
-   源站 `.site-card:hover .img` 的放大 + 四层柔影、`.mini-link:hover` 的 `scale(1.05)`，
-   合起来的观感就是整卡浮起、身后散开一圈柔光。
-   这里把这三件事显式做出来，并只落在卡片本身，避免和图上的柔影叠成双层脏影：
-     ① translateY(-4px) —— 上浮（.32s 与全站卡片同一曲线）；
-     ② 卡级双层柔影 + 主色光晕 —— 光晕用 accent 30% 收在 -4px，浅底不糊；
-     ③ 截图 / 头像 scale(1.05)，.6s 跟随上浮，不再用 2s 那种几乎感受不到的长缓动。 */
+/* 面板顶端的「唇边」= 视频里 .imgBx::before 的胶囊横条：
+   高 lip、上两角圆 lip、下边与面板顶边齐平，于是面板顶边看起来向上卷起 lip。
+   放在面板上方的图片区里，不侵占面板内容。 */
+.sg-flink-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--sg-flink-panel);
+  height: var(--sg-flink-lip);
+  border-radius: var(--sg-flink-lip) var(--sg-flink-lip) 0 0;
+  background: var(--sg-flink-face);
+  z-index: 3;
+  pointer-events: none;
+  box-shadow: 0 -1px 2px -1px rgba(23, 27, 29, .12);
+  box-shadow: 0 -1px 2px -1px rgba(23, 27, 29, .12);
+  transition: bottom var(--sg-dur-card) var(--sg-ease);
+}
+
+/* hover（2026-11-21 第三十七轮的三件套保留）：卡片上浮 + 背后柔光，
+   面板长高露出简介；图片不再额外缩放 —— 视频里主体是被面板压住，不是放大。 */
 .sg-flink-item:is(:hover, :focus-within) {
+  --sg-flink-panel: clamp(8.4rem, 66%, 11rem);
   transform: translateY(-4px);
-  background-color: color-mix(in srgb, var(--sg-card) 92%, transparent);
   box-shadow:
     0 16px 34px -14px rgba(23, 27, 29, .34),
     0 8px 18px -10px rgba(23, 27, 29, .20),
     0 0 26px -4px color-mix(in srgb, var(--sg-accent) 30%, transparent);
 }
 
-/* 夜间：黑底上黑色投影几乎不可见，「浮起」只能靠位置差 + 一圈冷光交代，
-   所以卡面提亮一档（48/55/58），光晕改用 accent-soft 40% 环绕 34px。 */
+/* 夜间：黑底吃暗影，靠冷光晕交代浮起；面板跟着换深色卡面 */
 html.dark .sg-flink-item:is(:hover, :focus-within) {
-  background-color: rgba(48, 55, 58, .95);
   box-shadow:
     0 24px 46px -16px rgba(0, 0, 0, .85),
     0 0 0 1px color-mix(in srgb, var(--sg-accent-soft) 16%, transparent),
     0 0 34px -6px color-mix(in srgb, var(--sg-accent-soft) 40%, transparent);
 }
 
+/* 截图失败被 onerror 摘掉时，卡片靠 min-height 撑住，面板铺满（:has 兼容性不稳，改由 PHP 保留占位） */
+
 .sg-flink-item a {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+  position: absolute;
+  inset: 0;
+  display: block;
   color: var(--sg-text);
   text-decoration: none;
 }
 
-/* 截图：源站 .site-card .img —— 16:10、18px 圆角；
-   hover 放大从 1.02 提到 1.05（源站 mini-link 档位），缓动压到 .6s 跟手上浮。 */
+/* 截图：铺满整卡（圆角由卡片裁），不再是 16:10 独立块；
+   hover 不缩放，主角让给从底部长高的信息面板。 */
 .sg-flink-shot {
+  position: absolute;
+  inset: 0;
   display: block;
   overflow: hidden;
-  aspect-ratio: 16 / 10;
-  border-radius: 18px;
   background: var(--sg-chip);
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, .2);
 }
-.sg-flink-shot img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .6s var(--sg-ease); }
-.sg-flink-item:is(:hover, :focus-within) .sg-flink-shot img { transform: scale(1.05); }
+.sg-flink-shot img { display: block; width: 100%; height: 100%; object-fit: cover; }
 
-/* 头像列跨站名/简介两行（源站是 float:left 的 32px 圆头像 + 右侧两行） */
+/* 信息面板：贴底、定高、裁切；高度由 --sg-flink-panel 驱动，与唇边同步过渡 */
 .sg-flink-info {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  height: var(--sg-flink-panel);
   display: grid;
   grid-template-columns: 2rem minmax(0, 1fr);
-  column-gap: .5rem;
-  row-gap: 1px;
-  align-items: start;
-  padding: .5rem .25rem .25rem;
+  grid-template-rows: 2rem auto;
+  column-gap: .55rem;
+  align-content: start;
+  padding: .7rem .9rem .45rem;
+  overflow: hidden;
+  background: var(--sg-flink-face);
+  transition:
+    height var(--sg-dur-card) var(--sg-ease),
+    padding-bottom var(--sg-dur-card) var(--sg-ease);
 }
 .sg-flink-icon {
-  grid-row: 1 / 3;
+  grid-area: 1 / 1 / 2 / 2;
   width: 2rem;
   height: 2rem;
-  margin-top: 2px;
   overflow: hidden;
   border-radius: 50%;
   background: var(--sg-chip);
@@ -101,6 +134,8 @@ html.dark .sg-flink-item:is(:hover, :focus-within) {
 .sg-flink-item:is(:hover, :focus-within) .sg-flink-icon img { transform: scale(1.05); }
 
 .sg-flink-name {
+  grid-area: 1 / 2 / 2 / 3;
+  align-self: center;
   font-weight: 600;
   font-size: .95rem;
   line-height: 1.35;
@@ -109,22 +144,44 @@ html.dark .sg-flink-item:is(:hover, :focus-within) {
   text-overflow: ellipsis;
   transition: color .3s;
 }
+/* 简介静止藏在面板裁切里，hover 面板长高时淡入（视频里那段 p 就是这样露出来的） */
 .sg-flink-desc {
+  grid-area: 2 / 1 / 3 / 3;
+  margin-top: .5rem;
   font-size: .78rem;
-  line-height: 1.35;
+  line-height: 1.45;
   color: var(--sg-muted);
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   overflow: hidden;
   word-break: break-word;
-  transition: color .3s;
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    color .3s,
+    opacity .3s var(--sg-ease) .06s,
+    transform .3s var(--sg-ease) .06s;
 }
+.sg-flink-item:is(:hover, :focus-within) .sg-flink-info { padding-bottom: 1rem; }
+.sg-flink-item:is(:hover, :focus-within) .sg-flink-desc { opacity: 1; transform: none; }
 /* 悬停文字：源站 light `#444/#666`、dark `#ddd/#aaa → #eee/#ccc`，
    即「标题基本不变、简介从次要色提到正文色」，不换色相。 */
 .sg-flink-item:is(:hover, :focus-within) .sg-flink-name { color: var(--sg-text); }
 .sg-flink-item:is(:hover, :focus-within) .sg-flink-desc { color: var(--sg-text); }
+
+/* 触屏没有 hover：面板常开，简介不再藏起来，比例也放高一点保证可读 */
+@media (hover: none) {
+  .sg-flink-item { --sg-flink-panel: 46%; aspect-ratio: 4 / 5; }
+  .sg-flink-desc { opacity: 1; transform: none; }
+}
+
+/* 触屏没有 hover：面板常开，简介不再藏起来，比例也放高一点保证可读 */
+@media (hover: none) {
+  .sg-flink-item { --sg-flink-panel: 46%; aspect-ratio: 4 / 5; }
+  .sg-flink-desc { opacity: 1; transform: none; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .sg-flink-item,
@@ -132,9 +189,12 @@ html.dark .sg-flink-item:is(:hover, :focus-within) {
   .sg-flink-shot img,
   .sg-flink-icon img,
   .sg-flink-name,
-  .sg-flink-desc { transition: none; }
+  .sg-flink-desc,
+  .sg-flink-item::before,
+  .sg-flink-info { transition: none; }
   /* 降级不只是关动画：位移与缩放都要归零，否则会瞬间跳一下 */
   .sg-flink-item:is(:hover, :focus-within),
   .sg-flink-item:is(:hover, :focus-within) .sg-flink-shot img,
   .sg-flink-item:is(:hover, :focus-within) .sg-flink-icon img { transform: none; }
+  .sg-flink-desc { transform: none; }
 }

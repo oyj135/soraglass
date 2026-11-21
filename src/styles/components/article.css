@@ -511,12 +511,14 @@ html.dark .sg-filter-btn.is-active {
      ① 头像外面套一圈渐变描边（容器当环，img 缩 2px 进去）；
      ② 卡面右上角铺一层所用语言的色晕（7% 透明），三张卡并排时颜色各不相同。 */
 .sg-project {
+  --sg-proj-band: 4.6rem;
+  --sg-proj-lip: 2rem;
   position: relative;
   display: flex;
   flex-direction: column;
   gap: .8125rem;
   overflow: hidden;
-  padding: 1.25rem 1.25rem 1rem;
+  padding: calc(var(--sg-proj-band) + .9rem) 1.25rem 1rem;
   background-image:
     linear-gradient(158deg, var(--sg-proj-face-a), var(--sg-proj-face-b) 62%),
     radial-gradient(120% 90% at 100% 100%, var(--sg-proj-tint), transparent 62%),
@@ -526,11 +528,47 @@ html.dark .sg-filter-btn.is-active {
     transform var(--sg-dur-card) var(--sg-ease),
     box-shadow var(--sg-dur-card) var(--sg-ease),
     border-color var(--sg-dur-card) var(--sg-ease),
+    padding-top var(--sg-dur-card) var(--sg-ease),
     background-color 1s;
 }
 
+/* 顶部「弯曲头带」（2026-11-21 第三十八轮，对齐 B 站弯曲外部卡）：
+   项目卡没有站点截图，用语言色的渐变头带当「图片区」，底边两端收成圆角，
+   与下面内容面板形成视频里那条外弯交界；hover 时头带缩短，面板相对长高。
+   头带是 ::before（::after 已被悬停旋转描边占用），不新增 DOM。 */
+.sg-project::before {
+  content: attr(data-initial);
+  position: absolute;
+  inset: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: var(--sg-proj-band);
+  padding-right: 1.4rem;
+  border-radius: 0 0 var(--sg-proj-lip) var(--sg-proj-lip);
+  background:
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--sg-lang, var(--sg-accent)) 56%, transparent),
+      color-mix(in srgb, var(--sg-lang, var(--sg-accent)) 26%, transparent));
+  font-size: 2.2rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -.04em;
+  color: color-mix(in srgb, var(--sg-lang, var(--sg-accent)) 38%, transparent);
+  z-index: 0;
+  pointer-events: none;
+  transition: height var(--sg-dur-card) var(--sg-ease);
+}
+
+/* 内容压在头带之上（否则 z-index:0 的绝对层会盖住文字） */
+.sg-project-top,
+.sg-project-desc,
+.sg-project-facts,
+.sg-project .sg-tags,
+.sg-project-foot { position: relative; z-index: 1; }
+
 @media (min-width: 768px) {
-  .sg-project { gap: .9375rem; padding: 1.375rem 1.375rem 1.0625rem; }
+  .sg-project { gap: .9375rem; padding: calc(var(--sg-proj-band) + 1rem) 1.375rem 1.0625rem; }
 }
 
 /* 悬浮三件套（2026-11-21 第三十七轮用户要求「卡片上浮 + 背后光晕 + 图片放大」）：
@@ -538,6 +576,7 @@ html.dark .sg-filter-btn.is-active {
    视觉主体（这里是头像，项目卡没有截图）scale(1.05)。
    卡面已有自己的渐变底，上浮后不再叠任何边框变色，避免又变成「自造高亮」。 */
 .sg-project:is(:hover, :focus-within) {
+  --sg-proj-band: 3.1rem;
   transform: translateY(-4px);
   box-shadow:
     0 18px 38px -14px rgba(23, 27, 29, .34),

@@ -81,7 +81,7 @@ $sgHead = [
             }));
         }
         ?>
-    <article class="sg-glass sg-project" data-sg-filter-item data-keywords="<?php echo sg_e($sgKeywords); ?>"<?php if ($sgLang !== '') : ?> style="--sg-lang: <?php echo sg_e(sg_lang_color($sgLang)); ?>"<?php endif; ?>>
+    <article class="sg-glass sg-project" data-sg-filter-item data-keywords="<?php echo sg_e($sgKeywords); ?>" data-initial="<?php echo sg_e(mb_substr($sgName, 0, 1, 'UTF-8')); ?>"<?php if ($sgLang !== '') : ?> style="--sg-lang: <?php echo sg_e(sg_lang_color($sgLang)); ?>"<?php endif; ?>>
       <?php if ($sgUrl !== '') : ?>
       <a class="sg-project-link" href="<?php echo sg_e($sgUrl); ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php echo sg_e($sgName); ?>"></a>
       <?php endif; ?>

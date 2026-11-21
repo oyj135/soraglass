@@ -47,8 +47,9 @@ $sgFriends = array_map(static function (array $row) use ($sgString): array {
     <?php foreach ($sgFriends as $sgFriend) : ?>
     <div class="sg-flink-item">
       <a href="<?php echo sg_e($sgFriend['url']); ?>" target="_blank" rel="noopener noreferrer" title="<?php echo sg_e($sgFriend['name']); ?>" aria-label="<?php echo sg_e('访问 ' . $sgFriend['name'] . '（新窗口）'); ?>">
-        <?php /* 截图失败（thum.io 超时 / 站点拒绝）时整块摘掉，卡片退回文字卡，不破图 */ ?>
-        <span class="sg-flink-shot"><img src="<?php echo sg_e($sgFriend['siteshot']); ?>" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></span>
+        <?php /* 截图失败（thum.io 超时 / 站点拒绝）时只隐藏图片，保留占位层 ——
+                   弯曲卡的几何靠这层撑住，摘掉节点会让卡片塌成文字条 */ ?>
+        <span class="sg-flink-shot"><img src="<?php echo sg_e($sgFriend['siteshot']); ?>" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.style.display='none'"></span>
         <span class="sg-flink-info">
           <span class="sg-flink-icon"><img src="<?php echo sg_e($sgFriend['avatar']); ?>" alt="<?php echo sg_e($sgFriend['name']); ?>" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='<?php echo sg_e(sg_theme_url('dist/img/avatar.svg')); ?>'"></span>
           <span class="sg-flink-name"><?php echo sg_e($sgFriend['name']); ?></span>
