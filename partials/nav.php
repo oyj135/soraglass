@@ -87,25 +87,27 @@ $sgNavHints = [
 
 /* 导航图标（2026-11-17，对齐源站彩色图标的观感）：每个入口一个专属色，
    用内联 color 控制（sg_icon 是 stroke:currentColor）。 */
+/* 导航图标（2026-11-21 定档）：改用源站 iconfont CDN 多色 symbol（header.php 的 4 个 async JS 注入），
+   每枚内嵌独立品牌色、真彩色质感，与全站语义图标同源；原先是 sg_icon + 内联色（假彩色）。 */
 $sgNavIconMap = [
-    'archives'  => ['archive', '#f5b942'],
-    'timeline'  => ['book-open', '#36cfc9'],
-    'notes'     => ['message', '#4cc38a'],
-    'chatter'   => ['message', '#4cc38a'],
-    'moments'   => ['message', '#4cc38a'],
-    'music'     => ['music', '#5ba0f0'],
-    'photowall' => ['image', '#b37feb'],
-    'gallery'   => ['image', '#b37feb'],
-    'friends'   => ['users', '#ff85c0'],
-    'about'     => ['user', '#69c0ff'],
-    'projects'  => ['code', '#ffa940'],
+    'archives'  => 'icon-guidang1',
+    'timeline'  => 'icon--article',
+    'notes'     => 'icon-liuyan',
+    'chatter'   => 'icon-liuyan',
+    'moments'   => 'icon-liuyan',
+    'music'     => 'icon-yinle',
+    'photowall' => 'icon-tupian',
+    'gallery'   => 'icon-tupian',
+    'friends'   => 'icon-pengyouquan',
+    'about'     => 'icon-shejiaoxinxi',
+    'projects'  => 'icon-codeoptimization',
 ];
 $sgNavIcon = static function (string $sgSlug) use ($sgNavIconMap): string {
-    $sgEntry = $sgNavIconMap[$sgSlug] ?? null;
-    if ($sgEntry === null) {
+    $sgSymbol = $sgNavIconMap[$sgSlug] ?? null;
+    if ($sgSymbol === null) {
         return '';
     }
-    return '<span class="sg-nav-ico" style="color:' . $sgEntry[1] . '">' . sg_icon($sgEntry[0]) . '</span>';
+    return '<span class="sg-nav-ico"><svg aria-hidden="true"><use href="#' . $sgSymbol . '"></use></svg></span>';
 };
 
 /* P1-11：导航分组——条目过多时尾部收进「更多」下拉，避免顶栏溢出换行。
@@ -133,7 +135,7 @@ foreach ($sgNavMore as $sgMorePage) {
        文字由 JS 填充（当前页标题），点击回到顶部；悬停露出「回到顶部」提示。 */ ?>
     <a class="sg-nav-page" data-sg-nav-page href="#" data-tip="回到顶部" hidden></a>
     <nav class="sg-nav-links" aria-label="主导航">
-      <a class="sg-nav-link<?php echo $sgActive === 'index' ? ' is-active' : ''; ?>"<?php echo $sgActive === 'index' ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgHome); ?>"><span class="sg-nav-ico" style="color:#ff6b6b"><?php echo sg_icon('home'); ?></span>首页<?php if ($sgActive === 'index') : ?><span class="sg-nav-dot"></span><?php endif; ?></a>
+      <a class="sg-nav-link<?php echo $sgActive === 'index' ? ' is-active' : ''; ?>"<?php echo $sgActive === 'index' ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgHome); ?>"><span class="sg-nav-ico"><svg aria-hidden="true"><use href="#icon-home"></use></svg></span>首页<?php if ($sgActive === 'index') : ?><span class="sg-nav-dot"></span><?php endif; ?></a>
       <?php foreach ($sgNavPrimary as $sgPage) : ?>
       <a class="sg-nav-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>"<?php echo $sgActiveKey === $sgPage['slug'] ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgPage['url']); ?>"<?php echo isset($sgNavHints[$sgPage['slug']]) ? ' title="' . sg_e($sgNavHints[$sgPage['slug']]) . '"' : ''; ?>><?php echo $sgNavIcon($sgPage['slug']); ?><?php echo sg_e($sgPage['title']); ?><?php if ($sgActiveKey === $sgPage['slug']) : ?><span class="sg-nav-dot"></span><?php endif; ?></a>
       <?php endforeach; ?>
@@ -165,7 +167,7 @@ foreach ($sgNavMore as $sgMorePage) {
       <h2 id="sg-sheet-title">站点导航</h2>
       <button class="sg-sheet-close" type="button" data-sg-sheet-close aria-label="关闭导航" autofocus>关闭</button>
     </div>
-    <a class="sg-sheet-link<?php echo $sgActive === 'index' ? ' is-active' : ''; ?>"<?php echo $sgActive === 'index' ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgHome); ?>"><span class="sg-nav-ico" style="color:#ff6b6b"><?php echo sg_icon('home'); ?></span>首页</a>
+    <a class="sg-sheet-link<?php echo $sgActive === 'index' ? ' is-active' : ''; ?>"<?php echo $sgActive === 'index' ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgHome); ?>"><span class="sg-nav-ico"><svg aria-hidden="true"><use href="#icon-home"></use></svg></span>首页</a>
     <?php foreach ($sgNavItems as $sgPage) : ?>
     <a class="sg-sheet-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>"<?php echo $sgActiveKey === $sgPage['slug'] ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgPage['url']); ?>"<?php echo isset($sgNavHints[$sgPage['slug']]) ? ' title="' . sg_e($sgNavHints[$sgPage['slug']]) . '"' : ''; ?>><?php echo $sgNavIcon($sgPage['slug']); ?><?php echo sg_e($sgPage['title']); ?></a>
     <?php endforeach; ?>

@@ -190,7 +190,7 @@ html.dark .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent-ink);
 .sg-nav-more-link, .sg-sheet-link { display: flex; align-items: center; gap: .45rem; }
 /* 下拉条目横排后的尺寸/hover/选中态统一在 editorial.css 的「更多」下拉段维护 */
 .sg-sheet-link { padding: .45rem .7rem; margin-inline: -.7rem; border-radius: 10px; transition: background-color .25s linear, color .25s linear, opacity .25s linear; }
-.sg-sheet-link:is(:hover, :focus-visible) { background: var(--sg-accent); color: #fff; opacity: 1; }
+.sg-sheet-link:is(:hover, :focus-visible) { background: #b0473a; color: #fff; opacity: 1; }
 /* 导航图标彩色（2026-11-17，对齐源站彩色图标的观感）：每个入口一个专属色，
    与卡片段色一致（日期黄/分类橙/标签绿的同族扩展）。 */
 .sg-nav-ico { flex: none; width: 1em; height: 1em; display: inline-flex; }
@@ -346,7 +346,7 @@ html.dark .sg-sheet-panel {
 .sg-sheet-link { display: inline-flex; align-items: center; gap: .5rem; font-size: 1rem; font-weight: 700; text-align: left; opacity: .85; }
 .sg-sheet-link svg { width: 1.05rem; height: 1.05rem; }
 .sg-sheet-link:hover { opacity: 1; }
-.sg-sheet-link.is-active { color: var(--sg-accent-ink); opacity: 1; }
+.sg-sheet-link.is-active { color: #fff; font-weight: 700; background: #9d3b2f; opacity: 1; }
 .sg-sheet-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .5rem; }
 .sg-sheet-head h2 { margin: 0; font-size: 1rem; }
 .sg-sheet-close { min-width: 2.75rem; min-height: 2.75rem; padding: .5rem; border-radius: var(--sg-radius-inner); color: var(--sg-text); background: var(--sg-chip); cursor: pointer; }
@@ -399,7 +399,9 @@ html.dark .sg-nav .sg-nav-link.is-active:is(:hover, :focus-visible),
 html.dark .sg-nav .sg-nav-more.is-active .sg-nav-more-btn { background: #36333b; }
 /* 下拉面板是实底卡，文字回落正文色，不能继承导航白字 */
 html:not(.dark) .sg-nav .sg-nav-more-menu { color: var(--sg-text); }
+/* 下拉/抽屉条目 hover 统一朱批实底（与 editorial.css 的 .sg-nav-more-link 同款，昼夜一致）；
+   原日间用 --sg-filter-active 玄墨实底，与选中态深朱不区分，夜间该值又与卡面同色。 */
 html:not(.dark) .sg-nav :is(.sg-nav-more-link, .sg-sheet-link):is(:hover, :focus-visible) {
-  background: var(--sg-filter-active);
+  background: #b0473a;
   color: #fff;
 }

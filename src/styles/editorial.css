@@ -782,16 +782,21 @@ html.sg-readmode [data-sg-readmode-toggle] { color: var(--sg-accent-ink); border
   transition: color var(--sg-dur-fast) var(--sg-ease), background var(--sg-dur-fast) var(--sg-ease);
 }
 
+/* 悬停/选中统一朱批实底 + 白字（2026-11-21 定档，用户选「朱批实底+白字」）：
+   原 hover 走 accent 18% 透明底，夜间 accent 与下拉卡面同为 #36333b，等于零反馈；
+   原 active 夜间是深字 #04171b 压深底 #36333b，直接隐身。两档都改实底昼夜同款。
+   夜档 --sg-warm 是淡朱（为当文字用），压白字不足，故这里锁深朱：
+   .is-active 深朱 #9d3b2f（白字 7:1）；hover 中朱 #b0473a（白字 5.5:1）。 */
 .sg-nav-more-link:is(:hover, :focus-visible) {
-  color: var(--sg-accent-ink);
-  background: color-mix(in srgb, var(--sg-accent) 18%, transparent);
+  color: #fff;
+  background: #b0473a;
 }
 
 /* 选中项（2026-11-16）：实底高对比；横排后强调条改压底边（竖排左侧条在行内会误读成分隔线） */
 .sg-nav-more-link.is-active {
   color: #fff;
   font-weight: 700;
-  background: var(--sg-accent-deep);
+  background: #9d3b2f;
 }
 .sg-nav-more-link.is-active::before {
   content: '';
@@ -801,10 +806,10 @@ html.sg-readmode [data-sg-readmode-toggle] { color: var(--sg-accent-ink); border
   width: 55%;
   height: 3px;
   border-radius: 2px;
-  background: var(--sg-accent-soft);
+  background: #fff;
   transform: translateX(-50%);
 }
-html.dark .sg-nav-more-link.is-active { color: #04171b; background: var(--sg-accent); }
+html.dark .sg-nav-more-link.is-active { color: #fff; background: #9d3b2f; }
 
 @media (hover: none) {
 }

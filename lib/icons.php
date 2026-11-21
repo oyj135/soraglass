@@ -148,6 +148,16 @@ function sg_icon_color(string $name, string $class = ''): string
  */
 function sg_social_svg(string $name): string
 {
+    /* 源站 iconfont 多色 symbol（2026-11-21 定档）：这些图标由 header.php 的 4 个 async JS
+       注入，每枚内嵌独立品牌色、真彩色质感，与源站一致。twitter 源站库无 symbol，回落自绘。 */
+    static $cdnNames = [
+        'rss' => 'icon-RSS', 'github' => 'icon-github', 'mail' => 'icon-youjian',
+        'wechat' => 'icon-weixin', 'qq' => 'icon-QQ', 'bilibili' => 'icon-bilibili',
+        'leetcode' => 'icon-leetcode',
+    ];
+    if (isset($cdnNames[$name])) {
+        return '<svg class="sg-si" aria-hidden="true"><use href="#' . $cdnNames[$name] . '"></use></svg>';
+    }
     $glyphs = [
         'wechat'   => '<path d="M9.6 3.3c-3.7 0-6.7 2.9-6.7 6.5 0 2 .9 3.8 2.4 5L4.6 17.9l3.3-1.6c.5.1 1.1.2 1.7.2 3.7 0 6.7-2.9 6.7-6.7s-3-6.5-6.7-6.5z" fill="#2DC100"/><circle cx="7.4" cy="8.7" r="1.05" fill="#fff"/><circle cx="11.8" cy="8.7" r="1.05" fill="#fff"/><path d="M14 19.6l-.8 2.3 2.6-1.3c.3 0 .7.1 1.1.1 2.6 0 4.8-1.8 4.8-4.1s-2.2-4.1-4.8-4.1-4.8 1.8-4.8 4.1c0 1.2.6 2.3 1.5 3z" fill="#9BE45C" stroke="#fff" stroke-width="1.1" stroke-linejoin="round"/><circle cx="15.8" cy="14.9" r=".8" fill="#fff"/><circle cx="19.2" cy="14.9" r=".8" fill="#fff"/>',
         'qq'       => '<path d="M12 2.4a6.4 6.4 0 0 0-6.4 6.4c0 1.2.2 2.3.6 3.3-1 1.8-2.1 4.5-2.1 6.4 0 1.7 1 2.4 1.9 2.4 1.4 0 2.4-1.2 3-2.8h6c.6 1.6 1.6 2.8 3 2.8.9 0 1.9-.7 1.9-2.4 0-1.9-1.1-4.6-2.1-6.4.4-1 .6-2.1.6-3.3A6.4 6.4 0 0 0 12 2.4z" fill="#12B7F5"/><ellipse cx="9.8" cy="8.1" rx="2.3" ry="2.7" fill="#fff"/><ellipse cx="14.2" cy="8.1" rx="2.3" ry="2.7" fill="#fff"/><circle cx="9.8" cy="7.9" r="1.15" fill="#182B44"/><circle cx="14.2" cy="7.9" r="1.15" fill="#182B44"/><path d="M10.4 10.6h3.2L12 12.6z" fill="#F5A623"/><ellipse cx="12" cy="16.4" rx="3.3" ry="2.8" fill="#fff"/>',
