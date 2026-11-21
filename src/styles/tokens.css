@@ -235,17 +235,27 @@
   --sg-heat-2: #556b64;
   --sg-heat-3: #7a938c;
   --sg-heat-4: #a9c0b8;
+
+  /* 图片占位面 / 骨架流光（2026-11-21 墨分五色）：统一所有未加载封面、
+     歌词波形默认条与 lazyload 流光，组件层不再写死 Tailwind slate 灰蓝。 */
+  --sg-placeholder: rgba(107, 113, 109, .15);
+  --sg-placeholder-strong: rgba(107, 113, 109, .90);
+  --sg-shimmer: rgba(107, 113, 109, .22);
 }
 
 html.dark {
   color-scheme: dark;
 
-  /* 「青瓷夜 · 通用底」（2026-11-18）：中性深灰蓝底（H210 低饱和），
-     不跟任何壁纸取色 —— 换壁纸只换图，配色恒定；签名色昼夜同走青瓷族，
-     夜间只调亮度档（填充压深保白字、前景提亮保对比）。
-     表面四级阶梯：page(16,20,24) → panel(22,27,32) → card(24,29,34) → reading(26,31,37)，
-     卡面质感仍由 --sg-card-image 顶光渐变 + --sg-card-sheen 内高光提供。
-     对比度实测（暗卡 #181d22）：填充白字 7.09 / ink 8.89 / deep 12.4 / soft 6.05 / faint 6.87。 */
+  /* 夜档占位面走淡竹青，避免冷蓝灰压在焦墨面上发脏 */
+  --sg-placeholder: rgba(169, 192, 184, .12);
+  --sg-placeholder-strong: rgba(169, 192, 184, .82);
+  --sg-shimmer: rgba(169, 192, 184, .13);
+
+  /* 「墨分五色 · 焦墨夜」（2026-11-21，替掉 2026-11-18 的「青瓷夜」）：
+     page → panel → card → reading → card-strong 走焦/浓/重/淡/清五阶墨，不用纯黑，
+     靠 --sg-card-border 1px 描边分层；不跟壁纸取色，换壁纸只换图。
+     竹青 accent 昼夜分档，accent-ink / accent-deep 在暗底必须提亮。
+     暗卡上的填充白字与各级文字实测 ≥6:1，改暗色 token 后需重测这条底线。 */
   --sg-page: #171b1d;                        /* 中性深灰蓝底 */
   --sg-card: rgba(34, 39, 42, .98);          /* 卡面：比页面底亮一档，卡感成立 */
   --sg-card-strong: rgba(42, 48, 51, .98);

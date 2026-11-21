@@ -73,7 +73,7 @@ html.dark .sg-nav.is-front .sg-nav-link::after { background: var(--sg-accent-ink
 @media (prefers-reduced-motion: reduce), (pointer: coarse), (max-width: 899px) {
   .sg-front::before { background: rgba(0, 0, 0, .42); }
 }
-/* 首屏文案层；日间由瓷白底承托，夜间保留霓虹文字。 */
+/* 首屏文案层；日间深墨字 + 浅色提亮遮罩，夜间宣纸白 + 低饱和竹青霓虹。 */
 .sg-front-inner {
   position: relative;
   z-index: 1;
@@ -170,13 +170,10 @@ html.dark .sg-front-title, html.dark .sg-front-sub { text-shadow: none; animatio
 .sg-front-next svg { width: 1.75rem; height: 1.75rem; animation: sg-front-bob 2s var(--sg-ease) infinite; }
 @keyframes sg-front-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
 @media (prefers-reduced-motion: reduce) { .sg-front-next svg { animation: none; } }
-/* 2026-11-19 撤销日间「瓷白阅读层」（用户反馈：白卡把首屏壁纸整块挡住）：
-   去掉 ::before 的 content:none 与 .sg-front-inner 的白底/描边/内边距，
-   遮罩回到基础规则（rgba(0,0,0,.42)，滚动视差 .30→.50，夜间同值），
-   文字与控件沿用夜间那套白字体系，只补一层轻投影兜底可读性。 */
+/* 历史（2026-11-19）：撤销日间「瓷白阅读层」。原补丁给日间标题补的黑色轻投影
+   属于白字时代配方，2026-11-21「墨分五色」整改后日间统一深墨字 + 零投影
+   （见本文件末尾的日间首屏块），故此处只保留排版规则。 */
 html:not(.dark) .sg-front-title { text-wrap: balance; }
-html:not(.dark) .sg-front-title,
-html:not(.dark) .sg-front-sub { text-shadow: 0 2px 24px rgba(0, 0, 0, .5); }
 
 /* ---------- 正文两栏（74% : 26%） ---------- */
 /* 首屏 100vh 与正文之间留呼吸（2026-11-18 视觉改造，源站 .layout padding-top 40px） */

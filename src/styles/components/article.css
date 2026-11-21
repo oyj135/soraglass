@@ -738,7 +738,7 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
 .sg-album-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .5rem; margin-bottom: 1rem; }
 .sg-album-head h2 { font-size: 1.35rem; }
 .sg-album-head span { font-size: .8rem; color: var(--sg-muted); }
-.sg-photo { position: relative; display: block; overflow: hidden; border-radius: var(--sg-radius-outer); aspect-ratio: 4 / 3; background: rgba(148, 163, 184, .15); }
+.sg-photo { position: relative; display: block; overflow: hidden; border-radius: var(--sg-radius-outer); aspect-ratio: 4 / 3; background: var(--sg-placeholder); }
 .sg-photo img { width: 100%; height: 100%; object-fit: cover; transition: transform var(--sg-dur-card) var(--sg-ease); }
 .sg-photo:hover img { transform: scale(var(--sg-thumb-zoom)); }
 .sg-photo-cap { position: absolute; inset: auto 0 0; padding: 1.25rem .75rem .6rem; background: linear-gradient(transparent, rgba(0, 0, 0, .70)); color: #fff; font-size: .75rem; opacity: 0; transition: opacity .3s; }
@@ -1054,7 +1054,7 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
   display: block;
   overflow: hidden;
   border-radius: var(--sg-radius-inner);
-  background: rgba(148, 163, 184, .15);
+  background: var(--sg-placeholder);
   aspect-ratio: 4 / 3;
 }
 
@@ -1138,7 +1138,7 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
   overflow: hidden;
   border-radius: var(--sg-radius-inner);
   aspect-ratio: 16 / 9;
-  background: rgba(148, 163, 184, .15);
+  background: var(--sg-placeholder);
 }
 
 .sg-note-thumb img {
@@ -1189,7 +1189,7 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
     transform var(--sg-dur-card) var(--sg-ease),
     box-shadow var(--sg-dur-card) var(--sg-ease);
 }
-.sg-thumb { display: block; overflow: hidden; aspect-ratio: 16 / 9; background: rgba(148, 163, 184, .15); }
+.sg-thumb { display: block; overflow: hidden; aspect-ratio: 16 / 9; background: var(--sg-placeholder); }
 .sg-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform var(--sg-dur-card) var(--sg-ease); }
 .sg-post-card:hover .sg-thumb img { transform: scale(var(--sg-thumb-zoom)); }
 
@@ -1248,7 +1248,7 @@ html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6)
   flex: none;
   height: 12.5rem;              /* 200px，与 Fomalhaut 封面同高 */
   overflow: hidden;
-  background: rgba(148, 163, 184, .15);
+  background: var(--sg-placeholder);
   border-bottom: 1px solid var(--sg-reading-border);
 }
 .sg-feature-media img {

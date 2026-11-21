@@ -850,7 +850,7 @@ html.dark .sg-archive-toolbar .sg-archive-tags .sg-filter-btn.is-active {
     transform var(--sg-dur-card) var(--sg-ease),
     box-shadow var(--sg-dur-card) var(--sg-ease);
 }
-.sg-archive-cover { display: block; aspect-ratio: 16 / 9; overflow: hidden; background: rgba(148, 163, 184, .15); }
+.sg-archive-cover { display: block; aspect-ratio: 16 / 9; overflow: hidden; background: var(--sg-placeholder); }
 .sg-archive-cover img { width: 100%; height: 100%; object-fit: cover; transition: transform var(--sg-dur-card) var(--sg-ease); }
 .sg-archive-card:hover .sg-archive-cover img { transform: scale(var(--sg-thumb-zoom)); }
 
