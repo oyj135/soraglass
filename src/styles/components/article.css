@@ -533,13 +533,14 @@ html.dark .sg-filter-btn.is-active {
   .sg-project { gap: .9375rem; padding: 1.375rem 1.375rem 1.0625rem; }
 }
 
-/* 悬浮：源站 .site-card:hover 的「多层柔影 + 主体 1.02 缓放」，项目卡用头像当主体 */
-.sg-project:hover,
-.sg-project:focus-within {
-  border-color: var(--sg-proj-border-hot);
+/* 悬浮同步源站 `.site-card:hover`（2026-11-21 第三十六轮）：
+   源站卡片本体不做位移动画、也不换边框色，只给视觉主体补那组四层柔影
+   （`.site-card:hover .img`）。项目卡没有截图，主体就是卡面，所以柔影挂卡片；
+   内部头像仍走源站同款 `scale(1.02)` + 2s 长缓动。
+   原来这里的 translateY(-2px) + 边框提亮 + 头像环形光都是自造，已删。 */
+.sg-project:is(:hover, :focus-within) {
   box-shadow: 0 4px 8px rgba(0, 0, 0, .1), 0 2px 4px rgba(0, 0, 0, .1),
     0 4px 8px rgba(0, 0, 0, .1), 0 8px 16px rgba(0, 0, 0, .1);
-  transform: translateY(-2px);
 }
 
 /* 身份行：头像 + 项目名 + 徽章。名字用 h3，和卡片的字号层级绑在一起 */
@@ -574,10 +575,6 @@ html.dark .sg-filter-btn.is-active {
   transition: transform 2s ease;
 }
 .sg-project:is(:hover, :focus-within) .sg-project-avatar img { transform: scale(1.02); }
-
-.sg-project:hover .sg-project-avatar {
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sg-accent) 14%, transparent);
-}
 
 .sg-project-badge {
   flex: none;
@@ -720,6 +717,9 @@ html.dark .sg-project-src { color: var(--sg-indigo-soft); }
   text-shadow: var(--sg-wall-halo);
 }
 .sg-projects-source svg { display: inline-block; width: .95rem; height: .95rem; margin-right: .35rem; vertical-align: -.15em; }
+/* 夜间与页标题同色（2026-11-21 第三十六轮用户要求「这行小字为白色同标题」）：
+   原来继承 --sg-wall-ink（夜间是 --sg-muted 灰），比标题的白暗一大截。 */
+html.dark .sg-projects-source { color: var(--sg-wall-white-ink); }
 html:not(.dark) .sg-projects-source {
   width: fit-content;
   max-width: 100%;

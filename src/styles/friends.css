@@ -25,12 +25,14 @@
   border: 1px solid var(--sg-card-border);
   border-radius: 18px;
   background-color: transparent;
-  transition: background-color .3s var(--sg-ease), border-color .3s var(--sg-ease), box-shadow .3s var(--sg-ease);
 }
-.sg-flink-item:is(:hover, :focus-within) {
-  background-color: var(--sg-chip);
-  border-color: color-mix(in srgb, var(--sg-accent) 32%, var(--sg-card-border));
-  /* 源站 .site-card:hover .img 的四层柔影 */
+
+/* hover 完全对齐源站 `.site-card:hover`（2026-11-21 第三十六轮）：
+   源站**卡片本体一动不动** —— 不换底色、不换边框、不加位移，
+   只有 `.img`（截图）拿四层柔影 + `scale(1.02)`，2s 长缓动；
+   文字只做「次要色 → 正文色」的加深（light #888→#666 / dark #aaa→#ccc）。
+   原来这里给卡片本体加 chip 底色 + 边框变色 + 卡片级阴影，是自造效果，已删。 */
+.sg-flink-item:is(:hover, :focus-within) .sg-flink-shot {
   box-shadow: 0 4px 8px rgba(0, 0, 0, .1), 0 2px 4px rgba(0, 0, 0, .1),
     0 4px 8px rgba(0, 0, 0, .1), 0 8px 16px rgba(0, 0, 0, .1);
 }
@@ -43,7 +45,7 @@
   text-decoration: none;
 }
 
-/* 截图：源站 .site-card .img —— 16:10、18px 圆角、hover 只做 scale，2s 长缓动 */
+/* 截图：源站 .site-card .img —— 16:10、18px 圆角、hover 只做 scale + 柔影，.28s/2s 缓动 */
 .sg-flink-shot {
   display: block;
   overflow: hidden;
@@ -51,6 +53,7 @@
   border-radius: 18px;
   background: var(--sg-chip);
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, .2);
+  transition: box-shadow .28s ease;
 }
 .sg-flink-shot img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 2s ease; }
 .sg-flink-item:is(:hover, :focus-within) .sg-flink-shot img { transform: scale(1.02); }
@@ -97,11 +100,14 @@
   word-break: break-word;
   transition: color .3s;
 }
-.sg-flink-item:is(:hover, :focus-within) .sg-flink-name { color: var(--sg-accent-ink); }
+/* 悬停文字：源站 light `#444/#666`、dark `#ddd/#aaa → #eee/#ccc`，
+   即「标题基本不变、简介从次要色提到正文色」，不换色相。 */
+.sg-flink-item:is(:hover, :focus-within) .sg-flink-name { color: var(--sg-text); }
 .sg-flink-item:is(:hover, :focus-within) .sg-flink-desc { color: var(--sg-text); }
 
 @media (prefers-reduced-motion: reduce) {
   .sg-flink-item,
+  .sg-flink-shot,
   .sg-flink-shot img,
   .sg-flink-icon img,
   .sg-flink-name,

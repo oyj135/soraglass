@@ -220,7 +220,8 @@
   --sg-proj-face-a: rgba(255, 255, 255, .24);
   --sg-proj-face-b: rgba(255, 255, 255, 0);
   --sg-proj-border: rgba(255, 255, 255, .58);      /* 静置描边：比通用卡亮一档，卡片才「有边」 */
-  --sg-proj-border-hot: rgba(255, 255, 255, .82);  /* hover 时描边再提亮 */
+  /* 原 --sg-proj-border-hot（hover 提亮描边）已随「同步源站」删除：
+     悬浮不再改边框，只补 .site-card:hover 那组四层柔影 + 主体 1.02 缓放。 */
   /* 下面这批原来是按 indigo-500 手算的 rgba(99,102,241,…)，主色一动就得逐个重算，
      下次再换还得再来一遍。改成 color-mix() 从 --sg-accent 派生：换签名色只改主色 4 个值。
      color-mix 在 Chrome 111 / Safari 16.2 / Firefox 113 起可用，本站无更老的目标。 */
@@ -353,7 +354,6 @@ html.dark {
   --sg-proj-face-a: color-mix(in srgb, var(--sg-accent-soft) 10%, transparent);
   --sg-proj-face-b: rgba(16, 20, 24, 0);
   --sg-proj-border: rgba(255, 255, 255, .12);
-  --sg-proj-border-hot: rgba(255, 255, 255, .24);
   --sg-proj-tint: color-mix(in srgb, var(--sg-accent-soft) 14%, transparent);
   --sg-proj-tag-bg: color-mix(in srgb, var(--sg-accent-soft) 16%, transparent);
   --sg-proj-tag-border: color-mix(in srgb, var(--sg-accent-soft) 28%, transparent);
