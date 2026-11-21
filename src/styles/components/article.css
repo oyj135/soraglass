@@ -533,14 +533,30 @@ html.dark .sg-filter-btn.is-active {
   .sg-project { gap: .9375rem; padding: 1.375rem 1.375rem 1.0625rem; }
 }
 
-/* 悬浮同步源站 `.site-card:hover`（2026-11-21 第三十六轮）：
-   源站卡片本体不做位移动画、也不换边框色，只给视觉主体补那组四层柔影
-   （`.site-card:hover .img`）。项目卡没有截图，主体就是卡面，所以柔影挂卡片；
-   内部头像仍走源站同款 `scale(1.02)` + 2s 长缓动。
-   原来这里的 translateY(-2px) + 边框提亮 + 头像环形光都是自造，已删。 */
+/* 悬浮三件套（2026-11-21 第三十七轮用户要求「卡片上浮 + 背后光晕 + 图片放大」）：
+   与友链卡同一套口径 —— translateY(-4px) 上浮、卡级双层柔影 + 主色光晕、
+   视觉主体（这里是头像，项目卡没有截图）scale(1.05)。
+   卡面已有自己的渐变底，上浮后不再叠任何边框变色，避免又变成「自造高亮」。 */
 .sg-project:is(:hover, :focus-within) {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, .1), 0 2px 4px rgba(0, 0, 0, .1),
-    0 4px 8px rgba(0, 0, 0, .1), 0 8px 16px rgba(0, 0, 0, .1);
+  transform: translateY(-4px);
+  box-shadow:
+    0 18px 38px -14px rgba(23, 27, 29, .34),
+    0 8px 18px -10px rgba(23, 27, 29, .20),
+    0 0 28px -4px color-mix(in srgb, var(--sg-accent) 28%, transparent);
+}
+
+/* 夜间同友链卡：黑底吃掉暗影，靠冷光晕交代浮起；
+   不再叠 1px 冷描边 —— 卡面自带 --sg-proj-border，两圈会显脏 */
+html.dark .sg-project:is(:hover, :focus-within) {
+  box-shadow:
+    0 24px 46px -16px rgba(0, 0, 0, .85),
+    0 0 34px -6px color-mix(in srgb, var(--sg-accent-soft) 40%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sg-project,
+  .sg-project:is(:hover, :focus-within),
+  .sg-project:is(:hover, :focus-within) .sg-project-avatar img { transition: none; transform: none; }
 }
 
 /* 身份行：头像 + 项目名 + 徽章。名字用 h3，和卡片的字号层级绑在一起 */
@@ -572,9 +588,9 @@ html.dark .sg-filter-btn.is-active {
   border-radius: 50%;
   object-fit: cover;
   background: var(--sg-card);
-  transition: transform 2s ease;
+  transition: transform .6s var(--sg-ease);
 }
-.sg-project:is(:hover, :focus-within) .sg-project-avatar img { transform: scale(1.02); }
+.sg-project:is(:hover, :focus-within) .sg-project-avatar img { transform: scale(1.05); }
 
 .sg-project-badge {
   flex: none;

@@ -2,7 +2,8 @@
    themes/fomalhaut/source/css/_custom/custom.css:1013-1073 的覆盖为准）：
    每张卡 = 16:10 站点截图（上） + 32px 圆头像 / 站名 1 行 / 简介 2 行（下）；
    5 列（≤1200 四列 / ≤900 三列 / ≤600 两列）、18px 圆角、5px 内边距、1px 描边；
-   hover 只把截图 scale(1.02)（源站同款），扫开动画与流光描边均已去掉。
+   hover = 上浮 -4px + 卡级柔影/光晕 + 截图与头像 scale(1.05)（源站同款观感），
+   扫开动画与流光描边均已去掉。
    外层保留一张玻璃卡托底：卡片直接压壁纸时简介只剩 2.4:1 对比。 */
 .sg-flink-list {
   display: grid;
@@ -25,16 +26,36 @@
   border: 1px solid var(--sg-card-border);
   border-radius: 18px;
   background-color: transparent;
+  transition:
+    transform var(--sg-dur-card) var(--sg-ease),
+    box-shadow var(--sg-dur-card) var(--sg-ease),
+    background-color var(--sg-dur-card) var(--sg-ease);
 }
 
-/* hover 完全对齐源站 `.site-card:hover`（2026-11-21 第三十六轮）：
-   源站**卡片本体一动不动** —— 不换底色、不换边框、不加位移，
-   只有 `.img`（截图）拿四层柔影 + `scale(1.02)`，2s 长缓动；
-   文字只做「次要色 → 正文色」的加深（light #888→#666 / dark #aaa→#ccc）。
-   原来这里给卡片本体加 chip 底色 + 边框变色 + 卡片级阴影，是自造效果，已删。 */
-.sg-flink-item:is(:hover, :focus-within) .sg-flink-shot {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, .1), 0 2px 4px rgba(0, 0, 0, .1),
-    0 4px 8px rgba(0, 0, 0, .1), 0 8px 16px rgba(0, 0, 0, .1);
+/* hover 三件套（2026-11-21 第三十七轮用户要求「卡片上浮 + 背后光晕 + 图片放大」）：
+   源站 `.site-card:hover .img` 的放大 + 四层柔影、`.mini-link:hover` 的 `scale(1.05)`，
+   合起来的观感就是整卡浮起、身后散开一圈柔光。
+   这里把这三件事显式做出来，并只落在卡片本身，避免和图上的柔影叠成双层脏影：
+     ① translateY(-4px) —— 上浮（.32s 与全站卡片同一曲线）；
+     ② 卡级双层柔影 + 主色光晕 —— 光晕用 accent 30% 收在 -4px，浅底不糊；
+     ③ 截图 / 头像 scale(1.05)，.6s 跟随上浮，不再用 2s 那种几乎感受不到的长缓动。 */
+.sg-flink-item:is(:hover, :focus-within) {
+  transform: translateY(-4px);
+  background-color: color-mix(in srgb, var(--sg-card) 92%, transparent);
+  box-shadow:
+    0 16px 34px -14px rgba(23, 27, 29, .34),
+    0 8px 18px -10px rgba(23, 27, 29, .20),
+    0 0 26px -4px color-mix(in srgb, var(--sg-accent) 30%, transparent);
+}
+
+/* 夜间：黑底上黑色投影几乎不可见，「浮起」只能靠位置差 + 一圈冷光交代，
+   所以卡面提亮一档（48/55/58），光晕改用 accent-soft 40% 环绕 34px。 */
+html.dark .sg-flink-item:is(:hover, :focus-within) {
+  background-color: rgba(48, 55, 58, .95);
+  box-shadow:
+    0 24px 46px -16px rgba(0, 0, 0, .85),
+    0 0 0 1px color-mix(in srgb, var(--sg-accent-soft) 16%, transparent),
+    0 0 34px -6px color-mix(in srgb, var(--sg-accent-soft) 40%, transparent);
 }
 
 .sg-flink-item a {
@@ -45,7 +66,8 @@
   text-decoration: none;
 }
 
-/* 截图：源站 .site-card .img —— 16:10、18px 圆角、hover 只做 scale + 柔影，.28s/2s 缓动 */
+/* 截图：源站 .site-card .img —— 16:10、18px 圆角；
+   hover 放大从 1.02 提到 1.05（源站 mini-link 档位），缓动压到 .6s 跟手上浮。 */
 .sg-flink-shot {
   display: block;
   overflow: hidden;
@@ -53,10 +75,9 @@
   border-radius: 18px;
   background: var(--sg-chip);
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, .2);
-  transition: box-shadow .28s ease;
 }
-.sg-flink-shot img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 2s ease; }
-.sg-flink-item:is(:hover, :focus-within) .sg-flink-shot img { transform: scale(1.02); }
+.sg-flink-shot img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .6s var(--sg-ease); }
+.sg-flink-item:is(:hover, :focus-within) .sg-flink-shot img { transform: scale(1.05); }
 
 /* 头像列跨站名/简介两行（源站是 float:left 的 32px 圆头像 + 右侧两行） */
 .sg-flink-info {
@@ -76,8 +97,8 @@
   border-radius: 50%;
   background: var(--sg-chip);
 }
-.sg-flink-icon img { width: 100%; height: 100%; object-fit: cover; transition: transform 2s ease; }
-.sg-flink-item:is(:hover, :focus-within) .sg-flink-icon img { transform: scale(1.02); }
+.sg-flink-icon img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s var(--sg-ease); }
+.sg-flink-item:is(:hover, :focus-within) .sg-flink-icon img { transform: scale(1.05); }
 
 .sg-flink-name {
   font-weight: 600;
@@ -112,4 +133,8 @@
   .sg-flink-icon img,
   .sg-flink-name,
   .sg-flink-desc { transition: none; }
+  /* 降级不只是关动画：位移与缩放都要归零，否则会瞬间跳一下 */
+  .sg-flink-item:is(:hover, :focus-within),
+  .sg-flink-item:is(:hover, :focus-within) .sg-flink-shot img,
+  .sg-flink-item:is(:hover, :focus-within) .sg-flink-icon img { transform: none; }
 }
