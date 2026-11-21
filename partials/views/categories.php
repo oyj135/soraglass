@@ -46,7 +46,7 @@ $sgHead = [
     <div class="sg-glass sg-term-card">
       <a class="sg-term-card-top" href="<?php echo sg_e($sgRow['url']); ?>">
         <span class="sg-term-card-name"><?php echo sg_e($sgRow['name']); ?></span>
-        <span class="sg-term-card-arrow"><?php echo sg_icon('arrow-up-right'); ?></span>
+        <span class="sg-term-card-arrow"><?php echo sg_icon_color('arrow-up-right'); ?></span>
       </a>
       <span class="sg-term-card-desc"><?php echo sg_e($sgRow['desc'] !== '' ? $sgRow['desc'] : '这个分类还没有写说明'); ?></span>
       <span class="sg-term-card-count"><b><?php echo $sgRow['count']; ?></b> 篇文章</span>

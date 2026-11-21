@@ -198,7 +198,7 @@ function sg_page_head(array $head = []): void
     ?>
 <div class="sg-page-head"<?php echo $hidden ? ' hidden' : ''; ?>>
   <?php if ($back) : ?>
-  <a class="sg-back" href="<?php echo sg_e($home); ?>"><?php echo sg_icon('arrow-left'); ?>返回上一级</a>
+  <a class="sg-back" href="<?php echo sg_e($home); ?>"><?php echo sg_icon_color('arrow-left'); ?>返回上一级</a>
   <?php endif; ?>
   <div class="sg-page-head-row<?php echo $center ? ' is-centered' : ''; ?>">
     <div>
@@ -844,7 +844,7 @@ function sg_feature_card_html(array $card): string
     $html  = '<article class="sg-feature-card" data-sg-filter-item>';
     /* 置顶角标（fomalhaut post-sticky-badge 同款：红底白字胶囊 + 流光扫过） */
     if ($sticky) {
-        $html .= '<div class="sg-sticky-badge">' . sg_icon('pin') . '精选<span class="sg-sticky-shine" aria-hidden="true"></span></div>';
+        $html .= '<div class="sg-sticky-badge">' . sg_icon_color('pin') . '精选<span class="sg-sticky-shine" aria-hidden="true"></span></div>';
     }
     $html .= '<a class="sg-feature-media" href="' . sg_e($url) . '" tabindex="-1" aria-hidden="true">';
     $html .= '<img src="' . sg_e($cover) . '" alt="" loading="lazy">';

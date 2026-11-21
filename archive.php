@@ -80,8 +80,8 @@ $sgCardsHtml = (string) ob_get_clean();
     <h1>没有匹配的内容</h1>
     <p>换个关键词，或者从标签里挑一个方向再试试。</p>
     <div class="sg-notfound-actions">
-      <a class="sg-btn" href="<?php echo sg_e($sgHome); ?>"><?php echo sg_icon('arrow-left'); ?>回到首页</a>
-      <a class="sg-btn sg-btn--ghost" href="<?php echo sg_e(sg_page_url('archives')); ?>"><?php echo sg_icon('folder'); ?>浏览全部归档</a>
+      <a class="sg-btn" href="<?php echo sg_e($sgHome); ?>"><?php echo sg_icon_color('arrow-left'); ?>回到首页</a>
+      <a class="sg-btn sg-btn--ghost" href="<?php echo sg_e(sg_page_url('archives')); ?>"><?php echo sg_icon_color('folder'); ?>浏览全部归档</a>
     </div>
   </div>
   <?php endif; ?>

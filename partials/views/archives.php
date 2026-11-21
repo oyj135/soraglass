@@ -58,7 +58,7 @@ $sgHead = [
     <h1>还没有可归档的内容</h1>
     <p>发布第一篇文章后，这里会自动按年月排好。</p>
     <div class="sg-notfound-actions">
-      <a class="sg-btn" href="<?php echo sg_e(rtrim((string) $this->options->siteUrl, '/')); ?>/"><?php echo sg_icon('arrow-left'); ?>回到首页</a>
+      <a class="sg-btn" href="<?php echo sg_e(rtrim((string) $this->options->siteUrl, '/')); ?>/"><?php echo sg_icon_color('arrow-left'); ?>回到首页</a>
     </div>
   </div>
   <?php else : ?>

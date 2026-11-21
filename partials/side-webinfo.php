@@ -36,7 +36,7 @@ $sgWiFriendsLink = sg_page_exists('friends') ? sg_page_url('friends') : '';
   <div class="sg-hinfo-chart">
     <div class="sg-hinfo-chart-head">
       <span>年度产出</span>
-      <span class="sg-hinfo-chart-sub">共 <?php echo (int) $sgWi['writeDays']; ?> 个写作日</span>
+      <span class="sg-hinfo-chart-sub">共 <b><?php echo (int) $sgWi['writeDays']; ?></b> 个写作日</span>
     </div>
     <?php /* 年度产出（2026-11-19 第七轮，逐参数对齐源站 .wi-bars / .wi-years）：
        柱区固定 50px、无轨道底槽，柱体本身是渐变块（宽度上限 22px、顶部 4px 圆角）；

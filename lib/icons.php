@@ -106,10 +106,43 @@ function sg_icon_color(string $name, string $class = ''): string
         'type'     => ['data', '<rect x="4" y="4" width="16" height="3" rx="1.5" fill="{m}"/><rect x="10.5" y="4" width="3" height="16" rx="1.5" fill="{m}"/><rect x="8" y="18" width="8" height="2.5" rx="1.25" fill="{l}"/>'],
         'star'     => ['mark', '<path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" fill="{m}"/><circle cx="18.5" cy="5" r="1.2" fill="{l}"/><circle cx="5.5" cy="18.5" r="1" fill="{l}"/>'],
     ];
-    if (!isset($glyphs[$name])) {
-        return sg_icon($name, $class);
+    if (isset($glyphs[$name])) {
+        [$family, $inner] = $glyphs[$name];
+    } else {
+        /* 全站彩色化（2026-11-21）：未收录名字复用 sg_icon 的路径，套一枚浅色底盘 +
+           语义色描边，保持原形态，与已收录彩色图标同一视觉语言；按族分色避免全站一色。 */
+        $line = sg_icon($name);
+        if ($line === '') {
+            return '';
+        }
+        $familyMap = [
+            'home' => 'cate', 'user' => 'cate', 'users' => 'cate', 'message' => 'cate',
+            'book-open' => 'cate', 'archive' => 'cate', 'folder' => 'cate',
+            'star' => 'mark', 'pin' => 'mark', 'map-pin' => 'mark', 'heart' => 'mark',
+            'thumbs-up' => 'mark', 'sun' => 'mark', 'moon' => 'mark',
+            'clock' => 'time', 'calendar' => 'time', 'history' => 'time',
+            'music' => 'data', 'disc' => 'data', 'repeat' => 'data', 'repeat-one' => 'data',
+            'shuffle' => 'data', 'volume' => 'data', 'volume-x' => 'data',
+            'play' => 'data', 'pause' => 'data', 'prev' => 'data', 'next' => 'data',
+            'activity' => 'data', 'search' => 'data', 'settings' => 'data',
+            'sliders' => 'data', 'sliders-h' => 'data', 'plus' => 'data', 'minus' => 'data',
+            'close' => 'data', 'check' => 'data', 'image' => 'data', 'mail' => 'data',
+            'link' => 'data', 'share' => 'data', 'copy' => 'data', 'bookmark' => 'data',
+            'github' => 'data', 'rss' => 'data', 'bilibili' => 'data', 'twitter' => 'data',
+            'eye' => 'data', 'tag' => 'tag', 'fork' => 'data',
+            'arrow-left' => 'data', 'arrow-right' => 'data', 'arrow-up' => 'data',
+            'arrow-down' => 'data', 'arrow-up-right' => 'data', 'chevron-left' => 'data',
+            'chevron-right' => 'data', 'chevron-up' => 'data', 'chevron-down' => 'data',
+            'angle-right' => 'data',
+        ];
+        $family = $familyMap[$name] ?? 'data';
+        $inner = preg_replace('/^.*?aria-hidden="true">/', '', $line);
+        $inner = preg_replace('/<\/svg>\s*$/', '', (string) $inner);
+        $inner = str_replace('currentColor', '{m}', (string) $inner);
+        $inner = '<circle cx="12" cy="12" r="10" fill="{l}"/>'
+            . '<g fill="none" stroke="{m}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'
+            . $inner . '</g>';
     }
-    [$family, $inner] = $glyphs[$name];
     $main = 'var(--sg-icon-' . $family . ')';
     $light = 'color-mix(in srgb, var(--sg-icon-' . $family . ') 55%, #fff)';
     $inner = str_replace(['{m}', '{l}'], [$main, $light], $inner);

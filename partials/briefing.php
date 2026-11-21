@@ -146,15 +146,15 @@ $sgBgTotal = $sgBgList ? count($sgBgList) : count($sgIssues);
         </span>
         <span class="sg-briefing-more">
           <span data-sg-briefing-more-text>展开今日选刊</span>
-          <span class="sg-briefing-sign"><?php echo sg_icon('plus'); ?></span>
+          <span class="sg-briefing-sign"><?php echo sg_icon_color('plus'); ?></span>
         </span>
       </span>
     </button>
 
     <div class="sg-briefing-pager" role="group" aria-label="选刊期号">
-      <button type="button" data-sg-briefing-prev aria-label="上一期"<?php echo $sgTotal < 2 ? ' disabled' : ''; ?>><?php echo sg_icon('chevron-left'); ?></button>
+      <button type="button" data-sg-briefing-prev aria-label="上一期"<?php echo $sgTotal < 2 ? ' disabled' : ''; ?>><?php echo sg_icon_color('chevron-left'); ?></button>
       <span data-sg-briefing-index>1/<?php echo $sgTotal; ?></span>
-      <button type="button" data-sg-briefing-next aria-label="下一期"<?php echo $sgTotal < 2 ? ' disabled' : ''; ?>><?php echo sg_icon('chevron-right'); ?></button>
+      <button type="button" data-sg-briefing-next aria-label="下一期"<?php echo $sgTotal < 2 ? ' disabled' : ''; ?>><?php echo sg_icon_color('chevron-right'); ?></button>
     </div>
   </div>
 
@@ -166,8 +166,8 @@ $sgBgTotal = $sgBgList ? count($sgBgList) : count($sgIssues);
           <span data-sg-briefing-subline><?php echo sg_e($sgFirst['date']); ?><?php echo $sgFirst['weekday'] !== '' ? ' · ' . sg_e($sgFirst['weekday']) : ''; ?> · <?php echo count($sgFirst['items']); ?> 则选刊</span>
         </div>
         <div class="sg-briefing-tools">
-          <button type="button" data-sg-briefing-archive-toggle aria-expanded="false"><?php echo sg_icon('history'); ?>往期查看</button>
-          <button type="button" data-sg-briefing-saved aria-pressed="false"><?php echo sg_icon('bookmark'); ?>只看收藏</button>
+          <button type="button" data-sg-briefing-archive-toggle aria-expanded="false"><?php echo sg_icon_color('history'); ?>往期查看</button>
+          <button type="button" data-sg-briefing-saved aria-pressed="false"><?php echo sg_icon_color('bookmark'); ?>只看收藏</button>
         </div>
       </div>
 
@@ -249,7 +249,7 @@ $sgBgTotal = $sgBgList ? count($sgBgList) : count($sgIssues);
                 <i class="sg-briefing-dot" aria-hidden="true"></i>
               </span>
             </span>
-            <span class="sg-briefing-item-arrow" aria-hidden="true"><?php echo sg_icon('arrow-up-right'); ?></span>
+            <span class="sg-briefing-item-arrow" aria-hidden="true"><?php echo sg_icon_color('arrow-up-right'); ?></span>
           </button>
           <?php endforeach; ?>
         </div>
@@ -259,7 +259,7 @@ $sgBgTotal = $sgBgList ? count($sgBgList) : count($sgIssues);
 
       <div class="sg-briefing-footnote">
         <p data-sg-briefing-notice><?php echo sg_e($sgFirst['notice']); ?></p>
-        <button type="button" data-sg-briefing-collapse>收起目录<?php echo sg_icon('chevron-up'); ?></button>
+        <button type="button" data-sg-briefing-collapse>收起目录<?php echo sg_icon_color('chevron-up'); ?></button>
       </div>
     </div>
   </div>
@@ -272,7 +272,7 @@ $sgBgTotal = $sgBgList ? count($sgBgList) : count($sgIssues);
   <div class="sg-reader-inner">
     <div class="sg-reader-head">
       <span class="sg-reader-kind" data-sg-reader-kind></span>
-      <button class="sg-reader-close" type="button" data-sg-reader-close aria-label="关闭阅读窗口"><?php echo sg_icon('close'); ?></button>
+      <button class="sg-reader-close" type="button" data-sg-reader-close aria-label="关闭阅读窗口"><?php echo sg_icon_color('close'); ?></button>
     </div>
     <article class="sg-reader-article">
       <p class="sg-reader-meta" data-sg-reader-meta></p>
@@ -284,8 +284,8 @@ $sgBgTotal = $sgBgList ? count($sgBgList) : count($sgIssues);
       <div class="sg-reader-tags" data-sg-reader-tags hidden></div>
     </article>
     <div class="sg-reader-foot">
-      <button type="button" class="sg-reader-save" data-sg-reader-save aria-pressed="false"><?php echo sg_icon('bookmark'); ?>留着慢慢读</button>
-      <a class="sg-reader-link" data-sg-reader-link href="#" target="_blank" rel="noopener noreferrer">查看原文<?php echo sg_icon('arrow-up-right'); ?></a>
+      <button type="button" class="sg-reader-save" data-sg-reader-save aria-pressed="false"><?php echo sg_icon_color('bookmark'); ?>留着慢慢读</button>
+      <a class="sg-reader-link" data-sg-reader-link href="#" target="_blank" rel="noopener noreferrer">查看原文<?php echo sg_icon_color('arrow-up-right'); ?></a>
     </div>
   </div>
 </dialog>

@@ -23,7 +23,7 @@ $sgProfileSocial = sg_json('sgSocial', 'social', []);
       </a>
       <?php /* 头像右下角常驻青瓷装饰星（同首页 card-profile）；无状态为静态星，有状态 hover 展开 */ ?>
       <span class="sg-status-bubble<?php echo $sgStatus === '' ? ' sg-status-bubble--deco' : ''; ?>"<?php echo $sgStatus !== '' ? ' title="' . sg_e($sgStatus) . '"' : ' aria-hidden="true"'; ?>>
-        <?php echo sg_icon('star'); ?>
+        <?php echo sg_icon_color('star'); ?>
         <?php if ($sgStatus !== '') : ?><span class="sg-status-text"><?php echo sg_e($sgStatus); ?></span><?php endif; ?>
       </span>
     </div>
@@ -49,7 +49,7 @@ $sgProfileSocial = sg_json('sgSocial', 'social', []);
   <?php /* 关于我按钮——关于页存在时才出现，避免死链 */ ?>
   <?php if (sg_page_exists('about')) : ?>
   <a class="sg-author-btn" href="<?php echo sg_e(sg_page_url('about')); ?>">
-    <?php echo sg_icon('user'); ?>关于我
+    <?php echo sg_icon_color('user'); ?>关于我
   </a>
   <?php endif; ?>
 

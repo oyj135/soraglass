@@ -29,7 +29,7 @@ $sgHead = [
   <?php sg_page_head($sgHead); ?>
 
   <?php if ($sgSourceLine !== '') : ?>
-  <p class="sg-projects-source"><?php echo sg_icon('github'); ?><?php echo sg_e($sgSourceLine); ?></p>
+  <p class="sg-projects-source"><?php echo sg_icon_color('github'); ?><?php echo sg_e($sgSourceLine); ?></p>
   <?php endif; ?>
 
   <div class="sg-project-grid" data-sg-filter-grid>
@@ -137,7 +137,7 @@ $sgHead = [
         <span class="sg-project-star"><?php echo sg_icon_color('star'); ?><?php echo (int) $sgStars; ?></span>
         <?php endif; ?>
         <?php if ($sgForks > 0) : ?>
-        <span class="sg-project-fork"><?php echo sg_icon('fork'); ?><?php echo (int) $sgForks; ?></span>
+        <span class="sg-project-fork"><?php echo sg_icon_color('fork'); ?><?php echo (int) $sgForks; ?></span>
         <?php endif; ?>
       </div>
       <?php endif; ?>
@@ -150,7 +150,7 @@ $sgHead = [
       <div class="sg-project-foot">
         <span class="sg-project-meta"><?php echo $sgUpdated !== '' ? '更新于 ' . sg_e($sgUpdated) : ''; ?></span>
         <?php if ($sgUrl !== '') : ?>
-        <span class="sg-project-src">源码 <?php echo sg_icon('chevron-right'); ?></span>
+        <span class="sg-project-src">源码 <?php echo sg_icon_color('chevron-right'); ?></span>
         <?php endif; ?>
       </div>
       <?php endif; ?>

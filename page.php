@@ -46,7 +46,7 @@ if ($sgView !== '') {
       <img src="<?php echo sg_e(sg_cover($this)); ?>" alt="<?php echo sg_e((string) $this->title); ?>">
     </div>
     <div class="sg-article-body">
-      <a class="sg-back" href="<?php echo sg_e($sgHome); ?>"><?php echo sg_icon('arrow-left'); ?>返回上一级</a>
+      <a class="sg-back" href="<?php echo sg_e($sgHome); ?>"><?php echo sg_icon_color('arrow-left'); ?>返回上一级</a>
       <header class="sg-article-head">
         <h1><?php $this->title(); ?></h1>
         <div class="sg-meta">

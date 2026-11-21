@@ -550,14 +550,14 @@
   transform: translateY(-1px);
 }
 
-/* passing 图标动画（2026-11-18 融合源站 faa-passing）：hover 时图标向右穿出、
-   左侧穿回，一次播完不循环；减少动效下不播。 */
-.sg-author-btn:is(:hover, :focus-visible) svg { animation: sg-btn-passing .9s var(--sg-ease); }
+/* 图标反馈（2026-11-21 修正）：原 faa-passing 让图标向右飞出、opacity 归零后从左侧
+   穿回，看起来像图标闪断消失。改成轻微右推回弹、全程不消失，一次播完不循环；
+   减少动效下不播。 */
+.sg-author-btn:is(:hover, :focus-visible) svg { animation: sg-btn-passing .45s var(--sg-ease); }
 @keyframes sg-btn-passing {
-  0% { transform: translateX(0); opacity: 1; }
-  45% { transform: translateX(1.1em); opacity: 0; }
-  55% { transform: translateX(-1.1em); opacity: 0; }
-  100% { transform: translateX(0); opacity: 1; }
+  0% { transform: translateX(0); }
+  45% { transform: translateX(.28em); }
+  100% { transform: translateX(0); }
 }
 @media (prefers-reduced-motion: reduce) {
   .sg-author-btn:is(:hover, :focus-visible) svg { animation: none; }

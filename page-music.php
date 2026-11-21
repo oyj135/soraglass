@@ -48,21 +48,21 @@ $sgHead = [
 
       <div class="sg-music-controls">
         <button class="sg-music-mode" type="button" data-sg-mode data-mode="loop" aria-label="播放模式：列表循环">
-          <span data-sg-mode-icon><?php echo sg_icon('repeat'); ?></span>
+          <span data-sg-mode-icon><?php echo sg_icon_color('repeat'); ?></span>
           <span data-sg-mode-label>列表循环</span>
         </button>
 
         <div class="sg-music-center">
-          <button type="button" data-sg-prev aria-label="上一首"><?php echo sg_icon('prev'); ?></button>
+          <button type="button" data-sg-prev aria-label="上一首"><?php echo sg_icon_color('prev'); ?></button>
           <button type="button" class="sg-music-play" data-sg-play aria-label="播放/暂停" aria-pressed="false">
-            <span class="sg-i-play"><?php echo sg_icon('play'); ?></span>
-            <span class="sg-i-pause"><?php echo sg_icon('pause'); ?></span>
+            <span class="sg-i-play"><?php echo sg_icon_color('play'); ?></span>
+            <span class="sg-i-pause"><?php echo sg_icon_color('pause'); ?></span>
           </button>
-          <button type="button" data-sg-next aria-label="下一首"><?php echo sg_icon('next'); ?></button>
+          <button type="button" data-sg-next aria-label="下一首"><?php echo sg_icon_color('next'); ?></button>
         </div>
 
         <div class="sg-music-sound">
-          <button type="button" class="sg-music-mute" data-sg-mute aria-label="静音"><?php echo sg_icon('volume'); ?></button>
+          <button type="button" class="sg-music-mute" data-sg-mute aria-label="静音"><?php echo sg_icon_color('volume'); ?></button>
           <div class="sg-music-volume"><input id="sg-music-volume" class="sg-progress" type="range" min="0" max="100" value="80" data-sg-volume aria-label="音量"></div>
         </div>
       </div>
@@ -80,14 +80,14 @@ $sgHead = [
       <div class="sg-music-body">
         <div id="sg-music-panel-lyrics" class="sg-music-lyrics" role="tabpanel" aria-labelledby="sg-music-tab-lyrics" tabindex="0" data-sg-lyrics data-sg-music-panel="lyrics">
           <div class="sg-music-empty" data-sg-lyrics-empty>
-            <?php echo sg_icon('disc'); ?>
+            <?php echo sg_icon_color('disc'); ?>
             <p>正在等待旋律…</p>
           </div>
         </div>
 
         <div id="sg-music-panel-playlist" class="sg-playlist" role="tabpanel" aria-labelledby="sg-music-tab-playlist" tabindex="0" data-sg-music-panel="playlist" hidden>
           <div class="sg-playlist-search">
-            <?php echo sg_icon('search'); ?>
+            <?php echo sg_icon_color('search'); ?>
             <input type="search" placeholder="搜索音轨或歌手..." aria-label="搜索音轨" data-sg-playlist-search>
           </div>
 

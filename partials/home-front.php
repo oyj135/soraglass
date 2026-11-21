@@ -78,6 +78,6 @@ if (!$sgTyping['lines'] && $sgFrontSub !== '') {
   </div>
   <button class="sg-front-next" type="button" data-sg-front-next aria-label="向下滚动查看正文">
     <span class="sg-front-next-label">向下探索</span>
-    <?php echo sg_icon('chevron-down'); ?>
+    <?php echo sg_icon_color('chevron-down'); ?>
   </button>
 </section>

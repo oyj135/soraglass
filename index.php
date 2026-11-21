@@ -100,7 +100,7 @@ foreach (sg_home_articles($sgHomeListLimit) as $sgHomeCard) {
                 <?php echo sg_icon_color('folder'); ?>
                 <span class="sg-home-cate-name"><?php echo sg_e($sgHomeCate['name']); ?></span>
                 <span class="sg-home-cate-count">(<?php echo (int) $sgHomeCate['count']; ?>)</span>
-                <?php echo sg_icon('angle-right'); ?>
+                <?php echo sg_icon_color('angle-right'); ?>
               <?php echo $sgHomeCate['url'] !== '' ? '</a>' : '</span>'; ?>
             <?php endforeach; ?>
           </div>
@@ -115,7 +115,7 @@ foreach (sg_home_articles($sgHomeListLimit) as $sgHomeCard) {
         <?php if ($sgHomeListHtml !== '') : ?>
         <section class="sg-home-latest" id="sg-home-content" tabindex="-1" aria-label="最新文章">
           <div class="sg-home-section-head">
-            <h2 class="sg-home-section-title"><?php echo sg_icon('book-open'); ?>精选</h2>
+            <h2 class="sg-home-section-title"><?php echo sg_icon_color('book-open'); ?>精选</h2>
           </div>
           <div class="sg-home-grid">
             <?php echo $sgHomeListHtml; ?>
@@ -132,7 +132,7 @@ foreach (sg_home_articles($sgHomeListLimit) as $sgHomeCard) {
             <img src="<?php echo sg_e($sgPoster['cover']); ?>" alt="" loading="lazy" referrerpolicy="no-referrer">
             <span class="sg-veil"></span>
             <div class="sg-poster-body">
-              <span class="sg-poster-kicker"><?php echo sg_icon('image'); ?><?php echo sg_e($sgPoster['kicker']); ?></span>
+              <span class="sg-poster-kicker"><?php echo sg_icon_color('image'); ?><?php echo sg_e($sgPoster['kicker']); ?></span>
               <h3><?php echo sg_e($sgPoster['title']); ?></h3>
               <p><?php echo sg_e($sgPoster['desc']); ?></p>
             </div>
@@ -154,7 +154,7 @@ foreach (sg_home_articles($sgHomeListLimit) as $sgHomeCard) {
                   <h3>还没有碎语</h3>
                   <p>后台「碎语 JSON」里写两条随手记，这里就会活起来。</p>
                   <a class="sg-chatter-link" href="<?php echo sg_e($sgNotesLink); ?>">
-                    去看看<?php echo sg_icon('arrow-up-right'); ?>
+                    去看看<?php echo sg_icon_color('arrow-up-right'); ?>
                   </a>
                 </div>
               </article>

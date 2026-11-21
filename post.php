@@ -80,7 +80,7 @@ $sgNext = sg_adjacent_post($this, 'next');
     <div class="sg-post-banner-meta">
       <div class="sg-post-meta-line">
         <?php if ($sgSticky) : ?>
-        <span class="sg-post-meta-item sg-post-meta-pin" title="精选"><?php echo sg_icon('pin'); ?>精选</span>
+        <span class="sg-post-meta-item sg-post-meta-pin" title="精选"><?php echo sg_icon_color('pin'); ?>精选</span>
         <span class="sg-post-meta-sep" aria-hidden="true">|</span>
         <?php endif; ?>
         <time class="sg-post-meta-item is-date" datetime="<?php $this->date('c'); ?>" title="<?php $this->date('Y-m-d H:i'); ?>"><?php echo sg_icon_color('calendar'); ?>发表于 <?php echo sg_e($sgPostedAgo !== '' ? $sgPostedAgo : $sgCreatedDate); ?></time>
@@ -137,8 +137,8 @@ $sgNext = sg_adjacent_post($this, 'next');
       <?php /* P1-12：分享条——系统分享 + 复制链接，不引第三方 SDK；
          浏览器不支持 navigator.share 时由 JS 隐藏系统分享按钮 */ ?>
       <div class="sg-share" role="group" aria-label="分享这篇文章">
-        <button class="sg-btn sg-btn--ghost sg-share-btn" type="button" data-sg-share><?php echo sg_icon('share'); ?>分享</button>
-        <button class="sg-btn sg-btn--ghost" type="button" data-sg-copy-link><?php echo sg_icon('link'); ?>复制链接</button>
+        <button class="sg-btn sg-btn--ghost sg-share-btn" type="button" data-sg-share><?php echo sg_icon_color('share'); ?>分享</button>
+        <button class="sg-btn sg-btn--ghost" type="button" data-sg-copy-link><?php echo sg_icon_color('link'); ?>复制链接</button>
       </div>
 
       <?php if ($sgPrev || $sgNext) : ?>
@@ -166,7 +166,7 @@ $sgNext = sg_adjacent_post($this, 'next');
 
       <?php $sgRelated = sg_related_posts($this, 6); if ($sgRelated) : ?>
       <div class="sg-related">
-        <div class="sg-related-head"><?php echo sg_icon('thumbs-up'); ?>相关推荐</div>
+        <div class="sg-related-head"><?php echo sg_icon_color('thumbs-up'); ?>相关推荐</div>
         <div class="sg-related-list">
           <?php foreach ($sgRelated as $sgRel) : ?>
           <div class="sg-related-cell">

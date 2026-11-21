@@ -190,7 +190,7 @@ $sgHead = [
     ?>
     <article class="sg-feature-card" data-sg-archive-card data-keywords="<?php echo sg_e($sgKeywordRow); ?>" data-tags="<?php echo sg_e(implode('|', $sgSlugs)); ?>">
       <?php if ((int) ($sgPost['sticky'] ?? 0) > 0) : ?>
-      <div class="sg-sticky-badge"><?php echo sg_icon('pin'); ?>精选<span class="sg-sticky-shine" aria-hidden="true"></span></div>
+      <div class="sg-sticky-badge"><?php echo sg_icon_color('pin'); ?>精选<span class="sg-sticky-shine" aria-hidden="true"></span></div>
       <?php endif; ?>
       <a class="sg-feature-media" href="<?php echo sg_e($sgPost['permalink']); ?>" tabindex="-1" aria-hidden="true">
         <img src="<?php echo sg_e($sgPost['cover']); ?>" alt="" loading="lazy">
@@ -234,7 +234,7 @@ $sgHead = [
       $sgNext = $sgCurrentPage < $sgTotalPages ? $sgCurrentPage + 1 : 0;
     ?>
     <?php if ($sgPrev) : ?>
-    <a class="sg-page-btn sg-page-btn--nav" href="<?php echo sg_e($sgUrl($sgPrev)); ?>" rel="prev" aria-label="上一页"><?php echo sg_icon('chevron-left'); ?></a>
+    <a class="sg-page-btn sg-page-btn--nav" href="<?php echo sg_e($sgUrl($sgPrev)); ?>" rel="prev" aria-label="上一页"><?php echo sg_icon_color('chevron-left'); ?></a>
     <?php endif; ?>
 
     <?php for ($sgP = 1; $sgP <= $sgTotalPages; $sgP++) : ?>
@@ -246,7 +246,7 @@ $sgHead = [
     <?php endfor; ?>
 
     <?php if ($sgNext) : ?>
-    <a class="sg-page-btn sg-page-btn--nav" href="<?php echo sg_e($sgUrl($sgNext)); ?>" rel="next" aria-label="下一页"><?php echo sg_icon('chevron-right'); ?></a>
+    <a class="sg-page-btn sg-page-btn--nav" href="<?php echo sg_e($sgUrl($sgNext)); ?>" rel="next" aria-label="下一页"><?php echo sg_icon_color('chevron-right'); ?></a>
     <?php endif; ?>
   </nav>
   <?php endif; ?>

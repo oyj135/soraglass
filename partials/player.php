@@ -36,19 +36,19 @@ $sgMusicUrl = sg_page_url('music');
 
   <div class="sg-player-controls">
     <button class="sg-player-mode" type="button" data-sg-mode data-mode="loop" aria-label="播放模式：列表循环">
-      <span data-sg-mode-icon><?php echo sg_icon('repeat'); ?></span>
+      <span data-sg-mode-icon><?php echo sg_icon_color('repeat'); ?></span>
       <span data-sg-mode-label>列表循环</span>
     </button>
 
     <span class="sg-player-transport">
-      <button type="button" data-sg-prev aria-label="上一首"><?php echo sg_icon('prev'); ?></button>
+      <button type="button" data-sg-prev aria-label="上一首"><?php echo sg_icon_color('prev'); ?></button>
       <button type="button" class="sg-player-play" data-sg-play aria-label="播放/暂停" aria-pressed="false">
-        <span class="sg-i-play"><?php echo sg_icon('play'); ?></span>
-        <span class="sg-i-pause"><?php echo sg_icon('pause'); ?></span>
+        <span class="sg-i-play"><?php echo sg_icon_color('play'); ?></span>
+        <span class="sg-i-pause"><?php echo sg_icon_color('pause'); ?></span>
       </button>
-      <button type="button" data-sg-next aria-label="下一首"><?php echo sg_icon('next'); ?></button>
+      <button type="button" data-sg-next aria-label="下一首"><?php echo sg_icon_color('next'); ?></button>
     </span>
 
-    <button type="button" class="sg-player-mute" data-sg-mute aria-label="静音"><?php echo sg_icon('volume'); ?></button>
+    <button type="button" class="sg-player-mute" data-sg-mute aria-label="静音"><?php echo sg_icon_color('volume'); ?></button>
   </div>
 </div>

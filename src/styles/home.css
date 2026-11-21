@@ -382,10 +382,11 @@ html.dark .sg-hcard { background-color: var(--sg-card); background-image: var(--
 .sg-hcd-row { display: flex; align-items: center; gap: .3rem; font-family: var(--font-sans); font-size: .68rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .sg-hcd-rlabel { flex: 0 0 2.25em; color: var(--sg-text); }
 .sg-hcd-bar { position: relative; flex: 1 1 auto; min-width: 0; height: 1.8em; border-radius: .45em; background: var(--sg-chip); overflow: hidden; }
-/* 填充按源站 34% 上下的浓度走：条内要压「百分比」和「还剩 N 天」两段文字，
-   满色渐变会把右侧文字吃掉（88% 那一行尤其明显）。 */
-.sg-hcd-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: inherit; background: linear-gradient(90deg, color-mix(in srgb, var(--sg-accent) 62%, transparent), color-mix(in srgb, var(--sg-accent) 26%, transparent)); transition: width .6s var(--sg-ease); }
-.sg-hcd-bar em { position: relative; z-index: 1; display: block; padding-left: .55em; line-height: 1.8em; font-style: normal; font-weight: 600; color: var(--sg-text); }
+/* 2026-11-21 朱批：进度条与百分比同属重点，一起走 --sg-warm。
+   左淡右浓——百分比压在左端淡朱上仍清晰，右端「还剩 N 天」是次要文字、
+   保留 card 色软垫；避免满色把两段文字吃掉（88% 那行尤其明显）。 */
+.sg-hcd-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: inherit; background: linear-gradient(90deg, color-mix(in srgb, var(--sg-warm) 16%, transparent), color-mix(in srgb, var(--sg-warm) 36%, transparent)); transition: width .6s var(--sg-ease); }
+.sg-hcd-bar em { position: relative; z-index: 1; display: block; padding-left: .55em; line-height: 1.8em; font-style: normal; font-weight: 700; color: var(--sg-warm); font-variant-numeric: tabular-nums; }
 .sg-hcd-bar b { position: absolute; z-index: 1; right: .55em; top: 0; line-height: 1.8em; font-weight: 400; color: var(--sg-muted); text-shadow: 0 0 3px var(--sg-card); }
 /* 窄屏侧栏是整宽，内容别拉太散（源站同款 380px 上限） */
 @media (max-width: 900px) {
@@ -414,16 +415,17 @@ html:not(.dark) a.sg-hinfo-kpi-item:hover { background: var(--sg-filter-active);
 .sg-hinfo-label { font-family: var(--font-sans); font-size: .66rem; color: var(--sg-muted); }
 .sg-hinfo-time { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .45rem; margin-top: .9rem; padding-top: .75rem; border-top: 1px solid var(--sg-line); font-size: .72rem; color: var(--sg-muted); }
 .sg-hinfo-time-item { display: inline-flex; align-items: center; gap: .3rem; }
-.sg-hinfo-time-item b { font-weight: 600; color: var(--sg-text); }
+.sg-hinfo-time-item b { font-weight: 600; color: var(--sg-warm); font-variant-numeric: tabular-nums; }
 .sg-hinfo-time-sep { color: var(--sg-faint); }
 .sg-hinfo-chart { margin-top: .85rem; padding-top: .75rem; border-top: 1px solid var(--sg-line); }
 .sg-hinfo-chart-head { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; margin-bottom: .6rem; font-size: .78rem; font-weight: 600; color: var(--sg-text); }
 .sg-hinfo-chart-sub { font-family: var(--font-sans); font-size: .66rem; font-weight: 400; color: var(--sg-faint); }
+.sg-hinfo-chart-sub b { color: var(--sg-warm); font-variant-numeric: tabular-nums; }
 /* 年度产出：源站 .wi-bars（高 50px、gap 6px、柱宽上限 22px、渐变到 30% 透明）
    + 独立 .wi-years 年份行；数字 10px / 50% 不透明压在柱顶上方 2px。 */
 .sg-hinfo-bars { display: flex; align-items: flex-end; gap: .375rem; height: 3.125rem; }
 .sg-hinfo-bar { flex: 1 1 0; min-width: 0; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; }
-.sg-hinfo-bar-n { font-family: var(--font-sans); font-size: .625rem; line-height: 1.2; margin-bottom: 2px; opacity: .5; color: var(--sg-text); }
+.sg-hinfo-bar-n { font-family: var(--font-sans); font-size: .625rem; line-height: 1.2; margin-bottom: 2px; color: var(--sg-warm); font-variant-numeric: tabular-nums; }
 .sg-hinfo-bar-fill {
   display: block;
   width: 100%;
@@ -432,7 +434,7 @@ html:not(.dark) a.sg-hinfo-kpi-item:hover { background: var(--sg-filter-active);
   background: linear-gradient(to top, var(--sg-accent), color-mix(in srgb, var(--sg-accent) 30%, transparent));
 }
 .sg-hinfo-years { display: flex; gap: .375rem; margin-top: .25rem; }
-.sg-hinfo-year { flex: 1 1 0; min-width: 0; text-align: center; font-family: var(--font-sans); font-size: .625rem; color: var(--sg-faint); opacity: .85; }
+.sg-hinfo-year { flex: 1 1 0; min-width: 0; text-align: center; font-family: var(--font-sans); font-size: .625rem; color: var(--sg-warm); opacity: .85; font-variant-numeric: tabular-nums; }
 /* 访客位（对齐 Fomalhaut .wi-visit）：两位大数字 + 标签，busuanzi 回写前显示 — */
 .sg-hinfo-visit { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; margin-top: .85rem; padding-top: .8rem; border-top: 1px solid var(--sg-line); }
 .sg-hinfo-visit-item { display: flex; flex-direction: column; align-items: center; gap: .25rem; padding: .55rem .2rem; border-radius: .6rem; background: var(--sg-chip); transition: background-color .25s ease-in-out, transform .25s ease-in-out; }

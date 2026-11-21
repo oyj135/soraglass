@@ -10,26 +10,26 @@
 <div class="sg-rightside" data-sg-rightside>
   <div class="sg-rightside-hidden" id="sg-rightside-hidden" data-sg-rightside-hidden>
     <button class="sg-rightside-btn" type="button" data-sg-theme-toggle aria-label="切换昼夜模式">
-      <?php echo sg_icon('sun', 'sg-i-sun'); ?>
-      <?php echo sg_icon('moon', 'sg-i-moon'); ?>
+      <?php echo sg_icon_color('sun', 'sg-i-sun'); ?>
+      <?php echo sg_icon_color('moon', 'sg-i-moon'); ?>
     </button>
     <?php if ($this->is('post') || $this->is('page')) : ?>
     <button class="sg-rightside-btn" type="button" data-sg-readmode-toggle aria-label="切换阅读模式" aria-pressed="false">
-      <?php echo sg_icon('book-open'); ?>
+      <?php echo sg_icon_color('book-open'); ?>
     </button>
     <?php endif; ?>
     <button class="sg-rightside-btn sg-rightside-down" type="button" data-sg-go-down aria-label="直达底部">
-      <?php echo sg_icon('arrow-down'); ?>
+      <?php echo sg_icon_color('arrow-down'); ?>
     </button>
   </div>
   <button class="sg-rightside-btn" type="button" data-sg-rightside-config aria-label="展开设置" aria-expanded="false" aria-controls="sg-rightside-hidden">
-    <?php echo sg_icon('settings'); ?>
+    <?php echo sg_icon_color('settings'); ?>
   </button>
   <button class="sg-rightside-btn sg-go-up" type="button" data-sg-go-up aria-label="回到顶部">
-    <?php echo sg_icon('arrow-up'); ?>
+    <?php echo sg_icon_color('arrow-up'); ?>
     <span class="sg-go-up-percent" data-sg-go-up-percent>0<span>%</span></span>
   </button>
   <button class="sg-rightside-btn sg-rightside-down" type="button" data-sg-go-down aria-label="直达底部">
-    <?php echo sg_icon('arrow-down'); ?>
+    <?php echo sg_icon_color('arrow-down'); ?>
   </button>
 </div>

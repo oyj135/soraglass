@@ -17,5 +17,5 @@ if ($sgMusicPage === null) {
 }
 ?>
 <div class="sg-toolbox">
-  <a class="sg-tool" href="<?php echo sg_e($sgMusicPage); ?>" aria-label="音乐馆"><?php echo sg_icon('music'); ?></a>
+  <a class="sg-tool" href="<?php echo sg_e($sgMusicPage); ?>" aria-label="音乐馆"><?php echo sg_icon_color('music'); ?></a>
 </div>

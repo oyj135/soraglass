@@ -13,5 +13,5 @@
 <div class="sg-lyric-bar" data-sg-lyric-bar>
   <span class="sg-lyric-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
   <p class="sg-lyric-text" data-sg-lyric-text>点击播放，开始今天的 BGM</p>
-  <span class="sg-lyric-icon" aria-hidden="true"><?php echo sg_icon('music'); ?></span>
+  <span class="sg-lyric-icon" aria-hidden="true"><?php echo sg_icon_color('music'); ?></span>
 </div>

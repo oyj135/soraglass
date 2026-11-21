@@ -140,7 +140,7 @@ foreach ($sgNavMore as $sgMorePage) {
       <?php if ($sgNavMore) : ?>
       <div class="sg-nav-more<?php echo $sgMoreActive ? ' is-active' : ''; ?>" data-sg-nav-more>
         <button class="sg-nav-link sg-nav-more-btn" type="button" aria-expanded="false" aria-haspopup="true">
-          更多<?php echo sg_icon('chevron-down'); ?>
+          更多<?php echo sg_icon_color('chevron-down'); ?>
           <?php if ($sgMoreActive) : ?><span class="sg-nav-dot"></span><?php endif; ?>
         </button>
         <div class="sg-nav-more-menu" role="menu">
@@ -170,6 +170,6 @@ foreach ($sgNavMore as $sgMorePage) {
     <a class="sg-sheet-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>"<?php echo $sgActiveKey === $sgPage['slug'] ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgPage['url']); ?>"<?php echo isset($sgNavHints[$sgPage['slug']]) ? ' title="' . sg_e($sgNavHints[$sgPage['slug']]) . '"' : ''; ?>><?php echo $sgNavIcon($sgPage['slug']); ?><?php echo sg_e($sgPage['title']); ?></a>
     <?php endforeach; ?>
     <hr class="sg-divider">
-    <button class="sg-sheet-link" type="button" data-sg-theme-toggle><?php echo sg_icon('sun', 'sg-i-sun'); ?><?php echo sg_icon('moon', 'sg-i-moon'); ?> 切换昼夜</button>
+    <button class="sg-sheet-link" type="button" data-sg-theme-toggle><?php echo sg_icon_color('sun', 'sg-i-sun'); ?><?php echo sg_icon_color('moon', 'sg-i-moon'); ?> 切换昼夜</button>
   </div>
 </dialog>

@@ -149,8 +149,8 @@ $sgAvatar = sg_media((string) sg_opt('sgAvatarUrl', ''), sg_theme_url('dist/img/
             <?php endif; ?>
 
             <footer class="sg-tl-foot">
-              <?php if ($sgPlace !== '') : ?><span class="sg-tl-loc"><?php echo sg_icon('map-pin'); ?><?php echo sg_e($sgPlace); ?></span><?php endif; ?>
-              <?php if ($sgLink !== '') : ?><a class="sg-tl-more" href="<?php echo sg_e($sgLink); ?>">原文<?php echo sg_icon('arrow-up-right'); ?></a><?php endif; ?>
+              <?php if ($sgPlace !== '') : ?><span class="sg-tl-loc"><?php echo sg_icon_color('map-pin'); ?><?php echo sg_e($sgPlace); ?></span><?php endif; ?>
+              <?php if ($sgLink !== '') : ?><a class="sg-tl-more" href="<?php echo sg_e($sgLink); ?>">原文<?php echo sg_icon_color('arrow-up-right'); ?></a><?php endif; ?>
             </footer>
           </article>
         </li>
@@ -167,7 +167,7 @@ $sgAvatar = sg_media((string) sg_opt('sgAvatarUrl', ''), sg_theme_url('dist/img/
     <h1>还没有碎语</h1>
     <p>写一篇文章、勾上「碎语」分类（缩略名 <code>notes</code>）并发布，这里就会按时间排起来。</p>
     <div class="sg-notfound-actions">
-      <a class="sg-btn" href="<?php echo sg_e($sgHome); ?>"><?php echo sg_icon('arrow-left'); ?>回到首页</a>
+      <a class="sg-btn" href="<?php echo sg_e($sgHome); ?>"><?php echo sg_icon_color('arrow-left'); ?>回到首页</a>
     </div>
   </div>
   <?php endif; ?>

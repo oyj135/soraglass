@@ -140,7 +140,8 @@ html.dark .sg-profile .sg-avatar-ring::after { box-shadow: 0 0 6px 4px color-mix
 .sg-avatar-wrap { position: relative; }
 .sg-status-bubble {
   position: absolute;
-  right: -.45rem;
+  /* 向左锚点：hover 时 max-width 增大，气泡朝右生长，不回压头像 */
+  left: calc(100% - 1.3rem);
   bottom: .2rem;
   display: inline-flex;
   align-items: center;
@@ -159,7 +160,7 @@ html.dark .sg-profile .sg-avatar-ring::after { box-shadow: 0 0 6px 4px color-mix
 .sg-status-bubble > svg { width: .95rem; height: .95rem; flex: none; color: var(--sg-accent-ink); }
 /* 常驻青瓷星（无状态文字）：只做一枚静态描边青瓷星，不展开、不响应 hover 宽度；
    落在头像右下角像一枚徽章（源站 author-status-box 形态，Soraglass 换成青瓷星）。 */
-.sg-status-bubble--deco { justify-content: center; padding: 0; }
+.sg-status-bubble--deco { justify-content: center; padding: 0; left: auto; right: -.45rem; }
 .sg-status-bubble--deco > svg { color: var(--sg-accent-ink); }
 html.dark .sg-status-bubble--deco { background: var(--sg-card); }
 .sg-status-text {
