@@ -3,7 +3,7 @@
 ?>
 <section class="sg-glass sg-toc" data-sg-toc hidden>
   <header class="sg-toc-head">
-    <h3 class="sg-side-title">目录</h3>
+    <h3 class="sg-side-title"><?php echo sg_icon_color('book-open'); ?>目录</h3>
     <span class="sg-toc-percent" data-sg-toc-percent>0%</span>
   </header>
   <span class="sg-toc-rail" aria-hidden="true"></span>

@@ -72,7 +72,7 @@ $sgHead = [
       </header>
       <?php foreach ($sgMonths as $sgMonth => $sgItems) : ?>
       <div class="sg-timeline-month">
-        <h3 class="sg-timeline-month-title"><?php echo (int) $sgMonth; ?> 月</h3>
+        <h3 class="sg-timeline-month-title"><?php echo sg_icon_color('calendar'); ?><?php echo (int) $sgMonth; ?> 月</h3>
         <ul class="sg-timeline-list">
           <?php foreach ($sgItems as $sgItem) : ?>
           <li class="sg-timeline-item">

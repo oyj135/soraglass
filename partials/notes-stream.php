@@ -87,6 +87,7 @@ $sgAvatar = sg_media((string) sg_opt('sgAvatarUrl', ''), sg_theme_url('dist/img/
     <?php foreach ($sgGroups as $sgGroupKey => $sgGroup) : ?>
     <section class="sg-tl-month" data-sg-tl-month="<?php echo sg_e((string) $sgGroupKey); ?>">
       <h2 class="sg-tl-month-label">
+        <?php echo sg_icon_color('calendar'); ?>
         <span><?php echo sg_e($sgGroup['label']); ?></span>
         <b><?php echo count($sgGroup['items']); ?></b>
       </h2>

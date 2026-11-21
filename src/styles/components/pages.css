@@ -190,6 +190,9 @@ html.dark .sg-footer-zone::before {
 }
 
 .sg-timeline-month-title {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
   padding-top: .55rem;
   font-size: .8rem;
   font-weight: 700;
@@ -197,6 +200,7 @@ html.dark .sg-footer-zone::before {
   color: var(--sg-muted);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
+.sg-timeline-month-title svg { width: 1.1em; height: 1.1em; flex: none; }
 
 .sg-timeline-list { position: relative; list-style: none; margin: 0; padding: 0 0 0 1.6rem; }
 .sg-timeline-list::before {
