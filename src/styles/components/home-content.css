@@ -216,15 +216,12 @@ button.sg-progress:hover { background: var(--sg-indicator-bg-hot); }
 
 .sg-progress-count { min-width: 2.1rem; text-align: right; font-variant-numeric: tabular-nums; }
 
-/* ---------- 宽幅海报（8 列上）----------
-   2026-11-21 第五十轮：由「封面铺底 + 白字压图」改为文章卡基准的分段式
-   —— 上半 16:9 封面区（opacity 1、hover scale 1.03 + 卡片阴影加深），
-   下半独立信息区（常规字色）。DOM 不变：img / .sg-veil / .sg-poster-body 全部复用。 */
+/* ---------- 宽幅海报（8 列上） ---------- */
 .sg-poster-wide {
   position: relative;
-  display: flex;
-  flex-direction: column;
+  display: block;
   width: 100%;
+  min-height: 11rem;
   overflow: hidden;
   border-radius: var(--sg-radius);
   border: 1px solid var(--sg-border);
@@ -234,60 +231,37 @@ button.sg-progress:hover { background: var(--sg-indicator-bg-hot); }
     transform var(--sg-dur-card) var(--sg-ease),
     box-shadow var(--sg-dur-card) var(--sg-ease);
 }
-.sg-poster-wide:is(:hover, :focus-visible) { box-shadow: var(--sg-shadow-strong); }
 
-.sg-poster-wide > img {
-  position: relative;
-  inset: auto;
-  display: block;
-  flex: none;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
-  opacity: 1;
-  transition: transform var(--sg-dur-card) var(--sg-ease);
-}
-.sg-poster-wide:is(:hover, :focus-visible) > img { transform: scale(1.03); }
-/* 分段后封面独立成区，压图暗幕不再需要 */
-.sg-poster-wide .sg-veil { display: none; }
+.sg-poster-wide img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .9; transition: transform var(--sg-dur-card) var(--sg-ease); }
+.sg-poster-wide:hover img { transform: scale(1.1); }
+/* 文字压在左下角：均匀 .30 暗幕在浅色封面上标题/摘要只剩 2–2.2:1，改成自下而上加深 */
+.sg-poster-wide .sg-veil { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0, 0, 0, .72), rgba(0, 0, 0, .34) 60%, rgba(0, 0, 0, .18)); transition: background-color .5s; }
+html.dark .sg-poster-wide .sg-veil { background: linear-gradient(to top, rgba(0, 0, 0, .78), rgba(0, 0, 0, .5) 60%, rgba(0, 0, 0, .4)); }
 
-.sg-poster-body {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: .35rem;
-  padding: 1.15rem 1.25rem 1.25rem;
-  color: var(--sg-text);
-  text-shadow: none;
-}
+.sg-poster-body { position: absolute; left: 1rem; right: 1.5rem; bottom: 1rem; color: #fff; text-shadow: none; }
+@media (min-width: 640px) { .sg-poster-body { left: 1.5rem; bottom: 1.5rem; } }
 
 .sg-poster-body h3 {
-  font-size: 1.35rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  margin-bottom: 0;
-  color: var(--sg-text);
+  margin-bottom: .25rem;
   text-decoration: underline;
   text-decoration-color: var(--sg-warm-bright);
   text-underline-offset: 4px;
 }
 
-@media (min-width: 640px) { .sg-poster-body h3 { font-size: 1.5rem; } }
-
-.sg-poster-kicker { color: var(--sg-accent-ink); font-size: .8rem; letter-spacing: .08em; }
+@media (min-width: 640px) { .sg-poster-body h3 { font-size: 1.875rem; } }
 
 .sg-poster-body p {
   font-size: .875rem;
-  color: var(--sg-muted);
+  color: rgba(255, 255, 255, .90);
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-/* ---------- 说说 / 杂谈卡（8 列下）----------
-   2026-11-21 第五十轮：与海报卡同步改为文章卡基准的分段式。轮播结构不变
-   （.sg-chatter-slide 绝对层叠 + opacity 淡入由 carousel.ts 控制），每张 slide
-   内部上半 16:9 封面（opacity 1、hover scale 1.03）、下半独立信息区常规字色。 */
+/* ---------- 说说 / 杂谈卡（8 列下） ---------- */
 .sg-chatter {
   position: relative;
   overflow: hidden;
@@ -298,44 +272,46 @@ button.sg-progress:hover { background: var(--sg-indicator-bg-hot); }
     transform var(--sg-dur-card) var(--sg-ease),
     box-shadow var(--sg-dur-card) var(--sg-ease);
 }
-.sg-chatter:is(:hover, :focus-within) { box-shadow: var(--sg-shadow-strong); }
-.sg-chatter img { display: none; }
-.sg-chatter .sg-veil { display: none; }
+.sg-chatter img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .80; transition: transform var(--sg-dur-card) var(--sg-ease); }
+.sg-chatter:hover img { transform: scale(1.1); }
+/* 正文占卡宽 85%，右段原先只剩 .10 暗幕，浅色配图上摘要跌到 1.2:1 */
+.sg-chatter .sg-veil { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0, 0, 0, .82), rgba(0, 0, 0, .58) 55%, rgba(0, 0, 0, .36)); }
 
 .sg-chatter-body {
   position: relative;
   z-index: 10;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
   height: 100%;
   min-height: 12.5rem;
-  padding: 1.15rem 1.25rem 1.25rem;
-  color: var(--sg-text);
+  padding: 1.5rem;
+  color: #fff;
   text-shadow: none;
 }
 
-.sg-chatter-meta { display: flex; align-items: center; gap: .5rem; margin-bottom: .5rem; }
-.sg-chatter-meta .sg-chip--tag { color: var(--sg-accent-ink); letter-spacing: .12em; }
-.sg-chatter-meta time { font-size: 11px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--sg-faint); }
+@media (min-width: 768px) { .sg-chatter-body { padding: 2rem; width: 85%; } }
+
+.sg-chatter-meta { display: flex; align-items: flex-end; gap: .5rem; margin-bottom: .5rem; }
+.sg-chatter-meta .sg-chip--tag { color: var(--sg-accent-soft); letter-spacing: .18em; }
+.sg-chatter-meta time { font-size: 11px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: #cbd5e1; }
 
 .sg-chatter-body h3 {
-  font-size: 1.15rem;
+  font-size: 1.35rem;
   font-weight: 700;
-  margin-bottom: .5rem;
+  margin-bottom: .75rem;
   display: -webkit-box;
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
   transition: color .3s;
-  color: var(--sg-text);
 }
 
-.sg-chatter:is(:hover, :focus-within) .sg-chatter-slide.is-active .sg-chatter-body h3 { color: var(--sg-accent-ink); }
+.sg-chatter:hover .sg-chatter-body h3 { color: var(--sg-accent-soft); }
 
 .sg-chatter-body p {
   font-size: .875rem;
-  color: var(--sg-muted);
+  color: rgba(255, 255, 255, .88);
   line-height: 1.7;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -344,34 +320,12 @@ button.sg-progress:hover { background: var(--sg-indicator-bg-hot); }
 }
 
 /* 轮播单张：与 .sg-post-slide 同一套淡入逻辑，供 index.php 的杂谈轮播使用 */
-.sg-chatter-slide {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: var(--sg-card);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .8s;
-}
+.sg-chatter-slide { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity .8s; }
 .sg-chatter-slide.is-active { opacity: 1; pointer-events: auto; }
-.sg-chatter-slide > img {
-  position: relative;
-  inset: auto;
-  display: block;
-  flex: none;
-  width: 100%;
-  /* 轮播容器高度固定，封面占约 55%，下方留信息区；用 height 百分比而非 aspect-ratio，
-     否则固定高度容器里 16:9 会把信息区挤出可视范围。 */
-  height: 55%;
-  object-fit: cover;
-  opacity: 1;
-  transition: transform var(--sg-dur-card) var(--sg-ease);
-}
-.sg-chatter:is(:hover, :focus-within) .sg-chatter-slide.is-active > img { transform: scale(1.03); }
-.sg-chatter-slide .sg-veil { display: none; }
-.sg-chatter-slide .sg-chatter-body { min-height: 0; flex: 1; padding: 1rem 1.25rem; }
+.sg-chatter-slide > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .80; transition: transform var(--sg-dur-card) var(--sg-ease); }
+.sg-chatter:hover .sg-chatter-slide.is-active > img { transform: scale(1.1); }
+.sg-chatter-slide .sg-veil { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0, 0, 0, .80), rgba(0, 0, 0, .40) 55%, rgba(0, 0, 0, .10)); }
+.sg-chatter-slide .sg-chatter-body { min-height: 0; }
 
 /* 杂谈空态：没有杂谈文章时不留一块空洞，给一块可点的引导卡 */
 .sg-chatter-slide .sg-chatter-body--empty {
@@ -379,12 +333,6 @@ button.sg-progress:hover { background: var(--sg-indicator-bg-hot); }
     radial-gradient(120% 120% at 0% 0%, color-mix(in srgb, var(--sg-accent-soft) 22%, transparent), transparent 60%),
     linear-gradient(135deg, rgba(15, 23, 42, .92), rgba(2, 6, 23, .96));
 }
-/* 空态是深底引导卡，文字恢复浅色（分段改造后信息区默认走 --sg-text 深色） */
-.sg-chatter-slide .sg-chatter-body--empty,
-.sg-chatter-slide .sg-chatter-body--empty h3,
-.sg-chatter-slide .sg-chatter-body--empty p,
-.sg-chatter-slide .sg-chatter-body--empty time { color: #fff; }
-.sg-chatter-slide .sg-chatter-body--empty .sg-chip--tag { color: var(--sg-accent-soft); }
 
 .sg-chatter-meta .sg-chip--tag svg { width: 12px; height: 12px; margin-right: .3rem; vertical-align: -.12em; }
 

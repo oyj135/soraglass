@@ -110,68 +110,66 @@ html.dark .sg-post-meta-cate:hover { color: var(--sg-accent-ink); }
 .sg-post-meta-sep { opacity: .6; }
 @media (max-width: 571.98px) { .sg-post-meta-sep { display: none; } }
 
-/* 相关推荐（2026-11-21 第五十轮：改文章卡基准分段式）：
-   三栏卡（≤768 两栏、≤600 单栏），每卡上半 16:9 封面区（opacity 1、hover scale 1.03
-   + 阴影加深）+ 下半独立信息区（日期 + 标题，常规字色）。DOM 不变。 */
+/* 相关推荐（2026-11-17，逐参数对齐 Fomalhaut _layout/relatedposts.styl + postImgHover）：
+   三栏 200px 卡（≤768 两栏 150px、≤600 单栏）；封面 opacity .4，hover 提亮到 .8
+   并 scale(1.1)（filter 375ms ease-in .2s, transform .6s 同参数）；日期+标题
+   居中压图。圆角 12px（custom.css 同参数）。 */
 .sg-related { margin-top: 40px; }
 .sg-related-head {
   display: flex;
   align-items: center;
   gap: .45rem;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   font-weight: 700;
   font-size: 1.43em;
 }
 .sg-related-head svg { width: 1.1em; height: 1.1em; color: var(--sg-accent-ink); }
-.sg-related-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
-@media (max-width: 767.98px) { .sg-related-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 600px) { .sg-related-list { grid-template-columns: minmax(0, 1fr); } }
-.sg-related-cell { position: relative; min-width: 0; }
-.sg-related-item {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+.sg-related-list { display: flex; flex-wrap: wrap; margin: -3px; }
+.sg-related-cell {
+  position: relative;
   overflow: hidden;
-  border: 1px solid var(--sg-border);
-  border-radius: var(--sg-radius);
-  background: var(--sg-card);
-  box-shadow: var(--sg-shadow);
-  transition:
-    transform var(--sg-dur-card) var(--sg-ease),
-    box-shadow var(--sg-dur-card) var(--sg-ease);
+  margin: 3px;
+  width: calc(33.333% - 6px);
+  height: 200px;
+  /* 实色深底：半透明底叠在日间白卡上会变灰，.4 透明度的封面再把白字冲到 2.1:1 */
+  background: rgb(12, 18, 22);
+  border-radius: 12px;
 }
-.sg-related-item:is(:hover, :focus-visible) { box-shadow: var(--sg-shadow-strong); }
+@media (max-width: 767.98px) { .sg-related-cell { margin: 2px; width: calc(50% - 4px); height: 150px; } }
+@media (max-width: 600px) { .sg-related-cell { width: calc(100% - 4px); } }
+.sg-related-item { display: block; height: 100%; }
 .sg-related-item img {
-  display: block;
-  flex: none;
+  position: absolute;
+  inset: 0;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  height: 100%;
   object-fit: cover;
-  opacity: 1;
-  transition: transform var(--sg-dur-card) var(--sg-ease);
+  opacity: .4;
+  transition: filter 375ms ease-in .2s, transform .6s;
 }
-.sg-related-item:is(:hover, :focus-visible) img { transform: scale(1.03); }
+.sg-related-item:is(:hover, :focus-visible) img { opacity: .8; transform: scale(1.1); }
 .sg-related-content {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: .4rem;
-  padding: .9rem 1rem 1.05rem;
+  position: absolute;
+  top: 50%;
+  transform: translate(0, -50%);
+  padding: 0 20px;
+  width: 100%;
+  text-align: center;
   text-shadow: none;
 }
 .sg-related-date {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: .3rem;
-  color: var(--sg-faint);
+  color: rgba(255, 255, 255, .86);
   font-family: var(--font-sans);
-  font-size: 80%;
+  font-size: 90%;
 }
 .sg-related-date svg { width: .95em; height: .95em; }
 .sg-related-title {
-  color: var(--sg-text);
+  color: rgba(255, 255, 255, .92);
   font-weight: 600;
-  font-size: .98rem;
   line-height: 1.5;
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -179,6 +177,26 @@ html.dark .sg-post-meta-cate:hover { color: var(--sg-accent-ink); }
   overflow: hidden;
 }
 @media (prefers-reduced-motion: reduce) { .sg-related-item img { transition: none; transform: none !important; } }
+
+/* 2026-11-21 第五十一轮：相关推荐文字 hover 渐进浮现（同 .sg-feature-quote）。
+   默认隐藏日期与标题、下移 1.8rem；精确指针 hover / 键盘 focus 时，封面维持
+   原配方（opacity .4→.8 + scale 1.1），文字错峰 .12s 上浮淡入；触屏常显。 */
+@media (hover: hover) and (pointer: fine) {
+  .sg-related-content {
+    opacity: 0;
+    transform: translate(0, calc(-50% + 1.8rem));
+    transition: opacity .8s ease-in-out, transform .8s ease-in-out;
+  }
+  .sg-related-item:is(:hover, :focus-visible) .sg-related-content {
+    opacity: 1;
+    transform: translate(0, -50%);
+    transition-delay: .12s;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sg-related-content { opacity: 1; transform: translate(0, -50%); transition: none; }
+  .sg-related-item:is(:hover, :focus-visible) .sg-related-content { transform: translate(0, -50%); }
+}
 
 .sg-article { flex: 1; min-width: 0; overflow: hidden; padding: 0; }
 .sg-article.sg-glass { background: var(--sg-card-strong); border-color: var(--sg-border-strong); }
@@ -257,9 +275,9 @@ html.dark .sg-meta-chip.is-pink { color: var(--sg-warm-bright); }
 .sg-back svg { width: 1rem; height: 1rem; transition: transform .3s; }
 .sg-back:hover svg { transform: translateX(-2px); }
 
-/* 2026-11-21：旧的简版 .sg-post-nav 文字导航规则已删除 —— 全站仅 post.php 一处使用，
-   其图文上下篇形态统一由 editorial.css 定义（article.css 这里的同名声明会残留
-   justify-content/font-size/border-top 覆盖分段式布局）。 */
+.sg-post-nav { display: flex; justify-content: space-between; gap: 1rem; margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--sg-line); font-size: .85rem; }
+.sg-post-nav a { color: var(--sg-muted); transition: color .3s; }
+.sg-post-nav a:hover { color: var(--sg-accent-ink); }
 
 /* 正文排版 */
 .sg-prose { font-size: 1rem; line-height: 2; overflow-wrap: anywhere; }

@@ -273,12 +273,11 @@ a.sg-home-cate:hover > svg:last-child { color: #fff; transform: translateX(2px);
    高度对齐 .sg-briefing-banner 的 13rem（移动）/ 12.5rem（≥768px）。 */
 .sg-home-stories { display: flex; flex-direction: column; gap: 1.25rem; margin-top: 0; }
 @media (min-width: 1024px) { .sg-home-stories { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-/* 2026-11-21：两卡改为分段式（16:9 封面 + 信息区），最小高度上调让信息区不被压扁 */
-.sg-home-stories .sg-poster-wide { min-height: 16rem; }
-.sg-home-stories .sg-chatter { min-height: 16rem; }
+.sg-home-stories .sg-poster-wide { min-height: 13rem; }
+.sg-home-stories .sg-chatter { min-height: 13rem; }
 @media (min-width: 640px) {
-  .sg-home-stories .sg-poster-wide { min-height: 16.5rem; }
-  .sg-home-stories .sg-chatter { min-height: 16.5rem; }
+  .sg-home-stories .sg-poster-wide { min-height: 12.5rem; }
+  .sg-home-stories .sg-chatter { min-height: 12.5rem; }
 }
 
 /* ---------- 右侧卡片公共外壳（对齐文章页 .sg-side-card 的玻璃材质） ---------- */

@@ -241,56 +241,53 @@
 /* 标签从头图移到正文末尾（2026-11-16 第三轮，对齐源站 post 底部 tag 区） */
 .sg-article-tags { margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--sg-line); }
 
-/* ---------- 上下篇（2026-11-21 第五十轮：改文章卡基准分段式）----------
-   从「封面铺满 + 白字压图」改为「上半封面区（opacity 1、hover scale 1.03）
-   + 下半独立信息区（常规字色）」，与列表文章卡 .sg-post-card 同一套视觉。
-   DOM 不变（<a> 内 img + span.info），hover 阴影加深。 */
+/* ---------- 上下篇：参考 Fomalhaut 的图文横幅 ---------- */
 .sg-post-nav {
   position: relative;
   display: flex;
-  gap: 1.25rem;
+  gap: 0;
+  overflow: hidden;
   margin-top: 3rem;
   padding-top: 0;
   border-top: 0;
+  border-radius: var(--sg-radius-outer);
+  /* 走填充色 accent：夜间 accent-deep 是亮青 #bfe3e6，混出来的浅底让白字只剩 2.5:1 */
+  background: color-mix(in srgb, var(--sg-accent) 72%, #000);
 }
 
 .sg-post-nav-item {
   position: relative;
-  display: flex;
-  flex-direction: column;
+  display: block;
   width: 50%;
+  height: 9.375rem;
   overflow: hidden;
-  border: 1px solid var(--sg-border);
-  border-radius: var(--sg-radius);
-  background: var(--sg-card);
-  box-shadow: var(--sg-shadow);
-  transition:
-    transform var(--sg-dur-card) var(--sg-ease),
-    box-shadow var(--sg-dur-card) var(--sg-ease);
 }
-.sg-post-nav-item:is(:hover, :focus-visible) { box-shadow: var(--sg-shadow-strong); }
 
 .sg-post-nav-item.is-full { width: 100%; }
 
 .sg-post-nav-item img {
-  display: block;
-  flex: none;
+  position: absolute;
+  inset: 0;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  height: 100%;
   object-fit: cover;
-  opacity: 1;
-  transition: transform var(--sg-dur-card) var(--sg-ease);
+  opacity: .4;
+  transition:
+    opacity .6s var(--sg-ease),
+    transform .6s var(--sg-ease);
 }
-.sg-post-nav-item:is(:hover, :focus-visible) img { transform: scale(1.03); }
+
+.sg-post-nav-item:is(:hover, :focus-visible) img {
+  opacity: .8;
+  transform: scale(1.1);
+}
 
 .sg-post-nav-info {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  justify-content: center;
-  gap: .3rem;
+  position: absolute;
+  top: 50%;
   width: 100%;
-  padding: 1.1rem 1.5rem;
+  padding: 1.25rem 2.5rem;
+  transform: translateY(-50%);
   text-shadow: none;
 }
 
@@ -298,31 +295,53 @@
 
 .sg-post-nav-info em {
   display: block;
-  color: var(--sg-accent-ink);
+  color: rgba(255, 255, 255, .85);
   font-family: var(--font-sans);
   font-size: .8125rem;
   font-style: normal;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: .06em;
   text-transform: uppercase;
 }
 
 .sg-post-nav-info b {
-  display: -webkit-box;
+  display: block;
   overflow: hidden;
-  color: var(--sg-text);
-  font-size: 1.2rem;
-  font-weight: 600;
+  color: #fff;
+  font-size: 1.35rem;
+  font-weight: 500;
   line-height: 1.5;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 @media (max-width: 767.98px) {
   .sg-post-nav { flex-direction: column; }
-  .sg-post-nav-item { width: 100%; }
-  .sg-post-nav-info { padding: 1rem 1.25rem; }
-  .sg-post-nav-info b { font-size: 1.1rem; }
+  .sg-post-nav-item { width: 100%; height: 8.75rem; }
+  .sg-post-nav-info { padding: 1rem 1.5rem; }
+  .sg-post-nav-info b { font-size: 1.15rem; }
+}
+
+
+/* 2026-11-21 第五十一轮：封面文字 hover 渐进浮现（复刻 .sg-feature-quote）。
+   默认隐藏上下篇标签与标题、下移 1.8rem；精确指针 hover / 键盘 focus 时，
+   封面维持原配方（opacity .4→.8 + scale 1.1），文字错峰 .12s 上浮淡入。
+   触屏无 hover 时规则不套用，文字保持常显；减少动效时关闭位移与过渡。 */
+@media (hover: hover) and (pointer: fine) {
+  .sg-post-nav-info {
+    opacity: 0;
+    transform: translateY(calc(-50% + 1.8rem));
+    transition: opacity .8s ease-in-out, transform .8s ease-in-out;
+  }
+  .sg-post-nav-item:is(:hover, :focus-visible) .sg-post-nav-info {
+    opacity: 1;
+    transform: translateY(-50%);
+    transition-delay: .12s;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sg-post-nav-info { opacity: 1; transform: translateY(-50%); transition: none; }
+  .sg-post-nav-item:is(:hover, :focus-visible) .sg-post-nav-info { transform: translateY(-50%); }
 }
 
 /* ---------- 侧栏卡片 ---------- */
