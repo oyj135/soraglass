@@ -26,9 +26,15 @@ $sgString = static function (array $row, string $key, string $fallback = ''): st
 $sgFriends = array_map(static function (array $row) use ($sgString): array {
     $sgUrl = $sgString($row, 'url', '#');
     $sgShot = sg_bg_url($sgString($row, 'siteshot'));
+    /* 站名下面那行小字：源站 h3 里的 span（「2 Hours ago」），
+       这里放站点域名 —— 静止时面板只有头像 + 站名会显得右半边空。 */
+    $sgHost = (string) parse_url($sgUrl, PHP_URL_HOST);
+    $sgHost = (string) preg_replace('/^www\./i', '', $sgHost);
+
     return [
         'name' => $sgString($row, 'name', '友链'),
         'url' => $sgUrl,
+        'host' => $sgHost,
         'description' => $sgString($row, 'description'),
         'avatar' => sg_media($sgString($row, 'avatar'), sg_theme_url('dist/img/avatar.svg')),
         'siteshot' => $sgShot !== '' ? $sgShot : 'https://image.thum.io/get/allowJPG/wait/20/width/600/crop/950/' . $sgUrl,
@@ -53,6 +59,9 @@ $sgFriends = array_map(static function (array $row) use ($sgString): array {
         <span class="sg-flink-info">
           <span class="sg-flink-icon"><img src="<?php echo sg_e($sgFriend['avatar']); ?>" alt="<?php echo sg_e($sgFriend['name']); ?>" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='<?php echo sg_e(sg_theme_url('dist/img/avatar.svg')); ?>'"></span>
           <span class="sg-flink-name"><?php echo sg_e($sgFriend['name']); ?></span>
+          <?php if ($sgFriend['host'] !== '') : ?>
+          <span class="sg-flink-host"><?php echo sg_e($sgFriend['host']); ?></span>
+          <?php endif; ?>
           <span class="sg-flink-desc" title="<?php echo sg_e($sgFriend['description']); ?>"><?php echo sg_e($sgFriend['description']); ?></span>
         </span>
       </a>

@@ -214,18 +214,23 @@
   --sg-indicator-bg-hot: rgba(8, 20, 22, .64);
   --sg-indicator-track: rgba(255, 255, 255, .30);
 
-  /* 项目卡专用（2026-11-13 第三十一轮）—— 原来项目卡与其它卡共用一层 40% 白，
-     图标是裸 emoji、没有身份行，一屏六张完全同质。这里给它单独一组：
-     双层渐变卡面（上亮下暗，制造光从上打下来的层次）、图标色块、顶部 1px 高光。 */
-  --sg-proj-face-a: rgba(255, 255, 255, .24);
-  --sg-proj-face-b: rgba(255, 255, 255, 0);
+  /* 项目卡专用。2026-11-21 第三十九轮起卡面改成「封面 + 信息面板」（弯曲外部卡），
+     卡面不再需要双层渐变 —— 统一用 --sg-card 实底，只留描边与胶囊这两组。
+     （原 --sg-proj-face-a/b、--sg-proj-tint 随渐变卡面一起删除。） */
+  /* 弯曲卡（友链 / 项目）的面板色：**必须实色**。
+     圆肩胶囊与面板在交界处会叠两层，用 .98 的 --sg-card 会在面板顶部露出一块
+     比周围亮一档的方块（两层 alpha 复合的结果）。这里直接给不透明值。 */
+  --sg-panel-face: #fbf8f2;
+  /* 弯曲卡（友链 / 项目）的面板色：**必须实色**。
+     圆肩胶囊与面板在交界处会叠两层，用 .98 的 --sg-card 会在面板顶部露出一块
+     比周围亮一档的方块（两层 alpha 复合的结果）。这里直接给不透明值。 */
+  --sg-panel-face: #fbf8f2;
   --sg-proj-border: rgba(255, 255, 255, .58);      /* 静置描边：比通用卡亮一档，卡片才「有边」 */
   /* 原 --sg-proj-border-hot（hover 提亮描边）已随「同步源站」删除：
      悬浮不再改边框，只补 .site-card:hover 那组四层柔影 + 主体 1.02 缓放。 */
   /* 下面这批原来是按 indigo-500 手算的 rgba(99,102,241,…)，主色一动就得逐个重算，
      下次再换还得再来一遍。改成 color-mix() 从 --sg-accent 派生：换签名色只改主色 4 个值。
      color-mix 在 Chrome 111 / Safari 16.2 / Firefox 113 起可用，本站无更老的目标。 */
-  --sg-proj-tint: color-mix(in srgb, var(--sg-accent-soft) 12%, transparent);      /* 卡片右下角冷光，压掉「一整片白」 */
   --sg-proj-tag-bg: color-mix(in srgb, var(--sg-accent) 11%, transparent);
   --sg-proj-tag-border: color-mix(in srgb, var(--sg-accent) 22%, transparent);
   --sg-proj-tag-fg: var(--sg-accent-deep);      /* 胶囊里的字要压得住 */
@@ -349,12 +354,10 @@ html.dark {
   --sg-indicator-bg-hot: rgba(8, 12, 14, .64);
   --sg-indicator-track: rgba(255, 255, 255, .30);
 
-  /* 项目卡：暗色下渐变改成「上偏青灰、下透明」，靠浅档微光提起上边缘；
-     图标 / 胶囊统一走 accent-soft，深底上才够对比。全部从签名色派生，换色不用再手算。 */
-  --sg-proj-face-a: color-mix(in srgb, var(--sg-accent-soft) 10%, transparent);
-  --sg-proj-face-b: rgba(16, 20, 24, 0);
+  /* 项目卡：暗色下卡面走 --sg-card，胶囊统一 accent-soft，深底上才够对比 */
+  --sg-panel-face: #22272a;
+  --sg-panel-face: #22272a;
   --sg-proj-border: rgba(255, 255, 255, .12);
-  --sg-proj-tint: color-mix(in srgb, var(--sg-accent-soft) 14%, transparent);
   --sg-proj-tag-bg: color-mix(in srgb, var(--sg-accent-soft) 16%, transparent);
   --sg-proj-tag-border: color-mix(in srgb, var(--sg-accent-soft) 28%, transparent);
   --sg-proj-tag-fg: var(--sg-accent-pale);

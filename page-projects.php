@@ -61,6 +61,24 @@ $sgHead = [
 
         /* 结构化字段（第三十七轮）：GitHub 数据源直接给，手填 JSON 可能没有，
            缺失时从 meta 的「★ 12 / 更新于 2026.11.14」里兜回来。 */
+        /* 封面：单项目 JSON 里填 cover（也认 image / thumb / screenshot），
+           没有就查后台「项目封面」那张映射表（GitHub 模式下唯一的补图入口）。
+           这里取原值（不先转义）—— 地址带查询串时 `&` 被转义成 `&amp;` 会直接 404，
+           输出时统一由 sg_e() 转一次。 */
+        $sgCover = '';
+        foreach (['cover', 'image', 'thumb', 'screenshot'] as $sgCoverKey) {
+            if (isset($sgProject[$sgCoverKey]) && is_scalar($sgProject[$sgCoverKey])) {
+                $sgCover = trim((string) $sgProject[$sgCoverKey]);
+            }
+            if ($sgCover !== '') {
+                break;
+            }
+        }
+        if ($sgCover === '') {
+            $sgCover = sg_project_cover($sgProject);
+        }
+        $sgCover = $sgCover !== '' ? sg_bg_url($sgCover) : '';
+
         $sgLang = trim((string) sg_value($sgProject, 'language', ''));
         $sgStars = (int) sg_value($sgProject, 'stars', 0);
         $sgForks = (int) sg_value($sgProject, 'forks', 0);
@@ -81,10 +99,20 @@ $sgHead = [
             }));
         }
         ?>
-    <article class="sg-glass sg-project" data-sg-filter-item data-keywords="<?php echo sg_e($sgKeywords); ?>" data-initial="<?php echo sg_e(mb_substr($sgName, 0, 1, 'UTF-8')); ?>"<?php if ($sgLang !== '') : ?> style="--sg-lang: <?php echo sg_e(sg_lang_color($sgLang)); ?>"<?php endif; ?>>
+    <article class="sg-glass sg-project<?php echo $sgCover !== '' ? ' sg-project--cover' : ''; ?>" data-sg-filter-item data-keywords="<?php echo sg_e($sgKeywords); ?>"<?php if ($sgLang !== '') : ?> style="--sg-lang: <?php echo sg_e(sg_lang_color($sgLang)); ?>"<?php endif; ?>>
       <?php if ($sgUrl !== '') : ?>
       <a class="sg-project-link" href="<?php echo sg_e($sgUrl); ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php echo sg_e($sgName); ?>"></a>
       <?php endif; ?>
+      <?php /* 封面区（源码 .imgBx）：有 cover 就放图，没有就用语言色渐变 + 首字母水印。
+               弯曲几何（圆肩胶囊 + 内凹圆缺口）挂在这层的伪元素上，别摘这个节点。 */ ?>
+      <div class="sg-project-shot">
+        <?php /* 首字母水印垫在封面图下面：图加载成功被盖住，失败时它顶上来 */ ?>
+        <span class="sg-project-mark" aria-hidden="true"><?php echo sg_e(mb_substr($sgName, 0, 1, 'UTF-8')); ?></span>
+        <?php if ($sgCover !== '') : ?>
+        <span class="sg-project-photo"><img src="<?php echo sg_e($sgCover); ?>" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></span>
+        <?php endif; ?>
+      </div>
+      <div class="sg-project-body">
       <div class="sg-project-top">
         <span class="sg-project-avatar">
           <img src="<?php echo sg_e($sgAvatar); ?>" alt="" loading="lazy" decoding="async"
@@ -122,6 +150,7 @@ $sgHead = [
         <?php endif; ?>
       </div>
       <?php endif; ?>
+      </div><?php /* /.sg-project-body */ ?>
     </article>
     <?php endforeach; ?>
   </div>

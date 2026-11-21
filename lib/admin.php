@@ -753,6 +753,13 @@ function themeConfig($form): void
     $form->addInput(new Textarea('sgSocial', null, '', _t('社交链接 JSON'), _t('格式：[{"name":"GitHub","url":"...","icon":"github"}]') . sg_admin_json_tools()));
     $form->addInput(new Textarea('sgFriends', null, '', _t('友链 JSON'), _t('留空使用 dist/data/friends.json')));
     $form->addInput(new Textarea('sgProjects', null, '', _t('项目 JSON'), _t('留空使用 dist/data/projects.json。<br>填了 GitHub 账号后，这里留空即自动用仓库列表；<b>两项都有时以这里为准</b>（想完全交给 GitHub 就清空本栏）')));
+    $form->addInput(new Textarea('sgProjectCovers', null, '', _t('项目封面'), _t(
+        '给项目卡配封面图，<b>一行一个</b>：<code>仓库名 | 图片地址</code><br>'
+        . '左边写仓库名（<code>soraglass</code>）、全名（<code>oyj135/soraglass</code>）或项目名；'
+        . '右边支持完整 URL、<code>usr/uploads/…</code> 与主题内相对路径。<br>'
+        . '也可以直接写 JSON 对象：<code>{"soraglass":"https://…/cover.webp"}</code>。<br>'
+        . '项目 JSON 里单个项目的 <code>cover</code> 字段优先级更高；两处都没有时封面退化为语言色渐变 + 首字母水印。'
+    )));
     $form->addInput(new Text('sgGithubUser', null, 'oyj135', _t('GitHub 账号'), _t('「项目」页从这里列仓库。填用户名即可，例如 <code>oyj135</code>；留空则不启用 GitHub 数据源')));
     $form->addInput(new Textarea('sgGithubRepos', null, '', _t('仓库清单'), _t(
         '决定「项目」页显示哪些仓库，<b>一行一个</b>，留空表示自动（按最近推送取前 N 个，跳过 fork 与已归档）：<br>'

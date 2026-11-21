@@ -457,6 +457,95 @@ function sg_github_source_line(?int $count = null): string
  *
  * @return array<int,array<string,mixed>>
  */
+/**
+ * 项目封面映射：后台「项目封面」栏。
+ *
+ * GitHub 模式下列表是接口给的，本身没有封面字段，所以补一张独立的映射表：
+ *   soraglass | https://.../cover.webp
+ * 一行一个，`|`（全角也行）左边是仓库名（也可写 账号/仓库 或项目名），右边是图片地址。
+ * 直接写 JSON 对象 {"soraglass":"..."} 同样收。
+ *
+ * @return array<string,string> 小写键 => 图片地址
+ */
+function sg_project_covers(): array
+{
+    static $map = null;
+    if ($map !== null) {
+        return $map;
+    }
+    $map = [];
+    $raw = trim((string) sg_opt('sgProjectCovers', ''));
+    if ($raw === '') {
+        return $map;
+    }
+
+    $json = json_decode($raw, true);
+    if (is_array($json)) {
+        foreach ($json as $key => $value) {
+            if (is_scalar($key) && is_scalar($value)) {
+                $key = strtolower(trim((string) $key));
+                $value = trim((string) $value);
+                if ($key !== '' && $value !== '') {
+                    $map[$key] = $value;
+                }
+            }
+        }
+        return $map;
+    }
+
+    foreach (preg_split('/\r\n|\r|\n/', $raw) ?: [] as $line) {
+        $line = trim($line);
+        if ($line === '' || str_starts_with($line, '#')) {
+            continue;
+        }
+        $parts = preg_split('/\s*[|｜]\s*/u', $line, 2) ?: [];
+        if (count($parts) < 2) {
+            continue;
+        }
+        $key = strtolower(trim($parts[0]));
+        $value = trim($parts[1]);
+        if ($key !== '' && $value !== '') {
+            $map[$key] = $value;
+        }
+    }
+    return $map;
+}
+
+/**
+ * 按项目找封面：仓库全名 → 仓库名（githubUrl 末段）→ 项目名，全部不区分大小写。
+ *
+ * @param array<string,mixed> $project
+ */
+function sg_project_cover(array $project): string
+{
+    $covers = sg_project_covers();
+    if (!$covers) {
+        return '';
+    }
+
+    $keys = [];
+    $url = isset($project['githubUrl']) && is_scalar($project['githubUrl']) ? trim((string) $project['githubUrl']) : '';
+    if ($url !== '') {
+        $keys[] = basename(rtrim($url, '/'));
+        if (preg_match('#github\.com/([^/]+)/([^/?#]+)#i', $url, $hit) === 1) {
+            $keys[] = $hit[1] . '/' . $hit[2];
+        }
+    }
+    foreach (['name', 'repo', 'title'] as $field) {
+        if (isset($project[$field]) && is_scalar($project[$field])) {
+            $keys[] = trim((string) $project[$field]);
+        }
+    }
+
+    foreach ($keys as $key) {
+        $key = strtolower($key);
+        if ($key !== '' && isset($covers[$key])) {
+            return $covers[$key];
+        }
+    }
+    return '';
+}
+
 function sg_projects(): array
 {
     static $cache = null;

@@ -501,99 +501,154 @@ html.dark .sg-filter-btn.is-active {
 .sg-filtered-out { display: none !important; }
 .sg-filter-empty { padding: 2.5rem 1rem; text-align: center; font-size: .9rem; color: var(--sg-muted); }
 
-/* ---------- 项目卡（第三十七轮重做） ----------
-   改之前是五段式：@owner 等宽小字 → 44px emoji 色块 + 标题 → 描述 → 标签 → 指标。
-   症结是「层级多、信息少」：身份行和图标块都在重复回答「这是什么项目」，
-   四成高度被装饰吃掉，一屏三张也只看得见三个名字。
-   现在是四段：头像 + 项目名（同一行，名字是主角）→ 描述 → 语言 / 星数 → 标签 → 日期 + 源码。
-
-   加厚靠三样不占版面的东西，而不是往里塞文案：
-     ① 头像外面套一圈渐变描边（容器当环，img 缩 2px 进去）；
-     ② 卡面右上角铺一层所用语言的色晕（7% 透明），三张卡并排时颜色各不相同。 */
+/* ---------- 项目卡（2026-11-21 第三十九轮：按「弯曲外部卡片」源码重做） ----------
+   源码：github.com/Silvana-kite/html-css-js-project · CSS弯曲外部卡片UI设计带悬停效果
+     .card            白底、radius 40、overflow hidden
+     .imgBx           图片区，filter blur(25px)；hover background-size 100%→110% + blur(0)
+     .imgBx::before   bottom:-40 / height:80 / radius:40 白胶囊 → 圆肩
+     .imgBx::after    透明圆 80×80 + box-shadow:75px 70px 0 40px #fff → 右肩内凹圆缺口
+   项目卡此前没有真实图区（用语言色头带 + 首字母水印冒充封面），这轮补成真的：
+   有 cover 就放图，没有就用语言色渐变 + 首字母水印，几何完全共用同一套。
+   卡片高度仍由内容决定 —— 3 列网格里 hover 长高会把整行推下去。 */
 .sg-project {
-  --sg-proj-band: 4.6rem;
-  --sg-proj-lip: 2rem;
+  --sg-proj-photo: 11.5rem;                     /* 封面高度 */
+  --sg-proj-lip: 1.35rem;                       /* 圆肩半径 = 胶囊半高（源码 40/300） */
+  --sg-proj-blur: 12px;
+  --sg-proj-face: var(--sg-panel-face);
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: .8125rem;
   overflow: hidden;
-  padding: calc(var(--sg-proj-band) + .9rem) 1.25rem 1rem;
-  background-image:
-    linear-gradient(158deg, var(--sg-proj-face-a), var(--sg-proj-face-b) 62%),
-    radial-gradient(120% 90% at 100% 100%, var(--sg-proj-tint), transparent 62%),
-    radial-gradient(90% 80% at 100% 0%, color-mix(in srgb, var(--sg-lang, var(--sg-accent)) 10%, transparent), transparent 70%);
+  padding: 0;
+  background: var(--sg-proj-face);
   border-color: var(--sg-proj-border);
+  box-shadow: 0 12px 26px -18px rgba(23, 27, 29, .34);
   transition:
     transform var(--sg-dur-card) var(--sg-ease),
     box-shadow var(--sg-dur-card) var(--sg-ease),
-    border-color var(--sg-dur-card) var(--sg-ease),
-    padding-top var(--sg-dur-card) var(--sg-ease),
-    background-color 1s;
+    border-color var(--sg-dur-card) var(--sg-ease);
 }
 
-/* 顶部「弯曲头带」（2026-11-21 第三十八轮，对齐 B 站弯曲外部卡）：
-   项目卡没有站点截图，用语言色的渐变头带当「图片区」，底边两端收成圆角，
-   与下面内容面板形成视频里那条外弯交界；hover 时头带缩短，面板相对长高。
-   头带是 ::before（::after 已被悬停旋转描边占用），不新增 DOM。 */
-.sg-project::before {
-  content: attr(data-initial);
+/* 封面区（源码 .imgBx）：不能 overflow:hidden —— 圆肩胶囊要探到面板上沿之外。
+   没有封面时这里就是语言色渐变，水印叠在上面。 */
+.sg-project-shot {
+  position: relative;
+  z-index: 0;
+  flex: none;
+  height: var(--sg-proj-photo);
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--sg-lang, var(--sg-accent)) 22%, var(--sg-panel-face)),
+    color-mix(in srgb, var(--sg-lang, var(--sg-accent)) 7%, var(--sg-panel-face))
+  );
+}
+html.dark .sg-project-shot {
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--sg-lang, var(--sg-accent)) 34%, var(--sg-panel-face)),
+    color-mix(in srgb, var(--sg-lang, var(--sg-accent)) 13%, var(--sg-panel-face))
+  );
+}
+
+/* 封面图单独一层：缩放与模糊只作用在图上，不连累两个伪元素。
+   z-index 抬到水印之上 —— 图加载成功就把语言色渐变和首字母盖掉，
+   加载失败（onerror 摘掉 img）时下面那层水印还在，卡片不会变成一块空色块。 */
+.sg-project-photo { position: absolute; inset: 0; z-index: 1; overflow: hidden; }
+.sg-project-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: filter .5s var(--sg-ease), transform .5s var(--sg-ease);
+}
+
+/* 圆肩：全宽、2×lip 高的白胶囊压在封面下沿，两端圆头向上卷 lip，
+   白板顶边因此在中间高出 lip、到两端弧回面板线（源码 .imgBx::before） */
+.sg-project-shot::before {
+  content: '';
   position: absolute;
-  inset: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  height: var(--sg-proj-band);
-  padding-right: 1.4rem;
-  border-radius: 0 0 var(--sg-proj-lip) var(--sg-proj-lip);
-  background:
-    linear-gradient(180deg,
-      color-mix(in srgb, var(--sg-lang, var(--sg-accent)) 56%, transparent),
-      color-mix(in srgb, var(--sg-lang, var(--sg-accent)) 26%, transparent));
-  font-size: 2.2rem;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--sg-proj-lip) * -1);
+  height: calc(var(--sg-proj-lip) * 2);
+  border-radius: var(--sg-proj-lip);
+  background: var(--sg-proj-face);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* 内凹圆缺口（源码 .imgBx::after）：透明圆被偏移 1.875/1.75 lip、扩张 lip 的
+   实色硬阴影包住 —— 硬阴影填白右肩，透明圆把封面挖回来一块，交界线才成 S 形 */
+.sg-project-shot::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: var(--sg-proj-lip);
+  width: calc(var(--sg-proj-lip) * 2);
+  height: calc(var(--sg-proj-lip) * 2);
+  border-radius: 50%;
+  background: transparent;
+  box-shadow:
+    calc(var(--sg-proj-lip) * 1.875) calc(var(--sg-proj-lip) * 1.75) 0 var(--sg-proj-lip) var(--sg-proj-face);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* 首字母水印：只在没有封面时输出 */
+.sg-project-mark {
+  position: absolute;
+  top: .5rem;
+  right: 1rem;
+  z-index: 0;
+  font-size: 2.4rem;
   font-weight: 800;
   line-height: 1;
   letter-spacing: -.04em;
-  color: color-mix(in srgb, var(--sg-lang, var(--sg-accent)) 38%, transparent);
-  z-index: 0;
+  color: color-mix(in srgb, var(--sg-lang, var(--sg-accent)) 68%, transparent);
   pointer-events: none;
-  transition: height var(--sg-dur-card) var(--sg-ease);
 }
 
-/* 内容压在头带之上（否则 z-index:0 的绝对层会盖住文字） */
-.sg-project-top,
-.sg-project-desc,
-.sg-project-facts,
-.sg-project .sg-tags,
-.sg-project-foot { position: relative; z-index: 1; }
-
+/* 内容面板：从封面下沿开始，与圆肩同色，z-index 压在封面之上，
+   胶囊探进面板的那半个被盖住 —— 视觉上就是白板吃掉了封面底部 */
+.sg-project-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: .8125rem;
+  padding: 1.05rem 1.25rem 1rem;
+  background: var(--sg-proj-face);
+}
 @media (min-width: 768px) {
-  .sg-project { gap: .9375rem; padding: calc(var(--sg-proj-band) + 1rem) 1.375rem 1.0625rem; }
+  .sg-project-body { gap: .9375rem; padding: 1.15rem 1.375rem 1.0625rem; }
 }
 
-/* 悬浮三件套（2026-11-21 第三十七轮用户要求「卡片上浮 + 背后光晕 + 图片放大」）：
-   与友链卡同一套口径 —— translateY(-4px) 上浮、卡级双层柔影 + 主色光晕、
-   视觉主体（这里是头像，项目卡没有截图）scale(1.05)。
-   卡面已有自己的渐变底，上浮后不再叠任何边框变色，避免又变成「自造高亮」。 */
+/* 悬停：整卡上浮 + 柔影（源码只有 box-shadow，位移是本站既有的卡片语言）；
+   封面在支持 hover 的设备上由模糊转清晰并放大 10%（源码 .card:hover .imgBx） */
 .sg-project:is(:hover, :focus-within) {
-  --sg-proj-band: 3.1rem;
   transform: translateY(-4px);
   box-shadow:
     0 18px 38px -14px rgba(23, 27, 29, .34),
     0 8px 18px -10px rgba(23, 27, 29, .20),
     0 0 28px -4px color-mix(in srgb, var(--sg-accent) 28%, transparent);
 }
-
-/* 夜间同友链卡：黑底吃掉暗影，靠冷光晕交代浮起；
-   不再叠 1px 冷描边 —— 卡面自带 --sg-proj-border，两圈会显脏 */
+/* 夜间：黑底吃掉暗影，靠冷光晕交代浮起；不叠 1px 描边（卡面自带 --sg-proj-border） */
 html.dark .sg-project:is(:hover, :focus-within) {
   box-shadow:
     0 24px 46px -16px rgba(0, 0, 0, .85),
     0 0 34px -6px color-mix(in srgb, var(--sg-accent-soft) 40%, transparent);
 }
 
+@media (hover: hover) {
+  .sg-project--cover .sg-project-photo { filter: blur(var(--sg-proj-blur)); }
+  .sg-project--cover:is(:hover, :focus-within) .sg-project-photo { filter: blur(0); }
+  .sg-project--cover:is(:hover, :focus-within) .sg-project-photo img { transform: scale(1.1); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sg-project,
+  .sg-project-photo,
+  .sg-project-photo img,
   .sg-project:is(:hover, :focus-within),
   .sg-project:is(:hover, :focus-within) .sg-project-avatar img { transition: none; transform: none; }
 }
@@ -722,7 +777,7 @@ html.dark .sg-project-lang i { filter: brightness(1.55) saturate(1.15); }
 }
 
 /* 整卡可点：链接铺满卡片，文字仍然可读但不可选中（和原站一致） */
-.sg-project-link { position: absolute; inset: 0; z-index: 1; border-radius: inherit; }
+.sg-project-link { position: absolute; inset: 0; z-index: 3; border-radius: inherit; }
 .sg-project-link:focus-visible { outline: 2px solid var(--sg-accent-ink); outline-offset: 3px; }
 
 .sg-project-foot {
