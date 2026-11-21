@@ -275,7 +275,7 @@ html.dark .sg-cover { background: rgba(51, 65, 85, .60); }
   background: var(--sg-chip);
   font-size: .75rem;
   font-weight: 700;
-  color: #2f4c4f;
+  color: #4f5553;
   transition: color .3s;
 }
 
@@ -334,7 +334,7 @@ html.dark .sg-meta-chip.is-pink { color: var(--sg-warm-bright); }
 .sg-prose a { color: var(--sg-indigo-deep); text-decoration: underline; text-underline-offset: 3px; }
 html.dark .sg-prose a { color: var(--sg-indigo-soft); }
 .sg-prose blockquote { margin: 1.25rem 0; padding: .5rem 1rem; border-left: 3px solid var(--sg-accent-ink); color: var(--sg-muted); }
-.sg-prose pre { overflow-x: auto; padding: 1rem; border-radius: var(--sg-radius-inner); background: #1d2225; color: #b8bcb9; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .84rem; line-height: 1.7; }
+.sg-prose pre { overflow-x: auto; padding: 1rem; border-radius: var(--sg-radius-inner); background: #26232b; color: #d5d2c6; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .84rem; line-height: 1.7; }
 .sg-prose :not(pre) > code { padding: .12rem .35rem; border-radius: .35rem; background: color-mix(in srgb, var(--sg-accent) 12%, transparent); color: var(--sg-accent-deep); font-size: .9em; }
 .sg-prose table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: .9rem; }
 .sg-prose th, .sg-prose td { padding: .5rem; border: 1px solid var(--sg-border); }
@@ -519,7 +519,7 @@ html.dark .sg-filter-btn.is-active {
   border: 1px solid var(--sg-proj-border);
   border-radius: var(--sg-proj-radius);
   background: var(--sg-card);
-  box-shadow: 0 1px 2px rgba(23, 27, 29, .04);
+  box-shadow: 0 1px 2px rgba(37, 34, 41, .04);
   transition:
     transform var(--sg-dur-card) var(--sg-ease),
     box-shadow var(--sg-dur-card) var(--sg-ease),
@@ -592,8 +592,8 @@ html.dark .sg-project-shot {
   transform: translateY(-4px);
   border-color: color-mix(in srgb, var(--sg-accent) 34%, var(--sg-proj-border));
   box-shadow:
-    0 18px 38px -14px rgba(23, 27, 29, .34),
-    0 8px 18px -10px rgba(23, 27, 29, .20),
+    0 18px 38px -14px rgba(37, 34, 41, .34),
+    0 8px 18px -10px rgba(37, 34, 41, .20),
     0 0 28px -4px color-mix(in srgb, var(--sg-accent) 28%, transparent);
 }
 /* 夜间：黑底吃掉暗影，靠冷光晕交代浮起 */
@@ -821,7 +821,7 @@ html:not(.dark) .sg-projects-source {
 .sg-projects-diag { margin-top: 1rem; font-size: .75rem; line-height: 1.7; text-align: center; color: var(--sg-muted); }
 
 .sg-tags { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: auto; padding-top: .5rem; }
-.sg-tags span { padding: .15rem .6rem; border-radius: 999px; background: color-mix(in srgb, var(--sg-accent) 15%, transparent); font-size: .72rem; font-weight: 700; color: #2f4c4f; }
+.sg-tags span { padding: .15rem .6rem; border-radius: 999px; background: color-mix(in srgb, var(--sg-accent) 15%, transparent); font-size: .72rem; font-weight: 700; color: #4f5553; }
 html.dark .sg-tags span { color: var(--sg-accent-soft); }
 
 /* ---------- 照片墙 ---------- */
@@ -1499,7 +1499,7 @@ html.dark .sg-feature-card { background: var(--sg-card-strong); }
   padding: 0 11px 0 9px;
   border-radius: 999px;
   /* 2026-11-18 渐变整体压深一档（源站原值 #ff9a3d→#f5341d 上白字仅 3.1:1），色相不变 */
-  background-image: linear-gradient(135deg, #c25a4d 0%, #a8443c 52%, #8e3a33 100%);
+  background-image: linear-gradient(135deg, #c96a5b 0%, #9d3b2f 52%, #7c2c22 100%);
   color: #fff;
   text-shadow: none;
   font-size: 12px;
@@ -1508,7 +1508,7 @@ html.dark .sg-feature-card { background: var(--sg-card-strong); }
   letter-spacing: 1px;
   white-space: nowrap;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(168, 68, 60, .32), inset 0 0 0 1px rgba(255, 255, 255, .28);
+  box-shadow: 0 4px 12px rgba(157, 59, 47, .32), inset 0 0 0 1px rgba(255, 255, 255, .28);
   pointer-events: none;
   /* 钉住的形态：以左上角钉点为轴微倾 + 轻微摇摆（像纸条被图钉钉在板上） */
   transform: rotate(-3deg) translateZ(0);

@@ -18,7 +18,7 @@
   z-index: 4;
   padding: 2px;
   border-radius: inherit;
-  background: conic-gradient(from var(--sg-angle), var(--sg-accent-soft), #a9c0b8, #cf9d94, #6b5a6e, var(--sg-accent-2), var(--sg-accent-soft));
+  background: conic-gradient(from var(--sg-angle), var(--sg-accent-soft), #d5d2c6, #d8a79e, #6b5a6e, var(--sg-accent-2), var(--sg-accent-soft));
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
           mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
@@ -76,7 +76,7 @@
   background: rgba(9, 12, 20, .46);
 }
 html.dark .sg-footer-zone::before {
-  background: linear-gradient(to top, rgba(23, 27, 29, .58), rgba(23, 27, 29, 0) 62%);
+  background: linear-gradient(to top, rgba(37, 34, 41, .58), rgba(37, 34, 41, 0) 62%);
 }
 
 .sg-footer-wrap { position: relative; z-index: 2; width: 95%; max-width: 72rem; margin-inline: auto; }
@@ -674,11 +674,11 @@ html:not(.dark) .sg-tag-chip:is(:hover, :focus-visible) {
 .sg-heat-cell[data-level="3"] { background: var(--sg-heat-3); }
 .sg-heat-cell[data-level="4"] { background: var(--sg-heat-4); }
 
-/* 墨分五色：浅色档走宣纸→淡墨→浓墨的明度梯度，保证「0 篇」与「有内容」区分得开 */
-html:not(.dark) .sg-heat-cell[data-level="1"] { background: #dfe3dd; }
-html:not(.dark) .sg-heat-cell[data-level="2"] { background: #b3c4bd; }
-html:not(.dark) .sg-heat-cell[data-level="3"] { background: #7a938c; }
-html:not(.dark) .sg-heat-cell[data-level="4"] { background: #3c5c5f; }
+/* 东方美：浅色档走纸白→灰青→淡墨→玄墨的明度梯度，保证「0 篇」与「有内容」区分得开 */
+html:not(.dark) .sg-heat-cell[data-level="1"] { background: #dad6ca; }
+html:not(.dark) .sg-heat-cell[data-level="2"] { background: #a8aeb2; }
+html:not(.dark) .sg-heat-cell[data-level="3"] { background: #6a706c; }
+html:not(.dark) .sg-heat-cell[data-level="4"] { background: #252229; }
 
 .sg-heat-legend {
   display: flex;

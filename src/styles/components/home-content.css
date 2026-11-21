@@ -347,7 +347,7 @@ html.dark .sg-poster-wide .sg-veil { background: linear-gradient(to top, rgba(0,
   transition: color .3s, transform .3s;
 }
 
-.sg-chatter-link:hover { color: #a9c4be; transform: translateX(3px); }
+.sg-chatter-link:hover { color: var(--sg-accent-pale); transform: translateX(3px); }
 .sg-chatter-link svg { width: 14px; height: 14px; }
 
 /* 昼夜图标：同一按钮内放日月两枚 SVG，由 html.dark 切换显隐 */
@@ -480,7 +480,7 @@ html.dark .sg-i-moon { display: inline-flex; }
 
 @media (min-width: 640px) { .sg-briefing-mid { max-width: 68%; } }
 
-.sg-briefing-kicker { display: block; font-size: 10px; letter-spacing: .28em; color: #a9c4be; }
+.sg-briefing-kicker { display: block; font-size: 10px; letter-spacing: .28em; color: var(--sg-accent-pale); }
 
 .sg-briefing-title {
   display: block;
@@ -510,7 +510,7 @@ html.dark .sg-i-moon { display: inline-flex; }
 .sg-briefing-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem .9rem; font-size: 10px; color: rgba(255, 255, 255, .75); }
 .sg-briefing-meta b { margin-left: .35rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 400; color: #fff; }
 
-.sg-briefing-meta .is-unread { display: inline-flex; align-items: center; gap: .35rem; color: #c9909c; }
+.sg-briefing-meta .is-unread { display: inline-flex; align-items: center; gap: .35rem; color: #d8a79e; }
 .sg-briefing-meta .is-unread i { width: 4px; height: 4px; border-radius: 50%; background: var(--sg-warm); }
 
 .sg-briefing-more { display: inline-flex; align-items: center; gap: .5rem; flex-shrink: 0; font-size: 10px; color: rgba(255, 255, 255, .90); }
@@ -822,7 +822,7 @@ html.dark .sg-i-moon { display: inline-flex; }
 .sg-reader-note {
   margin-top: 1.25rem;
   padding-left: .9rem;
-  border-left: 2px solid rgba(168, 68, 60, .45);
+  border-left: 2px solid rgba(157, 59, 47, .45);
   font-size: .78rem;
   line-height: 1.8;
   color: var(--sg-muted);

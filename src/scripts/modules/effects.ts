@@ -1,10 +1,10 @@
 /**
- * 背景特效：季节粒子（樱花 / 飘雪 / 萤火）、背景弹幕、点击涟漪。
+ * 背景特效：季节粒子（樱花 / 飘雪 / 萤火 / 落叶）、背景弹幕、点击涟漪。
  * 全部合到单个 canvas + 单个 rAF，避免多层 DOM 叠加导致滚动掉帧。
  * 移动端与 prefers-reduced-motion 下整体关闭（CSS 也同步隐藏）。
  *
  * 2026-11-21 墨分五色：按用户要求移除全部星海 / 流星元素（全屏星空另见已删除的
- * universe.ts），季节粒子配色降级为「墨粉 / 素白 / 淡竹青」低饱和色域；
+ * universe.ts），季节粒子配色降级为「墨粉 / 素白 / 淡竹青 / 枯叶赭」低饱和色域；
  * 夜间专用判断与「切主题重置」逻辑随之删除，只剩 reducedMotion / 小屏 / 可见性降级。
  */
 import { config,isSmallScreen,reducedMotion } from './runtime';
@@ -22,12 +22,13 @@ interface Particle {
   phase: number;
 }
 
-type Season = 'sakura' | 'snow' | 'fireflies';
+type Season = 'sakura' | 'snow' | 'fireflies' | 'leaf';
 
 const DENSITY: Record<Season, number> = {
   sakura: 24,   // 墨分五色：降低密度，樱花粉只作少量点缀
   snow: 48,
   fireflies: 18,
+  leaf: 20,     // 枯叶赭：缓慢飘落，低密点缀
 };
 
 function createParticle(kind: Season, width: number, height: number, seed = false): Particle {
@@ -56,6 +57,12 @@ function createParticle(kind: Season, width: number, height: number, seed = fals
     base.alpha = 0.2 + Math.random() * 0.35;
   }
 
+  if (kind === 'leaf') {
+    base.vy = 0.3 + Math.random() * 0.5;   // 比樱花慢，飘落更悠然
+    base.size = 4 + Math.random() * 4;
+    base.alpha = 0.3 + Math.random() * 0.4;
+    base.vr = (Math.random() - 0.5) * 0.05; // 翻转稍快，落叶打旋
+  }
 
   return base;
 }
@@ -96,7 +103,7 @@ function initSeason(kinds: Season[]): void {
     ctx.rotate(p.rot);
     ctx.beginPath();
     ctx.ellipse(0, 0, p.size, p.size * 0.55, 0, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(201, 144, 156, ${p.alpha * 0.55})`; // 樱灰粉，仅点缀
+    ctx.fillStyle = `rgba(216, 167, 158, ${p.alpha * 0.55})`; // 樱灰粉，仅点缀
     ctx.fill();
     ctx.restore();
   };
@@ -104,15 +111,37 @@ function initSeason(kinds: Season[]): void {
   const drawSnow = (p: Particle): void => {
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(236, 233, 227, ${p.alpha})`; // 宣纸素白
+    ctx.fillStyle = `rgba(249, 242, 224, ${p.alpha})`; // 宣纸素白
     ctx.fill();
+  };
+
+  /* 枯叶赭：偏暖的低饱和褐，压在宣纸 / 玄墨底上都不跳色；
+     两段二次贝塞尔勾出叶片轮廓，中脉一笔，偶尔翻面时整体收暗。 */
+  const drawLeaf = (p: Particle): void => {
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rot);
+    const flip = 0.55 + Math.abs(Math.cos(p.rot)) * 0.45; // 翻面明暗
+    ctx.beginPath();
+    ctx.moveTo(0, -p.size);
+    ctx.quadraticCurveTo(p.size * 0.85, 0, 0, p.size);
+    ctx.quadraticCurveTo(-p.size * 0.85, 0, 0, -p.size);
+    ctx.fillStyle = `rgba(154, 118, 92, ${p.alpha * 0.6 * flip})`; // 枯叶赭
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(0, -p.size * 0.8);
+    ctx.lineTo(0, p.size * 0.8);
+    ctx.strokeStyle = `rgba(120, 88, 68, ${p.alpha * 0.5 * flip})`;
+    ctx.lineWidth = 0.6;
+    ctx.stroke();
+    ctx.restore();
   };
 
   const drawFirefly = (p: Particle): void => {
     const glow = p.size * 3.2;
     const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glow);
-    gradient.addColorStop(0, `rgba(169, 196, 190, ${p.alpha})`); // 淡竹青微光
-    gradient.addColorStop(1, 'rgba(169, 196, 190, 0)');
+    gradient.addColorStop(0, `rgba(168, 174, 178, ${p.alpha})`); // 淡竹青微光
+    gradient.addColorStop(1, 'rgba(168, 174, 178, 0)');
     ctx.beginPath();
     ctx.arc(p.x, p.y, glow, 0, Math.PI * 2);
     ctx.fillStyle = gradient;
@@ -139,7 +168,8 @@ function initSeason(kinds: Season[]): void {
         continue;
       }
 
-      p.x += p.vx + Math.sin(p.y / 70 + p.phase) * (p.kind === 'sakura' ? 0.55 : 0.2);
+      const sway = p.kind === 'sakura' ? 0.55 : p.kind === 'leaf' ? 0.8 : 0.2;
+      p.x += p.vx + Math.sin(p.y / 70 + p.phase) * sway;
       p.y += p.vy;
       p.rot += p.vr;
 
@@ -152,6 +182,8 @@ function initSeason(kinds: Season[]): void {
 
       if (p.kind === 'sakura') {
         drawSakura(p);
+      } else if (p.kind === 'leaf') {
+        drawLeaf(p);
       } else {
         drawSnow(p);
       }
@@ -295,7 +327,7 @@ function initClickEffect(): void {
   }, { passive: true });
 }
 
-const SEASONS: Season[] = ['sakura', 'snow', 'fireflies'];
+const SEASONS: Season[] = ['sakura', 'snow', 'fireflies', 'leaf'];
 
 export function initEffects(): void {
   const cfg = config();

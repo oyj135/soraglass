@@ -315,7 +315,7 @@ html:not(.dark) :is(.sg-page-title, .sg-about-title h1) {
   opacity: .55;
 }
 
-html.dark .sg-px-hint { color: rgba(184, 188, 185, .5); }
+html.dark .sg-px-hint { color: rgba(168, 174, 178, .5); }
 
 .sg-gallery-list > .sg-px-months { margin-top: 0; }
 
@@ -335,7 +335,7 @@ html.dark .sg-px-hint { color: rgba(184, 188, 185, .5); }
   border: 1px solid rgba(255, 255, 255, .65);
   border-radius: 999px;
   background: rgba(255, 255, 255, .72);
-  color: #22282a;
+  color: #252229;
   cursor: pointer;
   transition: transform .35s var(--sg-ease), background-color .35s linear;
 }

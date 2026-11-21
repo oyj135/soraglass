@@ -643,21 +643,22 @@ function themeConfig($form): void
         '<b>显示位置</b>：同样作用于全站壁纸层，卡片与文字不受影响。<br>'
         . '<b>怎么选</b>：照片类壁纸建议「轻度模糊」，避免细节抢正文；渐变壁纸不需要模糊。移动端会自动降低模糊强度。'
     )));
-    $form->addInput(new Text('sgThemeColors', null, '#3c5c5f,#5a7d7f,#a9c0b8,#e8e4da', _t('呼吸渐变色（壁纸之上的光晕）'), _t(
+    $form->addInput(new Text('sgThemeColors', null, '#252229,#919795,#d5d2c6,#f9f2e0', _t('呼吸渐变色（壁纸之上的光晕）'), _t(
         '<b>显示位置</b>：壁纸最上层缓慢流动的渐变光晕，全站生效。<br>'
         . '英文逗号分隔的十六进制色值，至少两个。'
     )));
     /* 季节粒子：一次只能选一种；2026-11-21 墨分五色整改后，流星与所有「+ 流星」组合
-       已整体下线（effects.ts 的 Season 白名单只剩三种），旧值由 JS 静默忽略。
+       已整体下线（effects.ts 的 Season 白名单为四种），旧值由 JS 静默忽略。
        JS 侧按英文逗号拆开（effects.ts 的 kinds），所以新增组合只改这里。 */
     $seasonOptions = [
         'none' => _t('关闭'),
         'sakura' => _t('樱花'),
         'snow' => _t('飘雪'),
         'fireflies' => _t('萤火虫'),
+        'leaf' => _t('落叶'),
     ];
     $form->addInput(new Select('sgSeason', $seasonOptions, 'none', _t('季节粒子'), _t(
-        '<b>配色</b>：粒子统一为墨分五色低饱和档（淡墨粉 / 宣纸白 / 淡竹青），不再有流星与星空。<br>'
+        '<b>配色</b>：粒子统一为东方美低饱和档（墨粉 / 宣纸白 / 灰青 / 枯叶赭），不再有流星与星空。<br>'
         . '移动端与系统「减少动效」下自动关闭。'
     )));
     $effectOptions = ['on' => _t('开启'), 'off' => _t('关闭')];

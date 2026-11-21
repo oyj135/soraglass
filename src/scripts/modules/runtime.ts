@@ -1,7 +1,7 @@
 const DEFAULTS: SGConfig = {
   themeUrl: '',
   bgImages: [],
-  themeColors: ['#3c5c5f', '#5a7d7f', '#a9c0b8', '#e8e4da'], // 墨竹青四档
+  themeColors: ['#252229', '#919795', '#d5d2c6', '#f9f2e0'], // 东方美：玄墨→灰青→墨晕→纸白
   danmaku: [],
   effects: true,
   clickEffect: true,

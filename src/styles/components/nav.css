@@ -43,7 +43,7 @@ html.dark .sg-nav::before { background: linear-gradient(180deg, rgba(2, 6, 23, .
 /* 滑动后的导航/页名底（2026-11-21 用户要求）：不画分隔线（那条 1px 灰线早已删），
    只用一层玻璃底 + 极软投影把顶栏从内容里托起来。 */
 html:not(.dark) .sg-nav.is-scrolled {
-  background: rgba(251, 248, 242, .86);
+  background: rgba(253, 251, 244, .86);
   -webkit-backdrop-filter: blur(18px) saturate(1.12);
   backdrop-filter: blur(18px) saturate(1.12);
   box-shadow: 0 14px 30px -26px rgba(2, 6, 23, .55);
@@ -182,7 +182,7 @@ html.dark .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent-ink);
   bottom: 0;
   width: 0;
   height: 3px;
-  background: color-mix(in srgb, #3c5c5f 45%, #fff);
+  background: color-mix(in srgb, #252229 45%, #fff);
   transition: width .3s ease-in-out;
 }
 .sg-nav-link:is(:hover, :focus-visible)::after { width: calc(100% - 1.3rem); }
@@ -204,9 +204,9 @@ html.dark .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent-ink);
 .sg-nav-link.is-active {
   color: #fff;
   opacity: 1;
-  background: #3c5c5f;
+  background: #252229;
 }
-html.dark .sg-nav-link.is-active { color: #fff; background: #2f4c4f; }
+html.dark .sg-nav-link.is-active { color: #fff; background: #36333b; }
 /* 激活项已由实底表达，不再挂 ::before 小圆点，也不出 hover 下划线 */
 .sg-nav-link.is-active::after { display: none; }
 
@@ -323,10 +323,10 @@ html.sg-lock, html.sg-lock body { overflow: hidden; }
    .78 透明度是实测档：墨底透过滤镜后菜单宣纸白字对比仍 ≥7:1。
    打开时才采样一次，无滚动重采样开销。 */
 html.dark .sg-sheet-panel {
-  background: rgba(29, 34, 37, .78);
+  background: rgba(40, 37, 45, .78);
   -webkit-backdrop-filter: blur(18px) saturate(1.1);
   backdrop-filter: blur(18px) saturate(1.1);
-  border-left-color: rgba(236, 233, 227, .22);
+  border-left-color: rgba(249, 242, 224, .22);
 }
 
 .sg-sheet-panel {
@@ -363,23 +363,23 @@ html:not(.dark) .sg-nav :is(.sg-brand, .sg-brand-accent, .sg-nav-link, .sg-nav-m
   text-shadow: none;
 }
 html:not(.dark) .sg-nav .sg-brand:hover,
-html:not(.dark) .sg-nav .sg-nav-link:is(:hover, :focus-visible) { color: #9fe8d8; opacity: 1; }
-html:not(.dark) .sg-nav .sg-nav-link::after { background: #3c5c5f; }
+html:not(.dark) .sg-nav .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent-pale); opacity: 1; }
+html:not(.dark) .sg-nav .sg-nav-link::after { background: #919795; }
 /* 首屏（is-front）底是 .30 黑遮罩，深青线在暗底上等于没有，换亮青 */
-html:not(.dark) .sg-nav.is-front .sg-nav-link::after { background: #8fd9c9; }
+html:not(.dark) .sg-nav.is-front .sg-nav-link::after { background: #919795; }
 /* 夜间：底是 70% 暗遮罩，字与线都取亮档 */
-html.dark .sg-nav .sg-nav-link::after { background: #8fd9c9; }
-html.dark .sg-nav .sg-nav-link:is(:hover, :focus-visible) { color: #b8f5e6; opacity: 1; }
+html.dark .sg-nav .sg-nav-link::after { background: var(--sg-accent-ink); }
+html.dark .sg-nav .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent-pale); opacity: 1; }
 
 /* 下滑后（is-scrolled）：底色已是浅玻璃，白字会整块消失 → 非当前页字色切深墨，
    下划线换深竹青。首屏 is-front 不再豁免——顶上时本就没底，一旦下滑就有玻璃底，
    两种底统一按「深墨字」走，回到顶部 is-scrolled 移除后 .3s 平滑回白。
    当前页（is-active）排除在外：它在深青底板上必须是白字。 */
-html:not(.dark) .sg-nav.is-scrolled :is(.sg-brand, .sg-nav-link:not(.is-active), .sg-nav-more-btn, .sg-nav-page) { color: #22302f; }
-html:not(.dark) .sg-nav.is-scrolled .sg-brand-accent { color: #3c5c5f; }
-html:not(.dark) .sg-nav.is-scrolled .sg-nav-link::after { background: #3c5c5f; }
+html:not(.dark) .sg-nav.is-scrolled :is(.sg-brand, .sg-nav-link:not(.is-active), .sg-nav-more-btn, .sg-nav-page) { color: #252229; }
+html:not(.dark) .sg-nav.is-scrolled .sg-brand-accent { color: #9d3b2f; }
+html:not(.dark) .sg-nav.is-scrolled .sg-nav-link::after { background: #252229; }
 /* 下滑后底是浅玻璃：悬浮字色转深竹青（无底板） */
-html:not(.dark) .sg-nav.is-scrolled .sg-nav-link:is(:hover, :focus-visible) { color: #0f6b5f; }
+html:not(.dark) .sg-nav.is-scrolled .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent-ink); }
 
 /* 当前页底板（2026-11-21 第三十六轮用户指定）：深青实底 + 纯白字，昼夜同款，
    顶部透明与下滑玻璃底两态都不变；hover/focus 保持白字（反馈只走字重与光标），
@@ -392,11 +392,11 @@ html.dark .sg-nav .sg-nav-link.is-active:is(:hover, :focus-visible),
 html.dark .sg-nav .sg-nav-more.is-active .sg-nav-more-btn {
   color: #fff;
   opacity: 1;
-  background: #3c5c5f;
+  background: #36333b;
 }
 html.dark .sg-nav .sg-nav-link.is-active,
 html.dark .sg-nav .sg-nav-link.is-active:is(:hover, :focus-visible),
-html.dark .sg-nav .sg-nav-more.is-active .sg-nav-more-btn { background: #2f4c4f; }
+html.dark .sg-nav .sg-nav-more.is-active .sg-nav-more-btn { background: #36333b; }
 /* 下拉面板是实底卡，文字回落正文色，不能继承导航白字 */
 html:not(.dark) .sg-nav .sg-nav-more-menu { color: var(--sg-text); }
 html:not(.dark) .sg-nav :is(.sg-nav-more-link, .sg-sheet-link):is(:hover, :focus-visible) {

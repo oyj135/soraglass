@@ -61,7 +61,7 @@ $sgCalTitle = $sgCalYear . '年' . $sgCalMonth . '月' . $sgCalToday . '日 星�
   <div class="sg-hweather" data-sg-weather data-state="loading">
     <div class="sg-hweather-main">
       <span class="sg-hweather-icon" aria-hidden="true">
-        <svg data-sg-weather-icon="sun" hidden viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="var(--sg-icon-star,#a8443c)"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M19 5l-1.5 1.5m-11 11L5 19" fill="none" stroke="var(--sg-icon-star,#a8443c)" stroke-width="2"/></svg>
+        <svg data-sg-weather-icon="sun" hidden viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="var(--sg-icon-star,#9d3b2f)"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M19 5l-1.5 1.5m-11 11L5 19" fill="none" stroke="var(--sg-icon-star,#9d3b2f)" stroke-width="2"/></svg>
         <svg data-sg-weather-icon="cloud" hidden viewBox="0 0 24 24"><path d="M6 18a4 4 0 0 1-1-7.9A6.5 6.5 0 0 1 17.7 9a4.5 4.5 0 0 1 .3 9H6Z" fill="var(--sg-accent-soft)"/></svg>
         <svg data-sg-weather-icon="rain" hidden viewBox="0 0 24 24"><path d="M5 14a4 4 0 0 1 0-8 6 6 0 0 1 11 1 4 4 0 0 1 2 7Z" fill="var(--sg-accent-soft)"/><path d="m7 17-1 3m6-3-1 3m6-3-1 3" stroke="var(--sg-accent)" stroke-width="2" stroke-linecap="round"/></svg>
         <svg data-sg-weather-icon="snow" hidden viewBox="0 0 24 24"><path d="M12 2v20M3 7l18 10M3 17 21 7m-12-3 3 3 3-3M9 20l3-3 3 3" fill="none" stroke="var(--sg-accent-soft)" stroke-width="2" stroke-linecap="round"/></svg>

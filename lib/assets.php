@@ -81,10 +81,11 @@ function sg_asset(string $entry = 'src/scripts/main.ts'): string
  */
 function sg_theme_colors(): array
 {
-    $default = '#3c5c5f,#5a7d7f,#a9c0b8,#e8e4da';  // 墨分五色：墨竹青四档
+    $default = '#252229,#919795,#d5d2c6,#f9f2e0';  // 东方美：玄墨→灰青→墨晕→纸白
     $legacy = [
         '#a18cd1,#fbc2eb,#a1c4fd,#c2e9fb',          // indigo 时代的默认值
         '#5f9299,#8ec5c9,#b8d8dc,#dcebed',          // 青瓷时代的默认值
+        '#3c5c5f,#5a7d7f,#a9c0b8,#e8e4da',          // 墨分五色时代的默认值
     ];
     $raw = trim((string) sg_opt('sgThemeColors', $default));
     if (in_array(strtolower($raw), $legacy, true)) {

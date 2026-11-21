@@ -34,7 +34,7 @@
      为了几个小标签再切一套中文 Webfont 不划算。 */
   --font-sans: ui-sans-serif, -apple-system, "SF Pro SC", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", "Source Han Sans SC", sans-serif;
   /* Tailwind 侧的签名色（模板里用到 text-sg-indigo 之类时才生效） */
-  --color-sg-indigo: #3c5c5f;
+  --color-sg-indigo: #252229;
 }
 
 /* 暗色变体：与源站 @custom-variant dark 完全一致 */

@@ -123,8 +123,8 @@ export function createPlayerVisuals(audio: HTMLAudioElement): {
   const colors = (): void => {
     surfaces.forEach(surface => {
       const style = getComputedStyle(surface.canvas);
-      surface.a = style.getPropertyValue('--sg-wave-a').trim() || '#4a6b5d';
-      surface.b = style.getPropertyValue('--sg-wave-b').trim() || '#a8443c';
+      surface.a = style.getPropertyValue('--sg-wave-a').trim() || '#919795';
+      surface.b = style.getPropertyValue('--sg-wave-b').trim() || '#9d3b2f';
     });
     render();
   };
@@ -132,7 +132,7 @@ export function createPlayerVisuals(audio: HTMLAudioElement): {
     artwork = Array.from(document.querySelectorAll<HTMLElement>('[data-sg-album-art]'));
     surfaces = Array.from(document.querySelectorAll<HTMLCanvasElement>('[data-sg-wave]')).flatMap(canvas => {
       const ctx = canvas.getContext('2d');
-      return ctx ? [{ canvas, context:ctx, a:'#4a6b5d', b:'#a8443c' }] : [];
+      return ctx ? [{ canvas, context:ctx, a:'#919795', b:'#9d3b2f' }] : [];
     });
     colors(); sync(); if (running) resume();
   };
