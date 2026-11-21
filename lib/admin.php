@@ -130,6 +130,25 @@ function sg_admin_upload_tools(string $field): string
     $endpointJson = json_encode($endpoint, JSON_UNESCAPED_SLASHES);
     $fieldJson = json_encode($field, JSON_UNESCAPED_SLASHES);
 
+    /* 质量读设置项，越界回落到默认：这个值直接进 canvas.toBlob，
+       传 0 或 1.5 都会被浏览器静默当成别的值，不如在这里夹一次。 */
+    $quality = (int) sg_opt('sgWallQuality', '82');
+    if ($quality < 50 || $quality > 95) {
+        $quality = 82;
+    }
+
+    /* 附件白名单里没有 webp 时前端必须放弃转码：转出来的 .webp 会被
+       Typecho 的 checkFileType 直接拒掉，用户会以为「上传按钮坏了」。
+       空数组说明站点没配过类型，按允许处理（与插件 allowsWebp() 一致）。 */
+    $webpAllowed = true;
+    try {
+        $types = (array) \Widget\Options::alloc()->allowedAttachmentTypes;
+        $webpAllowed = $types === [] || in_array('webp', $types, true);
+    } catch (\Throwable $e) {
+        $webpAllowed = true;
+    }
+    $webpAllowedJson = $webpAllowed ? 'true' : 'false';
+
     return <<<HTML
 <script>
 (function () {
@@ -137,6 +156,50 @@ function sg_admin_upload_tools(string $field): string
   var field = {$fieldJson};
   var OK = '#646970';
   var BAD = '#d63638';
+  var QUALITY = {$quality} / 100;
+  var WEBP_ALLOWED = {$webpAllowedJson};
+  var MAX_EDGE = 2560;
+  var MIN_BYTES = 65536;
+
+  /* 上传前先在浏览器里转 WebP：省的是上传带宽本身，而且插件接管附件时
+     服务端看到已是 WebP 就不再编码一次（两次有损只会更糊）。
+     GIF 保持原样 —— canvas 只能取第一帧，转了就不是动图了。
+     任何一步不支持（老浏览器、透明通道处理失败、转完反而更大）都回退原文件，
+     提示文案里不出现「已转 WebP」，用户能看出用的是原图。 */
+  function toWebp(file) {
+    return new Promise(function (resolve) {
+      var fallback = { blob: file, name: file ? file.name : '', note: '' };
+      if (!WEBP_ALLOWED) { resolve(fallback); return; }
+      if (!file || !file.type || !/^image\/(jpeg|png|bmp)\$/.test(file.type)) { resolve(fallback); return; }
+      if (file.size < MIN_BYTES || !window.HTMLCanvasElement) { resolve(fallback); return; }
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () {
+        var w = img.naturalWidth || img.width;
+        var h = img.naturalHeight || img.height;
+        if (!w || !h) { URL.revokeObjectURL(url); resolve(fallback); return; }
+        var scale = Math.min(1, MAX_EDGE / Math.max(w, h));
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(w * scale));
+        canvas.height = Math.max(1, Math.round(h * scale));
+        var ctx = canvas.getContext ? canvas.getContext('2d') : null;
+        if (!ctx || !canvas.toBlob) { URL.revokeObjectURL(url); resolve(fallback); return; }
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+        canvas.toBlob(function (blob) {
+          if (!blob || blob.type !== 'image/webp' || blob.size >= file.size) { resolve(fallback); return; }
+          resolve({
+            blob: blob,
+            name: file.name.replace(/\.[^.\/]+\$/, '') + '.webp',
+            note: 'WebP ' + Math.round(QUALITY * 100) + '% · '
+              + Math.round(file.size / 1024) + '→' + Math.round(blob.size / 1024) + ' KB'
+          });
+        }, 'image/webp', QUALITY);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); resolve(fallback); };
+      img.src = url;
+    });
+  }
 
   function boot() {
     var input = document.querySelector('input[name="' + field + '"],textarea[name="' + field + '"]');
@@ -184,13 +247,14 @@ function sg_admin_upload_tools(string $field): string
     pick.addEventListener('change', async function () {
       var selected = Array.from(pick.files || []);
       for (var selectedFile of selected) {
-      var file = selectedFile;
-      if (!file) { return; }
+      if (!selectedFile) { return; }
       var data = new FormData();
-      data.append('file', file);
       tip.style.color = OK;
-      tip.textContent = '上传中…';
+      tip.textContent = '处理中…';
       btn.disabled = true;
+      var picked = await toWebp(selectedFile);
+      data.append('file', picked.blob, picked.name);
+      tip.textContent = '上传中…' + (picked.note ? '（' + picked.note + '）' : '');
       await fetch(endpoint, {
         method: 'POST',
         body: data,
@@ -220,7 +284,7 @@ function sg_admin_upload_tools(string $field): string
           input.value = input.tagName === 'TEXTAREA' ? [input.value.trim(), url].filter(Boolean).join(String.fromCharCode(10)) : url;
           paint(firstImage());
           tip.style.color = OK;
-          tip.textContent = '已上传，记得点最下方「保存设置」生效';
+          tip.textContent = '已上传' + (picked.note ? '（' + picked.note + '）' : '') + '，记得点最下方「保存设置」生效';
         })
         .catch(function (err) {
           tip.style.color = BAD;
@@ -567,6 +631,13 @@ function themeConfig($form): void
        （壁纸组第一张），视觉连续、少一次请求；旧 sgFrontImg / sgFrontImgDark
        配置值留在库里不再读取。 */
     $form->addInput(new Text('sgBgInterval', null, '9', _t('背景壁纸 · 轮播间隔（秒）'), _t('默认 9 秒，3–120 秒；0 停止轮播。单张图保持静止，标签页隐藏或系统要求减少动效时暂停。')));
+    $form->addInput(new Text('sgWallQuality', null, '82', _t('壁纸上传 · WebP 质量'), _t(
+        '<b>作用范围</b>：本页所有「选择图片并上传」按钮。上传前在浏览器里转成 WebP 并压到该质量，'
+        . '长边超过 2560 会等比缩到 2560。<br>'
+        . '<b>怎么选</b>：50–95，默认 82。壁纸是全屏大图，低于 70 在暗部会出现色带；'
+        . '85 以上文件明显变大而肉眼几乎无差别。<br>'
+        . 'GIF 与小于 64KB 的图片原样上传；浏览器不支持 WebP 编码时自动回退原图。'
+    )));
     $blurOptions = ['none' => _t('不模糊'), 'soft' => _t('轻度模糊'), 'strong' => _t('重度模糊')];
     $form->addInput(new Select('sgBgBlur', $blurOptions, 'none', _t('背景模糊（只糊壁纸）'), _t(
         '<b>显示位置</b>：同样作用于全站壁纸层，卡片与文字不受影响。<br>'
