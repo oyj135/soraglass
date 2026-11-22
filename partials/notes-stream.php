@@ -110,62 +110,71 @@ $sgTags = array_slice(array_keys($sgTagCount), 0, 8);
     </div>
   </div>
 
-  <?php /* 内容时间轴：fomal.cc/archives 的 article-sort 同构（竖轴 + 年份生肖节点 + 日期/文本条目） */ ?>
-  <div class="sg-asort">
-    <p class="sg-asort-title">碎语总览 - <?php echo count($sgNotes); ?></p>
-    <?php foreach ($sgYearGroups as $sgYear => $sgYearNotes) : ?>
-    <section class="sg-asort-year" data-sg-tl-month="<?php echo sg_e((string) $sgYear); ?>">
-      <h2 class="sg-asort-year-head">
-        <span class="sg-asort-year-num"><?php echo sg_e((string) $sgYear); ?></span>
-        <svg class="sg-asort-zodiac" aria-hidden="true"><use href="#<?php echo sg_e($sgZodiacOf($sgYear)); ?>"></use></svg>
-        <b><?php echo count($sgYearNotes); ?> 条</b>
-      </h2>
-      <div class="sg-asort-list" data-sg-tl-items>
-        <?php foreach ($sgYearNotes as $sgNote) : ?>
-        <?php
-        $sgBody  = trim((string) ($sgNote['body'] ?? ''));
-        if ($sgBody === '') {
-            $sgBody = (string) ($sgNote['text'] ?? '');
-        }
-        $sgTag   = (string) ($sgNote['tag'] ?? '');
-        $sgPlace = (string) ($sgNote['location'] ?? '');
-        $sgMood  = (string) ($sgNote['mood'] ?? '');
-        $sgLink  = (string) ($sgNote['url'] ?? '');
-        $sgImgs  = is_array($sgNote['images'] ?? null) ? array_values($sgNote['images']) : [];
-        $sgTs    = (int) ($sgNote['ts'] ?? 0);
-        $sgCover = $sgImgs[0] ?? (string) ($sgNote['cover'] ?? '');
-        $sgKeywords = implode(' ', array_filter([$sgBody, $sgTag, $sgMood, $sgPlace]));
-        ?>
-        <div class="sg-asort-item<?php echo $sgCover === '' ? ' no-cover' : ''; ?>" data-sg-tl-item data-ts="<?php echo $sgTs; ?>" data-tag="<?php echo sg_e($sgTag); ?>" data-keywords="<?php echo sg_e($sgKeywords); ?>">
-          <?php if ($sgCover !== '') : ?>
-          <a class="sg-asort-img" href="<?php echo sg_e($sgLink); ?>" title="<?php echo sg_e($sgBody !== '' ? mb_substr($sgBody, 0, 40) : '查看碎语'); ?>">
-            <img src="<?php echo sg_e($sgCover); ?>" alt="" loading="lazy" referrerpolicy="no-referrer">
-            <?php if (count($sgImgs) > 1) : ?><span class="sg-asort-more"><?php echo count($sgImgs); ?> 图</span><?php endif; ?>
-          </a>
-          <?php endif; ?>
-          <div class="sg-asort-info">
-            <p class="sg-asort-time">
-              <?php echo sg_icon_color('calendar'); ?>
-              <time datetime="<?php echo sg_e(gmdate('c', $sgTs)); ?>" title="<?php echo sg_e(date('Y-m-d H:i', $sgTs)); ?>"><?php echo sg_e(date('Y-m-d', $sgTs)); ?></time>
-              <?php if ((string) ($sgNote['time'] ?? '') !== '') : ?><span class="sg-asort-time-hm"><?php echo sg_e((string) $sgNote['time']); ?></span><?php endif; ?>
-              <?php if ($sgTag !== '') : ?><span class="sg-tl-tag">#<?php echo sg_e($sgTag); ?></span><?php endif; ?>
-              <?php if ($sgPlace !== '') : ?><span class="sg-asort-loc"><?php echo sg_icon_color('pin'); ?><?php echo sg_e($sgPlace); ?></span><?php endif; ?>
-              <?php if ($sgMood !== '') : ?><span class="sg-asort-mood"><?php echo sg_e($sgMood); ?></span><?php endif; ?>
-            </p>
-            <?php if ($sgLink !== '') : ?>
-            <a class="sg-asort-text" href="<?php echo sg_e($sgLink); ?>"><?php echo nl2br(sg_e($sgBody)); ?></a>
-            <?php else : ?>
-            <span class="sg-asort-text"><?php echo nl2br(sg_e($sgBody)); ?></span>
-            <?php endif; ?>
-          </div>
+  <?php /* 卡片瀑布流（miraii moments 同构）：单一分组承接 notes.ts 契约
+     （data-sg-tl-month/items/item），卡片按时间倒序/升序、标签与搜索筛选全部照旧。
+     布局用 CSS 多列分栏（columns: 3）+ break-inside 实现矱子流。 */ ?>
+  <section class="sg-moments-section" data-sg-tl-month="all">
+    <div class="sg-moments-grid" data-sg-tl-items>
+    <?php foreach ($sgNotes as $sgNote) : ?>
+    <?php
+    $sgBody  = trim((string) ($sgNote['body'] ?? ''));
+    if ($sgBody === '') {
+        $sgBody = (string) ($sgNote['text'] ?? '');
+    }
+    $sgTag   = (string) ($sgNote['tag'] ?? '');
+    $sgPlace = (string) ($sgNote['location'] ?? '');
+    $sgMood  = (string) ($sgNote['mood'] ?? '');
+    $sgImgs  = is_array($sgNote['images'] ?? null) ? array_values($sgNote['images']) : [];
+    $sgTs    = (int) ($sgNote['ts'] ?? 0);
+    $sgCover = $sgImgs[0] ?? (string) ($sgNote['cover'] ?? '');
+    $sgAgo   = sg_time_ago($sgTs);
+    if ($sgAgo === '') {
+        $sgAgo = date('Y-m-d', $sgTs);
+    }
+    $sgKeywords = implode(' ', array_filter([$sgBody, $sgTag, $sgMood, $sgPlace]));
+    ?>
+    <article class="sg-moment" data-sg-tl-item data-ts="<?php echo $sgTs; ?>" data-tag="<?php echo sg_e($sgTag); ?>" data-keywords="<?php echo sg_e($sgKeywords); ?>">
+      <header class="sg-moment-head">
+        <img class="sg-moment-avatar" src="<?php echo sg_e($sgAvatar); ?>" alt="" referrerpolicy="no-referrer" loading="lazy">
+        <div class="sg-moment-who">
+          <b><?php echo sg_e($sgAuthor); ?></b>
+          <span class="sg-moment-ago"><?php echo sg_e($sgAgo); ?></span>
         </div>
+        <div class="sg-moment-day" aria-hidden="true">
+          <b><?php echo sg_e(date('j', $sgTs)); ?></b>
+          <span><?php echo sg_e(date('Y.m', $sgTs)); ?></span>
+        </div>
+      </header>
+      <?php if ($sgBody !== '') : ?>
+      <div class="sg-moment-bubble"><?php echo nl2br(sg_e($sgBody)); ?></div>
+      <?php endif; ?>
+      <?php if ($sgImgs) : ?>
+      <?php /* 1 张大图、2 张并排、3 张一行、4 张 2×2、其余九宫格；全部走全局灯箱。 */ ?>
+      <?php
+      $sgGrid = count($sgImgs);
+      $sgSize = $sgGrid === 1 ? 'is-one' : ($sgGrid === 2 ? 'is-two' : ($sgGrid === 4 ? 'is-four' : 'is-many'));
+      ?>
+      <div class="sg-moment-media <?php echo $sgSize; ?>" data-sg-photo-group>
+        <?php foreach ($sgImgs as $sgImgIndex => $sgImg) : ?>
+        <a class="sg-photo" href="<?php echo sg_e($sgImg); ?>" data-sg-photo>
+          <img src="<?php echo sg_e($sgImg); ?>" alt="<?php echo sg_e('碎语配图 ' . ((int) $sgImgIndex + 1)); ?>" loading="lazy" referrerpolicy="no-referrer">
+        </a>
         <?php endforeach; ?>
       </div>
-    </section>
+      <?php endif; ?>
+      <?php if ($sgTag !== '' || $sgPlace !== '' || $sgMood !== '' || $sgLink !== '') : ?>
+      <footer class="sg-moment-foot">
+        <?php if ($sgTag !== '') : ?><span class="sg-tl-tag">#<?php echo sg_e($sgTag); ?></span><?php endif; ?>
+        <?php if ($sgMood !== '') : ?><span class="sg-moment-mood"><?php echo sg_e($sgMood); ?></span><?php endif; ?>
+        <?php if ($sgPlace !== '') : ?><span class="sg-moment-loc"><?php echo sg_icon_color('pin'); ?><?php echo sg_e($sgPlace); ?></span><?php endif; ?>
+        <?php if ($sgLink !== '') : ?><a class="sg-moment-permalink" href="<?php echo sg_e($sgLink); ?>" title="查看碎语正文"><?php echo sg_icon_color('link'); ?></a><?php endif; ?>
+      </footer>
+      <?php endif; ?>
+    </article>
     <?php endforeach; ?>
-  </div>
-
-  <p class="sg-filter-empty" data-sg-notes-empty hidden>没有匹配的碎语，换个词试试。</p>
+    </div>
+  </section>
+    <p class="sg-filter-empty" data-sg-notes-empty hidden>没有匹配的碎语，换个词试试。</p>
   <?php else : ?>
   <div class="sg-glass sg-notfound">
     <span class="sg-notfound-code">空</span>

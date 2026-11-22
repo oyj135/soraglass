@@ -1046,50 +1046,45 @@ const notesPage = `${head('碎语 - Soraglass')}
       <button type="button" data-sg-notes-sort="asc" aria-pressed="false">最早</button>
     </div>
   </div>
-  <div class="sg-asort">
-    <p class="sg-asort-title">碎语总览 - 12</p>
-    <section class="sg-asort-year" data-sg-tl-month="2026">
-      <h2 class="sg-asort-year-head"><span class="sg-asort-year-num">2026</span><svg class="sg-asort-zodiac" aria-hidden="true"><use href="#icon-horse"></use></svg><b>6 条</b></h2>
-      <div class="sg-asort-list" data-sg-tl-items>
-        <div class="sg-asort-item" data-sg-tl-item data-ts="1766000000" data-tag="瞎语" data-keywords="把喜欢的文字留在夜里">
-          <a class="sg-asort-img" href="#"><img src="${IMG.cover}" alt=""><span class="sg-asort-more">3 图</span></a>
-          <div class="sg-asort-info">
-            <p class="sg-asort-time">⭐<time>2026-05-18</time><span class="sg-asort-time-hm">14:20</span><span class="sg-tl-tag">#瞎语</span></p>
-            <a class="sg-asort-text" href="#">把喜欢的文字留在夜里，把不确定的事交给明天。</a>
-          </div>
-        </div>
-        <div class="sg-asort-item no-cover" data-sg-tl-item data-ts="1764000000" data-tag="日常" data-keywords="毛玻璃调好了吗">
-          <div class="sg-asort-info">
-            <p class="sg-asort-time">⭐<time>2026-03-30</time><span class="sg-tl-tag">#日常</span><span class="sg-asort-loc">杭州</span></p>
-            <span class="sg-asort-text">背景渐变标题一样流畅，毛玻璃调好了吗？</span>
-          </div>
-        </div>
+  
+    
+    <section class="sg-moments-section" data-sg-tl-month="all">
+    <div class="sg-moments-grid" data-sg-tl-items>
+    <article class="sg-moment" data-sg-tl-item data-ts="1766000000" data-tag="瞎语" data-keywords="把喜欢的文字留在夜里">
+      <header class="sg-moment-head">
+        <img class="sg-moment-avatar" src="${IMG.avatar}" alt="">
+        <div class="sg-moment-who"><b>Xinghuisama</b><span class="sg-moment-ago">1 个月前</span></div>
+        <div class="sg-moment-day"><b>18</b><span>2026.05</span></div>
+      </header>
+      <div class="sg-moment-bubble">把喜欢的文字留在夜里，把不确定的事交给明天。毛玻璃的呼吸频率刚刚好，再多一分就糊了。</div>
+      <div class="sg-moment-media is-many" data-sg-photo-group>
+        <a class="sg-photo" href="#"><img src="${IMG.cover}" alt=""></a>
+        <a class="sg-photo" href="#"><img src="${IMG.cover}" alt=""></a>
+        <a class="sg-photo" href="#"><img src="${IMG.cover}" alt=""></a>
       </div>
+      <footer class="sg-moment-foot"><span class="sg-tl-tag">#瞎语</span><span class="sg-moment-loc">📍 杭州</span><a class="sg-moment-permalink" href="#">🔗</a></footer>
+    </article>
+    <article class="sg-moment" data-sg-tl-item data-ts="1764000000" data-tag="日常" data-keywords="毛玻璃调好了吗">
+      <header class="sg-moment-head">
+        <img class="sg-moment-avatar" src="${IMG.avatar}" alt="">
+        <div class="sg-moment-who"><b>Xinghuisama</b><span class="sg-moment-ago">2 个月前</span></div>
+        <div class="sg-moment-day"><b>30</b><span>2026.03</span></div>
+      </header>
+      <div class="sg-moment-bubble">背景渐变标题一样流畅，毛玻璃调好了吗？</div>
+      <footer class="sg-moment-foot"><span class="sg-tl-tag">#日常</span><span class="sg-moment-loc">📍 杭州</span><a class="sg-moment-permalink" href="#">🔗</a></footer>
+    </article>
+    <article class="sg-moment" data-sg-tl-item data-ts="1734400000" data-tag="随想" data-keywords="深空色">
+      <header class="sg-moment-head">
+        <img class="sg-moment-avatar" src="${IMG.avatar}" alt="">
+        <div class="sg-moment-who"><b>Xinghuisama</b><span class="sg-moment-ago">1 年前</span></div>
+        <div class="sg-moment-day"><b>2</b><span>2025.08</span></div>
+      </header>
+      <div class="sg-moment-bubble">夜里把深空色调成了 #020617，字像掉进银河。</div>
+      <footer class="sg-moment-foot"><span class="sg-tl-tag">#随想</span><a class="sg-moment-permalink" href="#">🔗</a></footer>
+    </article>
+    </div>
     </section>
-    <section class="sg-asort-year" data-sg-tl-month="2025">
-      <h2 class="sg-asort-year-head"><span class="sg-asort-year-num">2025</span><svg class="sg-asort-zodiac" aria-hidden="true"><use href="#icon-snake"></use></svg><b>4 条</b></h2>
-      <div class="sg-asort-list" data-sg-tl-items>
-        <div class="sg-asort-item no-cover" data-sg-tl-item data-ts="1734400000" data-tag="随想" data-keywords="深空色">
-          <div class="sg-asort-info">
-            <p class="sg-asort-time">⭐<time>2025-08-02</time><span class="sg-tl-tag">#随想</span></p>
-            <span class="sg-asort-text">夜里把深空色调成了 #020617，字像掉进银河。</span>
-          </div>
-        </div>
-      </div>
-    </section>
-    <section class="sg-asort-year" data-sg-tl-month="2024">
-      <h2 class="sg-asort-year-head"><span class="sg-asort-year-num">2024</span><svg class="sg-asort-zodiac" aria-hidden="true"><use href="#icon-dragon"></use></svg><b>2 条</b></h2>
-      <div class="sg-asort-list" data-sg-tl-items>
-        <div class="sg-asort-item no-cover" data-sg-tl-item data-ts="1700000000" data-tag="随想" data-keywords="第一条碎语">
-          <div class="sg-asort-info">
-            <p class="sg-asort-time">⭐<time>2024-02-10</time><span class="sg-tl-tag">#随想</span></p>
-            <span class="sg-asort-text">这里的第一条碎语。</span>
-          </div>
-        </div>
-      </div>
-    </section>
-  </div>
-  <p class="sg-filter-empty" data-sg-notes-empty hidden>没有匹配的碎语，换个词试试。</p>
+    
 </main>
 `;
 

@@ -128,7 +128,8 @@ export function initNotes(): void {
   });
 
   /* 长文：超过 8 行才让点，点一下展开（不跳转，标题/原文链接另有入口） */
-  root.querySelectorAll<HTMLElement>('.sg-asort-text').forEach((el) => {
+  /* 长文：超过 10 行才让点，点一下展开（不跳转，碎语正文链接另有入口） */
+  root.querySelectorAll<HTMLElement>('.sg-moment-bubble').forEach((el) => {
     const expandable = (): boolean => el.scrollHeight - el.clientHeight > 4;
     if (expandable()) {
       el.classList.add('is-clampable');
