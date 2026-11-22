@@ -85,9 +85,9 @@
 }
 @keyframes sg-pace-gradient { 0% { background-position: 0 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
 
-/* ---------- 右缘墨龙滚动进度（2026-11-22 第五十五轮小猫换墨龙；竖绳 + 绳尾龙 + 时间气泡） ----------
+/* ---------- 右缘墨龙滚动进度（2026-11-22 第六十轮，卡通挂饰风彩龙；竖绳 + 绳尾龙 + 时间气泡） ----------
    放在右侧按钮组（right 1.5rem，宽约 2.5rem）左侧，互不遮挡；z 低于按钮组。
-   绳：竹节纹（每 16px 一道浅节），替代原发廊斜条纹，与素面滚动条语言一致。 */
+   绳：竹节纹（每 16px 一道浅节），颜色与龙身同系朱红。 */
 .sg-neko-rope {
   position: fixed;
   top: 0;
@@ -96,9 +96,9 @@
   height: 0;
   z-index: 80;
   border-radius: 2em;
-  background-color: color-mix(in srgb, var(--sg-accent-deep) 72%, transparent);
-   /* 2026-11-22 第五十五轮：发廊斜条纹换竹节纹 —— 每 16px 一道浅节，配合墨龙攀绳 */
-   background-image: repeating-linear-gradient(to bottom, rgba(255, 255, 255, .12) 0 1.5px, transparent 1.5px 16px);
+  /* 第六十轮：绳改朱红 —— 取彩龙龙身主色 #f42c34 压深一档，白天纸底上不刺眼、夜间不发光 */
+  background-color: #c8292f;
+  background-image: repeating-linear-gradient(to bottom, rgba(255, 236, 204, .26) 0 1.5px, transparent 1.5px 16px);
   cursor: pointer;
 }
 .sg-neko {
@@ -106,7 +106,9 @@
   top: -100px;
   right: 79px;
   width: 64px;
-  height: 64px;
+  /* 第六十轮：卡通挂饰彩龙是竖版 65×128，容器不再锁 64×64 正方形 ——
+     高度交给图片自然撑开（64 宽 ≈ 高 126），否则竖龙被压扁。 */
+  height: auto;
   transform: translateX(50%);
   z-index: 85;
   pointer-events: none;
@@ -115,9 +117,9 @@
   filter: drop-shadow(0 3px 6px rgba(10, 26, 24, .28));
 }
 .sg-neko.is-on { opacity: 1; }
-.sg-neko img { display: block; width: 100%; height: 100%; }
-/* 2026-11-22：卡通挂饰风彩龙（朱红身/奶白腹/黑描边/金角爪/红珠）昼夜同图，
-   不再需要旧银灰版的日间压暗滤镜。素材源 vectorizer/龙-卡通挂饰.jpg。 */
+.sg-neko img { display: block; width: 100%; height: auto; }
+/* 2026-11-22 第六十轮：卡通挂饰风彩龙（朱红身/奶白腹/黑描边/金角爪/红珠）昼夜同图，
+   素材源 vectorizer/龙-卡通挂饰.jpg；吊绳同步改朱红见 .sg-neko-rope。 */
 .sg-neko-msg {
   position: absolute;
   top: 50%;

@@ -22,17 +22,18 @@ html.dark .sg-aside .sg-glass.sg-profile {
   border-color: rgba(249, 242, 224, .12);
 }
 
-/* 作者卡「昼夜双场景」（2026-11-22 第五十五轮，vectorizer 素材版）：
-   日间 = **落日·雁阵 + 水墨远山·红舟**：src/assets/banner-day.svg（400x780，由
-          vectorizer/昼1.svg 裁窗「658 0 1270 810」与 昼2.svg 裁窗「240 150 1180 850」
-          经 vectorizer/merge-day.mjs 合并）—— 太阳与大雁在最上方，山脊线剪影衔接落日，
-          山脚下红舟点睛；
-   夜间 = **月夜爬梯摘星**：src/assets/banner-night.svg（400x780，vectorizer/夜.svg
-          裁窗「246 0 482 940」居中月亮与男孩）。两图均经 svgo --precision=1 压缩。
+/* 作者卡「昼夜双场景」（2026-11-22 第六十轮重绘，compose-banner.mjs）：
+   日间 = **落日雁阵短幅 + 水墨远山红舟**：昼1 裁窗「200 0 1700 600」只取太阳与大雁
+          （黑山剪影在窗底以下）铺卡顶 240px，底缘渐隐进纸色；昼2 竖窗「200 100 1100 1510」
+          （含两道山脊 + 红舟）从 230px 起羽化渐显，下半留纸纹托文字 —— 不再有旧版
+          黑山脊横切与高饱和落日铺半卡的问题；
+   夜间 = **月夜爬梯摘星**：夜.svg 裁窗加宽为「90 0 760 940」，月亮男孩主体缩小到
+          旧版的 ~63%，画幅只占卡上部 ~496px，底部草地剪影渐隐进 #17141b 夜色。
+   两图均经 svgo --precision=1 压缩。改图流程：改 vectorizer/ 源 SVG → 跑
+   compose-banner.mjs → svgo → 拷回 src/assets/。
    两套都铺满整卡（absolute inset:0）；background-size:100% auto + 顶部对齐按宽度缩放 ——
    首页侧栏卡与文章页短卡宽度接近而高度差很多，用 cover 时矮卡会把主体裁掉。
-   纱（::after）：日间白玻璃自上而下渐浓，夜间暗纱压下半，守住名字/简介/统计/按钮对比度。
-   改图流程：改 vectorizer/ 源 SVG → 跑 merge-day.mjs / svgo → 拷回 src/assets/。 */
+   纱（::after）：日间白玻璃自上而下渐浓，夜间暗纱压下半，守住名字/简介/统计/按钮对比度。 */
 /* 场景图铺满整卡；纱另走 ::after，避免与图片高度耦合 */
 .sg-profile-banner {
   position: absolute;

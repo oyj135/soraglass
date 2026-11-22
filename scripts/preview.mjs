@@ -189,7 +189,7 @@ const foot = (readmode = false) => `
 </div>
 <div class="sg-neko-rope" data-sg-neko-rope aria-hidden="true"></div>
 <div class="sg-neko" data-sg-neko aria-hidden="true">
-  <img src="./img/neko.svg" alt="" width="64" height="64">
+  <img src="./img/neko.png" alt="" width="64" height="64">
   <span class="sg-neko-msg" data-sg-neko-msg></span>
 </div>
 <audio data-sg-audio preload="none"></audio>
