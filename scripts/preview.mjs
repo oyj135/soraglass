@@ -1020,6 +1020,80 @@ fs.writeFileSync(path.join(dist, 'preview-photowall.html'), photowallPage, 'utf8
 fs.writeFileSync(path.join(dist, 'preview-about.html'), aboutPage, 'utf8');
 fs.writeFileSync(path.join(dist, 'preview-timeline.html'), timelinePage, 'utf8');
 fs.writeFileSync(path.join(dist, 'preview-time.html'), timePage, 'utf8');
+/* 碎语页（notes-stream.php）：miraii 概览面板 + fomal 归档式年份时间轴 */
+const notesPage = `${head('碎语 - Soraglass')}
+<main class="sg-main sg-main--pad" data-sg-page="notes" data-sg-notes>
+  <section class="sg-moments sg-glass">
+    <div class="sg-moments-intro">
+      <span class="sg-moments-eyebrow">💬 Moments</span>
+      <h1 class="sg-moments-title">碎语</h1>
+      <p class="sg-moments-sub">短句与随想 · 想到什么写什么</p>
+      <div class="sg-moments-search">
+        <span class="sg-moments-search-ico">⌘</span>
+        <input class="sg-search-input sg-moments-search-input" type="search" placeholder="搜索碎语..." aria-label="搜索碎语">
+      </div>
+    </div>
+    <div class="sg-moments-stats" role="group" aria-label="碎语统计">
+      <div class="sg-moments-stat"><b>12</b><span>总动态</span></div>
+      <div class="sg-moments-stat"><b>4</b><span>含媒体</span></div>
+      <div class="sg-moments-stat"><b>7</b><span>图片</span></div>
+    </div>
+  </section>
+  <div class="sg-notes-bar">
+    <div class="sg-notes-tags"><span class="sg-notes-count">共 12 条</span></div>
+    <div class="sg-notes-sort" role="group" aria-label="排序">
+      <button class="is-active" type="button" data-sg-notes-sort="desc" aria-pressed="true">最新</button>
+      <button type="button" data-sg-notes-sort="asc" aria-pressed="false">最早</button>
+    </div>
+  </div>
+  <div class="sg-asort">
+    <p class="sg-asort-title">碎语总览 - 12</p>
+    <section class="sg-asort-year" data-sg-tl-month="2026">
+      <h2 class="sg-asort-year-head"><span class="sg-asort-year-num">2026</span><svg class="sg-asort-zodiac" aria-hidden="true"><use href="#icon-horse"></use></svg><b>6 条</b></h2>
+      <div class="sg-asort-list" data-sg-tl-items>
+        <div class="sg-asort-item" data-sg-tl-item data-ts="1766000000" data-tag="瞎语" data-keywords="把喜欢的文字留在夜里">
+          <a class="sg-asort-img" href="#"><img src="${IMG.cover}" alt=""><span class="sg-asort-more">3 图</span></a>
+          <div class="sg-asort-info">
+            <p class="sg-asort-time">⭐<time>2026-05-18</time><span class="sg-asort-time-hm">14:20</span><span class="sg-tl-tag">#瞎语</span></p>
+            <a class="sg-asort-text" href="#">把喜欢的文字留在夜里，把不确定的事交给明天。</a>
+          </div>
+        </div>
+        <div class="sg-asort-item no-cover" data-sg-tl-item data-ts="1764000000" data-tag="日常" data-keywords="毛玻璃调好了吗">
+          <div class="sg-asort-info">
+            <p class="sg-asort-time">⭐<time>2026-03-30</time><span class="sg-tl-tag">#日常</span><span class="sg-asort-loc">杭州</span></p>
+            <span class="sg-asort-text">背景渐变标题一样流畅，毛玻璃调好了吗？</span>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="sg-asort-year" data-sg-tl-month="2025">
+      <h2 class="sg-asort-year-head"><span class="sg-asort-year-num">2025</span><svg class="sg-asort-zodiac" aria-hidden="true"><use href="#icon-snake"></use></svg><b>4 条</b></h2>
+      <div class="sg-asort-list" data-sg-tl-items>
+        <div class="sg-asort-item no-cover" data-sg-tl-item data-ts="1734400000" data-tag="随想" data-keywords="深空色">
+          <div class="sg-asort-info">
+            <p class="sg-asort-time">⭐<time>2025-08-02</time><span class="sg-tl-tag">#随想</span></p>
+            <span class="sg-asort-text">夜里把深空色调成了 #020617，字像掉进银河。</span>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="sg-asort-year" data-sg-tl-month="2024">
+      <h2 class="sg-asort-year-head"><span class="sg-asort-year-num">2024</span><svg class="sg-asort-zodiac" aria-hidden="true"><use href="#icon-dragon"></use></svg><b>2 条</b></h2>
+      <div class="sg-asort-list" data-sg-tl-items>
+        <div class="sg-asort-item no-cover" data-sg-tl-item data-ts="1700000000" data-tag="随想" data-keywords="第一条碎语">
+          <div class="sg-asort-info">
+            <p class="sg-asort-time">⭐<time>2024-02-10</time><span class="sg-tl-tag">#随想</span></p>
+            <span class="sg-asort-text">这里的第一条碎语。</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <p class="sg-filter-empty" data-sg-notes-empty hidden>没有匹配的碎语，换个词试试。</p>
+</main>
+`;
+
+fs.writeFileSync(path.join(dist, 'preview-notes.html'), notesPage, 'utf8');
 fs.writeFileSync(path.join(dist, 'preview-404.html'), notfoundPage, 'utf8');
 
 console.log('✓ 已生成 dist/preview-{index,post,archive,friends,photowall,about,timeline,time,404}.html');

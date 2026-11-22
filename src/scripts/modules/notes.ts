@@ -5,7 +5,7 @@ import { pageTimeout } from './lifecycle';
  * 全部在已渲染的 DOM 上做，不发请求。
  * DOM 契约（见 partials/notes-stream.php）：
  *   根      [data-sg-notes]
- *   月份组  [data-sg-tl-month] > [data-sg-tl-items] > [data-sg-tl-item][data-ts][data-tag][data-keywords]
+ *   年份组  [data-sg-tl-month] > [data-sg-tl-items] > [data-sg-tl-item][data-ts][data-tag][data-keywords]
  *   标签    [data-sg-notes-tag="标签名"]（空串 = 全部）
  *   排序    [data-sg-notes-sort="desc|asc"]
  *   空态    [data-sg-notes-empty]
@@ -128,7 +128,7 @@ export function initNotes(): void {
   });
 
   /* 长文：超过 8 行才让点，点一下展开（不跳转，标题/原文链接另有入口） */
-  root.querySelectorAll<HTMLElement>('.sg-tl-text').forEach((el) => {
+  root.querySelectorAll<HTMLElement>('.sg-asort-text').forEach((el) => {
     const expandable = (): boolean => el.scrollHeight - el.clientHeight > 4;
     if (expandable()) {
       el.classList.add('is-clampable');

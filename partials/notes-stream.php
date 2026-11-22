@@ -1,45 +1,62 @@
 <?php
 /**
- * 「碎语」时间轴 —— page-notes.php 与两个维护旧地址的兼容页（chatter / moments）共用。
+ * 「碎语」页 —— page-notes.php 与两个维护旧地址的兼容页（chatter / moments）共用。
  *
- * 第二十一轮重做：碎语不再是「小号文章列表」，而是**一条一条的时间轴**。
- * 定位：比文章短、比说说重 —— 一句正文 + 最多九张图 + 心情与地点，
- * 按「年·月」分组、左侧一条竖轴，扫一眼能看出「哪天在做什么」。
- * 与首页的「碎语」轮播同源（sg_notes()），但这里给的是完整形态。
+ * 2026-11-22 重构（第五十九轮）：
+ *   结构 = miraii.cn/personal/moments 的 **概览面板**（eyebrow + 标题 + 副标题 + 搜索
+ *           + 右侧三张统计卡：总动态 / 含媒体 / 图片）；
+ *   内容展示 = 源站 fomal.cc/archives 的 **article-sort 时间轴**（hexo 主题
+ *           layout/includes/mixins/article-sort.pug + _page/archives.styl）：
+ *           竖轴 border-left + 圆点节点、年份大节点配生肖图标（复刻源站
+ *           getAnimalIcon 彩蛋，走 iconfont 12 生肖 symbol）、
+ *           条目 = 左侧 120px 封面（有图时，链到碎语正文）+ 日历图标日期 + 碎语文本。
+ *   标签筛选 / 排序 / 搜索沿用原 bar 与 notes.ts 契约（data-sg-tl-month/items/item 不变）。
  *
  * 变量通过 $GLOBALS 传（Typecho 的 need() 是独立作用域，普通变量进不来）。
  */
-$sgNotes = sg_notes();
+$sgNotes = sg_notes(0);
 $sgHead = $GLOBALS['SG_NOTES_HEAD'] ?? [];
 $sgHead = array_merge([
     'title'       => '碎语',
     'sub'         => '短句与随想 · 想到什么写什么',
-    'search'      => true,
-    'center'      => true,
-    'placeholder' => '搜索碎语...',
 ], is_array($sgHead) ? $sgHead : []);
 /* 兼容已有 subtitle 字段，只移除指定的旧合并说明，不改后台内容。 */
 $sgHead['sub'] = trim(str_replace('杂谈与说说合并后的', '', (string) $sgHead['sub']));
 
 $sgHome = rtrim((string) $this->options->siteUrl, '/') . '/';
 
-/* 按「年-月」分组；sg_notes() 已按时间倒序，这里只做归堆 */
-$sgGroups = [];
+/* 统计：总动态 / 含媒体 / 图片（miraii moments overview 同款三卡） */
+$sgMediaNotes = 0;
+$sgImageTotal = 0;
 foreach ($sgNotes as $sgNote) {
-    $sgKey = (string) ($sgNote['group'] ?? '');
-    if ($sgKey === '') {
-        $sgKey = 'misc';
+    $sgImgs = is_array($sgNote['images'] ?? null) ? $sgNote['images'] : [];
+    if ($sgImgs) {
+        $sgMediaNotes++;
+        $sgImageTotal += count($sgImgs);
     }
-    if (!isset($sgGroups[$sgKey])) {
-        $sgGroups[$sgKey] = [
-            'label' => (string) ($sgNote['groupLabel'] ?? '未归类'),
-            'items' => [],
-        ];
-    }
-    $sgGroups[$sgKey]['items'][] = $sgNote;
 }
 
-/* 标签胶囊：按出现次数排序，最多 8 个，避免一排胶囊把页头压垮 */
+/* 按「年」分组（fomal archives 按年挂节点）；sg_notes() 已按时间倒序，这里只做归堆 */
+$sgYearGroups = [];
+foreach ($sgNotes as $sgNote) {
+    $sgYear = substr((string) ($sgNote['date'] ?? ''), 0, 4);
+    if ($sgYear === '' || !ctype_digit($sgYear)) {
+        $sgYear = gmdate('Y', (int) ($sgNote['created'] ?? 0));
+    }
+    if (!isset($sgYearGroups[$sgYear])) {
+        $sgYearGroups[$sgYear] = [];
+    }
+    $sgYearGroups[$sgYear][] = $sgNote;
+}
+
+/* 年份 → 生肖图标（复刻源站 getAnimalIcon：2020 鼠年起，(年-4) 对 12 取模） */
+$sgZodiacList = ['rat', 'ox', 'tiger', 'rabbit', 'dragon', 'snake', 'horse', 'goat', 'monkey', 'rooster', 'dog', 'boar'];
+$sgZodiacOf = static function (string $sgYear) use ($sgZodiacList): string {
+    $sgIdx = (((((int) $sgYear) - 4) % 12) + 12) % 12;
+    return 'icon-' . ($sgZodiacList[$sgIdx] ?? 'horse');
+};
+
+/* 标签胶囊：按出现次数排序，最多 8 个 */
 $sgTagCount = [];
 foreach ($sgNotes as $sgNote) {
     $sgTag = (string) ($sgNote['tag'] ?? '');
@@ -49,19 +66,29 @@ foreach ($sgNotes as $sgNote) {
 }
 arsort($sgTagCount);
 $sgTags = array_slice(array_keys($sgTagCount), 0, 8);
-
-/* 卡片作者栏：头像与名字取主题设置，没填头像就用内置的 */
-$sgAuthor = trim((string) sg_opt('sgAuthorName', ''));
-if ($sgAuthor === '') {
-    $sgAuthor = (string) sg_opt('sgNavTitle', 'Sonora');
-}
-$sgAvatar = sg_media((string) sg_opt('sgAvatarUrl', ''), sg_theme_url('dist/img/avatar.svg'));
 ?>
 <main id="sg-main" tabindex="-1" class="sg-main sg-main--pad" data-sg-page="notes" data-sg-notes>
-  <?php sg_page_head($sgHead); ?>
+  <?php /* 概览面板（miraii moments overview）：eyebrow + 标题 + 副标题 + 搜索 + 三张统计卡 */ ?>
+  <section class="sg-moments sg-glass">
+    <div class="sg-moments-intro">
+      <span class="sg-moments-eyebrow">💬 Moments</span>
+      <h1 class="sg-moments-title"><?php echo sg_e((string) $sgHead['title']); ?></h1>
+      <?php if ((string) $sgHead['sub'] !== '') : ?><p class="sg-moments-sub"><?php echo sg_e((string) $sgHead['sub']); ?></p><?php endif; ?>
+      <div class="sg-moments-search">
+        <span class="sg-moments-search-ico"><?php echo sg_icon_color('history'); ?></span>
+        <input class="sg-search-input sg-moments-search-input" type="search" name="s"
+               placeholder="搜索碎语..." aria-label="搜索碎语" autocomplete="off">
+      </div>
+    </div>
+    <div class="sg-moments-stats" role="group" aria-label="碎语统计">
+      <div class="sg-moments-stat"><b><?php echo count($sgNotes); ?></b><span>总动态</span></div>
+      <div class="sg-moments-stat"><b><?php echo $sgMediaNotes; ?></b><span>含媒体</span></div>
+      <div class="sg-moments-stat"><b><?php echo $sgImageTotal; ?></b><span>图片</span></div>
+    </div>
+  </section>
 
   <?php if (trim((string) $this->content) !== '') : ?>
-  <div class="sg-prose" style="margin-bottom:2rem"><?php $this->content(); ?></div>
+  <div class="sg-prose" style="margin:2rem auto 0;max-width:62rem"><?php $this->content(); ?></div>
   <?php endif; ?>
 
   <?php if ($sgNotes) : ?>
@@ -83,82 +110,57 @@ $sgAvatar = sg_media((string) sg_opt('sgAvatarUrl', ''), sg_theme_url('dist/img/
     </div>
   </div>
 
-  <div class="sg-timeline">
-    <?php foreach ($sgGroups as $sgGroupKey => $sgGroup) : ?>
-    <section class="sg-tl-month" data-sg-tl-month="<?php echo sg_e((string) $sgGroupKey); ?>">
-      <h2 class="sg-tl-month-label">
-        <?php echo sg_icon_color('calendar'); ?>
-        <span><?php echo sg_e($sgGroup['label']); ?></span>
-        <b><?php echo count($sgGroup['items']); ?> 条</b>
+  <?php /* 内容时间轴：fomal.cc/archives 的 article-sort 同构（竖轴 + 年份生肖节点 + 日期/文本条目） */ ?>
+  <div class="sg-asort">
+    <p class="sg-asort-title">碎语总览 - <?php echo count($sgNotes); ?></p>
+    <?php foreach ($sgYearGroups as $sgYear => $sgYearNotes) : ?>
+    <section class="sg-asort-year" data-sg-tl-month="<?php echo sg_e((string) $sgYear); ?>">
+      <h2 class="sg-asort-year-head">
+        <span class="sg-asort-year-num"><?php echo sg_e((string) $sgYear); ?></span>
+        <svg class="sg-asort-zodiac" aria-hidden="true"><use href="#<?php echo sg_e($sgZodiacOf($sgYear)); ?>"></use></svg>
+        <b><?php echo count($sgYearNotes); ?> 条</b>
       </h2>
-      <ol class="sg-tl-items" data-sg-tl-items>
-        <?php foreach ($sgGroup['items'] as $sgNote) : ?>
+      <div class="sg-asort-list" data-sg-tl-items>
+        <?php foreach ($sgYearNotes as $sgNote) : ?>
         <?php
         $sgBody  = trim((string) ($sgNote['body'] ?? ''));
         if ($sgBody === '') {
             $sgBody = (string) ($sgNote['text'] ?? '');
         }
-        $sgTitle = (string) ($sgNote['title'] ?? '');
         $sgTag   = (string) ($sgNote['tag'] ?? '');
-        $sgMood  = (string) ($sgNote['mood'] ?? '');
         $sgPlace = (string) ($sgNote['location'] ?? '');
+        $sgMood  = (string) ($sgNote['mood'] ?? '');
         $sgLink  = (string) ($sgNote['url'] ?? '');
         $sgImgs  = is_array($sgNote['images'] ?? null) ? array_values($sgNote['images']) : [];
         $sgTs    = (int) ($sgNote['ts'] ?? 0);
-        $sgKeywords = implode(' ', array_filter([$sgTitle, $sgBody, $sgTag, $sgMood, $sgPlace]));
+        $sgCover = $sgImgs[0] ?? (string) ($sgNote['cover'] ?? '');
+        $sgKeywords = implode(' ', array_filter([$sgBody, $sgTag, $sgMood, $sgPlace]));
         ?>
-        <li class="sg-tl-item" data-sg-tl-item data-ts="<?php echo $sgTs; ?>" data-tag="<?php echo sg_e($sgTag); ?>" data-keywords="<?php echo sg_e($sgKeywords); ?>">
-          <span class="sg-tl-dot" aria-hidden="true"></span>
-          <article class="sg-glass sg-tl-card">
-            <header class="sg-tl-author">
-              <img class="sg-tl-avatar" src="<?php echo sg_e($sgAvatar); ?>" alt="" referrerpolicy="no-referrer" loading="lazy">
-              <div class="sg-tl-who">
-                <b><?php echo sg_e($sgAuthor); ?></b>
-                <span class="sg-tl-when">
-                  <?php echo sg_icon_color('clock'); ?>
-                  <time datetime="<?php echo sg_e(gmdate('c', (int) ($sgNote['created'] ?? 0))); ?>"><?php echo sg_e((string) ($sgNote['date'] ?? '')); ?><?php if ((string) ($sgNote['time'] ?? '') !== '') : ?> <?php echo sg_e((string) $sgNote['time']); ?><?php endif; ?></time>
-                </span>
-              </div>
+        <div class="sg-asort-item<?php echo $sgCover === '' ? ' no-cover' : ''; ?>" data-sg-tl-item data-ts="<?php echo $sgTs; ?>" data-tag="<?php echo sg_e($sgTag); ?>" data-keywords="<?php echo sg_e($sgKeywords); ?>">
+          <?php if ($sgCover !== '') : ?>
+          <a class="sg-asort-img" href="<?php echo sg_e($sgLink); ?>" title="<?php echo sg_e($sgBody !== '' ? mb_substr($sgBody, 0, 40) : '查看碎语'); ?>">
+            <img src="<?php echo sg_e($sgCover); ?>" alt="" loading="lazy" referrerpolicy="no-referrer">
+            <?php if (count($sgImgs) > 1) : ?><span class="sg-asort-more"><?php echo count($sgImgs); ?> 图</span><?php endif; ?>
+          </a>
+          <?php endif; ?>
+          <div class="sg-asort-info">
+            <p class="sg-asort-time">
+              <?php echo sg_icon_color('calendar'); ?>
+              <time datetime="<?php echo sg_e(gmdate('c', $sgTs)); ?>" title="<?php echo sg_e(date('Y-m-d H:i', $sgTs)); ?>"><?php echo sg_e(date('Y-m-d', $sgTs)); ?></time>
+              <?php if ((string) ($sgNote['time'] ?? '') !== '') : ?><span class="sg-asort-time-hm"><?php echo sg_e((string) $sgNote['time']); ?></span><?php endif; ?>
               <?php if ($sgTag !== '') : ?><span class="sg-tl-tag">#<?php echo sg_e($sgTag); ?></span><?php endif; ?>
-              <?php if ($sgMood !== '') : ?><span class="sg-tl-mood"><?php echo sg_e($sgMood); ?></span><?php endif; ?>
-            </header>
-
-            <?php if ($sgTitle !== '') : ?>
-            <h3 class="sg-tl-title">
-              <?php if ($sgLink !== '') : ?><a href="<?php echo sg_e($sgLink); ?>"><?php echo sg_e($sgTitle); ?></a><?php else : ?><?php echo sg_e($sgTitle); ?><?php endif; ?>
-            </h3>
+              <?php if ($sgPlace !== '') : ?><span class="sg-asort-loc"><?php echo sg_icon_color('pin'); ?><?php echo sg_e($sgPlace); ?></span><?php endif; ?>
+              <?php if ($sgMood !== '') : ?><span class="sg-asort-mood"><?php echo sg_e($sgMood); ?></span><?php endif; ?>
+            </p>
+            <?php if ($sgLink !== '') : ?>
+            <a class="sg-asort-text" href="<?php echo sg_e($sgLink); ?>"><?php echo nl2br(sg_e($sgBody)); ?></a>
+            <?php else : ?>
+            <span class="sg-asort-text"><?php echo nl2br(sg_e($sgBody)); ?></span>
             <?php endif; ?>
-
-            <?php if ($sgBody !== '') : ?>
-            <p class="sg-tl-text"><?php echo nl2br(sg_e($sgBody)); ?></p>
-            <?php endif; ?>
-
-            <?php if ($sgImgs) : ?>
-            <?php
-            /* 1 张给大图、2 张并排、3 张一行、4 张 2×2、其余九宫格；
-               全部走全局灯箱（data-sg-photo + data-sg-photo-group）。 */
-            $sgGrid = count($sgImgs);
-            $sgSize = $sgGrid === 1 ? 'is-one' : ($sgGrid === 2 ? 'is-two' : ($sgGrid === 4 ? 'is-four' : 'is-many'));
-            ?>
-            <div class="sg-tl-media <?php echo $sgSize; ?>" data-sg-photo-group>
-              <?php foreach ($sgImgs as $sgImgIndex => $sgImg) : ?>
-              <a class="sg-photo" href="<?php echo sg_e($sgImg); ?>" data-sg-photo>
-                <img src="<?php echo sg_e($sgImg); ?>" alt="<?php echo sg_e($sgTitle !== '' ? $sgTitle . ' 第 ' . ((int) $sgImgIndex + 1) . ' 张' : '碎语配图 ' . ((int) $sgImgIndex + 1)); ?>" loading="lazy" referrerpolicy="no-referrer">
-              </a>
-              <?php endforeach; ?>
-            </div>
-            <?php endif; ?>
-
-            <?php /* 2026-11-22：移除「原文 ↗」跳转；地点为空时连 footer 一起不输出，避免空节点。 */ ?>
-            <?php if ($sgPlace !== '') : ?>
-            <footer class="sg-tl-foot">
-              <span class="sg-tl-loc"><?php echo sg_icon_color('map-pin'); ?><?php echo sg_e($sgPlace); ?></span>
-            </footer>
-            <?php endif; ?>
-          </article>
-        </li>
+          </div>
+        </div>
         <?php endforeach; ?>
-      </ol>
+      </div>
     </section>
     <?php endforeach; ?>
   </div>
