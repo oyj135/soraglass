@@ -745,77 +745,62 @@ html.sg-readmode [data-sg-music-entry] { display: none; }
 
 html.sg-readmode [data-sg-readmode-toggle] { color: var(--sg-accent-ink); border-color: var(--sg-accent-ink); }
 
-/* ---------- P1-11 导航「更多」下拉 ---------- */
-.sg-nav-more { position: relative; display: inline-flex; }
+/* ---------- 分组导航（2026-11-22，参考 miraii.cn 分组顶栏） ----------
+   触发器 = .sg-nav-link 同款（复用 hover/当前页实底）；面板 = 横排玻璃胶囊（复用源站 sub_menus
+   横排形态 + sg-sub-menu 入场动画）；条目 = 彩色图标块 + 页名，当前页实底朱批白字。
+   交互：桌面 hover/focus-within 直接展开，触屏/锁定由 navigation-ui.ts 的 is-open 接管；
+   .sg-nav-group-menu::before 透明桥接防斜向断触（沿用旧「更多」配方）。 */
+.sg-nav-group { position: relative; display: inline-flex; }
 
-/* 悬浮桥接（2026-11-16，2026-11-18 改挂菜单侧）：菜单与按钮间留 .6rem 空隙，
-   横排后菜单比按钮宽得多，桥接必须覆盖整个菜单宽度（源站 menus_item_child:before
-   的同款做法），否则斜向移向远端条目时穿过空隙脱离 hover、菜单收起。 */
-.sg-nav-more-menu::before {
+.sg-nav-group-menu::before {
   content: '';
   position: absolute;
-  top: -.6rem;
+  top: -.7rem;
   left: 0;
   width: 100%;
-  height: .6rem;
+  height: .7rem;
 }
 
-.sg-nav-more-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: .25rem;
-  border: 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-}
+.sg-nav-group-btn .sg-ci { width: .85rem; height: .85rem; transition: transform .3s var(--sg-ease); }
+.sg-nav-group.is-open .sg-nav-group-btn .sg-ci,
+.sg-nav-group:is(:hover, :focus-within) .sg-nav-group-btn .sg-ci { transform: rotate(180deg); }
 
-.sg-nav-more-btn svg { width: .85rem; height: .85rem; transition: transform .3s var(--sg-ease); }
-
-.sg-nav-more.is-open .sg-nav-more-btn svg,
-/* 源站 menus_item:hover 即转箭头（head.styl &:hover & > a > i:last-child rotate .3s） */
-.sg-nav-more:is(:hover, :focus-within) .sg-nav-more-btn svg { transform: rotate(180deg); }
-
-.sg-nav-more.is-active .sg-nav-more-btn { color: var(--sg-accent-ink); }
-
-.sg-nav-more-menu {
+/* 当前页所在组：朱批实底在 nav.css 的日夜规则里统一给（与当前页直链同款），此处不重复设色 */
+.sg-nav-group-menu {
   position: absolute;
-  top: calc(100% + .6rem);
-  right: 0;
+  top: calc(100% + .7rem);
+  left: 50%;
+  translate: -50% 0;
   z-index: 120;
   display: none;
-  /* 横排（2026-11-18，源站 custom.css「子菜单横向展示」display:flex 的同款形态）：
-     右对齐锚在「更多」按钮下方向左展开，避免末位栏目居中横排溢出视口；
-     条目过多时换行兜底，任何视口都够得着。 */
   flex-direction: row;
   flex-wrap: wrap;
-  justify-content: flex-end;
   gap: .25rem;
   width: max-content;
-  max-width: min(92vw, 36rem);
-  padding: .4rem;
-  border: 1px solid var(--sg-border);
-  border-radius: var(--sg-radius-inner);
-  /* 实底 + 阴影：下拉是浮在壁纸/头图上的菜单，用接近实色的卡面保证文字对比 */
+  max-width: min(92vw, 40rem);
+  padding: .45rem;
+  border: 1px solid var(--sg-card-border);
+  border-radius: 1.125rem;
   background: var(--sg-card-strong);
   box-shadow: var(--sg-shadow-strong);
-  /* 复刻源站 sub_menus .3s .1s ease both：display:none→flex 重显示时动画重放，收起瞬时 */
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   animation: sg-sub-menu .3s var(--sg-ease) .1s both;
 }
 @keyframes sg-sub-menu {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
-@media (prefers-reduced-motion: reduce) { .sg-nav-more-menu { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .sg-nav-group-menu { animation: none; } }
 
-.sg-nav-more:is(:hover, :focus-within, .is-open) .sg-nav-more-menu { display: flex; }
+.sg-nav-group:is(:hover, :focus-within, .is-open) .sg-nav-group-menu { display: flex; }
 
-.sg-nav-more-link {
-  position: relative;
-  margin-inline: 0; /* 横排条目不再用竖排时的负 margin 扩命中区，避免行内重叠 */
-  padding: .45rem .8rem;
-  border-radius: .5rem;
+.sg-nav-group-item {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  padding: .4rem .85rem .4rem .5rem;
+  border-radius: .85rem;
   color: var(--sg-muted);
   font-size: .9rem;
   font-weight: 500;
@@ -823,35 +808,25 @@ html.sg-readmode [data-sg-readmode-toggle] { color: var(--sg-accent-ink); border
   white-space: nowrap;
   transition: color var(--sg-dur-fast) var(--sg-ease), background var(--sg-dur-fast) var(--sg-ease);
 }
-
-/* 悬停/选中统一朱批实底 + 白字（2026-11-21 定档，用户选「朱批实底+白字」）：
-   原 hover 走 accent 18% 透明底，夜间 accent 与下拉卡面同为 #36333b，等于零反馈；
-   原 active 夜间是深字 #04171b 压深底 #36333b，直接隐身。两档都改实底昼夜同款。
-   夜档 --sg-warm 是淡朱（为当文字用），压白字不足，故这里锁深朱：
-   .is-active 深朱 #9d3b2f（白字 7:1）；hover 中朱 #b0473a（白字 5.5:1）。 */
-.sg-nav-more-link:is(:hover, :focus-visible) {
+.sg-nav-group-item .sg-nav-ico {
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: .55rem;
+  background: color-mix(in srgb, var(--sg-accent) 12%, transparent);
+}
+.sg-nav-group-item:is(:hover, :focus-visible) {
   color: #fff;
   background: #b0473a;
 }
 
-/* 选中项（2026-11-16）：实底高对比；横排后强调条改压底边（竖排左侧条在行内会误读成分隔线） */
-.sg-nav-more-link.is-active {
+/* 面板内当前页：朱批实底白字（与旧「更多」选中项同款，2026-11-21 定档） */
+.sg-nav-group-item.is-active {
   color: #fff;
   font-weight: 700;
   background: #9d3b2f;
 }
-.sg-nav-more-link.is-active::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  bottom: .18rem;
-  width: 55%;
-  height: 3px;
-  border-radius: 2px;
-  background: #fff;
-  transform: translateX(-50%);
-}
-html.dark .sg-nav-more-link.is-active { color: #fff; background: #9d3b2f; }
+html.dark .sg-nav-group-item.is-active { color: #fff; background: #9d3b2f; }
 
-@media (hover: none) {
-}
+/* 组按钮里的 emoji 图标块（sgNavGroups icon 填 emoji 时） */
+.sg-nav-gemoji { font-size: 1.05em; line-height: 1; font-style: normal; }
+

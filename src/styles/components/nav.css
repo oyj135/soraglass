@@ -187,7 +187,7 @@ html.dark .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent-ink);
 }
 .sg-nav-link:is(:hover, :focus-visible)::after { width: calc(100% - 1.3rem); }
 @media (prefers-reduced-motion: reduce) { .sg-nav-link::after { transition: none; } }
-.sg-nav-more-link, .sg-sheet-link { display: flex; align-items: center; gap: .45rem; }
+.sg-sheet-link { display: flex; align-items: center; gap: .45rem; }
 /* 下拉条目横排后的尺寸/hover/选中态统一在 editorial.css 的「更多」下拉段维护 */
 .sg-sheet-link { padding: .45rem .7rem; margin-inline: -.7rem; border-radius: 10px; transition: background-color .25s linear, color .25s linear, opacity .25s linear; }
 .sg-sheet-link:is(:hover, :focus-visible) { background: #b0473a; color: #fff; opacity: 1; }
@@ -196,8 +196,19 @@ html.dark .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent-ink);
 .sg-nav-ico { flex: none; width: 1em; height: 1em; display: inline-flex; }
 .sg-nav-ico svg { width: 100%; height: 100%; }
 .sg-nav-link:is(:hover, :focus-visible) .sg-nav-ico, .sg-nav-link.is-active .sg-nav-ico,
-.sg-nav-more-link:is(:hover, :focus-visible) .sg-nav-ico, .sg-nav-more-link.is-active .sg-nav-ico,
-.sg-sheet-link:is(:hover, :focus-visible) .sg-nav-ico, .sg-sheet-link.is-active .sg-nav-ico { opacity: 1; }
+.sg-sheet-link:is(:hover, :focus-visible) .sg-nav-ico, .sg-sheet-link.is-active .sg-nav-ico,
+.sg-nav-group-item:is(:hover, :focus-visible) .sg-nav-ico, .sg-nav-group-item.is-active .sg-nav-ico { opacity: 1; }
+
+/* 抽屉分组（2026-11-22）：父页组名行 + 子页缩进；无分组时抽屉保持平铺 */
+.sg-sheet-group-name {
+  margin: .9rem .2rem .25rem;
+  font-family: var(--font-sans);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  color: var(--sg-faint);
+}
+.sg-sheet-sub { padding-left: 2.1rem; }
 
 /* 当前页：朱批实底 + 纯白字（2026-11-22 第五十四轮用户指定，昼夜同款）。
    原来是 accent-ink 文字 + 底部白点，在透明导航上太轻，认不出「我在哪一页」。
@@ -358,7 +369,7 @@ html.dark .sg-sheet-panel {
    顶部只留一层伪元素 scrim（见上），导航本体保持透明；
    hover 反馈：字色薄荷青 + 3px 下划线（源站 .3s 从左长满），**不再有底板**；
    底板只属于「当前页」——深青实底 + 纯白字，昼夜同款。 */
-html:not(.dark) .sg-nav :is(.sg-brand, .sg-brand-accent, .sg-nav-link, .sg-nav-more-btn, .sg-nav-page) {
+html:not(.dark) .sg-nav :is(.sg-brand, .sg-brand-accent, .sg-nav-link, .sg-nav-group-btn, .sg-nav-page) {
   color: #fff;
   opacity: 1;
   text-shadow: none;
@@ -378,7 +389,7 @@ html.dark .sg-nav .sg-nav-link:is(:hover, :focus-visible) { color: #b8f5e6; opac
    下划线换深竹青。首屏 is-front 不再豁免——顶上时本就没底，一旦下滑就有玻璃底，
    两种底统一按「深墨字」走，回到顶部 is-scrolled 移除后 .3s 平滑回白。
    当前页（is-active）排除在外：它在深青底板上必须是白字。 */
-html:not(.dark) .sg-nav.is-scrolled :is(.sg-brand, .sg-nav-link:not(.is-active), .sg-nav-more-btn, .sg-nav-page) { color: #252229; }
+html:not(.dark) .sg-nav.is-scrolled :is(.sg-brand, .sg-nav-link:not(.is-active), .sg-nav-group-btn, .sg-nav-page) { color: #252229; }
 html:not(.dark) .sg-nav.is-scrolled .sg-brand-accent { color: #9d3b2f; }
 html:not(.dark) .sg-nav.is-scrolled .sg-nav-link::after { background: #252229; }
 /* 下滑后底是浅玻璃：原 hover 用 #6a706c，与深墨字 #252229 只差一点点；
@@ -391,22 +402,22 @@ html:not(.dark) .sg-nav.is-scrolled .sg-nav-link:is(:hover, :focus-visible)::aft
    避免被上面的薄荷青 hover 规则改色。 */
 html:not(.dark) .sg-nav .sg-nav-link.is-active,
 html:not(.dark) .sg-nav .sg-nav-link.is-active:is(:hover, :focus-visible),
-html:not(.dark) .sg-nav .sg-nav-more.is-active .sg-nav-more-btn,
+html:not(.dark) .sg-nav .sg-nav-group.is-active-group > .sg-nav-group-btn,
 html.dark .sg-nav .sg-nav-link.is-active,
 html.dark .sg-nav .sg-nav-link.is-active:is(:hover, :focus-visible),
-html.dark .sg-nav .sg-nav-more.is-active .sg-nav-more-btn {
+html.dark .sg-nav .sg-nav-group.is-active-group > .sg-nav-group-btn {
   color: #fff;
   opacity: 1;
   background: #9d3b2f;
 }
 html.dark .sg-nav .sg-nav-link.is-active,
 html.dark .sg-nav .sg-nav-link.is-active:is(:hover, :focus-visible),
-html.dark .sg-nav .sg-nav-more.is-active .sg-nav-more-btn { background: #9d3b2f; }
+html.dark .sg-nav .sg-nav-group.is-active-group > .sg-nav-group-btn { background: #9d3b2f; }
 /* 下拉面板是实底卡，文字回落正文色，不能继承导航白字 */
-html:not(.dark) .sg-nav .sg-nav-more-menu { color: var(--sg-text); }
-/* 下拉/抽屉条目 hover 统一朱批实底（与 editorial.css 的 .sg-nav-more-link 同款，昼夜一致）；
+html:not(.dark) .sg-nav .sg-nav-group-menu { color: var(--sg-text); }
+/* 下拉/抽屉条目 hover 统一朱批实底（与 editorial.css 的 .sg-nav-group-item 同款，昼夜一致）；
    原日间用 --sg-filter-active 玄墨实底，与选中态深朱不区分，夜间该值又与卡面同色。 */
-html:not(.dark) .sg-nav :is(.sg-nav-more-link, .sg-sheet-link):is(:hover, :focus-visible) {
+html:not(.dark) .sg-nav :is(.sg-nav-group-item, .sg-sheet-link):is(:hover, :focus-visible) {
   background: #b0473a;
   color: #fff;
 }

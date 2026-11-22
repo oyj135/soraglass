@@ -25,7 +25,7 @@ function setSheet(open: boolean): void {
 }
 
 function closeGroups(except?: HTMLElement): void {
-  document.querySelectorAll<HTMLElement>('[data-sg-nav-more]').forEach(group => {
+  document.querySelectorAll<HTMLElement>('[data-sg-nav-group]').forEach(group => {
     if (group === except) return;
     group.classList.remove('is-open');
     group.querySelector('button')?.setAttribute('aria-expanded', 'false');
@@ -95,10 +95,10 @@ export function initNav(): void {
 }
 
 export function initNavMore(): void {
-  const groups = document.querySelectorAll<HTMLElement>('[data-sg-nav-more]');
+  const groups = document.querySelectorAll<HTMLElement>('[data-sg-nav-group]');
   if (!groups.length) return;
   groups.forEach(group => {
-    const button = group.querySelector<HTMLButtonElement>('.sg-nav-more-btn');
+    const button = group.querySelector<HTMLButtonElement>('.sg-nav-group-btn');
     if (!button) return;
     pageOn(button, 'click', event => {
       event.stopPropagation();
@@ -109,6 +109,6 @@ export function initNavMore(): void {
     });
   });
   pageOn(document, 'click', event => {
-    if (!(event.target instanceof Element) || !event.target.closest('[data-sg-nav-more]')) closeGroups();
+    if (!(event.target instanceof Element) || !event.target.closest('[data-sg-nav-group]')) closeGroups();
   });
 }

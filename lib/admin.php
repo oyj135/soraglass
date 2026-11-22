@@ -24,6 +24,7 @@ function sg_admin_json_tools(): string
         'sgProjectList',
         'sgPoster',
         'sgFrontTyping',
+        'sgNavGroups',
     ], JSON_UNESCAPED_SLASHES);
 
     return <<<HTML
@@ -691,6 +692,15 @@ function themeConfig($form): void
         . '留空则使用主题自带的 <code>dist/favicon.svg</code>。建议正方形、不小于 64×64，格式 PNG / SVG / ICO。'
     )));
     $form->addInput(new Text('sgNavTitle', null, '', _t('导航前缀'), _t('留空则使用站点名称')));
+    $form->addInput(new Textarea('sgNavGroups', null, '', _t('导航分组 · JSON（可选）'), _t(
+        '<b>显示位置</b>：顶栏分组导航（2026-11-22，参考 miraii.cn）。<b>推荐用 Typecho 原生父子页面</b>：'
+        . '后台「独立页面」编辑页选父级页面 —— 父页 = 顶栏组按钮（组名即父页标题），子页收进下拉面板，零配置。<br>'
+        . '本栏是<b>可选覆盖</b>（不想建父页、或想把无父子关系的页面强行归组时用）。<br>'
+        . '<b>格式</b>：<code>[{"name":"拾遗","icon":"🍃","pages":["archives","timeline","time"]},…]</code><br>'
+        . '<code>icon</code> 填 emoji（渲染成彩色图标块）或 iconfont symbol 名（如 <code>icon-yinle</code>），留空回落组内第一个页面自己的图标；'
+        . '<code>pages</code> 填页面 slug，顺序即面板内顺序。未列入的页面保持直链，超出顶栏宽度自动收进「更多」。<br>'
+        . '留空且无父子页面 → 完全回落现行单层导航。「首页」恒为独立直链。'
+    ) . sg_admin_json_tools()));
     $form->addInput(new Text('sgNavSuffix', null, 'の', _t('导航分隔符'), _t('例：の')));
     $form->addInput(new Text('sgNavAfter', null, '空璃', _t('导航后缀'), _t('例：空璃')));
     $form->addInput(new Text('sgFrontTitle', null, '', _t('首屏大标题'), _t('2026-11-21 新增：填了就作为首页首屏大标题整段显示（例：<code>OJ\'s Tech Stack · 空璃</code>）；留空则沿用「导航前缀 + 后缀」的拼法。下方小字不受影响')));

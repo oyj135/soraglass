@@ -134,25 +134,56 @@ ${js ? `<script type="module" src="${js}"></script>` : ''}
     <a class="sg-brand" href="#">Xinghuisama<span class="sg-brand-accent">の</span>空璃</a>
     <a class="sg-nav-page" data-sg-nav-page href="#" data-tip="回到顶部" hidden>预览页面</a>
     <nav class="sg-nav-links" aria-label="主导航">
-      ${NAV_PRIMARY.map((item) => `<a class="sg-nav-link${item.active ? ' is-active' : ''}" href="${item.href}">${item.name}${item.active ? '<span class="sg-nav-dot"></span>' : ''}</a>`).join('')}
-      ${
-        NAV_MORE.length
-          ? `
-      <div class="sg-nav-more" data-sg-nav-more>
-        <button class="sg-nav-link sg-nav-more-btn" type="button" aria-expanded="false" aria-haspopup="true">更多${icons.chevronDown}</button>
-        <div class="sg-nav-more-menu" role="menu">
-          ${NAV_MORE.map((item) => `<a class="sg-nav-more-link" role="menuitem" href="${item.href}">${item.name}</a>`).join('')}
+      <a class="sg-nav-link" href="#">首页</a>
+      <div class="sg-nav-group is-active-group" data-sg-nav-group>
+        <button class="sg-nav-link sg-nav-group-btn" type="button" aria-expanded="false" aria-haspopup="true">🍃 拾遗${icons.chevronDown}</button>
+        <div class="sg-nav-group-menu" role="menu">
+          <a class="sg-nav-group-item" href="#">归档</a>
+          <a class="sg-nav-group-item" href="#">知识档案</a>
+          <a class="sg-nav-group-item is-active" href="#">时光机</a>
         </div>
-      </div>`
-          : ''
-      }
+      </div>
+      <div class="sg-nav-group" data-sg-nav-group>
+        <button class="sg-nav-link sg-nav-group-btn" type="button" aria-expanded="false" aria-haspopup="true">🎐 逸趣${icons.chevronDown}</button>
+        <div class="sg-nav-group-menu" role="menu">
+          <a class="sg-nav-group-item" href="#">音乐馆</a>
+          <a class="sg-nav-group-item" href="#">光影画廊</a>
+        </div>
+      </div>
+      <div class="sg-nav-group" data-sg-nav-group>
+        <button class="sg-nav-link sg-nav-group-btn" type="button" aria-expanded="false" aria-haspopup="true">🧰 匣匣${icons.chevronDown}</button>
+        <div class="sg-nav-group-menu" role="menu">
+          <a class="sg-nav-group-item" href="#">项目</a>
+        </div>
+      </div>
+      <div class="sg-nav-group" data-sg-nav-group>
+        <button class="sg-nav-link sg-nav-group-btn" type="button" aria-expanded="false" aria-haspopup="true">🕊 相逢${icons.chevronDown}</button>
+        <div class="sg-nav-group-menu" role="menu">
+          <a class="sg-nav-group-item" href="#">友链</a>
+          <a class="sg-nav-group-item" href="#">碎语</a>
+        </div>
+      </div>
+      <a class="sg-nav-link" href="#">自述</a>
     </nav>
   </div>
 </header>
 <button class="sg-disc" type="button" data-sg-sheet-open aria-label="打开导航"><span class="sg-disc-dots"><i></i><i></i><i></i></span></button>
 <div class="sg-sheet" data-sg-sheet aria-hidden="true">
   <div class="sg-sheet-panel">
-    ${NAV.map((item) => `<a class="sg-sheet-link${item.active ? ' is-active' : ''}" href="${item.href}">${item.name}</a>`).join('')}
+    <a class="sg-sheet-link" href="#">首页</a>
+    <p class="sg-sheet-group-name">拾遗</p>
+    <a class="sg-sheet-link sg-sheet-sub" href="#">归档</a>
+    <a class="sg-sheet-link sg-sheet-sub is-active" href="#">时光机</a>
+    <a class="sg-sheet-link sg-sheet-sub" href="#">知识档案</a>
+    <p class="sg-sheet-group-name">逸趣</p>
+    <a class="sg-sheet-link sg-sheet-sub" href="#">音乐馆</a>
+    <a class="sg-sheet-link sg-sheet-sub" href="#">光影画廊</a>
+    <p class="sg-sheet-group-name">匣匣</p>
+    <a class="sg-sheet-link sg-sheet-sub" href="#">项目</a>
+    <p class="sg-sheet-group-name">相逢</p>
+    <a class="sg-sheet-link sg-sheet-sub" href="#">友链</a>
+    <a class="sg-sheet-link sg-sheet-sub" href="#">碎语</a>
+    <a class="sg-sheet-link" href="#">自述</a>
     <hr class="sg-divider">
     <button class="sg-sheet-link" type="button" data-sg-theme-toggle>${icons.sun.replace('<svg', '<svg class="sg-i-sun"')}${icons.moon.replace('<svg', '<svg class="sg-i-moon"')} 切换昼夜</button>
   </div>
