@@ -116,10 +116,8 @@
 }
 .sg-neko.is-on { opacity: 1; }
 .sg-neko img { display: block; width: 100%; height: 100%; }
-/* 昼夜双龙：日间玄墨龙 / 夜间雾青龙（neko.svg / neko-night.svg），与日月图标同一套切换写法 */
-.sg-neko .sg-neko-night { display: none; }
-html.dark .sg-neko .sg-neko-day { display: none; }
-html.dark .sg-neko .sg-neko-night { display: block; }
+/* 日间：银灰龙身在纸白底上偏亮，整体压暗一档（龙眼同步加深）；夜间用原图银灰调 */
+html:not(.dark) .sg-neko img { filter: brightness(.62) contrast(1.08) saturate(1.15); }
 .sg-neko-msg {
   position: absolute;
   top: 50%;

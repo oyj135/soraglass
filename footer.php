@@ -43,11 +43,11 @@ if ($sgName === '') {
 
 <?php /* 右缘墨龙滚动进度（2026-11-22 第五十五轮，小猫换墨龙，交互逻辑不变）：
    竖绳高度 = 滚动进度 × 0.9 × 视口高，龙挂绳尾；点绳/点龙回顶部；≤768px 隐藏。
-   昼夜双图：日间玄墨龙 / 夜间雾青龙，由 .sg-neko-day / .sg-neko-night 切换。 */ ?>
+   素材：vectorizer/墨龙攀绳.svg 去竖绳后 128px PNG 导出（源 SVG 473KB 不宜作图标），
+   日间由 CSS filter 压暗一档，夜间用原图银灰调。 */ ?>
 <div class="sg-neko-rope" data-sg-neko-rope aria-hidden="true"></div>
 <div class="sg-neko" data-sg-neko aria-hidden="true">
-  <img class="sg-neko-day" src="<?php echo sg_e(sg_theme_url('dist/img/neko.svg')); ?>" alt="" width="64" height="64">
-  <img class="sg-neko-night" src="<?php echo sg_e(sg_theme_url('dist/img/neko-night.svg')); ?>" alt="" width="64" height="64">
+  <img src="<?php echo sg_e(sg_theme_url('dist/img/neko.png')); ?>" alt="" width="64" height="64">
   <span class="sg-neko-msg" data-sg-neko-msg></span>
 </div>
 

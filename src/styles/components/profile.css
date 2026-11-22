@@ -22,17 +22,17 @@ html.dark .sg-aside .sg-glass.sg-profile {
   border-color: rgba(249, 242, 224, .12);
 }
 
-/* 作者卡「昼夜双场景」（2026-11-22 第五十五轮，水墨化重绘，替换青瓷晨光 / 星海鲸航）：
-   日间 = **淡墨远山 · 一叶朱舟**：纸白天光 + 两叠淡墨远山（feTurbulence 抖边做笔锋）
-          + 云雾留白 + 三道水线，山脚一叶朱红小舟是整卡唯一印朱（全站 ≤3 处预算内）；
-          可见内容集中在 SVG y 60-360 段（::after 白纱自卡高 30% 渐浓，再往下画了也看不见）。
-   夜间 = **雾青山月**：玄墨夜空（顶格 #17141b 与卡面同值防白边）+ 淡金圆月与月晕
-          + 稀疏银星 + 两叠雾青山影 + 水面月影；渐隐色 #141617 与天空底色同值，不出黑带。
-   两套都**铺满整卡**（absolute inset:0）；background-size:100% auto + 顶部对齐按宽度缩放 ——
+/* 作者卡「昼夜双场景」（2026-11-22 第五十五轮，vectorizer 素材版）：
+   日间 = **落日·雁阵 + 水墨远山·红舟**：src/assets/banner-day.svg（400x780，由
+          vectorizer/昼1.svg 裁窗「658 0 1270 810」与 昼2.svg 裁窗「240 150 1180 850」
+          经 vectorizer/merge-day.mjs 合并）—— 太阳与大雁在最上方，山脊线剪影衔接落日，
+          山脚下红舟点睛；
+   夜间 = **月夜爬梯摘星**：src/assets/banner-night.svg（400x780，vectorizer/夜.svg
+          裁窗「246 0 482 940」居中月亮与男孩）。两图均经 svgo --precision=1 压缩。
+   两套都铺满整卡（absolute inset:0）；background-size:100% auto + 顶部对齐按宽度缩放 ——
    首页侧栏卡与文章页短卡宽度接近而高度差很多，用 cover 时矮卡会把主体裁掉。
-   场景源文件在 public/img/banner-ink-day.svg 与 banner-ink-night.svg（改图后重新编码回填本文件）。
-   纱（::after）：日间是白玻璃自上而下渐浓，夜间是暗纱只压下半；两者都只为守住
-   名字/简介/统计/按钮的对比度，水墨场景本身低对比，纱的浓度不需再加深。纯静态无动画。 */
+   纱（::after）：日间白玻璃自上而下渐浓，夜间暗纱压下半，守住名字/简介/统计/按钮对比度。
+   改图流程：改 vectorizer/ 源 SVG → 跑 merge-day.mjs / svgo → 拷回 src/assets/。 */
 /* 场景图铺满整卡；纱另走 ::after，避免与图片高度耦合 */
 .sg-profile-banner {
   position: absolute;
@@ -46,7 +46,7 @@ html.dark .sg-aside .sg-glass.sg-profile {
   /* 底色取日间天空顶色（#f1ecdf，与 .sg-profile 卡面同值）：banner 只覆盖 inset:0，
      抗锯齿那一圈会透出底下的卡面，不同值就会显出一圈白边。 */
   background-color: #f1ecdf;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 400 780%27 preserveAspectRatio=%27xMidYMid slice%27%3E %3C!-- 作者卡日间场景「淡墨远山 · 一叶朱舟」（2026-11-22 第五十五轮，替代青瓷晨光）： 纸白天光 + 两叠淡墨远山（feTurbulence 抖边做笔锋）+ 云雾留白 + 三道水线， 山脚一叶朱红小舟是整卡唯一印朱。 注意 ::after 白纱自卡高 30%25 起渐浓 —— 可见内容集中在 SVG y 60-360 段， y≥420 渐隐回干净纸面承文字（背景 100%25 auto 顶对齐，卡宽 330px 时 y≈屏高 0.825 倍）。 --%3E %3Cdefs%3E %3ClinearGradient id=%27s%27 x1=%270%27 y1=%270%27 x2=%270%27 y2=%271%27%3E %3Cstop offset=%270%27 stop-color=%27%23f1ecdf%27/%3E%3Cstop offset=%27.5%27 stop-color=%27%23efeadd%27/%3E%3Cstop offset=%271%27 stop-color=%27%23f5f2ea%27/%3E %3C/linearGradient%3E %3ClinearGradient id=%27fb%27 x1=%270%27 y1=%270%27 x2=%270%27 y2=%271%27%3E %3Cstop offset=%270%27 stop-color=%27%23f5f2ea%27 stop-opacity=%270%27/%3E%3Cstop offset=%27.45%27 stop-color=%27%23f6f3eb%27 stop-opacity=%27.55%27/%3E%3Cstop offset=%271%27 stop-color=%27%23f7f4ee%27 stop-opacity=%27.96%27/%3E %3C/linearGradient%3E %3Cfilter id=%27ink%27 x=%27-10%25%27 y=%27-30%25%27 width=%27120%25%27 height=%27160%25%27%3E %3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%270.012 0.045%27 numOctaves=%272%27 seed=%2711%27 result=%27n%27/%3E %3CfeDisplacementMap in=%27SourceGraphic%27 in2=%27n%27 scale=%277%27/%3E %3C/filter%3E %3Cfilter id=%27mist%27 x=%27-40%25%27 y=%27-80%25%27 width=%27180%25%27 height=%27260%25%27%3E%3CfeGaussianBlur stdDeviation=%2710%27/%3E%3C/filter%3E %3C/defs%3E %3Crect width=%27400%27 height=%27780%27 fill=%27url(%23s)%27/%3E %3Cg filter=%27url(%23ink)%27%3E %3Cpath d=%27M0 300 C58 262 118 286 172 258 C244 222 306 268 400 246 V470 H0 Z%27 fill=%27%23a3a8a1%27 opacity=%27.55%27/%3E %3Cpath d=%27M0 356 C66 318 132 348 200 314 C272 284 336 326 400 300 V500 H0 Z%27 fill=%27%23828a85%27 opacity=%27.45%27/%3E %3C/g%3E %3Cg filter=%27url(%23mist)%27%3E %3Cellipse cx=%2786%27 cy=%27318%27 rx=%27150%27 ry=%2718%27 fill=%27%23f8f5ee%27 opacity=%27.7%27/%3E %3Cellipse cx=%27296%27 cy=%27330%27 rx=%27150%27 ry=%2716%27 fill=%27%23f8f5ee%27 opacity=%27.66%27/%3E %3Cellipse cx=%27182%27 cy=%27262%27 rx=%27118%27 ry=%2712%27 fill=%27%23f8f5ee%27 opacity=%27.5%27/%3E %3C/g%3E %3Cg stroke=%27%23767d79%27 stroke-width=%271%27 stroke-linecap=%27round%27 opacity=%27.34%27 fill=%27none%27%3E %3Cpath d=%27M52 352 H150%27/%3E%3Cpath d=%27M212 360 H344%27/%3E%3Cpath d=%27M92 372 H180%27/%3E %3C/g%3E %3Cg fill=%27%239d3b2f%27%3E %3Cpath d=%27M196 344 C206 349 224 349 234 344 L227 351 H203 Z%27/%3E %3Cpath d=%27M215 344 V333 L226 340 L215 340 Z%27 opacity=%27.88%27/%3E %3C/g%3E %3Crect y=%27420%27 width=%27400%27 height=%27360%27 fill=%27url(%23fb)%27/%3E %3C/svg%3E ");
+  background-image: url("../../assets/banner-day.svg");
   background-size: 100% auto;
   background-position: center top;
   background-repeat: no-repeat;
@@ -55,7 +55,7 @@ html.dark .sg-aside .sg-glass.sg-profile {
 /* 夜间：换场景图与底色（此时整卡恒为焦墨，配色见下方「夜航档」） */
 html.dark .sg-profile-banner {
   background-color: #17141b;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 400 780%27 preserveAspectRatio=%27xMidYMid slice%27%3E %3C!-- 作者卡日间场景「淡墨远山 · 一叶朱舟」（2026-11-22 第五十五轮，替代青瓷晨光）： 纸白天光 + 两叠淡墨远山（feTurbulence 抖边做笔锋）+ 云雾留白 + 三道水线， 山脚一叶朱红小舟是整卡唯一印朱。 注意 ::after 白纱自卡高 30%25 起渐浓 —— 可见内容集中在 SVG y 60-360 段， y≥420 渐隐回干净纸面承文字（背景 100%25 auto 顶对齐，卡宽 330px 时 y≈屏高 0.825 倍）。 --%3E %3Cdefs%3E %3ClinearGradient id=%27s%27 x1=%270%27 y1=%270%27 x2=%270%27 y2=%271%27%3E %3Cstop offset=%270%27 stop-color=%27%23f1ecdf%27/%3E%3Cstop offset=%27.5%27 stop-color=%27%23efeadd%27/%3E%3Cstop offset=%271%27 stop-color=%27%23f5f2ea%27/%3E %3C/linearGradient%3E %3ClinearGradient id=%27fb%27 x1=%270%27 y1=%270%27 x2=%270%27 y2=%271%27%3E %3Cstop offset=%270%27 stop-color=%27%23f5f2ea%27 stop-opacity=%270%27/%3E%3Cstop offset=%27.45%27 stop-color=%27%23f6f3eb%27 stop-opacity=%27.55%27/%3E%3Cstop offset=%271%27 stop-color=%27%23f7f4ee%27 stop-opacity=%27.96%27/%3E %3C/linearGradient%3E %3Cfilter id=%27ink%27 x=%27-10%25%27 y=%27-30%25%27 width=%27120%25%27 height=%27160%25%27%3E %3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%270.012 0.045%27 numOctaves=%272%27 seed=%2711%27 result=%27n%27/%3E %3CfeDisplacementMap in=%27SourceGraphic%27 in2=%27n%27 scale=%277%27/%3E %3C/filter%3E %3Cfilter id=%27mist%27 x=%27-40%25%27 y=%27-80%25%27 width=%27180%25%27 height=%27260%25%27%3E%3CfeGaussianBlur stdDeviation=%2710%27/%3E%3C/filter%3E %3C/defs%3E %3Crect width=%27400%27 height=%27780%27 fill=%27url(%23s)%27/%3E %3Cg filter=%27url(%23ink)%27%3E %3Cpath d=%27M0 300 C58 262 118 286 172 258 C244 222 306 268 400 246 V470 H0 Z%27 fill=%27%23a3a8a1%27 opacity=%27.55%27/%3E %3Cpath d=%27M0 356 C66 318 132 348 200 314 C272 284 336 326 400 300 V500 H0 Z%27 fill=%27%23828a85%27 opacity=%27.45%27/%3E %3C/g%3E %3Cg filter=%27url(%23mist)%27%3E %3Cellipse cx=%2786%27 cy=%27318%27 rx=%27150%27 ry=%2718%27 fill=%27%23f8f5ee%27 opacity=%27.7%27/%3E %3Cellipse cx=%27296%27 cy=%27330%27 rx=%27150%27 ry=%2716%27 fill=%27%23f8f5ee%27 opacity=%27.66%27/%3E %3Cellipse cx=%27182%27 cy=%27262%27 rx=%27118%27 ry=%2712%27 fill=%27%23f8f5ee%27 opacity=%27.5%27/%3E %3C/g%3E %3Cg stroke=%27%23767d79%27 stroke-width=%271%27 stroke-linecap=%27round%27 opacity=%27.34%27 fill=%27none%27%3E %3Cpath d=%27M52 352 H150%27/%3E%3Cpath d=%27M212 360 H344%27/%3E%3Cpath d=%27M92 372 H180%27/%3E %3C/g%3E %3Cg fill=%27%239d3b2f%27%3E %3Cpath d=%27M196 344 C206 349 224 349 234 344 L227 351 H203 Z%27/%3E %3Cpath d=%27M215 344 V333 L226 340 L215 340 Z%27 opacity=%27.88%27/%3E %3C/g%3E %3Crect y=%27420%27 width=%27400%27 height=%27360%27 fill=%27url(%23fb)%27/%3E %3C/svg%3E ");
+  background-image: url("../../assets/banner-night.svg");
 }
 
 /* 纱：日间白玻璃（上透明 → 下近白，压在名字/统计/按钮那半张卡上）。
@@ -358,10 +358,7 @@ html.dark .sg-social { background: rgba(46, 43, 52, .50); color: #a8aeb2; }
 .sg-aside .sg-profile .sg-stats { margin-top: .1rem; padding: .2rem 0; }
 .sg-home-aside .sg-profile .sg-profile-name,
 .sg-aside .sg-profile .sg-profile-name { margin-top: .5rem; }
-/* 卡高收到 410 后文字区上移约 64px，横幅插图仍按顶对齐 → 鲸鱼下缘会压到简介。
-   插图整体上移 36px，把鲸鱼让到名字之上，文字区回到纱的干净段。 */
-.sg-home-aside .sg-profile-banner,
-.sg-aside .sg-profile-banner { background-position: center -2.25rem; }
+/* 2026-11-22 第五十五轮：素材换 vectorizer 版后按顶对齐取景，不再需要旧鲸鱼插图\r\n   的 -2.25rem 上移补偿。 */
 
 /* 2026-11-22 第五十四轮：「关于我」按钮悬浮底昼夜统一朱批实底 #9d3b2f
    （原日间走 --sg-filter-active 玄墨、夜间走 --sg-accent 夜墨）。 */
