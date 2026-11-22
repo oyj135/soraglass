@@ -7,7 +7,7 @@
  *          miraii moments 的概览面板已按用户要求整块移除）+ 三列卡片瀑布流：
  *   卡片 = 头像/昵称 + 相对时间（sg_time_ago）+ 右上大号日数与年月 +
  *   浅色气泡正文（超 10 行可展开）+ 图片栅格（灯箱）+ 尾部标签/心情/地点（不输出原文链接）。
- *   筛选/排序/搜索沿用 notes.ts 契约（单组 data-sg-tl-month 承接全部卡片）。
+ *   筛选/排序沿用 notes.ts 契约（单组 data-sg-tl-month 承接全部卡片）。
  *
  * 变量通过 $GLOBALS 传（Typecho 的 need() 是独立作用域，普通变量进不来）。
  */
@@ -69,7 +69,7 @@ $sgAvatar = sg_media((string) sg_opt('sgAvatarUrl', ''), sg_theme_url('dist/img/
   </div>
 
   <?php /* 卡片瀑布流（miraii moments 同构）：单一分组承接 notes.ts 契约
-     （data-sg-tl-month/items/item），卡片按时间倒序/升序、标签与搜索筛选全部照旧。
+     （data-sg-tl-month/items/item），卡片按时间倒序/升序、标签筛选全部照旧。
      布局用 CSS 多列分栏（columns: 3）+ break-inside 实现矱子流。 */ ?>
   <section class="sg-moments-section" data-sg-tl-month="all">
     <div class="sg-moments-grid" data-sg-tl-items>
@@ -89,9 +89,8 @@ $sgAvatar = sg_media((string) sg_opt('sgAvatarUrl', ''), sg_theme_url('dist/img/
     if ($sgAgo === '') {
         $sgAgo = date('Y-m-d', $sgTs);
     }
-    $sgKeywords = implode(' ', array_filter([$sgBody, $sgTag, $sgMood, $sgPlace]));
     ?>
-    <article class="sg-moment" data-sg-tl-item data-ts="<?php echo $sgTs; ?>" data-tag="<?php echo sg_e($sgTag); ?>" data-keywords="<?php echo sg_e($sgKeywords); ?>">
+    <article class="sg-moment" data-sg-tl-item data-ts="<?php echo $sgTs; ?>" data-tag="<?php echo sg_e($sgTag); ?>">
       <header class="sg-moment-head">
         <img class="sg-moment-avatar" src="<?php echo sg_e($sgAvatar); ?>" alt="" referrerpolicy="no-referrer" loading="lazy">
         <div class="sg-moment-who">

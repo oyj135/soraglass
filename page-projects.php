@@ -25,11 +25,9 @@ $sgFallbackAvatar = sg_theme_url('dist/img/avatar.svg');
 $sgDefAvatar = sg_opt('sgAvatarUrl', $sgFallbackAvatar);
 
 $sgHead = [
-    'title'       => (string) $this->title,
-    'sub'         => sg_page_sub($this, '写过的代码、跑过的实验与还没做完的想法。'),
-    'search'      => true,
-    'center'      => true,
-    'placeholder' => '搜索项目名称、简介或技术栈...',
+    'title'  => (string) $this->title,
+    'sub'    => sg_page_sub($this, '写过的代码、跑过的实验与还没做完的想法。'),
+    'center' => true,
 ];
 ?>
 <main id="sg-main" tabindex="-1" class="sg-main sg-main--pad" data-sg-page="projects">
@@ -43,7 +41,7 @@ $sgHead = [
   <p class="sg-projects-source"><?php echo sg_icon_color('github'); ?><?php echo sg_e($sgSourceLine); ?></p>
   <?php endif; ?>
 
-  <div class="sg-project-grid" data-sg-filter-grid>
+  <div class="sg-project-grid">
     <?php foreach ($sgProjects as $sgProject) : ?>
     <?php if (!is_array($sgProject)) { continue; } ?>
     <?php
@@ -58,10 +56,6 @@ $sgHead = [
             $sgBadge = array_values(array_filter(array_map('strval', $sgBadgeRaw), 'strlen'));
         } else {
             $sgBadge = trim((string) $sgBadgeRaw) === '' ? [] : [(string) $sgBadgeRaw];
-        }
-        $sgKeywords = trim((string) sg_value($sgProject, 'keywords', ''));
-        if ($sgKeywords === '') {
-            $sgKeywords = $sgName . ' ' . $sgDesc . ' ' . implode(' ', array_map('strval', $sgTags));
         }
         /* 头像：单项目可用 avatar 覆写，留空用站点作者头像。
            （第三十七轮：这里原来还渲染一行 @owner 的等宽小字 + 一个 emoji 图标块，
@@ -112,7 +106,7 @@ $sgHead = [
         ?>
     <?php /* 第四十二轮回到源站形态：整卡一个 article，内部只有「16:10 封面 + 内容面板」，
                简介常显两行；不再有壳层、浮层抽屉与整卡长高。 */ ?>
-    <article class="sg-project<?php echo $sgCover !== '' ? ' sg-project--cover' : ''; ?>" data-sg-filter-item data-keywords="<?php echo sg_e($sgKeywords); ?>"<?php if ($sgLang !== '') : ?> style="--sg-lang: <?php echo sg_e(sg_lang_color($sgLang)); ?>"<?php endif; ?>>
+    <article class="sg-project<?php echo $sgCover !== '' ? ' sg-project--cover' : ''; ?>"<?php if ($sgLang !== '') : ?> style="--sg-lang: <?php echo sg_e(sg_lang_color($sgLang)); ?>"<?php endif; ?>>
       <?php if ($sgUrl !== '') : ?>
       <a class="sg-project-link" href="<?php echo sg_e($sgUrl); ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php echo sg_e($sgName); ?>"></a>
       <?php endif; ?>

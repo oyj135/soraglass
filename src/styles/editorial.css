@@ -3,32 +3,6 @@
  * 首页封面 / 文章 / 原生归档是版式改造范围，音乐与相纸墙保留独立形态。
  */
 
-/* 歌单搜索等 JS 增强容器（清除按钮由 core.ts 注入；站内搜索框已于第十七轮移除） */
-.sg-search-field { position: relative; }
-.sg-search-field input[type="search"] { padding-right: 3rem; }
-.sg-search-field input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
-.sg-search-clear {
-  position: absolute;
-  top: 50%;
-  right: .45rem;
-  z-index: 3;
-  display: grid;
-  place-items: center;
-  width: 2rem;
-  height: 2rem;
-  padding: 0;
-  border: 0;
-  border-radius: var(--sg-radius-inner);
-  background: transparent;
-  color: var(--sg-muted);
-  transform: translateY(-50%);
-  cursor: pointer;
-  transition: color var(--sg-dur-fast), background-color var(--sg-dur-fast);
-}
-.sg-search-clear[hidden] { display: none; }
-.sg-search-clear svg { width: 1rem; height: 1rem; }
-.sg-search-clear:hover { color: var(--sg-accent-ink); background: var(--sg-chip); }
-
 /* 封面有独立的图片区和文字区，长标题不再压在图上。 */
 .sg-main[data-sg-page="index"] > .sg-stack { gap: 1.25rem; }
 /* 2026-11-17：轮播改用 blog-slider 形态后，旧的「上下两行 grid、chip 平铺」
@@ -559,7 +533,7 @@
 /* ============================================================
    P1 组件（2026-11-16）
    关于我按钮 / 分类最新 / 分享条 / 代码工具条 /
-   正文图注 / 阅读模式 / 导航「更多」下拉 / 搜索键位提示
+   正文图注 / 阅读模式 / 导航「更多」下拉
    （首页身份带 P1-1 已于 2026-11-16 按用户要求删除）
    ============================================================ */
 

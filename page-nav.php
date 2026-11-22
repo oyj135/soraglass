@@ -6,8 +6,8 @@
  *   ② 后台「导航书签盒 · JSON」（sgNavBox，多页共用 / 兜底）；
  *   ③ 都没有 → 空态。
  * 正文不是 JSON 时当页面介绍文字渲染（sg-prose），数据回落全局设置。
- * 结构 = 全站 sg_page_head 页头 + 搜索框（即时过滤在 src/scripts/modules/nav-box.ts）
- *   + 分组卡片网格 + 右侧「通讯录」分组锚点栏（≥1280 粘性侧栏 + scrollspy，窄屏吸顶胶囊条）；
+ * 结构 = 全站 sg_page_head 页头 + 分组卡片网格
+ *   + 右侧「通讯录」分组锚点栏（≥1280 粘性侧栏 + scrollspy，窄屏吸顶胶囊条）；
  * 图标三级策略：手填 icon → favicon.im 按域名在线取 → 失败回退站名首字圆徽（sg_nav_icon_url()）。
  *
  * @package custom
@@ -49,11 +49,6 @@ $sgNavProse = ($sgRaw !== '' && !$sgFromBody) ? $sgRaw : '';
   </div>
   <?php else : ?>
 
-  <form class="sg-search sg-search--sm sg-navbox-search" role="search" method="get" action="#">
-    <span class="sg-search-icon"><?php echo sg_icon('search'); ?></span>
-    <input class="sg-search-input" type="search" name="s" placeholder="搜索站名、简介或域名..." aria-label="搜索导航站点" autocomplete="off">
-  </form>
-
   <div class="sg-navbox-wrap">
     <aside class="sg-navbox-side" data-sg-nav-side aria-label="分组锚点">
       <?php foreach ($sgNavGroups as $sgGi => $sgGroup) : ?>
@@ -63,7 +58,7 @@ $sgNavProse = ($sgRaw !== '' && !$sgFromBody) ? $sgRaw : '';
       <?php endforeach; ?>
     </aside>
 
-    <div class="sg-navbox-main" data-sg-nav-filter>
+    <div class="sg-navbox-main">
       <?php foreach ($sgNavGroups as $sgGi => $sgGroup) : ?>
       <section class="sg-navbox-group" id="sg-nav-g<?php echo (int) $sgGi; ?>" data-sg-nav-group>
         <h2 class="sg-navbox-group-title">
@@ -73,11 +68,10 @@ $sgNavProse = ($sgRaw !== '' && !$sgFromBody) ? $sgRaw : '';
         </h2>
         <div class="sg-navbox-grid">
           <?php foreach ($sgGroup['sites'] as $sgSite) :
-              $sgKeywords = implode(' ', array_filter([$sgSite['name'], $sgSite['desc'], $sgSite['url']]));
               $sgIcon = sg_nav_icon_url($sgSite['url'], $sgSite['icon']);
               $sgInitial = function_exists('mb_substr') ? mb_substr($sgSite['name'], 0, 1, 'UTF-8') : substr($sgSite['name'], 0, 1);
           ?>
-          <a class="sg-navbox-card" data-keywords="<?php echo sg_e($sgKeywords); ?>" href="<?php echo sg_e($sgSite['url']); ?>" target="_blank" rel="noopener noreferrer" title="<?php echo sg_e($sgSite['name']); ?>">
+          <a class="sg-navbox-card" href="<?php echo sg_e($sgSite['url']); ?>" target="_blank" rel="noopener noreferrer" title="<?php echo sg_e($sgSite['name']); ?>">
             <span class="sg-navbox-icowrap">
               <span class="sg-navbox-fallback" aria-hidden="true"><?php echo sg_e($sgInitial); ?></span>
               <?php if ($sgIcon !== '') : ?>
@@ -93,7 +87,6 @@ $sgNavProse = ($sgRaw !== '' && !$sgFromBody) ? $sgRaw : '';
         </div>
       </section>
       <?php endforeach; ?>
-      <?php /* 空态与即时过滤由 src/scripts/modules/nav-box.ts 在容器后插入/驱动 */ ?>
     </div>
   </div>
   <?php endif; ?>

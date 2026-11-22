@@ -172,7 +172,7 @@ function sg_excerpt($archive, int $length = 60, string $suffix = '...'): string
 }
 
 /**
- * 独立页统一页头（大标题 + 副标题 + 可选搜索框，可选返回胶囊）。
+ * 独立页统一页头（大标题 + 副标题 + 可选返回胶囊）。
  *
  * 为什么是函数而不是 partial：Typecho 的 need() 实现是方法内的 require
  * （var/Widget/Archive.php: need() { require $this->themeDir . $fileName; }），
@@ -829,7 +829,7 @@ function sg_feature_card_html(array $card): string
     $tags = trim((string) ($card['tags'] ?? ''));
     $sticky = !empty($card['sticky']);
 
-    $html  = '<article class="sg-feature-card" data-sg-filter-item>';
+    $html  = '<article class="sg-feature-card">';
     /* 置顶角标（fomalhaut post-sticky-badge 同款：红底白字胶囊 + 流光扫过） */
     if ($sticky) {
         $html .= '<div class="sg-sticky-badge">' . sg_icon_color('pin') . '精选<span class="sg-sticky-shine" aria-hidden="true"></span></div>';

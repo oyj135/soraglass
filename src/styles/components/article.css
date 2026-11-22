@@ -439,7 +439,6 @@ html.dark .sg-tl-tag { background: rgba(15, 20, 34, .55); box-shadow: inset 0 0 
 html.dark .sg-page-title { filter: none; animation: sg-post-neon 12s linear infinite; }
 html.dark .sg-about-title h1 { animation: sg-post-neon 12s linear infinite; }
 html.dark .sg-page-sub { animation: sg-post-neon 12s linear infinite; }
-html.dark .sg-page-head .sg-search { text-shadow: none; }
 @media (prefers-reduced-motion: reduce) {
   html.dark :is(.sg-page-title, .sg-about-title h1, .sg-page-sub) { animation: none; }
 }
@@ -1098,7 +1097,7 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
 }
 
 /* ---------- 文章卡（2026-11-16 第二十轮）：形态对齐 Fomalhaut multicard，材质保留 Soraglass ----------
-   用于归档/分类/标签/搜索列表（card-post.php）与知识档案（page-timeline.php）。
+   用于归档/分类/标签/归档列表（card-post.php）与知识档案（page-timeline.php）。
    形态源自参考主题 source/css/_index_card_style/multicard.styl：
      · 封面固定 200px；底边过渡第十四轮由「书签尖」改为「双波浪」海浪线（见下方注释）
      · 摘要层用同一裁切覆盖封面（半透明深底 + 白色「」引号），hover 与图片同步 scale(1.08)

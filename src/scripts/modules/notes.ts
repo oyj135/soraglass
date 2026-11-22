@@ -1,21 +1,16 @@
-import { pageTimeout } from './lifecycle';
 /**
- * 碎语时间轴：搜索 / 标签筛选 / 正倒序 / 长文展开。
+ * 碎语时间轴：标签筛选 / 正倒序 / 长文展开。
  *
  * 全部在已渲染的 DOM 上做，不发请求。
  * DOM 契约（见 partials/notes-stream.php）：
  *   根      [data-sg-notes]
- *   年份组  [data-sg-tl-month] > [data-sg-tl-items] > [data-sg-tl-item][data-ts][data-tag][data-keywords]
+ *   年份组  [data-sg-tl-month] > [data-sg-tl-items] > [data-sg-tl-item][data-ts][data-tag]
  *   标签    [data-sg-notes-tag="标签名"]（空串 = 全部）
  *   排序    [data-sg-notes-sort="desc|asc"]
  *   空态    [data-sg-notes-empty]
- *
- * 之所以不复用 filter.ts：那边只按关键词过滤，这里的标签与排序也要参与，
- * 两套逻辑叠在同一个类名上会互相覆盖。
  */
 
 const HIDDEN = 'sg-filtered-out';
-const DEBOUNCE = 120;
 
 type Month = {
   section: HTMLElement;
@@ -33,27 +28,18 @@ export function initNotes(): void {
   const items = months.flatMap((month) => month.items);
   if (!items.length) return;
 
-  const input = root.querySelector<HTMLInputElement>('input.sg-search-input');
   const tags = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-sg-notes-tag]'));
   const sorts = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-sg-notes-sort]'));
   const empty = root.querySelector<HTMLElement>('[data-sg-notes-empty]');
-
-  const keywords = new Map<HTMLElement, string>();
-  items.forEach((el) => {
-    keywords.set(el, `${el.dataset.keywords ?? ''} ${el.textContent ?? ''}`.toLowerCase());
-  });
 
   let activeTag = '';
   let dir: 'desc' | 'asc' = 'desc';
 
   const apply = (): void => {
-    const keyword = (input?.value ?? '').trim().toLowerCase();
     let shown = 0;
 
     items.forEach((el) => {
-      const hitKeyword = keyword === '' || (keywords.get(el) ?? '').includes(keyword);
-      const hitTag = activeTag === '' || (el.dataset.tag ?? '') === activeTag;
-      const hit = hitKeyword && hitTag;
+      const hit = activeTag === '' || (el.dataset.tag ?? '') === activeTag;
       el.classList.toggle(HIDDEN, !hit);
       if (hit) shown += 1;
     });
@@ -90,19 +76,6 @@ export function initNotes(): void {
         .forEach((month) => wrap.appendChild(month.section));
     }
   };
-
-  let timer = 0;
-  input?.addEventListener('input', () => {
-    window.clearTimeout(timer);
-    timer = pageTimeout(apply, DEBOUNCE);
-  });
-
-  input?.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') {
-      input.value = '';
-      apply();
-    }
-  });
 
   tags.forEach((btn) => {
     btn.addEventListener('click', () => {

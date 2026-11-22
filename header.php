@@ -37,7 +37,7 @@ if ($sgFavicon === '') {
     $sgDocSlug = sg_current_slug($this);
     if (in_array($sgDocSlug, ['chatter', 'moments'], true)) {
         echo '碎语 - ';
-    } elseif ($this->is('post') || $this->is('page') || $this->is('category') || $this->is('tag') || $this->is('search')) {
+    } elseif ($this->is('post') || $this->is('page') || $this->is('category') || $this->is('tag')) {
         $this->archiveTitle('', '', ' - ');
     }
     $this->options->title();

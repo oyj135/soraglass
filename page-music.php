@@ -5,7 +5,7 @@
  * @package custom
  *
  * 结构对齐源站 app/music/MusicClient.tsx：左侧唱片 + 曲名 + 进度 + 控制，
- * 右侧「歌词 / 歌单」分段面板（歌词滚动高亮、歌单搜索）。
+ * 右侧「歌词 / 歌单」分段面板（歌词滚动高亮）。
  * 数据统一来自 sg_playlist()：后台只填写 Meting 歌单接口地址。
  * 常驻音频与首页共用，配置说明维护在使用手册。
  */
@@ -18,7 +18,6 @@ $sgFirst = $sgTracks[0] ?? [];
 $sgHead = [
     'title'  => (string) $this->title,
     'sub'    => sg_page_sub($this, '在代码的缝隙里找一点共鸣'),
-    'search' => false,
     'center' => true,
 ];
 ?>
@@ -86,13 +85,7 @@ $sgHead = [
         </div>
 
         <div id="sg-music-panel-playlist" class="sg-playlist" role="tabpanel" aria-labelledby="sg-music-tab-playlist" tabindex="0" data-sg-music-panel="playlist" hidden>
-          <div class="sg-playlist-search">
-            <?php echo sg_icon_color('search'); ?>
-            <input type="search" placeholder="搜索音轨或歌手..." aria-label="搜索音轨" data-sg-playlist-search>
-          </div>
-
           <div class="sg-playlist-list" data-sg-playlist>
-            <p class="sg-music-empty" role="status" aria-live="polite" data-sg-playlist-empty hidden>没有找到匹配的音轨。</p>
             <?php foreach ($sgTracks as $sgIndex => $sgTrack) : ?>
             <?php if (!is_array($sgTrack)) { continue; } ?>
             <button class="sg-song" type="button" data-sg-track="<?php echo (int) $sgIndex; ?>">

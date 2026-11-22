@@ -1,13 +1,11 @@
 <?php
 /**
  * 内联 SVG 图标（不依赖图标库，路径取自 Feather/MIT 风格 24×24 线性图标）。
- * 用法：<?php echo sg_icon('search'); ?>
- *      <?php echo sg_icon('github', 'sg-brand-icon'); ?>
+ * 用法：<?php echo sg_icon('github', 'sg-brand-icon'); ?>
  */
 function sg_icon(string $name, string $class = ''): string
 {
     $paths = [
-        'search'      => '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
         'arrow-left'  => '<path d="M19 12H5"/><path d="m12 19-7-7 7-7"/>',
         'arrow-up-right' => '<path d="M7 17 17 7"/><path d="M9 7h8v8"/>',
         'arrow-up'    => '<path d="M12 19V5"/><path d="m5 12 7-7 7 7"/>',
@@ -109,7 +107,7 @@ function sg_icon_sprite_defs(): string
  * - 内容/语义类（14 枚）：引用源站 iconfont CDN 注入的多色 symbol（#icon-*），
  *   颜色内嵌在 path 里、每枚独立品牌色，与源站视觉一致，CSS 改不动；
  * - 源站库缺项的 3 枚（精选星 / 关于我 / 定位）：走本地自绘 sprite（#sg-ico-*），同样内嵌色；
- * - 功能控件（箭头/播放/暂停/上下首/循环/音量/昼夜/设置/搜索/加号/关闭/分享/分支等）：
+ * - 功能控件（箭头/播放/暂停/上下首/循环/音量/昼夜/设置/加号/关闭/分享/分支等）：
  *   回落单色 sg_icon() —— 保证按钮态、currentColor 跟随、昼夜对比度可控。
  * 调用点统一写 sg_icon_color()，无需区分。
  */

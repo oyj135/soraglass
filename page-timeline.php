@@ -4,10 +4,10 @@
  *
  * @package custom
  *
- * 结构：标题 → 搜索 → 「全部档案」+ 标签胶囊（带计数）→ 固定矩阵网格 → 分页条。
+ * 结构：标题 → 「全部档案」+ 标签胶囊（带计数）→ 固定矩阵网格 → 分页条。
  *
- * 服务端分页（2026-11-16 第二十轮）：筛选与分页全部在服务端完成，
- * URL 三个 query 参数：tag（标签 slug）、k（关键词）、p（页码，1 起）。
+ * 服务端分页（2026-11-16 第二十轮）：标签筛选与分页全部在服务端完成，
+ * URL 两个 query 参数：tag（标签 slug）、p（页码，1 起）。
  * 不能用 s / page：Typecho 的 Archive::execute() 把 s 当搜索参数 302 跳走、
  * 把 page 当归档分页，独立页会被劫持（见 var/Widget/Archive.php:565）。
  * 服务端只输出当前页 9 篇的 HTML，翻页/筛选都是真实 <a> 链接 —— 既可被
@@ -26,7 +26,6 @@ $sgSize = 200;                 // 全量取数上限（与归档页一致，不�
 $sgPageSize = 9;               // 显示层每页 9 篇（3×3 矩阵）
 $sgCurrentPage = max(1, (int) ($_GET['p'] ?? 1));
 $sgActiveTag = trim((string) ($_GET['tag'] ?? ''));
-$sgKeyword = trim((string) ($_GET['k'] ?? ''));
 
 $sgAllPosts = [];
 $sgCids  = [];
@@ -93,24 +92,15 @@ uasort($sgTagStats, static function (array $a, array $b): int {
 });
 $sgTagStats = array_slice($sgTagStats, 0, 18, true);
 
-/* ---- 服务端筛选：标签 slug + 关键词（标题/描述/标签名），二者交叉 ---- */
+/* ---- 服务端筛选：标签 slug ---- */
 $sgFiltered = [];
 foreach ($sgAllPosts as $sgPost) {
     $sgRowTags = $sgTagMap[$sgPost['cid']] ?? [];
     $sgSlugs   = array_map(static fn(array $t): string => (string) $t['slug'], $sgRowTags);
-    $sgNames   = array_map(static fn(array $t): string => (string) $t['name'], $sgRowTags);
 
-    $sgByTag = $sgActiveTag === '' || in_array($sgActiveTag, $sgSlugs, true);
-    $sgByText = true;
-    if ($sgKeyword !== '') {
-        $sgHaystack = mb_strtolower($sgPost['title'] . ' ' . $sgPost['desc'] . ' ' . implode(' ', $sgNames));
-        $sgByText = mb_strpos($sgHaystack, mb_strtolower($sgKeyword)) !== false;
-    }
-    if (!$sgByTag || !$sgByText) {
+    if ($sgActiveTag !== '' && !in_array($sgActiveTag, $sgSlugs, true)) {
         continue;
     }
-    $sgPost['slugs'] = $sgSlugs;
-    $sgPost['names'] = $sgNames;
     $sgFiltered[] = $sgPost;
 }
 
@@ -123,19 +113,17 @@ if ($sgCurrentPage > $sgTotalPages) {
 $sgPosts = array_slice($sgFiltered, ($sgCurrentPage - 1) * $sgPageSize, $sgPageSize);
 
 /* ---- 分页/筛选链接构造：相对 query，PJAX 可接管，无 JS 也能翻页 ---- */
-// 翻页链接：换页码，保留当前标签与关键词。
-$sgUrl = static function (int $p) use ($sgActiveTag, $sgKeyword): string {
+// 翻页链接：换页码，保留当前标签。
+$sgUrl = static function (int $p) use ($sgActiveTag): string {
     $sgQuery = [];
     if ($p > 1) { $sgQuery['p'] = $p; }
     if ($sgActiveTag !== '') { $sgQuery['tag'] = $sgActiveTag; }
-    if ($sgKeyword !== '') { $sgQuery['k'] = $sgKeyword; }
     return '?' . ($sgQuery ? http_build_query($sgQuery) : '');
 };
-// 标签切换：保留搜索词、回到第 1 页；「全部」清空 tag。
-$sgTagUrl = static function (string $tag) use ($sgKeyword): string {
+// 标签切换：回到第 1 页；「全部」清空 tag。
+$sgTagUrl = static function (string $tag): string {
     $sgQuery = [];
     if ($tag !== '') { $sgQuery['tag'] = $tag; }
-    if ($sgKeyword !== '') { $sgQuery['k'] = $sgKeyword; }
     return '?' . (($sgQuery) ? http_build_query($sgQuery) : '');
 };
 // 标签胶囊配色（2026-11-17，对齐源站彩色标签）：按标签名 md5 稳定取色，同名永远同色。
@@ -149,14 +137,9 @@ if ($sgTotal !== count($sgAllPosts)) {
     $sgSub .= ' · 当前筛选 ' . $sgTotal . ' 篇';
 }
 $sgHead = [
-    'title'       => (string) $this->title,
-    'sub'         => $sgSub,
-    'search'      => true,
-    'center'      => false,
-    'placeholder' => '搜寻被封存的知识...',
-    // 服务端搜索：提交到本页，用 k（避开 Typecho 占用的 s），保留当前标签，回填关键词
-    'search_name'   => 'k',
-    'search_value'  => $sgKeyword,
+    'title'  => (string) $this->title,
+    'sub'    => $sgSub,
+    'center' => false,
 ];
 ?>
 <main id="sg-main" tabindex="-1" class="sg-main sg-main--wide sg-main--pad sg-archive" data-sg-page="timeline" data-sg-archive data-sg-grid>
@@ -176,11 +159,6 @@ $sgHead = [
   <div class="sg-archive-list">
     <?php foreach ($sgPosts as $sgPost) : ?>
     <?php
-      $sgNames   = $sgPost['names'];
-      $sgSlugs   = $sgPost['slugs'];
-      $sgKeywordRow = $sgPost['title'] . ' ' . $sgPost['desc'] . ' ' . implode(' ', $sgNames);
-    ?>
-    <?php
       $sgAgo = sg_time_ago((int) ($sgPost['stamp'] ?? 0));
       $sgDesc = trim((string) $sgPost['desc']);
       /* 引号摘要精简（2026-11-17）：最多 48 字（两行以内），与首页/归档卡片同步 */
@@ -188,7 +166,7 @@ $sgHead = [
           $sgDesc = mb_substr($sgDesc, 0, 48, 'UTF-8') . '…';
       }
     ?>
-    <article class="sg-feature-card" data-sg-archive-card data-keywords="<?php echo sg_e($sgKeywordRow); ?>" data-tags="<?php echo sg_e(implode('|', $sgSlugs)); ?>">
+    <article class="sg-feature-card" data-sg-archive-card>
       <?php if ((int) ($sgPost['sticky'] ?? 0) > 0) : ?>
       <div class="sg-sticky-badge"><?php echo sg_icon_color('pin'); ?>精选<span class="sg-sticky-shine" aria-hidden="true"></span></div>
       <?php endif; ?>
@@ -223,7 +201,7 @@ $sgHead = [
   </div>
 
   <?php if ($sgTotal === 0) : ?>
-  <p class="sg-filter-empty">这个频段没有接收到任何信号，换个关键词或标签试试。</p>
+  <p class="sg-filter-empty">这个频段没有接收到任何信号，换个标签试试。</p>
   <?php endif; ?>
 
   <!-- 服务端分页条（每页 9 篇）：真实 <a> 链接，PJAX 可接管，无 JS 也能翻页 -->

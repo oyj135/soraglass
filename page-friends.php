@@ -18,7 +18,6 @@ $sgFriendProse = ($sgRaw !== '' && !$sgFromBody) ? $sgRaw : '';
 $sgHead = [
     'title'  => (string) $this->title,
     'sub'    => sg_page_sub($this, '那些散落在赛博宇宙中的有趣灵魂与神经节点。'),
-    'search' => false,
     'center' => true,
 ];
 /* 友链卡（2026-11-19 第六轮，改按源站 volantis 形态：_config flink_style: volantis

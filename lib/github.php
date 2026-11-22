@@ -347,7 +347,7 @@ function sg_github_date(string $iso): string
  * 归一化成项目卡片数组。
  *
  * 输出字段与「项目 JSON」完全对齐（name / description / icon / tags / githubUrl），
- * 另外多给 meta（星标、更新时间）、badge（Fork / 已归档）与 keywords（搜索索引）。
+ * 另外多给 meta（星标、更新时间）与 badge（Fork / 已归档）。
  *
  * @param int|null $limit 覆盖设置里的条数（null = 用 sgGithubLimit）
  */
@@ -453,13 +453,6 @@ function sg_github_projects(?int $limit = null): array
         $updated = sg_github_date((string) ($repo['pushed_at'] ?? ''));
 
         $name = (string) $repo['name'];
-        $keywords = implode(' ', array_unique(array_filter([
-            $name,
-            $hasDescription ? $description : '',
-            implode(' ', $tags),
-            $language,
-            $badge,
-        ])));
 
         $projects[] = [
             'name'        => $name,
@@ -475,7 +468,6 @@ function sg_github_projects(?int $limit = null): array
                 $updated !== '' ? '更新于 ' . $updated : '',
             ])),
             'badge'       => $badge,
-            'keywords'    => $keywords,
             /* 第三十七轮：卡片改成结构化渲染（语言点 + 星数 + 更新日期各占一格），
                meta 那串「★ 3 · 更新于 …」不再需要拆字符串。手填 JSON 没有这些字段时，
                模板会退回 meta 解析，所以这里多给的只是「有则更好」。 */

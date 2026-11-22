@@ -1,7 +1,7 @@
 /**
  * 组件层 —— 类名与源站 Tailwind 数值一一对应（见 docs/VISUAL-SPEC.md）。
  * 卡片：bg-white/40 + backdrop-blur-md + rounded-3xl + border-white/40 + shadow-xl
- * 导航 / 搜索 / 文章卡：backdrop-blur-xl + shadow-2xl
+ * 导航 / 文章卡：backdrop-blur-xl + shadow-2xl
  */
 
 /* ---------- 通用卡 ---------- */

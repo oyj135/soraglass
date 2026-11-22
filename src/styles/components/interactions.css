@@ -193,7 +193,7 @@ html:not(.dark) :is(.sg-page-title, .sg-about-title h1) {
   color: inherit;
   text-decoration: none;
   transform-origin: 50% 60%;
-  /* 位移由 JS 写进 transform；opacity 只给搜索命中用 */
+  /* 位移由 JS 写进 transform；opacity 用于退场动画 */
   will-change: transform;
   transition: opacity .45s var(--sg-ease);
 }
@@ -281,17 +281,6 @@ html:not(.dark) :is(.sg-page-title, .sg-about-title h1) {
 }
 
 .sg-px-print:focus-visible { outline: 2px solid var(--sg-accent); outline-offset: 8px; }
-
-/* 搜索命中：不匹配的相纸退到背景里，但仍然可见（不跳版） */
-.sg-px-print.sg-filtered-out {
-  opacity: .1;
-  filter: saturate(.3);
-}
-
-.sg-px-month.sg-filtered-out {
-  opacity: .35;
-  filter: saturate(.4);
-}
 
 /* 「滚动 · 让照片浮起来」——挂在月份胶囊那一排的右端，写得像展览前言的小字 */
 .sg-px-hint {
@@ -442,8 +431,6 @@ html.dark .sg-home-aside .sg-profile::after {
 .sg-music-controls button,
 .sg-briefing-pager button,
 .sg-filter-btn { position: relative; }
-/* 搜索框是替换元素，撑不了伪元素，直接抬 min-height（2.5→2.75rem，视觉仅高 4px） */
-.sg-playlist-search input { min-height: 2.75rem; }
 .sg-rightside-btn::before,
 .sg-player-controls button::before,
 .sg-music-controls button::before,

@@ -14,7 +14,7 @@ $sgOpenAlbum = $sgOpenId !== '' ? sg_gallery_album($sgOpenId) : null;
 if (!$sgOpenAlbum) { $sgOpenId = ''; }
 $sgDetails = $sgAlbums;
 if ($sgOpenAlbum && !in_array($sgOpenId, array_column($sgAlbums, 'id'), true)) { $sgDetails[] = $sgOpenAlbum; }
-$sgHead = ['title' => (string) $this->title, 'sub' => sg_page_sub($this, '在光里停留，在时间里收藏。'), 'search' => true, 'center' => false, 'placeholder' => '搜索相册、照片、日期或主题…', 'hidden' => $sgOpenId !== ''];
+$sgHead = ['title' => (string) $this->title, 'sub' => sg_page_sub($this, '在光里停留，在时间里收藏。'), 'center' => false, 'hidden' => $sgOpenId !== ''];
 ?>
 <main id="sg-main" tabindex="-1" class="sg-main sg-main--wide sg-main--pad" data-sg-page="photowall" data-sg-gallery data-endpoint="<?php echo sg_e(\Typecho\Common::url('/action/sg-gallery', \Widget\Options::alloc()->index)); ?>" data-album-pages="<?php echo $sgCatalog['pages']; ?>">
   <?php sg_page_head($sgHead); ?>
@@ -23,7 +23,6 @@ $sgHead = ['title' => (string) $this->title, 'sub' => sg_page_sub($this, '在光
     <div class="sg-curated-heading"><span>光影收藏</span><span><?php echo $sgCatalog['total']; ?> 本相册 · <?php echo $sgTotal; ?> 个瞬间</span></div>
     <div class="sg-curated-grid<?php echo count($sgAlbums) === 1 ? ' sg-curated-grid--one' : (count($sgAlbums) === 2 ? ' sg-curated-grid--two' : ''); ?>">
       <?php foreach ($sgAlbums as $i => $album):
-        $keywords = $album['title'] . ' ' . $album['description'] . ' ' . $album['date'];
         $featured = !empty($album['featured']);
         $coverWidth = $coverHeight = 0;
         foreach ($album['photos'] as $photo) {
@@ -32,7 +31,7 @@ $sgHead = ['title' => (string) $this->title, 'sub' => sg_page_sub($this, '在光
           }
         }
       ?>
-      <a class="sg-curated-album" href="?album=<?php echo sg_e($album['id']); ?>" data-sg-album="<?php echo sg_e($album['id']); ?>" data-keywords="<?php echo sg_e($keywords); ?>">
+      <a class="sg-curated-album" href="?album=<?php echo sg_e($album['id']); ?>" data-sg-album="<?php echo sg_e($album['id']); ?>">
         <div class="sg-curated-image">
           <?php if ($album['coverThumb'] !== ''): ?><div class="sg-album-stack">
           <?php foreach ([1, 0] as $sgBack): ?><span class="sg-album-paper sg-album-paper--<?php echo $sgBack; ?>" aria-hidden="true"><img src="<?php echo sg_e(sg_lazy_src()); ?>" data-lazy-src="<?php echo sg_e($album['stack'][$sgBack] ?? $album['coverThumb']); ?>" alt="" decoding="async"></span><?php endforeach; ?>
@@ -46,20 +45,17 @@ $sgHead = ['title' => (string) $this->title, 'sub' => sg_page_sub($this, '在光
       <?php endforeach; ?>
     </div>
     <button type="button" class="sg-gallery-more" data-gallery-albums-more <?php if ($sgCatalog['pages'] <= 1) echo 'hidden'; ?>>加载更多相册</button>
-    <div class="sg-gallery-search-results" data-sg-gallery-found hidden><h2>相关瞬间 <span data-sg-gallery-photos-count></span></h2><div class="sg-gallery-masonry" data-sg-gallery-photos data-sg-photo-group></div></div>
-    <button type="button" class="sg-gallery-more" data-gallery-search-more hidden>加载更多结果</button>
     <?php else: ?>
     <div class="sg-glass sg-notfound"><span class="sg-notfound-code">空</span><h2>收藏即将开始</h2><p><?php echo isset($GLOBALS['SG_GALLERY_ERROR']) ? sg_e($GLOBALS['SG_GALLERY_ERROR']) : '这里会留给值得记住的瞬间。'; ?></p></div>
     <?php endif; ?>
   </div>
-  <p class="sg-filter-empty" data-sg-gallery-empty hidden>没有找到相关的收藏，试试另一个词。</p>
   <p class="sg-gallery-status" data-gallery-status role="status" aria-live="polite" hidden></p>
   <?php foreach ($sgDetails as $album): $sgPhotoPage = $album['id'] === $sgOpenId ? sg_gallery_photos($album['id']) : ['photos' => [], 'pages' => 1]; ?>
   <section class="sg-gallery-detail" data-sg-gallery-detail="<?php echo sg_e($album['id']); ?>" data-loaded="<?php echo $album['id'] === $sgOpenId ? '1' : '0'; ?>" data-photo-pages="<?php echo $sgPhotoPage['pages']; ?>" <?php if ($sgOpenId !== $album['id']) echo 'hidden'; ?>>
     <div class="sg-gallery-detail-head"><div class="sg-gallery-detail-top"><a class="sg-back" href="?" data-sg-gallery-back><?php echo sg_icon_color('arrow-left'); ?>返回画廊</a><span class="sg-gallery-detail-dot" aria-hidden="true"></span><span class="sg-gallery-detail-date"><?php echo sg_e($album['date']); ?></span></div><div class="sg-gallery-detail-row"><div class="sg-gallery-detail-title"><h1><?php echo sg_e($album['title']); ?></h1><?php if ($album['description'] !== ''): ?><p><?php echo sg_e($album['description']); ?></p><?php endif; ?></div><span class="sg-gallery-detail-count">共 <b><?php echo $album['count']; ?></b> 瞬间</span></div></div>
     <div class="sg-gallery-masonry" data-sg-photo-group>
       <?php foreach ($sgPhotoPage['photos'] as $photo): $cap = $photo['caption'] ?: $album['title']; ?>
-      <a class="sg-photo<?php echo !$photo['preview'] ? ' sg-photo--file' : ''; ?>" href="<?php echo sg_e($photo['url']); ?>" <?php echo $photo['preview'] ? 'data-sg-photo' : 'target="_blank" rel="noopener noreferrer"'; ?> data-search-photo data-keywords="<?php echo sg_e($cap . ' ' . $photo['date'] . ' ' . $album['title'] . ' ' . $album['description']); ?>">
+      <a class="sg-photo<?php echo !$photo['preview'] ? ' sg-photo--file' : ''; ?>" href="<?php echo sg_e($photo['url']); ?>" <?php echo $photo['preview'] ? 'data-sg-photo' : 'target="_blank" rel="noopener noreferrer"'; ?>>
         <?php if ($photo['preview']): ?><img src="<?php echo sg_e(sg_lazy_src()); ?>" data-lazy-src="<?php echo sg_e($photo['thumb']); ?>" alt="<?php echo sg_e($cap); ?>" decoding="async" <?php if ($photo['width'] && $photo['height']) echo 'width="' . $photo['width'] . '" height="' . $photo['height'] . '"'; ?>><?php else: ?><span class="sg-photo-file-label">打开原文件 ↗</span><?php endif; ?>
         <span class="sg-photo-caption"><b><?php echo sg_e($cap); ?></b><?php if ($photo['date']): ?><time><?php echo sg_e($photo['date']); ?></time><?php endif; ?></span>
       </a>

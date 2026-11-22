@@ -7,7 +7,7 @@ export function disposePage(): void {
   owner.abort(); for (const fn of disposers) { try { fn(); } catch { /* finish other cleanup */ } }
   disposers = new Set(); owner = new AbortController();
 }
-type PageEvents = WindowEventMap & DocumentEventMap & { search: Event };
+type PageEvents = WindowEventMap & DocumentEventMap;
 export function pageOn<K extends keyof PageEvents>(target: EventTarget, type: K, fn: (event: PageEvents[K]) => void, options?: boolean | AddEventListenerOptions): void {
   target.addEventListener(type, fn as EventListener, { ...(typeof options === 'boolean' ? { capture: options } : options), signal: owner.signal });
 }

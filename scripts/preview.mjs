@@ -48,7 +48,6 @@ const runtime = {
 };
 
 const icons = {
-  search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
   arrowLeft: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>',
   arrowUp: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>',
   clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
@@ -512,10 +511,6 @@ const webinfo = `
 const indexPage = `${head('Soraglass · 空璃')}
 <main id="sg-main" class="sg-main sg-main--home" data-sg-page="index">
   ${front}
-  <form class="sg-search" role="search" method="get" action="#">
-    <span class="sg-search-icon">${icons.search}</span>
-    <input class="sg-search-input" type="search" name="s" placeholder="搜寻标题、描述或标签..." aria-label="站内搜索">
-  </form>
   <div class="sg-home-body">
     <div class="sg-home-main">
       <div class="sg-stack">
@@ -678,11 +673,6 @@ const pageHead = (title, sub, opts = {}) => `
       <h1 class="sg-page-title">${title}</h1>
       <p class="sg-page-sub">${sub}</p>
     </div>
-    ${
-      opts.search
-        ? `<form class="sg-search sg-search--sm" role="search" method="get" action="#"><span class="sg-search-icon">${icons.search}</span><input class="sg-search-input" type="search" name="s" placeholder="${opts.placeholder ?? '搜索标题、描述或标签…'}" aria-label="站内搜索"></form>`
-        : ''
-    }
   </div>
 </div>`;
 
@@ -746,7 +736,7 @@ ${foot()}`;
 
 const photowallPage = `${head('光影画廊 - Soraglass')}
 <main class="sg-main sg-main--wide sg-main--pad" data-sg-page="photowall" data-sg-gallery data-sg-grid>
-  ${pageHead('光影画廊', '定格时间，封存每一次心跳 · 共 9 张照片', { search: true, placeholder: '搜索相册名或照片描述...' })}
+  ${pageHead('光影画廊', '定格时间，封存每一次心跳 · 共 9 张照片')}
   <div class="sg-gallery" data-sg-gallery-list>
     ${[
       ['sakura', '樱色纪行', '三月的风把整条街吹成粉色', '2026.03', 6],
@@ -772,7 +762,6 @@ const photowallPage = `${head('光影画廊 - Soraglass')}
       )
       .join('')}
   </div>
-  <p class="sg-filter-empty" data-sg-gallery-empty hidden>在泰拉大陆的任何角落都没找到相关的记忆，换个词试试。</p>
   ${[
     ['sakura', '樱色纪行', '2026.03', 6],
     ['night', '深夜观测站', '2026.01', 5],
@@ -851,7 +840,7 @@ ${foot()}`;
 
 const timelinePage = `${head('知识档案 - Soraglass')}
 <main class="sg-main sg-main--wide sg-main--pad sg-archive" data-sg-page="timeline" data-sg-archive data-view="matrix" data-sg-grid>
-  ${pageHead('知识档案', '总计 4 篇研究记录', { search: true, placeholder: '搜寻被封存的知识...' })}
+  ${pageHead('知识档案', '总计 4 篇研究记录')}
   <div class="sg-archive-toolbar">
     <div class="sg-filter sg-archive-tags">
       <button class="sg-filter-btn is-active" type="button" data-sg-archive-tag="全部">全部档案</button>
@@ -899,10 +888,6 @@ const notfoundPage = `${head('404 - Soraglass')}
       <a class="sg-btn" href="#">${icons.arrowLeft}回到首页</a>
       <a class="sg-btn sg-btn--ghost" href="#">${icons.folder}浏览全部归档</a>
     </div>
-    <form class="sg-search sg-search--sm" role="search" method="get" action="#" style="margin-top:2rem;max-width:26rem">
-      <span class="sg-search-icon">${icons.search}</span>
-      <input class="sg-search-input" type="search" name="s" placeholder="也许你想找的是..." aria-label="站内搜索">
-    </form>
   </section>
 </main>
 ${foot()}`;
@@ -1113,7 +1098,7 @@ const navCardHtml = (s) => `<a class="sg-navbox-card" data-keywords="${s.name} $
     </a>`;
 const navPage = `${head('网址导航 - Soraglass')}
 <main id="sg-main" class="sg-main sg-main--pad" data-sg-page="nav">
-  ${pageHead('网址导航', '收藏的网站与工具，一页打尽。', { center: true, search: true, placeholder: '搜索站名、简介或域名...' })}
+  ${pageHead('网址导航', '收藏的网站与工具，一页打尽。', { center: true })}
   <div class="sg-navbox-wrap">
     <aside class="sg-navbox-side" data-sg-nav-side aria-label="分组锚点">
       ${navData.map((g, i) => `<a class="sg-navbox-side-link${i === 0 ? ' is-active' : ''}" href="#sg-nav-g${i}" data-sg-nav-anchor="sg-nav-g${i}"><span>${g.name}</span><i>${g.sites.length}</i></a>`).join('\n      ')}

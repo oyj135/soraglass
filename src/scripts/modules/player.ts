@@ -7,7 +7,7 @@
  *   歌词    [data-sg-lyric]（单行打字机） / [data-sg-lyrics]（整页滚动歌词）
  *   进度    [data-sg-progress] [data-sg-time-current] [data-sg-time-total]
  *   控制    [data-sg-play] [data-sg-prev] [data-sg-next] [data-sg-mode] [data-sg-volume] [data-sg-mute]
- *   歌单    [data-sg-track="<index>"] [data-sg-playlist-search]
+ *   歌单    [data-sg-track="<index>"]
  *
  * 站内导航保留音频节点，重新绑定页面控件；完整刷新仍用 localStorage 续播。
  */
@@ -62,28 +62,10 @@ function parseLrc(raw: string): Array<{ time: number; text: string }> {
   return out.some((item) => item.time >= 0) ? out.sort((a, b) => a.time - b.time) : out;
 }
 
-/** 右侧搜索与标签独立于音频初始化：空歌单也必须能切到歌单面板。 */
+/** 右侧标签独立于音频初始化：空歌单也必须能切到歌单面板。 */
 function setupMusicSide(): void {
   const side = document.querySelector<HTMLElement>('[data-sg-music-side]');
   if (!side) return;
-
-  const search = side.querySelector<HTMLInputElement>('[data-sg-playlist-search]');
-  const songs = Array.from(side.querySelectorAll<HTMLElement>('.sg-song[data-sg-track]'));
-  const empty = side.querySelector<HTMLElement>('[data-sg-playlist-empty]');
-  const filterSongs = (): void => {
-    const query = (search?.value ?? '').trim().toLowerCase();
-    let visible = 0;
-    songs.forEach((song) => {
-      const title = song.querySelector('.sg-song-title')?.textContent ?? '';
-      const artist = song.querySelector('.sg-song-artist')?.textContent ?? '';
-      song.hidden = query !== '' && !`${title} ${artist}`.toLowerCase().includes(query);
-      if (!song.hidden) visible += 1;
-    });
-    if (empty) empty.hidden = query === '' || visible > 0 || songs.length === 0;
-  };
-  search?.addEventListener('input', filterSongs);
-  search?.addEventListener('search', filterSongs); // 原生搜索框的清除按钮
-  filterSongs();
 
   const tabs = Array.from(side.querySelectorAll<HTMLButtonElement>('[data-sg-music-tab]'));
   const panels = Array.from(side.querySelectorAll<HTMLElement>('[data-sg-music-panel]'));

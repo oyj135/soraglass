@@ -1,8 +1,7 @@
 /* ---------- 网址导航（第六十五轮：fomal.cc/box/nav 借形，Soraglass 材质） ----------
    布局 = 右侧「通讯录」分组锚点栏（≥1280 粘性）+ 主区分组卡片网格；
    <1280 锚点栏降级为顶部吸顶分组胶囊条（与碎语页筛选条同语言）；
-   卡片 = 图标圆徽（favicon，失败回退首字圆徽）+ 站名 + 简介，整卡外链；
-   搜索复用 filter.ts 契约（data-sg-filter-grid + input.sg-search-input）。 */
+   卡片 = 图标圆徽（favicon，失败回退首字圆徽）+ 站名 + 简介，整卡外链。 */
 .sg-navbox-wrap { display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: 1.25rem; align-items: start; }
 
 /* —— 通讯录侧栏（≥1280 粘性） —— */
@@ -163,15 +162,8 @@ html.dark .sg-navbox-ico { background: #f4f1ea; }
   overflow: hidden;
 }
 
-/* 过滤命中标记：整组全隐时连组标题一起隐藏（:has），卡片本体直接不渲染 */
-.sg-navbox-card.sg-filtered-out { display: none; }
-.sg-navbox-group:has(.sg-navbox-card.sg-filtered-out):not(:has(.sg-navbox-card:not(.sg-filtered-out))) { display: none; }
-
 /* —— 页面介绍文字（正文非 JSON 时渲染，宽度与主栏一致） —— */
 .sg-navbox-prose { margin: 2.5rem auto 0; max-width: 62rem; }
-
-/* —— 搜索框（复用全站 sg-search 皮肤，宽度收紧到主栏） —— */
-.sg-navbox-search { margin: 0 auto 1.75rem; max-width: 62rem; }
 
 /* —— 窄屏：锚点栏降级为顶部吸顶胶囊条 —— */
 @media (max-width: 1279.98px) {

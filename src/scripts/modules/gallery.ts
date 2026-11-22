@@ -14,16 +14,15 @@ export function initGallery(): void {
   if (!root) return;
   const list = root.querySelector<HTMLElement>('[data-sg-gallery-list]'), grid = root.querySelector<HTMLElement>('.sg-curated-grid');
   if (!list || !grid) return;
-  const head = root.querySelector<HTMLElement>('.sg-page-head'), input = root.querySelector<HTMLInputElement>('input.sg-search-input');
-  const empty = root.querySelector<HTMLElement>('[data-sg-gallery-empty]'), status = root.querySelector<HTMLElement>('[data-gallery-status]');
-  const found = root.querySelector<HTMLElement>('[data-sg-gallery-found]'), results = root.querySelector<HTMLElement>('[data-sg-gallery-photos]');
-  const moreAlbums = root.querySelector<HTMLButtonElement>('[data-gallery-albums-more]'), moreSearch = root.querySelector<HTMLButtonElement>('[data-gallery-search-more]');
-  const pageAbort = pageSignal(); onPageDispose(() => { routeVersion++; searchVersion++; searchController?.abort(); });
+  const head = root.querySelector<HTMLElement>('.sg-page-head');
+  const status = root.querySelector<HTMLElement>('[data-gallery-status]');
+  const moreAlbums = root.querySelector<HTMLButtonElement>('[data-gallery-albums-more]');
+  const pageAbort = pageSignal(); onPageDispose(() => { routeVersion++; });
   const initial = JSON.parse(root.querySelector('[data-gallery-catalog]')?.textContent || '{"albums":[],"page":1,"pages":1,"total":0}') as AlbumPage;
   const known = new Map(initial.albums.map(a => [a.id, a]));
   if (initial.openAlbum) known.set(initial.openAlbum.id, initial.openAlbum);
-  let baseAlbums = initial.albums, albumPage = 1, albumPages = initial.pages, searchPage = 1, searchPages = 1;
-  let lastAlbum = '', query = '', searchVersion = 0, routeVersion = 0, searchController: AbortController | null = null;
+  let baseAlbums = initial.albums, albumPage = 1, albumPages = initial.pages;
+  let lastAlbum = '', routeVersion = 0;
   const photoLoads = new Map<HTMLElement, Promise<void>>();
   /* 地址栏写入统一走这里（2026-11-20）：同一地址不重复入栈，
      浏览器因「30 秒内 100 次」限制抛错时降级为 replaceState，
@@ -81,10 +80,10 @@ export function initGallery(): void {
     if (!append) grid!.replaceChildren(); grid!.append(...albums.map(albumCard)); const count = grid!.children.length;
     grid!.classList.toggle('sg-curated-grid--one', count === 1); grid!.classList.toggle('sg-curated-grid--two', count === 2);
   }
-  function photoCard(p: Photo, album?: Album, search = false): HTMLAnchorElement {
+  function photoCard(p: Photo, album?: Album): HTMLAnchorElement {
     const caption = p.caption || album?.title || '光影瞬间', link = node('a', '', 'sg-photo');
-    link.href = search ? '?album=' + encodeURIComponent(p.album) : p.url;
-    if (search) link.dataset.sgAlbum = p.album; else if (p.preview) link.dataset.sgPhoto = ''; else { link.target = '_blank'; link.rel = 'noopener noreferrer'; }
+    link.href = p.url;
+    if (p.preview) link.dataset.sgPhoto = ''; else { link.target = '_blank'; link.rel = 'noopener noreferrer'; }
     link.append(p.preview ? image(p.thumb, p.url, caption, p.width, p.height) : node('span', '打开原文件 ↗', 'sg-photo-file-label'));
     const info = node('span', '', 'sg-photo-caption'); info.append(node('b', caption)); if (p.date) info.append(node('time', p.date)); link.append(info); return link;
   }
@@ -168,7 +167,7 @@ export function initGallery(): void {
       if (version !== routeVersion) return;
       list!.hidden = Boolean(detail); root!.querySelectorAll<HTMLElement>('[data-sg-gallery-detail]').forEach(d => { d.hidden = d !== detail; });
       if (detail && detail.dataset.loaded === '1') { const g = detail.querySelector<HTMLElement>('[data-sg-photo-group]'); if (g) justifyGroup(g); }
-      if (head) head.hidden = Boolean(detail); if (empty && detail) empty.hidden = true;
+      if (head) head.hidden = Boolean(detail);
       if (push) { const url = new URL(location.href); if (detail) url.searchParams.set('album', id); else url.searchParams.delete('album'); writeUrl(url.href); }
       if (detail) { lastAlbum = id; if (detail.dataset.loaded !== '1') { message('正在读取照片…'); await loadPhotos(detail); } }
       if (version !== routeVersion) return; message();
@@ -176,23 +175,6 @@ export function initGallery(): void {
       if (detail) { const box = detail.querySelector<HTMLElement>('[data-sg-photo-group]'); if (box && box.children.length === 0) message('这本相册暂时没有可预览的照片，稍后再试或到后台核对照片状态。'); }
       if (focus) { const target = detail?.querySelector<HTMLElement>('h1') ?? [...grid!.querySelectorAll<HTMLAnchorElement>('[data-sg-album]')].find(c => c.dataset.sgAlbum === lastAlbum); if (target) { target.tabIndex = detail ? -1 : 0; target.focus({ preventScroll: true }); } window.scrollTo({ top: 0, behavior: 'auto' }); }
     } catch (e) { if (version === routeVersion) message(e instanceof Error ? e.message : '读取失败，请重试。'); }
-  }
-  async function search(): Promise<void> {
-    const version = ++searchVersion; searchController?.abort(); const controller = new AbortController(); searchController = controller;
-    query = input?.value.trim() || ''; await route('', location.search.includes('album='));
-    if (version !== searchVersion) return;
-    if (!query) { albumPage = 1; albumPages = initial.pages; renderAlbums(baseAlbums); if (found) found.hidden = true; results?.replaceChildren(); if (empty) empty.hidden = true; if (moreSearch) moreSearch.hidden = true; if (moreAlbums) moreAlbums.hidden = baseAlbums.length >= initial.total; return; }
-    message('正在查找收藏…');
-    try {
-      const [a, p] = await Promise.all([read<AlbumPage>('gallery', { q: query }, controller.signal), read<PhotoPage>('gallery-search', { q: query }, controller.signal)]);
-      if (version !== searchVersion) return;
-      renderAlbums(a.albums); albumPage = a.page; albumPages = a.pages; searchPage = p.page; searchPages = p.pages;
-      results?.replaceChildren(...p.photos.map(photo => photoCard(photo, known.get(photo.album), true)));
-      if (results && p.total) justifyGroup(results);
-      const count = root!.querySelector('[data-sg-gallery-photos-count]'); if (count) count.textContent = `${p.total} 张`;
-      if (found) found.hidden = !p.total; if (empty) empty.hidden = a.total > 0 || p.total > 0;
-      if (moreAlbums) moreAlbums.hidden = a.page >= a.pages; if (moreSearch) moreSearch.hidden = p.page >= p.pages; message();
-    } catch (e) { if (version === searchVersion) message(e instanceof Error && e.name !== 'AbortError' ? e.message : '读取超时，请重试。'); }
   }
   root.addEventListener('click', event => {
     const target = (event.target as Element).closest<HTMLElement>('[data-sg-album],[data-sg-gallery-back],[data-gallery-photos-more]');
@@ -202,18 +184,10 @@ export function initGallery(): void {
     else { const section = target.closest<HTMLElement>('[data-sg-gallery-detail]')!, button = target as HTMLButtonElement; if (button.disabled) return; button.disabled = true; void loadPhotos(section, Number(section.dataset.photoPage || 1) + 1).catch(e => message(e.message)).finally(() => { button.disabled = false; }); }
   });
   moreAlbums?.addEventListener('click', async () => {
-    moreAlbums!.disabled = true; const requestedQuery = query, version = searchVersion;
-    try { const page = query ? albumPage + 1 : Math.floor(baseAlbums.length / 24) + 1, data = await read<AlbumPage>('gallery', { page, q: query }); if (version !== searchVersion || query !== requestedQuery) return; renderAlbums(data.albums, true); albumPage = data.page; albumPages = data.pages; if (!query) baseAlbums = [...baseAlbums, ...data.albums]; moreAlbums!.hidden = albumPage >= albumPages; }
+    moreAlbums!.disabled = true;
+    try { const page = Math.floor(baseAlbums.length / 24) + 1, data = await read<AlbumPage>('gallery', { page }); renderAlbums(data.albums, true); albumPage = data.page; albumPages = data.pages; baseAlbums = [...baseAlbums, ...data.albums]; moreAlbums!.hidden = albumPage >= albumPages; }
     catch (e) { message(e instanceof Error ? e.message : '读取失败'); } finally { moreAlbums!.disabled = false; }
   });
-  moreSearch?.addEventListener('click', async () => {
-    moreSearch!.disabled = true; const version = searchVersion;
-    try { const data = await read<PhotoPage>('gallery-search', { page: searchPage + 1, q: query }); if (version !== searchVersion) return; results?.append(...data.photos.map(p => photoCard(p, known.get(p.album), true))); if (results) justifyGroup(results); searchPage = data.page; searchPages = data.pages; moreSearch!.hidden = searchPage >= searchPages; }
-    catch (e) { message(e instanceof Error ? e.message : '读取失败'); } finally { moreSearch!.disabled = false; }
-  });
-  let timer = 0; const schedule = (): void => { clearTimeout(timer); timer = pageTimeout(() => { void search(); }, 200); };
-  input?.addEventListener('input', e => { if (!(e as InputEvent).isComposing) schedule(); }); input?.addEventListener('compositionend', schedule);
-  input?.addEventListener('keydown', e => { if (e.isComposing) return; if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); if (e.key === 'Escape') input.value = ''; clearTimeout(timer); void search(); } });
   pageOn(window, 'popstate', () => { void route(new URL(location.href).searchParams.get('album') || '', false, true); });
   root.querySelectorAll<HTMLImageElement>('img').forEach(img => {
     const a = img.closest<HTMLElement>('[data-sg-album]'), original = a ? known.get(a.dataset.sgAlbum!)?.cover : img.closest<HTMLAnchorElement>('[data-sg-photo]')?.href;

@@ -852,7 +852,7 @@ html.dark .sg-archive-toolbar .sg-archive-tags .sg-filter-btn:not(.is-active) {
 .sg-archive-toolbar .sg-archive-tags .sg-filter-btn.is-active .sg-filter-count { opacity: .9; }
 
 /* 栅格断点对齐 Fomalhaut multicard：≥1069px 三栏 / 572–1068px 双栏 / <572px 单栏。
-   知识档案（.sg-archive-list）与归档/分类/标签/搜索（.sg-reading-list）共用同一套卡片栅格。 */
+   知识档案（.sg-archive-list）与归档/分类/标签（.sg-reading-list）共用同一套卡片栅格。 */
 .sg-archive-list,
 .sg-reading-list {
   display: grid;
@@ -913,10 +913,6 @@ html.dark .sg-archive-tag { color: var(--sg-accent-soft); }
 /* 2026-11-14 第四十三轮：拍立得三层栈（.sg-album-card / .sg-polaroid-stack / .sg-album-meta）
    随列表改版一起下线 —— 列表现在是通栏视差相纸墙（见文件末尾「第四十三轮」块），
    相册入口收成了月份胶囊 .sg-px-month。 */
-
-/* 搜索结果分组（.sg-gallery-group / .sg-gallery-found*）同轮下线：
-   墙上的搜索改成「不匹配的相纸退到背景里」（.sg-px-print.sg-filtered-out），
-   不再另开一组「匹配的单张照片 / 相关相册」。 */
 
 /* 详情页头：上行「返回 + · + 日期」，下行「大标题 + 简介 + 张数」 */
 .sg-gallery-detail-head {
