@@ -186,13 +186,15 @@ if ($sgNavCfg) {
     }
 } else {
     foreach ($sgNavItems as $sgItem) {
-        if ($sgItem['cid'] > 0 && isset($sgChildrenOf[$sgItem['cid']])) {
-            /* 父页 → 组按钮；子页收进面板，父页自身作面板首项 */
-            $sgGroupItems = array_merge([$sgItem], $sgChildrenOf[$sgItem['cid']]);
-            foreach ($sgChildrenOf[$sgItem['cid']] as $sgChild) {
+        /* 唯一的合成条目「碎语」没有 cid/parent 键，全部用 ?? 归零防 PHP 8 未定义键告警 */
+        if ((int) ($sgItem['cid'] ?? 0) > 0 && isset($sgChildrenOf[(int) $sgItem['cid']])) {
+            /* 父页 → 组按钮；子页收进面板（父页自身不再重复列出，组按钮已是它的入口）。
+               组图标回落第一个子页的彩色图标。 */
+            $sgGroupChildren = $sgChildrenOf[(int) $sgItem['cid']];
+            foreach ($sgGroupChildren as $sgChild) {
                 $sgAssignedSlugs[$sgChild['slug']] = true;
             }
-            $sgNavSeq[] = ['type' => 'group', 'name' => $sgItem['title'], 'icon' => '', 'items' => $sgGroupItems];
+            $sgNavSeq[] = ['type' => 'group', 'name' => $sgItem['title'], 'icon' => '', 'items' => $sgGroupChildren];
             continue;
         }
         if ((int) ($sgItem['parent'] ?? 0) > 0 && isset($sgByCid[(int) $sgItem['parent']])) {

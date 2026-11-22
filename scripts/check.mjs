@@ -44,8 +44,12 @@ for (const file of phpFiles) {
   } catch (err) {
     errors.push(`[PHP 语法] soraglass/${rel}: ${err.message}`);
   }
-  // 只检查主题根目录下的独立页模板；partials/page-head.php 是共享片段，不需要模板头
-  if (/^page-[^/]+\.php$/.test(rel) && !src.includes('@package custom')) {
+  // 只检查主题根目录下的独立页模板；partials/page-head.php 是共享片段，不需要模板头。
+  // page-chatter / page-moments 是旧碎语地址的内部兼容模板，刻意不带 @package custom
+  // （不出现在后台模板下拉，避免新建页面误选），白名单放行。
+  if (/^page-[^/]+\.php$/.test(rel)
+      && rel !== 'page-chatter.php' && rel !== 'page-moments.php'
+      && !src.includes('@package custom')) {
     errors.push(`[自定义模板] soraglass/${rel} 缺少 @package custom 注释头`);
   }
 }
