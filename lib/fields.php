@@ -1453,6 +1453,14 @@ function sg_page_raw_text($archive): string
     } catch (\Throwable $e) {
         $raw = '';
     }
+    /* Typecho 的 Markdown 编辑器保存时会在 text 字段前加 15 字符的 <!--markdown>
+       前缀（见 var/Widget/Contents/Page/Edit.php），$this->content() 渲染时会自动剥掉，
+       但直接读 contents.text 不会。不剥掉的话正文以 '<' 开头而不是 '['，
+       导航/项目/友链页会把 JSON 误判为介绍文字并回落空态。 */
+    $mdPrefix = '<!--markdown-->';
+    if (strncmp($raw, $mdPrefix, strlen($mdPrefix)) === 0) {
+        $raw = trim(substr($raw, strlen($mdPrefix)));
+    }
     if (strncmp($raw, '```', 3) === 0) {
         $raw = trim((string) preg_replace('/^```[a-z0-9]*\s*/i', '', $raw));
         $raw = trim((string) preg_replace('/\s*```$/', '', $raw));
