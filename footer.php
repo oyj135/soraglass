@@ -41,11 +41,13 @@ if ($sgName === '') {
 <?php /* 2026-11-21：左下音乐馆圆钮已并入 partials/rightside.php 展开组， toolbox.php 下线。 */ ?>
 <?php $this->need('partials/rightside.php'); ?>
 
-<?php /* 右缘小猫滚动进度（2026-11-16 第三轮，对齐 Fomalhaut nekoScroll）：
-   竖绳高度 = 滚动进度 × 0.9 × 视口高，小猫挂绳尾；点绳/点猫回顶部；≤768px 隐藏。 */ ?>
+<?php /* 右缘墨龙滚动进度（2026-11-22 第五十五轮，小猫换墨龙，交互逻辑不变）：
+   竖绳高度 = 滚动进度 × 0.9 × 视口高，龙挂绳尾；点绳/点龙回顶部；≤768px 隐藏。
+   昼夜双图：日间玄墨龙 / 夜间雾青龙，由 .sg-neko-day / .sg-neko-night 切换。 */ ?>
 <div class="sg-neko-rope" data-sg-neko-rope aria-hidden="true"></div>
 <div class="sg-neko" data-sg-neko aria-hidden="true">
-  <img src="<?php echo sg_e(sg_theme_url('dist/img/neko.svg')); ?>" alt="" width="64" height="64">
+  <img class="sg-neko-day" src="<?php echo sg_e(sg_theme_url('dist/img/neko.svg')); ?>" alt="" width="64" height="64">
+  <img class="sg-neko-night" src="<?php echo sg_e(sg_theme_url('dist/img/neko-night.svg')); ?>" alt="" width="64" height="64">
   <span class="sg-neko-msg" data-sg-neko-msg></span>
 </div>
 

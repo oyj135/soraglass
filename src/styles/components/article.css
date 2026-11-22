@@ -111,9 +111,9 @@ html.dark .sg-post-meta-cate:hover { color: var(--sg-accent-ink); }
 @media (max-width: 571.98px) { .sg-post-meta-sep { display: none; } }
 
 /* 相关推荐（2026-11-17，逐参数对齐 Fomalhaut _layout/relatedposts.styl + postImgHover）：
-   三栏 200px 卡（≤768 两栏 150px、≤600 单栏）；封面 opacity .4，hover 提亮到 .8
-   并 scale(1.1)（filter 375ms ease-in .2s, transform .6s 同参数）；日期+标题
-   居中压图。圆角 12px（custom.css 同参数）。 */
+   三栏 200px 卡（≤768 两栏 150px、≤600 单栏）；日期+标题居中压图。圆角 12px。
+   2026-11-22 第五十四轮：封面不再用 opacity .4 压暗（hover 提亮 .8 的旧配方退役），
+   改为封面原亮度 + ::after 暗幕（与首页文章卡 .sg-feature-media 同一配方）承托白字。 */
 .sg-related { margin-top: 40px; }
 .sg-related-head {
   display: flex;
@@ -135,7 +135,7 @@ html.dark .sg-post-meta-cate:hover { color: var(--sg-accent-ink); }
   background: rgb(12, 18, 22);
   border-radius: 12px;
 }
-@media (max-width: 767.98px) { .sg-related-cell { margin: 2px; width: calc(50% - 4px); height: 150px; } }
+@media (max-width: 767.98px) { .sg-related-cell { margin: 2px; width: calc(50% - 4px); height: 150px; } .sg-related-content { margin: 0 12px; } }
 @media (max-width: 600px) { .sg-related-cell { width: calc(100% - 4px); } }
 .sg-related-item { display: block; height: 100%; }
 .sg-related-item img {
@@ -144,18 +144,36 @@ html.dark .sg-post-meta-cate:hover { color: var(--sg-accent-ink); }
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: .4;
-  transition: filter 375ms ease-in .2s, transform .6s;
+  transition: transform .6s;
 }
-.sg-related-item:is(:hover, :focus-visible) img { opacity: .8; transform: scale(1.1); }
+.sg-related-item:is(:hover, :focus-visible) img { transform: scale(1.1); }
+/* 2026-11-22 第五十四轮：暗幕同步 .sg-feature-media::after —— 自下而上
+   .86/.62/.40 渐变，任何封面上白字都 ≥4.5:1；文字层要 z-index 抬到暗幕之上。 */
+.sg-related-item::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(4, 18, 24, .86), rgba(4, 18, 24, .62) 45%, rgba(4, 18, 24, .40));
+  pointer-events: none;
+}
+/* 文字层：雾面底同步 .sg-feature-quote（42% 深底 + 6px 模糊 + 细白描边），
+   亮色封面上也是一层可读的「压在图上」的牌。 */
 .sg-related-content {
   position: absolute;
   top: 50%;
+  left: 0;
+  right: 0;
   transform: translate(0, -50%);
-  padding: 0 20px;
-  width: 100%;
+  z-index: 1;
+  margin: 0 20px;
+  padding: .55rem .95rem;
   text-align: center;
   text-shadow: none;
+  background: rgba(6, 13, 18, .42);
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 12px;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
 }
 .sg-related-date {
   display: flex;
@@ -179,9 +197,11 @@ html.dark .sg-post-meta-cate:hover { color: var(--sg-accent-ink); }
 @media (prefers-reduced-motion: reduce) { .sg-related-item img { transition: none; transform: none !important; } }
 
 /* 2026-11-21 第五十一轮：相关推荐文字 hover 渐进浮现（同 .sg-feature-quote）。
-   默认隐藏日期与标题、下移 1.8rem；精确指针 hover / 键盘 focus 时，封面维持
-   原配方（opacity .4→.8 + scale 1.1），文字错峰 .12s 上浮淡入；触屏常显。 */
+   默认隐藏日期与标题、下移 1.8rem；精确指针 hover / 键盘 focus 时，暗幕从 .62
+   提到满值、封面 scale 1.1，文字错峰 .12s 上浮淡入；触屏常显。 */
 @media (hover: hover) and (pointer: fine) {
+  .sg-related-item::after { opacity: .62; transition: opacity .6s ease-in-out; }
+  .sg-related-item:is(:hover, :focus-visible)::after { opacity: 1; }
   .sg-related-content {
     opacity: 0;
     transform: translate(0, calc(-50% + 1.8rem));
@@ -194,6 +214,7 @@ html.dark .sg-post-meta-cate:hover { color: var(--sg-accent-ink); }
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .sg-related-item::after { opacity: 1; transition: none; }
   .sg-related-content { opacity: 1; transform: translate(0, -50%); transition: none; }
   .sg-related-item:is(:hover, :focus-visible) .sg-related-content { transform: translate(0, -50%); }
 }

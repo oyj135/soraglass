@@ -405,12 +405,14 @@ html.dark {
   button { font: inherit; color: inherit; cursor: pointer; }
   input { font: inherit; }
 
-  /* 滚动条：对齐 Fomalhaut（8px + 主题色斜条纹 + 浅主题色轨道）。
+  /* 滚动条（2026-11-22 第五十四轮：发廊斜条纹退役，换东方美素面样式）：
+     轨道全透明、滑块用 --sg-scroll-thumb 淡档（昼玄墨 32% / 夜雾青 34%），
+     hover/拖动升到实档 --sg-scroll-thumb-hot —— 与玻璃卡语言一致，全站
+     （代码块 / 侧栏 / 歌单 / 其它）统一走同一套伪元素样式。
      Chrome/Edge 121+ 的标准 scrollbar-color 一旦不是 auto 就会完全忽略
-     ::-webkit-scrollbar，斜条纹也就不会出现 —— 只在支持 webkit 伪元素的
-     浏览器里把标准属性退回 auto；Firefox 不认识 selector(::-webkit-scrollbar)，
-     跳过这段，继续用 thin + 主题色双色滚动条。 */
-  * { scrollbar-width: thin; scrollbar-color: var(--sg-accent) transparent; }
+     ::-webkit-scrollbar；只在支持 webkit 伪元素的浏览器里把标准属性退回 auto；
+     Firefox 不认识 selector(::-webkit-scrollbar)，跳过这段，继续用 thin + 素面双色。 */
+  * { scrollbar-width: thin; scrollbar-color: var(--sg-scroll-thumb) transparent; }
 
   @supports selector(::-webkit-scrollbar) {
     * {
@@ -420,27 +422,18 @@ html.dark {
   }
 
   ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-track {
-    background-color: color-mix(in srgb, var(--sg-accent) 20%, transparent);
-    border-radius: 2em;
-  }
+  ::-webkit-scrollbar-track { background-color: transparent; }
   ::-webkit-scrollbar-thumb {
-    background-color: var(--sg-accent);
-    /* 发廊转筒风：静态斜条纹，主题色深浅交替（浅=叠白 45%，深=叠黑 20%）
-       条纹宽 9px、周期 18px —— 与 Fomalhaut custom.css 同参数。 */
-    background-image: repeating-linear-gradient(
-      45deg,
-      rgba(255, 255, 255, 0.45) 0 9px,
-      rgba(0, 0, 0, 0.2) 9px 18px
-    );
+    background-color: var(--sg-scroll-thumb);
     border-radius: 2em;
   }
+  ::-webkit-scrollbar-thumb:is(:hover, :active) { background-color: var(--sg-scroll-thumb-hot); }
   ::-webkit-scrollbar-corner { background-color: transparent; }
 
-  /* 手机端自绘滚动条（对齐 Fomalhaut #mscrollbar）：
+  /* 手机端自绘滚动条（#mscrollbar）：
      手机浏览器（含 Chromium overlay 模式）只用系统滚动条，会完全忽略
-     ::-webkit-scrollbar，电脑上那条主题色斜条纹在手机宽度下根本不会出现。
-     这里准备一条同样式样的自绘滚动条，由 modules/scrollbar.ts 驱动：
+     ::-webkit-scrollbar，电脑端的素面滑块在手机宽度下根本不会出现。
+     这里准备一条同样素面样式的自绘滚动条，由 modules/scrollbar.ts 驱动：
      固定在右边缘、随滚动进度移动；只要页面能滚就一直显示。 */
   #mscrollbar {
     display: none;
@@ -450,7 +443,7 @@ html.dark {
     right: 2px;
     width: 8px;
     border-radius: 2em;
-    background-color: color-mix(in srgb, var(--sg-accent) 20%, transparent);
+    background-color: color-mix(in srgb, var(--sg-accent) 14%, transparent);
     pointer-events: none;
     z-index: 9999;
     opacity: 0;
@@ -463,12 +456,7 @@ html.dark {
     top: 0;
     width: 100%;
     border-radius: 2em;
-    background-color: var(--sg-accent);
-    background-image: repeating-linear-gradient(
-      45deg,
-      rgba(255, 255, 255, 0.45) 0 9px,
-      rgba(0, 0, 0, 0.2) 9px 18px
-    );
+    background-color: var(--sg-scroll-thumb-hot);
   }
   /* ≤768px：隐藏系统滚动条，改用上面那条自绘的，免得出现两条 */
   @media screen and (max-width: 767.98px) {

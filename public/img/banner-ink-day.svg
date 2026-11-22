@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 780" preserveAspectRatio="xMidYMid slice">
+  <!-- 作者卡日间场景「淡墨远山 · 一叶朱舟」（2026-11-22 第五十五轮，替代青瓷晨光）：
+       纸白天光 + 两叠淡墨远山（feTurbulence 抖边做笔锋）+ 云雾留白 + 三道水线，
+       山脚一叶朱红小舟是整卡唯一印朱。
+       注意 ::after 白纱自卡高 30% 起渐浓 —— 可见内容集中在 SVG y 60-360 段，
+       y≥420 渐隐回干净纸面承文字（背景 100% auto 顶对齐，卡宽 330px 时 y≈屏高 0.825 倍）。 -->
+  <defs>
+    <linearGradient id="s" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f1ecdf"/><stop offset=".5" stop-color="#efeadd"/><stop offset="1" stop-color="#f5f2ea"/>
+    </linearGradient>
+    <linearGradient id="fb" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f5f2ea" stop-opacity="0"/><stop offset=".45" stop-color="#f6f3eb" stop-opacity=".55"/><stop offset="1" stop-color="#f7f4ee" stop-opacity=".96"/>
+    </linearGradient>
+    <filter id="ink" x="-10%" y="-30%" width="120%" height="160%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.045" numOctaves="2" seed="11" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="7"/>
+    </filter>
+    <filter id="mist" x="-40%" y="-80%" width="180%" height="260%"><feGaussianBlur stdDeviation="10"/></filter>
+  </defs>
+  <rect width="400" height="780" fill="url(#s)"/>
+  <g filter="url(#ink)">
+    <path d="M0 300 C58 262 118 286 172 258 C244 222 306 268 400 246 V470 H0 Z" fill="#a3a8a1" opacity=".55"/>
+    <path d="M0 356 C66 318 132 348 200 314 C272 284 336 326 400 300 V500 H0 Z" fill="#828a85" opacity=".45"/>
+  </g>
+  <g filter="url(#mist)">
+    <ellipse cx="86" cy="318" rx="150" ry="18" fill="#f8f5ee" opacity=".7"/>
+    <ellipse cx="296" cy="330" rx="150" ry="16" fill="#f8f5ee" opacity=".66"/>
+    <ellipse cx="182" cy="262" rx="118" ry="12" fill="#f8f5ee" opacity=".5"/>
+  </g>
+  <g stroke="#767d79" stroke-width="1" stroke-linecap="round" opacity=".34" fill="none">
+    <path d="M52 352 H150"/><path d="M212 360 H344"/><path d="M92 372 H180"/>
+  </g>
+  <g fill="#9d3b2f">
+    <path d="M196 344 C206 349 224 349 234 344 L227 351 H203 Z"/>
+    <path d="M215 344 V333 L226 340 L215 340 Z" opacity=".88"/>
+  </g>
+  <rect y="420" width="400" height="360" fill="url(#fb)"/>
+</svg>

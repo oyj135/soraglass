@@ -85,8 +85,9 @@
 }
 @keyframes sg-pace-gradient { 0% { background-position: 0 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
 
-/* ---------- 右缘小猫滚动进度（对齐 Fomalhaut nekoScroll：竖绳 + 绳尾小猫 + 时间气泡） ----------
-   放在右侧按钮组（right 1.5rem，宽约 2.5rem）左侧，互不遮挡；z 低于按钮组。 */
+/* ---------- 右缘墨龙滚动进度（2026-11-22 第五十五轮小猫换墨龙；竖绳 + 绳尾龙 + 时间气泡） ----------
+   放在右侧按钮组（right 1.5rem，宽约 2.5rem）左侧，互不遮挡；z 低于按钮组。
+   绳：竹节纹（每 16px 一道浅节），替代原发廊斜条纹，与素面滚动条语言一致。 */
 .sg-neko-rope {
   position: fixed;
   top: 0;
@@ -96,7 +97,8 @@
   z-index: 80;
   border-radius: 2em;
   background-color: color-mix(in srgb, var(--sg-accent-deep) 72%, transparent);
-  background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, .16) 0 5px, transparent 5px 10px);
+   /* 2026-11-22 第五十五轮：发廊斜条纹换竹节纹 —— 每 16px 一道浅节，配合墨龙攀绳 */
+   background-image: repeating-linear-gradient(to bottom, rgba(255, 255, 255, .12) 0 1.5px, transparent 1.5px 16px);
   cursor: pointer;
 }
 .sg-neko {
@@ -114,6 +116,10 @@
 }
 .sg-neko.is-on { opacity: 1; }
 .sg-neko img { display: block; width: 100%; height: 100%; }
+/* 昼夜双龙：日间玄墨龙 / 夜间雾青龙（neko.svg / neko-night.svg），与日月图标同一套切换写法 */
+.sg-neko .sg-neko-night { display: none; }
+html.dark .sg-neko .sg-neko-day { display: none; }
+html.dark .sg-neko .sg-neko-night { display: block; }
 .sg-neko-msg {
   position: absolute;
   top: 50%;

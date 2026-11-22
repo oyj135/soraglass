@@ -271,24 +271,41 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: .4;
-  transition:
-    opacity .6s var(--sg-ease),
-    transform .6s var(--sg-ease);
+  transition: transform .6s var(--sg-ease);
 }
 
 .sg-post-nav-item:is(:hover, :focus-visible) img {
-  opacity: .8;
   transform: scale(1.1);
 }
 
+/* 2026-11-22 第五十四轮：封面文字可读性同步首页文章卡 .sg-feature-media ——
+   封面不再压 opacity .4，改由 ::after 暗幕（自下而上 .86/.62/.40）承托白字；
+   文字层要 z-index 抬到暗幕之上。 */
+.sg-post-nav-item::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(4, 18, 24, .86), rgba(4, 18, 24, .62) 45%, rgba(4, 18, 24, .40));
+  pointer-events: none;
+}
+
+/* 文字层：雾面底同步 .sg-feature-quote（42% 深底 + 6px 模糊 + 细白描边），
+   左右各留 2.5rem 的内缩牌面，亮色封面上白字也够读。 */
 .sg-post-nav-info {
   position: absolute;
   top: 50%;
-  width: 100%;
+  left: 0;
+  right: 0;
+  margin: 0 2.5rem;
   padding: 1.25rem 2.5rem;
   transform: translateY(-50%);
+  z-index: 1;
   text-shadow: none;
+  background: rgba(6, 13, 18, .42);
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 12px;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
 }
 
 .sg-post-nav-item.is-next .sg-post-nav-info { text-align: right; }
@@ -318,16 +335,18 @@
 @media (max-width: 767.98px) {
   .sg-post-nav { flex-direction: column; }
   .sg-post-nav-item { width: 100%; height: 8.75rem; }
-  .sg-post-nav-info { padding: 1rem 1.5rem; }
+  .sg-post-nav-info { margin: 0 1.25rem; padding: 1rem 1.5rem; }
   .sg-post-nav-info b { font-size: 1.15rem; }
 }
 
 
 /* 2026-11-21 第五十一轮：封面文字 hover 渐进浮现（复刻 .sg-feature-quote）。
    默认隐藏上下篇标签与标题、下移 1.8rem；精确指针 hover / 键盘 focus 时，
-   封面维持原配方（opacity .4→.8 + scale 1.1），文字错峰 .12s 上浮淡入。
+   暗幕从 .62 提到满值、封面 scale 1.1，文字错峰 .12s 上浮淡入。
    触屏无 hover 时规则不套用，文字保持常显；减少动效时关闭位移与过渡。 */
 @media (hover: hover) and (pointer: fine) {
+  .sg-post-nav-item::after { opacity: .62; transition: opacity .6s ease-in-out; }
+  .sg-post-nav-item:is(:hover, :focus-visible)::after { opacity: 1; }
   .sg-post-nav-info {
     opacity: 0;
     transform: translateY(calc(-50% + 1.8rem));
@@ -340,6 +359,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .sg-post-nav-item::after { opacity: 1; transition: none; }
   .sg-post-nav-info { opacity: 1; transform: translateY(-50%); transition: none; }
   .sg-post-nav-item:is(:hover, :focus-visible) .sg-post-nav-info { transform: translateY(-50%); }
 }

@@ -119,7 +119,7 @@ html.dark .sg-front-title, html.dark .sg-front-sub { text-shadow: none; animatio
   font-size: .95rem;
   transition: background-color var(--sg-dur-fast);
 }
-.sg-front-read:is(:hover, :focus-visible) { background: var(--sg-accent); }
+.sg-front-read:is(:hover, :focus-visible) { background: #9d3b2f; } /* 2026-11-22：朱批实底，昼夜同款 */
 @media (pointer: coarse) { .sg-front-social-link { min-width: 2.75rem; min-height: 2.75rem; } }
 .sg-front-social-link {
   display: inline-flex;
@@ -484,7 +484,7 @@ html:not(.dark) .sg-front-read {
   background: rgba(2, 6, 23, .55);
   color: #fff;
 }
-html:not(.dark) .sg-front-read:is(:hover, :focus-visible) { background: var(--sg-filter-active); color: #fff; }
+html:not(.dark) .sg-front-read:is(:hover, :focus-visible) { background: #9d3b2f; color: #fff; } /* 2026-11-22：朱批实底（原 --sg-filter-active 玄墨） */
 html:not(.dark) .sg-front-social-link {
   border-color: rgba(255, 255, 255, .38);
   background: rgba(255, 255, 255, .10);

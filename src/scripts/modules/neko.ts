@@ -3,7 +3,7 @@ import { reducedMotion } from './runtime';
 /**
  * 右缘小猫滚动进度（2026-11-16 第三轮，对齐 Fomalhaut cursor.js 的 nekoScroll）：
  *   [data-sg-neko-rope]  右缘竖绳，高度 = 滚动进度 × 0.9 × 视口高
- *   [data-sg-neko]       64px 小猫挂在绳尾（top = 绳高 - 50）， scrollTop>0 才现身
+ *   [data-sg-neko]       64px 墨龙挂绳尾（top = 绳高 - 50）， scrollTop>0 才现身（昼夜双图 CSS 切换）
  *   [data-sg-neko-msg]   气泡：悬停小猫或滚到页底时显示当前时间
  * 点绳或点小猫回顶部；小猫 pointer-events:none，点击命中下层交互元素时不拦截。
  * ≤768px 由 CSS 隐藏，模块直接空跑。

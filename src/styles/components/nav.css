@@ -199,14 +199,15 @@ html.dark .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent-ink);
 .sg-nav-more-link:is(:hover, :focus-visible) .sg-nav-ico, .sg-nav-more-link.is-active .sg-nav-ico,
 .sg-sheet-link:is(:hover, :focus-visible) .sg-nav-ico, .sg-sheet-link.is-active .sg-nav-ico { opacity: 1; }
 
-/* 当前页：深青实底 + 纯白字（2026-11-21 第三十六轮用户指定，昼夜同款）。
-   原来是 accent-ink 文字 + 底部白点，在透明导航上太轻，认不出「我在哪一页」。 */
+/* 当前页：朱批实底 + 纯白字（2026-11-22 第五十四轮用户指定，昼夜同款）。
+   原来是 accent-ink 文字 + 底部白点，在透明导航上太轻，认不出「我在哪一页」。
+   2026-11-21 曾指定玄墨/夜墨实底，本轮统一换印朱 #9d3b2f（白字 6.76:1）。 */
 .sg-nav-link.is-active {
   color: #fff;
   opacity: 1;
-  background: #252229;
+  background: #9d3b2f;
 }
-html.dark .sg-nav-link.is-active { color: #fff; background: #36333b; }
+html.dark .sg-nav-link.is-active { color: #fff; background: #9d3b2f; }
 /* 激活项已由实底表达，不再挂 ::before 小圆点，也不出 hover 下划线 */
 .sg-nav-link.is-active::after { display: none; }
 
@@ -385,9 +386,9 @@ html:not(.dark) .sg-nav.is-scrolled .sg-nav-link::after { background: #252229; }
 html:not(.dark) .sg-nav.is-scrolled .sg-nav-link:is(:hover, :focus-visible) { color: #0f6b5f; }
 html:not(.dark) .sg-nav.is-scrolled .sg-nav-link:is(:hover, :focus-visible)::after { background: #0f6b5f; }
 
-/* 当前页底板（2026-11-21 第三十六轮用户指定）：深青实底 + 纯白字，昼夜同款，
+/* 当前页底板（2026-11-22 第五十四轮用户指定）：朱批实底 + 纯白字，昼夜同款，
    顶部透明与下滑玻璃底两态都不变；hover/focus 保持白字（反馈只走字重与光标），
-   避免被上面的薄荷青 hover 规则改色。夜间底色压深一档，暗底上边界更清楚。 */
+   避免被上面的薄荷青 hover 规则改色。 */
 html:not(.dark) .sg-nav .sg-nav-link.is-active,
 html:not(.dark) .sg-nav .sg-nav-link.is-active:is(:hover, :focus-visible),
 html:not(.dark) .sg-nav .sg-nav-more.is-active .sg-nav-more-btn,
@@ -396,11 +397,11 @@ html.dark .sg-nav .sg-nav-link.is-active:is(:hover, :focus-visible),
 html.dark .sg-nav .sg-nav-more.is-active .sg-nav-more-btn {
   color: #fff;
   opacity: 1;
-  background: #36333b;
+  background: #9d3b2f;
 }
 html.dark .sg-nav .sg-nav-link.is-active,
 html.dark .sg-nav .sg-nav-link.is-active:is(:hover, :focus-visible),
-html.dark .sg-nav .sg-nav-more.is-active .sg-nav-more-btn { background: #36333b; }
+html.dark .sg-nav .sg-nav-more.is-active .sg-nav-more-btn { background: #9d3b2f; }
 /* 下拉面板是实底卡，文字回落正文色，不能继承导航白字 */
 html:not(.dark) .sg-nav .sg-nav-more-menu { color: var(--sg-text); }
 /* 下拉/抽屉条目 hover 统一朱批实底（与 editorial.css 的 .sg-nav-more-link 同款，昼夜一致）；

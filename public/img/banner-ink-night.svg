@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 780" preserveAspectRatio="xMidYMid slice">
+  <!-- 作者卡夜间场景「雾青山月」（2026-11-22 第五十五轮，替代星海鲸航）：
+       玄墨夜空 + 淡金圆月与月晕 + 稀疏银星 + 两叠雾青山影（抖边笔锋）+ 水面月影。
+       夜纱自卡高 32% 渐浓 —— 月与山集中在 SVG y 40-400 段，y≥440 渐隐回干净夜墨；
+       底色顶格 #17141b 与卡面同值防白边。 -->
+  <defs>
+    <linearGradient id="s" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#17141b"/><stop offset=".5" stop-color="#121415"/><stop offset="1" stop-color="#141617"/>
+    </linearGradient>
+    <radialGradient id="mg">
+      <stop offset="0" stop-color="#e8dcbe" stop-opacity=".6"/><stop offset=".45" stop-color="#e8dcbe" stop-opacity=".18"/><stop offset="1" stop-color="#e8dcbe" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="fb" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#141617" stop-opacity="0"/><stop offset=".45" stop-color="#141617" stop-opacity=".5"/><stop offset="1" stop-color="#141617" stop-opacity=".9"/>
+    </linearGradient>
+    <filter id="ink" x="-10%" y="-30%" width="120%" height="160%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.045" numOctaves="2" seed="23" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="7"/>
+    </filter>
+    <filter id="mist" x="-40%" y="-80%" width="180%" height="260%"><feGaussianBlur stdDeviation="10"/></filter>
+  </defs>
+  <rect width="400" height="780" fill="url(#s)"/>
+  <ellipse cx="300" cy="112" rx="130" ry="100" fill="url(#mg)" opacity=".85"/>
+  <circle cx="300" cy="112" r="26" fill="#e3d7b3" opacity=".85"/>
+  <circle cx="300" cy="112" r="34" fill="none" stroke="#dccf9f" stroke-width="1" opacity=".25"/>
+  <g fill="#cfd3d6">
+    <circle cx="46" cy="60" r=".8" opacity=".7"/><circle cx="122" cy="34" r=".6" opacity=".45"/><circle cx="188" cy="88" r=".7" opacity=".55"/>
+    <circle cx="66" cy="150" r=".6" opacity=".4"/><circle cx="150" cy="190" r=".8" opacity=".6"/><circle cx="238" cy="52" r=".5" opacity=".35"/>
+    <circle cx="356" cy="66" r=".7" opacity=".5"/><circle cx="372" cy="188" r=".6" opacity=".45"/><circle cx="30" cy="250" r=".8" opacity=".55"/>
+    <circle cx="120" cy="262" r=".5" opacity=".35"/><circle cx="330" cy="252" r=".6" opacity=".4"/><circle cx="70" cy="330" r=".6" opacity=".35"/>
+    <circle cx="256" cy="318" r=".5" opacity=".3"/><circle cx="368" cy="330" r=".7" opacity=".4"/><circle cx="30" cy="430" r=".6" opacity=".3"/>
+    <circle cx="360" cy="452" r=".5" opacity=".28"/>
+  </g>
+  <g filter="url(#ink)">
+    <path d="M0 306 C70 268 140 294 210 264 C280 236 340 274 400 254 V470 H0 Z" fill="#2c333b" opacity=".9"/>
+    <path d="M0 366 C72 328 138 356 206 326 C276 298 338 338 400 316 V500 H0 Z" fill="#1c222a" opacity=".95"/>
+  </g>
+  <g filter="url(#mist)">
+    <ellipse cx="110" cy="368" rx="160" ry="18" fill="#0f1216" opacity=".8"/>
+    <ellipse cx="300" cy="380" rx="150" ry="16" fill="#0f1216" opacity=".75"/>
+  </g>
+  <ellipse cx="300" cy="452" rx="58" ry="9" fill="#d9cba0" opacity=".16"/>
+  <ellipse cx="300" cy="466" rx="34" ry="5" fill="#d9cba0" opacity=".11"/>
+  <rect y="440" width="400" height="340" fill="url(#fb)"/>
+</svg>

@@ -304,10 +304,11 @@ html.dark .sg-footer-zone::before {
   transition: color .3s, border-color .3s, transform .3s, background-color .3s;
 }
 .sg-tag-chip:hover { color: var(--sg-accent-ink); border-color: var(--sg-accent-ink); transform: translateY(-1px); }
-/* 2026-11-21 墨分五色：标签小卡悬浮底与「全部档案」选中态统一竹青实底压白字 */
-html:not(.dark) .sg-tag-chip:is(:hover, :focus-visible) {
-  background-color: var(--sg-filter-active);
-  border-color: var(--sg-filter-active);
+/* 2026-11-22 第五十四轮：标签小卡悬浮底改朱批实底压白字（昼夜一致，
+   与导航「更多」下拉条目的朱批 hover 同款；原日间走 --sg-filter-active 玄墨）。 */
+.sg-tag-chip:is(:hover, :focus-visible) {
+  background-color: #9d3b2f;
+  border-color: #9d3b2f;
   color: #fff;
 }
 .sg-tag-chip-count {
