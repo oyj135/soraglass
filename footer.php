@@ -47,7 +47,7 @@ if ($sgName === '') {
    昼夜同图。原银灰墨龙 SVG 保留在 vectorizer/ 作母版。 */ ?>
 <div class="sg-neko-rope" data-sg-neko-rope aria-hidden="true"></div>
 <div class="sg-neko" data-sg-neko aria-hidden="true">
-  <img src="<?php echo sg_e(sg_theme_url('dist/img/neko.png')); ?>" alt="" width="64" height="64">
+  <img src="<?php echo sg_e(sg_theme_url('dist/img/neko.png?v=20261122a')); ?>" alt="" width="64" height="64">
   <span class="sg-neko-msg" data-sg-neko-msg></span>
 </div>
 
