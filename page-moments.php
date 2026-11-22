@@ -15,9 +15,7 @@ $this->need('header.php');
 $GLOBALS['SG_NOTES_HEAD'] = [
     'title'       => '碎语',
     'sub'         => '随手记 · 想到什么写什么',
-    'search'      => true,
     'center'      => true,
-    'placeholder' => '搜索碎语...',
 ];
 
 $this->need('partials/notes-stream.php');

@@ -1,6 +1,6 @@
 <?php
 /**
- * 项目
+ * 项目（2026-11-22 第六十七轮：正文可直接粘项目数组 JSON，数据源优先级见下）
  *
  * @package custom
  */
@@ -8,8 +8,15 @@ if (!defined('SG_ROOT')) {
     require_once __DIR__ . '/functions.php';
 }
 $this->need('header.php');
-$sgProjects = sg_projects();
-$sgSourceLine = sg_github_source_line(count($sgProjects));
+
+/* 数据源优先级（sg_projects_for_page）：① 本页正文 JSON（正文不再当文章渲染）；
+   ② 后台「项目 JSON」；③ GitHub 仓库；④ 主题内置示例。正文不是 JSON 时当页面介绍渲染。 */
+$sgRaw = sg_page_raw_text($this);
+$sgFromBody = false;
+$sgProjects = sg_projects_for_page($this, $sgRaw, $sgFromBody);
+$sgProjProse = ($sgRaw !== '' && !$sgFromBody) ? $sgRaw : '';
+/* 正文给数据时不能再说「项目来自 GitHub」 */
+$sgSourceLine = $sgFromBody ? '' : sg_github_source_line(count($sgProjects));
 
 /* 项目卡的头像（第三十一轮新增，第三十七轮收窄用途）：默认用站点作者头像 ——
    GitHub 头像（github.com/<user>.png）在国内机房经常连不上，一屏卡片全是空圆更难看。
@@ -27,6 +34,10 @@ $sgHead = [
 ?>
 <main id="sg-main" tabindex="-1" class="sg-main sg-main--pad" data-sg-page="projects">
   <?php sg_page_head($sgHead); ?>
+
+  <?php if ($sgProjProse !== '') : ?>
+  <div class="sg-prose" style="margin-bottom:2rem"><?php $this->content(); ?></div>
+  <?php endif; ?>
 
   <?php if ($sgSourceLine !== '') : ?>
   <p class="sg-projects-source"><?php echo sg_icon_color('github'); ?><?php echo sg_e($sgSourceLine); ?></p>
@@ -163,7 +174,7 @@ $sgHead = [
   <div class="sg-glass sg-notfound">
     <span class="sg-notfound-code">空</span>
     <h1>还没有项目</h1>
-    <p>到后台「设置外观 → 项目」填 GitHub 账号，或直接填「项目 JSON」，字段：name / description / icon / tags / githubUrl。</p>
+    <p>两种填法任选：① 编辑本页，正文直接粘贴 JSON（以 <code>[</code> 开头的项目数组，字段：name / description / githubUrl / cover / tags）；② 后台 → 外观 → 主题设置 →「项目 JSON（兜底）」，或填写 GitHub 账号自动列仓库。</p>
   </div>
   <?php endif; ?>
 

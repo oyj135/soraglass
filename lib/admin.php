@@ -25,6 +25,7 @@ function sg_admin_json_tools(): string
         'sgPoster',
         'sgFrontTyping',
         'sgNavGroups',
+        'sgNavBox',
     ], JSON_UNESCAPED_SLASHES);
 
     return <<<HTML
@@ -839,8 +840,16 @@ function themeConfig($form): void
     $form->addInput(new Textarea('sgDanmaku', null, '', _t('背景弹幕'), _t('每行一条，留空使用 dist/data/danmaku.json')));
 
     $form->addInput(new Textarea('sgSocial', null, '', _t('社交链接 JSON'), _t('格式：[{"name":"GitHub","url":"...","icon":"github"}]') . sg_admin_json_tools()));
-    $form->addInput(new Textarea('sgFriends', null, '', _t('友链 JSON'), _t('留空使用 dist/data/friends.json')));
-    $form->addInput(new Textarea('sgProjects', null, '', _t('项目 JSON'), _t('留空使用 dist/data/projects.json。<br>填了 GitHub 账号后，这里留空即自动用仓库列表；<b>两项都有时以这里为准</b>（想完全交给 GitHub 就清空本栏）')));
+    $form->addInput(new Textarea('sgFriends', null, '', _t('友链 JSON（兜底）'), _t(
+        '<b>优先级</b>：友链页面的<b>正文直接粘 JSON</b>（以 <code>[</code> 开头的数组）优先于本栏；本栏用于不在正文里填数据的场景。<br>'
+        . '<b>格式</b>：数组 JSON，一项一个友链：<code>[{"name":"Typecho","url":"https://typecho.org","description":"轻量博客程序","avatar":"","siteshot":""}]</code>。<br>'
+        . '<code>description</code> / <code>avatar</code> 可省略；<code>siteshot</code> 留空自动用 thum.io 按域名在线截图；留空本栏使用主题自带示例。'
+    ) . sg_admin_json_tools()));
+    $form->addInput(new Textarea('sgProjects', null, '', _t('项目 JSON（兜底）'), _t(
+        '<b>优先级</b>：项目页面的<b>正文直接粘 JSON</b>（以 <code>[</code> 开头的数组）优先于本栏；本栏仍优先于 GitHub 与主题示例。<br>'
+        . '<b>格式</b>：数组 JSON，一项一个项目：<code>[{"name":"soraglass","description":"Typecho 主题","githubUrl":"https://github.com/oyj135/soraglass","cover":"","tags":["Typecho"]}]</code>。<br>'
+        . '留空时先试下面的 GitHub 账号自动列仓库，再回落主题示例；<b>本栏与 GitHub 都有时以本栏为准</b>（想完全交给 GitHub 就清空本栏）。'
+    ) . sg_admin_json_tools()));
     $form->addInput(new Textarea('sgProjectList', null, '', _t('项目清单 · JSON'), _t(
         '2026-11-21 起「仓库清单 + 项目封面 + 简介覆盖」合并为一栏：<b>数组 JSON，一项一个仓库</b>，顺序即展示顺序。<br>'
         . '<code>[{"name":"soraglass","cover":"https://bucket.cos.ap-guangzhou.myqcloud.com/cover.webp?x=1","note":"Typecho 主题"},{"name":"oyj135/AiForge","cover":"usr/uploads/cover.webp"}]</code><br>'
@@ -851,6 +860,13 @@ function themeConfig($form): void
         . '「项目 JSON」里单个项目的 <code>cover</code> 优先级仍最高。<br>'
         . '也可以用下面的按钮拉取账号仓库勾选写入。'
     ) . sg_admin_json_tools() . sg_admin_github_picker('sgProjectList', 'oyj135')));
+    $form->addInput(new Textarea('sgNavBox', null, '', _t('导航书签盒 · JSON（兜底）'), _t(
+        '<b>优先级</b>：网址导航页面的<b>正文直接粘 JSON</b>（以 <code>[</code> 开头的分组数组）优先于本栏；本栏用于多页共用或不在正文里填数据的场景。<br>'
+        . '<b>格式</b>：数组 JSON，一项一个分组，组内 sites 一项一个站点：<br>'
+        . '<code>[{"name":"常用工具","sites":[{"name":"TinyPNG","url":"https://tinypng.com","desc":"图片无损压缩","icon":""}]},…]</code><br>'
+        . '<code>desc</code> 简介可省略；<code>icon</code> 留空自动用 favicon 在线服务按域名取图标，加载失败回退站名首字圆徽，也可以手填完整图片地址。<br>'
+        . '总站点数上限 200，超出截断；页面正文与本栏都为空时显示空态。'
+    ) . sg_admin_json_tools()));
     $form->addInput(new Text('sgGithubUser', null, 'oyj135', _t('GitHub 账号'), _t('「项目」页从这里列仓库。填用户名即可，例如 <code>oyj135</code>；留空则不启用 GitHub 数据源')));
     $form->addInput(new Text('sgGithubLimit', null, '12', _t('仓库上限（个）'), _t('只在「项目清单」留空（自动模式）时生效，默认 12；想全量显示填 0。手填的清单不受此限')));
     $form->addInput(new Textarea('sgTimeMilestones', null, '', _t('时光机 · 站史里程碑'), _t(

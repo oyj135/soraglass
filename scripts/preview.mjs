@@ -143,20 +143,20 @@ ${js ? `<script type="module" src="${js}"></script>` : ''}
           <a class="sg-nav-group-item is-active" href="#">时光机</a>
         </div>
       </div>
-      <div class="sg-nav-group" data-sg-nav-group>
+      <div class="sg-navbox-group" data-sg-nav-group>
         <button class="sg-nav-link sg-nav-group-btn" type="button" aria-expanded="false" aria-haspopup="true">🎐 逸趣${icons.chevronDown}</button>
         <div class="sg-nav-group-menu" role="menu">
           <a class="sg-nav-group-item" href="#">音乐馆</a>
           <a class="sg-nav-group-item" href="#">光影画廊</a>
         </div>
       </div>
-      <div class="sg-nav-group" data-sg-nav-group>
+      <div class="sg-navbox-group" data-sg-nav-group>
         <button class="sg-nav-link sg-nav-group-btn" type="button" aria-expanded="false" aria-haspopup="true">🧰 匣匣${icons.chevronDown}</button>
         <div class="sg-nav-group-menu" role="menu">
           <a class="sg-nav-group-item" href="#">项目</a>
         </div>
       </div>
-      <div class="sg-nav-group" data-sg-nav-group>
+      <div class="sg-navbox-group" data-sg-nav-group>
         <button class="sg-nav-link sg-nav-group-btn" type="button" aria-expanded="false" aria-haspopup="true">🕊 相逢${icons.chevronDown}</button>
         <div class="sg-nav-group-menu" role="menu">
           <a class="sg-nav-group-item" href="#">友链</a>
@@ -1020,25 +1020,17 @@ fs.writeFileSync(path.join(dist, 'preview-photowall.html'), photowallPage, 'utf8
 fs.writeFileSync(path.join(dist, 'preview-about.html'), aboutPage, 'utf8');
 fs.writeFileSync(path.join(dist, 'preview-timeline.html'), timelinePage, 'utf8');
 fs.writeFileSync(path.join(dist, 'preview-time.html'), timePage, 'utf8');
-/* 碎语页（notes-stream.php）：miraii 概览面板 + fomal 归档式年份时间轴 */
+/* 碎语页（notes-stream.php）：sg_page_head 页头 + miraii 三列卡片瀑布流 */
 const notesPage = `${head('碎语 - Soraglass')}
 <main class="sg-main sg-main--pad" data-sg-page="notes" data-sg-notes>
-  <section class="sg-moments sg-glass">
-    <div class="sg-moments-intro">
-      <span class="sg-moments-eyebrow">💬 Moments</span>
-      <h1 class="sg-moments-title">碎语</h1>
-      <p class="sg-moments-sub">短句与随想 · 想到什么写什么</p>
-      <div class="sg-moments-search">
-        <span class="sg-moments-search-ico">⌘</span>
-        <input class="sg-search-input sg-moments-search-input" type="search" placeholder="搜索碎语..." aria-label="搜索碎语">
+  <div class="sg-page-head">
+    <div class="sg-page-head-row is-centered">
+      <div>
+        <h1 class="sg-page-title">碎语</h1>
+        <p class="sg-page-sub">短句与随想 · 想到什么写什么</p>
       </div>
     </div>
-    <div class="sg-moments-stats" role="group" aria-label="碎语统计">
-      <div class="sg-moments-stat"><b>12</b><span>总动态</span></div>
-      <div class="sg-moments-stat"><b>4</b><span>含媒体</span></div>
-      <div class="sg-moments-stat"><b>7</b><span>图片</span></div>
-    </div>
-  </section>
+  </div>
   <div class="sg-notes-bar">
     <div class="sg-notes-tags"><span class="sg-notes-count">共 12 条</span></div>
     <div class="sg-notes-sort" role="group" aria-label="排序">
@@ -1062,7 +1054,7 @@ const notesPage = `${head('碎语 - Soraglass')}
         <a class="sg-photo" href="#"><img src="${IMG.cover}" alt=""></a>
         <a class="sg-photo" href="#"><img src="${IMG.cover}" alt=""></a>
       </div>
-      <footer class="sg-moment-foot"><span class="sg-tl-tag">#瞎语</span><span class="sg-moment-loc">📍 杭州</span><a class="sg-moment-permalink" href="#">🔗</a></footer>
+      <footer class="sg-moment-foot"><span class="sg-tl-tag">#瞎语</span><span class="sg-moment-loc">📍 杭州</span></footer>
     </article>
     <article class="sg-moment" data-sg-tl-item data-ts="1764000000" data-tag="日常" data-keywords="毛玻璃调好了吗">
       <header class="sg-moment-head">
@@ -1071,7 +1063,7 @@ const notesPage = `${head('碎语 - Soraglass')}
         <div class="sg-moment-day"><b>30</b><span>2026.03</span></div>
       </header>
       <div class="sg-moment-bubble">背景渐变标题一样流畅，毛玻璃调好了吗？</div>
-      <footer class="sg-moment-foot"><span class="sg-tl-tag">#日常</span><span class="sg-moment-loc">📍 杭州</span><a class="sg-moment-permalink" href="#">🔗</a></footer>
+      <footer class="sg-moment-foot"><span class="sg-tl-tag">#日常</span><span class="sg-moment-loc">📍 杭州</span></footer>
     </article>
     <article class="sg-moment" data-sg-tl-item data-ts="1734400000" data-tag="随想" data-keywords="深空色">
       <header class="sg-moment-head">
@@ -1080,7 +1072,7 @@ const notesPage = `${head('碎语 - Soraglass')}
         <div class="sg-moment-day"><b>2</b><span>2025.08</span></div>
       </header>
       <div class="sg-moment-bubble">夜里把深空色调成了 #020617，字像掉进银河。</div>
-      <footer class="sg-moment-foot"><span class="sg-tl-tag">#随想</span><a class="sg-moment-permalink" href="#">🔗</a></footer>
+      <footer class="sg-moment-foot"><span class="sg-tl-tag">#随想</span></footer>
     </article>
     </div>
     </section>
@@ -1088,8 +1080,57 @@ const notesPage = `${head('碎语 - Soraglass')}
 </main>
 `;
 
+/* 网址导航（page-nav.php）：分组书签盒 + 通讯录锚点栏 */
+const navData = [
+  { name: '算法之家', sites: [
+    { name: '代码随想录', url: 'https://programmercarl.com', desc: '一套完整的刷题计划' },
+    { name: '小林 coding', url: 'https://xiaolincoding.com', desc: '图解系列作者' },
+    { name: 'LeetCode', url: 'https://leetcode.cn', desc: '全球经典算法题库' },
+    { name: 'CodeTop', url: 'https://codetop.cc', desc: '大厂面试高频考题汇总' },
+    { name: 'Can I use', url: 'https://caniuse.com', desc: '浏览器兼容性速查表' },
+    { name: 'MDN', url: 'https://developer.mozilla.org', desc: 'Web 技术文档' },
+    { name: 'TypeScript 手册', url: 'https://www.tslang.cn', desc: '官方中文手册' },
+    { name: '正则在线测试', url: 'https://regex101.com', desc: '正则表达式调试' },
+  ] },
+  { name: '实用工具', sites: [
+    { name: 'TinyPNG', url: 'https://tinypng.com', desc: '图片无损压缩' },
+    { name: 'iLovePDF', url: 'https://www.ilovepdf.com', desc: '在线 PDF 工具箱' },
+    { name: 'CloudConvert', url: 'https://cloudconvert.com', desc: '在线格式转换' },
+    { name: 'iconfont', url: 'https://www.iconfont.cn', desc: '矢量图标管理平台' },
+    { name: 'Excalidraw', url: 'https://excalidraw.com', desc: '手绘风白板画图' },
+    { name: 'Speedtest', url: 'https://www.speedtest.cn', desc: '网速测试' },
+  ] },
+  { name: '观星日常', sites: [
+    { name: 'Windy', url: 'https://www.windy.com', desc: '全球可视化天气预报' },
+    { name: 'earth', url: 'https://earth.nullschool.net', desc: '全球风场可视化' },
+    { name: 'Stellarium', url: 'https://stellarium-web.org', desc: '在线星图' },
+    { name: '光污染地图', url: 'https://www.lightpollutionmap.info', desc: '观星必备' },
+  ] },
+];
+const navCardHtml = (s) => `<a class="sg-navbox-card" data-keywords="${s.name} ${s.desc} ${s.url}" href="${s.url}" target="_blank" rel="noopener noreferrer">
+      <span class="sg-navbox-icowrap"><span class="sg-navbox-fallback" aria-hidden="true">${s.name.slice(0, 1)}</span><img class="sg-navbox-ico" src="https://favicon.im/${new URL(s.url).host}?larger=true" alt="" loading="lazy" onerror="this.classList.add('is-broken')"></span>
+      <span class="sg-navbox-text"><b>${s.name}</b><span>${s.desc}</span></span>
+    </a>`;
+const navPage = `${head('网址导航 - Soraglass')}
+<main id="sg-main" class="sg-main sg-main--pad" data-sg-page="nav">
+  ${pageHead('网址导航', '收藏的网站与工具，一页打尽。', { center: true, search: true, placeholder: '搜索站名、简介或域名...' })}
+  <div class="sg-navbox-wrap">
+    <aside class="sg-navbox-side" data-sg-nav-side aria-label="分组锚点">
+      ${navData.map((g, i) => `<a class="sg-navbox-side-link${i === 0 ? ' is-active' : ''}" href="#sg-nav-g${i}" data-sg-nav-anchor="sg-nav-g${i}"><span>${g.name}</span><i>${g.sites.length}</i></a>`).join('\n      ')}
+    </aside>
+    <div class="sg-navbox-main" data-sg-nav-filter>
+      ${navData.map((g, i) => `<section class="sg-navbox-group" id="sg-nav-g${i}" data-sg-nav-group>
+        <h2 class="sg-navbox-group-title"><i>${String(i + 1).padStart(2, '0')}</i>${g.name}<span>${g.sites.length} 站</span></h2>
+        <div class="sg-navbox-grid">${g.sites.map(navCardHtml).join('')}</div>
+      </section>`).join('\n      ')}
+    </div>
+  </div>
+</main>
+`;
+
 fs.writeFileSync(path.join(dist, 'preview-notes.html'), notesPage, 'utf8');
+fs.writeFileSync(path.join(dist, 'preview-nav.html'), navPage, 'utf8');
 fs.writeFileSync(path.join(dist, 'preview-404.html'), notfoundPage, 'utf8');
 
-console.log('✓ 已生成 dist/preview-{index,post,archive,friends,photowall,about,timeline,time,404}.html');
+console.log('✓ 已生成 dist/preview-{index,post,archive,friends,photowall,about,timeline,time,notes,nav,404}.html');
 console.log('  这些文件仅供本地核对视觉，release 时会随 dist 一并清理。');

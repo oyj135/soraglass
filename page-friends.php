@@ -1,6 +1,6 @@
 <?php
 /**
- * 友链
+ * 友链（2026-11-22 第六十七轮：正文可直接粘友链数组 JSON，数据源优先级见下）
  *
  * @package custom
  */
@@ -8,7 +8,13 @@ if (!defined('SG_ROOT')) {
     require_once __DIR__ . '/functions.php';
 }
 $this->need('header.php');
-$sgFriends = array_values(array_filter(sg_json('sgFriends', 'friends', []), 'is_array'));
+
+/* 数据源优先级（sg_friends_for_page）：① 本页正文 JSON（正文不再当文章渲染）；
+   ② 后台「友链 JSON」；③ 主题内置示例。正文不是 JSON 时当页面介绍渲染。 */
+$sgRaw = sg_page_raw_text($this);
+$sgFromBody = false;
+$sgFriends = sg_friends_for_page($this, $sgRaw, $sgFromBody);
+$sgFriendProse = ($sgRaw !== '' && !$sgFromBody) ? $sgRaw : '';
 $sgHead = [
     'title'  => (string) $this->title,
     'sub'    => sg_page_sub($this, '那些散落在赛博宇宙中的有趣灵魂与神经节点。'),
@@ -44,7 +50,7 @@ $sgFriends = array_map(static function (array $row) use ($sgString): array {
 <main id="sg-main" tabindex="-1" class="sg-main sg-main--pad" data-sg-page="friends">
   <?php sg_page_head($sgHead); ?>
 
-  <?php if (trim((string) $this->content) !== '') : ?>
+  <?php if ($sgFriendProse !== '') : ?>
   <div class="sg-prose" style="margin-bottom:2rem"><?php $this->content(); ?></div>
   <?php endif; ?>
 
@@ -71,7 +77,7 @@ $sgFriends = array_map(static function (array $row) use ($sgString): array {
   <div class="sg-glass sg-notfound">
     <span class="sg-notfound-code">空</span>
     <h2>还没有友链</h2>
-    <p>有新的朋友时，会在这里相遇。</p>
+    <p>两种填法任选：① 编辑本页，正文直接粘贴 JSON（以 <code>[</code> 开头的友链数组，字段：name / url / description / avatar / siteshot）；② 后台 → 外观 → 主题设置 →「友链 JSON（兜底）」。</p>
   </div>
   <?php endif; ?>
 </main>

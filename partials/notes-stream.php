@@ -2,15 +2,12 @@
 /**
  * 「碎语」页 —— page-notes.php 与两个维护旧地址的兼容页（chatter / moments）共用。
  *
- * 2026-11-22 重构（第五十九轮）：
- *   结构 = miraii.cn/personal/moments 的 **概览面板**（eyebrow + 标题 + 副标题 + 搜索
- *           + 右侧三张统计卡：总动态 / 含媒体 / 图片）；
- *   内容展示 = 源站 fomal.cc/archives 的 **article-sort 时间轴**（hexo 主题
- *           layout/includes/mixins/article-sort.pug + _page/archives.styl）：
- *           竖轴 border-left + 圆点节点、年份大节点配生肖图标（复刻源站
- *           getAnimalIcon 彩蛋，走 iconfont 12 生肖 symbol）、
- *           条目 = 左侧 120px 封面（有图时，链到碎语正文）+ 日历图标日期 + 碎语文本。
- *   标签筛选 / 排序 / 搜索沿用原 bar 与 notes.ts 契约（data-sg-tl-month/items/item 不变）。
+ * 2026-11-22 重构（第六十一轮定稿）：
+ *   结构 = 全站标准 sg_page_head 页头（大标题 + 副标题压壁纸、居中，与项目/归档等独立页同款；
+ *          miraii moments 的概览面板已按用户要求整块移除）+ 三列卡片瀑布流：
+ *   卡片 = 头像/昵称 + 相对时间（sg_time_ago）+ 右上大号日数与年月 +
+ *   浅色气泡正文（超 10 行可展开）+ 图片栅格（灯箱）+ 尾部标签/心情/地点（不输出原文链接）。
+ *   筛选/排序/搜索沿用 notes.ts 契约（单组 data-sg-tl-month 承接全部卡片）。
  *
  * 变量通过 $GLOBALS 传（Typecho 的 need() 是独立作用域，普通变量进不来）。
  */
@@ -25,37 +22,6 @@ $sgHead['sub'] = trim(str_replace('杂谈与说说合并后的', '', (string) $s
 
 $sgHome = rtrim((string) $this->options->siteUrl, '/') . '/';
 
-/* 统计：总动态 / 含媒体 / 图片（miraii moments overview 同款三卡） */
-$sgMediaNotes = 0;
-$sgImageTotal = 0;
-foreach ($sgNotes as $sgNote) {
-    $sgImgs = is_array($sgNote['images'] ?? null) ? $sgNote['images'] : [];
-    if ($sgImgs) {
-        $sgMediaNotes++;
-        $sgImageTotal += count($sgImgs);
-    }
-}
-
-/* 按「年」分组（fomal archives 按年挂节点）；sg_notes() 已按时间倒序，这里只做归堆 */
-$sgYearGroups = [];
-foreach ($sgNotes as $sgNote) {
-    $sgYear = substr((string) ($sgNote['date'] ?? ''), 0, 4);
-    if ($sgYear === '' || !ctype_digit($sgYear)) {
-        $sgYear = gmdate('Y', (int) ($sgNote['created'] ?? 0));
-    }
-    if (!isset($sgYearGroups[$sgYear])) {
-        $sgYearGroups[$sgYear] = [];
-    }
-    $sgYearGroups[$sgYear][] = $sgNote;
-}
-
-/* 年份 → 生肖图标（复刻源站 getAnimalIcon：2020 鼠年起，(年-4) 对 12 取模） */
-$sgZodiacList = ['rat', 'ox', 'tiger', 'rabbit', 'dragon', 'snake', 'horse', 'goat', 'monkey', 'rooster', 'dog', 'boar'];
-$sgZodiacOf = static function (string $sgYear) use ($sgZodiacList): string {
-    $sgIdx = (((((int) $sgYear) - 4) % 12) + 12) % 12;
-    return 'icon-' . ($sgZodiacList[$sgIdx] ?? 'horse');
-};
-
 /* 标签胶囊：按出现次数排序，最多 8 个 */
 $sgTagCount = [];
 foreach ($sgNotes as $sgNote) {
@@ -66,26 +32,18 @@ foreach ($sgNotes as $sgNote) {
 }
 arsort($sgTagCount);
 $sgTags = array_slice(array_keys($sgTagCount), 0, 8);
+
+/* 卡片作者栏：头像与名字取主题设置，没填头像就用内置的（头像/昵称被卡片引用，
+   2026-11-22 曾在重写时丢失定义导致整页 Undefined variable 警告，已回补） */
+$sgAuthor = trim((string) sg_opt('sgAuthorName', ''));
+if ($sgAuthor === '') {
+    $sgAuthor = (string) sg_opt('sgNavTitle', 'Sonora');
+}
+$sgAvatar = sg_media((string) sg_opt('sgAvatarUrl', ''), sg_theme_url('dist/img/avatar.svg'));
 ?>
 <main id="sg-main" tabindex="-1" class="sg-main sg-main--pad" data-sg-page="notes" data-sg-notes>
-  <?php /* 概览面板（miraii moments overview）：eyebrow + 标题 + 副标题 + 搜索 + 三张统计卡 */ ?>
-  <section class="sg-moments sg-glass">
-    <div class="sg-moments-intro">
-      <span class="sg-moments-eyebrow">💬 Moments</span>
-      <h1 class="sg-moments-title"><?php echo sg_e((string) $sgHead['title']); ?></h1>
-      <?php if ((string) $sgHead['sub'] !== '') : ?><p class="sg-moments-sub"><?php echo sg_e((string) $sgHead['sub']); ?></p><?php endif; ?>
-      <div class="sg-moments-search">
-        <span class="sg-moments-search-ico"><?php echo sg_icon_color('history'); ?></span>
-        <input class="sg-search-input sg-moments-search-input" type="search" name="s"
-               placeholder="搜索碎语..." aria-label="搜索碎语" autocomplete="off">
-      </div>
-    </div>
-    <div class="sg-moments-stats" role="group" aria-label="碎语统计">
-      <div class="sg-moments-stat"><b><?php echo count($sgNotes); ?></b><span>总动态</span></div>
-      <div class="sg-moments-stat"><b><?php echo $sgMediaNotes; ?></b><span>含媒体</span></div>
-      <div class="sg-moments-stat"><b><?php echo $sgImageTotal; ?></b><span>图片</span></div>
-    </div>
-  </section>
+  <?php /* 页头：全站标准 sg_page_head（2026-11-22 第六十一轮，概览面板按要求移除） */ ?>
+  <?php sg_page_head($sgHead); ?>
 
   <?php if (trim((string) $this->content) !== '') : ?>
   <div class="sg-prose" style="margin:2rem auto 0;max-width:62rem"><?php $this->content(); ?></div>
@@ -162,12 +120,11 @@ $sgTags = array_slice(array_keys($sgTagCount), 0, 8);
         <?php endforeach; ?>
       </div>
       <?php endif; ?>
-      <?php if ($sgTag !== '' || $sgPlace !== '' || $sgMood !== '' || $sgLink !== '') : ?>
+      <?php if ($sgTag !== '' || $sgPlace !== '' || $sgMood !== '') : ?>
       <footer class="sg-moment-foot">
         <?php if ($sgTag !== '') : ?><span class="sg-tl-tag">#<?php echo sg_e($sgTag); ?></span><?php endif; ?>
         <?php if ($sgMood !== '') : ?><span class="sg-moment-mood"><?php echo sg_e($sgMood); ?></span><?php endif; ?>
         <?php if ($sgPlace !== '') : ?><span class="sg-moment-loc"><?php echo sg_icon_color('pin'); ?><?php echo sg_e($sgPlace); ?></span><?php endif; ?>
-        <?php if ($sgLink !== '') : ?><a class="sg-moment-permalink" href="<?php echo sg_e($sgLink); ?>" title="查看碎语正文"><?php echo sg_icon_color('link'); ?></a><?php endif; ?>
       </footer>
       <?php endif; ?>
     </article>

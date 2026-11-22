@@ -149,7 +149,7 @@ if (phpFiles.length === 0) errors.push('[源码缺失] 未发现任何 PHP 模�
 {
   const entry = path.join(root, 'src/styles/components.css');
   if (fs.existsSync(entry)) {
-    const expected = ['base', 'nav', 'floating', 'profile', 'player', 'home-content', 'article', 'pages', 'interactions']
+    const expected = ['base', 'nav', 'floating', 'profile', 'player', 'home-content', 'article', 'pages', 'nav-box', 'interactions']
       .map(n => `@import "./components/${n}.css";`);
     const src = fs.readFileSync(entry, 'utf8');
     const actual = src.split(/\r?\n/).map(l => l.trim()).filter(l => l.startsWith('@import "./components/'));

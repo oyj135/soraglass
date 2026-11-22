@@ -1433,3 +1433,196 @@ function sg_adjacent_post($archive, string $direction = 'prev'): ?array
         return null;
     }
 }
+
+/**
+ * 独立页正文原文（第六十七轮通用化）：从 contents 表按当前页 cid 读原始文本，
+ * 兼容粘贴时带 markdown 代码围栏（```json … ```，自动剥掉）。读取失败回空串。
+ * 模板用它判断正文是数据还是介绍文字；$archive->cid 走 Widget 魔术属性，
+ * 不能用 ?? 读取（Typecho 未实现 __isset，?? 会直接拿到默认值）。
+ */
+function sg_page_raw_text($archive): string
+{
+    $raw = '';
+    try {
+        $cid = (int) $archive->cid;
+        if ($cid > 0) {
+            $db = \Typecho\Db::get();
+            $row = $db->fetchRow($db->select('text')->from('table.contents')->where('cid = ?', $cid));
+            $raw = trim((string) ($row['text'] ?? ''));
+        }
+    } catch (\Throwable $e) {
+        $raw = '';
+    }
+    if (strncmp($raw, '```', 3) === 0) {
+        $raw = trim((string) preg_replace('/^```[a-z0-9]*\s*/i', '', $raw));
+        $raw = trim((string) preg_replace('/\s*```$/', '', $raw));
+    }
+    return $raw;
+}
+
+/**
+ * 独立页正文 JSON 数组解析：只认以 [ 开头的非空数组（元素须为对象/数组），
+ * 空 / 坏 JSON / 不是数组的正文一律回空数组，由调用方回落到后台数据源。
+ */
+function sg_page_json_rows(string $raw): array
+{
+    if ($raw === '' || $raw[0] !== '[') {
+        return [];
+    }
+    try {
+        $data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+    } catch (\Throwable $e) {
+        return [];
+    }
+    return is_array($data) ? array_values(array_filter($data, 'is_array')) : [];
+}
+
+/**
+ * 导航书签盒 · 数据解析（第六十五轮新增，第六十六轮改造数据源优先级，方案见
+ * docs/proposals/box-nav.md）。结构与项目清单同语言：数组 JSON，一项一个分组：
+ *   [{"name":"常用工具","sites":[{"name":"TinyPNG","url":"https://tinypng.com",
+ *     "desc":"图片无损压缩","icon":""}]}]
+ * 数据源优先级：① 网址导航页面的正文直接粘 JSON（在编辑器里填，正文不再当文章渲染）；
+ *   ② 后台「导航书签盒 · JSON」全局设置（多页共用 / 兜底）；③ 都没有 → 空数组（页面显示空态）。
+ * 容错：空 / 坏 JSON / 缺 name/url 的条目一律跳过，解析失败回空数组。
+ * 总站点数上限 200（超出截断），避免单页渲染过重。
+ */
+function sg_nav_box_parse(string $raw): array
+{
+    $data = [];
+    if ($raw === '') {
+        return $data;
+    }
+    try {
+        $data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+    } catch (\Throwable $e) {
+        return [];
+    }
+    if (!is_array($data)) {
+        return [];
+    }
+    $out = [];
+    $total = 0;
+    foreach ($data as $group) {
+        if (!is_array($group) || $total >= 200) {
+            continue;
+        }
+        $gname = trim((string) ($group['name'] ?? ''));
+        if ($gname === '') {
+            continue;
+        }
+        $sites = [];
+        foreach ((array) ($group['sites'] ?? []) as $site) {
+            if (!is_array($site) || $total >= 200) {
+                continue;
+            }
+            $name = trim((string) ($site['name'] ?? ''));
+            $url = trim((string) ($site['url'] ?? ''));
+            if ($name === '' || $url === '') {
+                continue;
+            }
+            $sites[] = [
+                'name' => $name,
+                'url'  => $url,
+                'desc' => trim((string) ($site['desc'] ?? '')),
+                'icon' => trim((string) ($site['icon'] ?? '')),
+            ];
+            $total++;
+        }
+        if (!$sites) {
+            continue;
+        }
+        $out[] = ['name' => $gname, 'sites' => $sites];
+    }
+    return $out;
+}
+
+/** 全局设置「导航书签盒 · JSON」（sgNavBox）解析；页面正文 JSON 优先于它（见 sg_nav_box_for()）。 */
+function sg_nav_box(): array
+{
+    static $cache = null;
+    if ($cache !== null) {
+        return $cache;
+    }
+    $cache = sg_nav_box_parse(trim((string) sg_opt('sgNavBox', '')));
+    return $cache;
+}
+
+/**
+ * 导航书签盒 · 当前页面的数据源。页面正文以 [ 开头且能解析成数组 → 用正文 JSON
+ * （正文不再当文章渲染）；否则回落全局 sgNavBox，正文当介绍文字渲染。
+ * $fromBody 回传是否采用了正文（第六十七轮统一，供三个页面共用同一判定）。
+ */
+function sg_nav_box_for($archive, string $rawText = '', bool &$fromBody = false): array
+{
+    $fromBody = false;
+    if ($rawText !== '' && $rawText[0] === '[') {
+        $parsed = sg_nav_box_parse($rawText);
+        if ($parsed) {
+            $fromBody = true;
+            return $parsed;
+        }
+    }
+    return sg_nav_box();
+}
+
+/**
+ * 项目页取数（第六十七轮）：正文数组 JSON → 后台「项目 JSON」→ GitHub → 内置示例。
+ * $fromBody 回传是否采用正文，模板据此决定要不要把正文当介绍文字渲染。
+ * 正文条目至少要有 name，避免手滑粘错时渲染一排空卡。
+ */
+function sg_projects_for_page($archive, string $rawText = '', bool &$fromBody = false): array
+{
+    $fromBody = false;
+    $rows = sg_page_json_rows($rawText);
+    if ($rows) {
+        $rows = array_values(array_filter($rows, static function (array $row): bool {
+            return trim((string) ($row['name'] ?? '')) !== '';
+        }));
+        if ($rows) {
+            $fromBody = true;
+            return $rows;
+        }
+    }
+    return sg_projects();
+}
+
+/**
+ * 友链页取数（第六十七轮）：正文数组 JSON → 后台「友链 JSON」→ 内置示例。
+ * 条目需有 name 与 url；其它字段沿用模板原有归一化（siteshot/avatar 兜底）。
+ */
+function sg_friends_for_page($archive, string $rawText = '', bool &$fromBody = false): array
+{
+    $fromBody = false;
+    $rows = sg_page_json_rows($rawText);
+    if ($rows) {
+        $rows = array_values(array_filter($rows, static function (array $row): bool {
+            return trim((string) ($row['name'] ?? '')) !== ''
+                && trim((string) ($row['url'] ?? '')) !== '';
+        }));
+        if ($rows) {
+            $fromBody = true;
+            return $rows;
+        }
+    }
+    return array_values(array_filter(sg_json('sgFriends', 'friends', []), 'is_array'));
+}
+
+/**
+ * 导航书签盒 · 站点图标地址。三级策略（见 docs/proposals/box-nav.md §2.4）：
+ *   1) JSON 手填 icon → 直接用；
+ *   2) 留空 → favicon.im 按域名在线取（国内可达，源站同款思路）；
+ *   3) 加载失败 → 模板 onerror 回退站名首字圆徽（纯 CSS，见 nav-box.css）。
+ */
+function sg_nav_icon_url(string $url, string $icon = ''): string
+{
+    $icon = trim($icon);
+    if ($icon !== '') {
+        return $icon;
+    }
+    $host = parse_url($url, PHP_URL_HOST);
+    if (!is_string($host) || $host === '') {
+        return '';
+    }
+    return 'https://favicon.im/' . $host . '?larger=true';
+}

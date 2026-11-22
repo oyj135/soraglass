@@ -9,6 +9,7 @@ import { initArchive } from './modules/archive';
 import { initGallery } from './modules/gallery';
 import { initArticle } from './modules/article';
 import { initNotes } from './modules/notes';
+import { initNavBox } from './modules/nav-box';
 import { initNavigation } from './modules/navigation';
 import { initHome } from './modules/home';
 import { initRightside } from './modules/rightside';
@@ -49,6 +50,7 @@ function mountPage(): void {
   safe('gallery', initGallery);
   safe('article', initArticle);
   safe('notes', initNotes);
+  safe('nav-box', initNavBox);
   safe('home', initHome);
   safe('sidebar-data', initSidebarData);
   safe('rightside', initRightside);

@@ -917,80 +917,9 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
 
 .sg-notes-sort button.is-active { color: var(--sg-fg); background: color-mix(in srgb, var(--sg-accent) 16%, transparent); }
 
-/* ---------- 碎语页（2026-11-22 重构：结构 miraii.cn/personal/moments + 内容展示 fomal.cc/archives） ----------
-   概览面板 = miraii moments overview：eyebrow + 标题 + 副标题 + 搜索 + 右侧三张统计卡（总动态/含媒体/图片）；
-   内容 = 源站归档的 article-sort 同构时间轴（_page/archives.styl）：竖轴 border-left + 描边圆点节点，
-   年份大节点配生胖图标（复刻源站 getAnimalIcon 彩蛋，走 iconfont 12 生肖 symbol；(2020 鼠年起 (y-4)%12），
-   条目 = 左 120px 封面（有图时，链到碎语正文）+ 日历图标日期 + 碎语文本（hover translateX 同源站）。
-   标签筛选/排序 bar 与 notes.ts 契约（data-sg-tl-month/items/item）不变。 */
-.sg-moments {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: stretch;
-  justify-content: space-between;
-  gap: 1.25rem;
-  max-width: 62rem;
-  width: 100%;
-  margin-inline: auto;
-  padding: 1.4rem 1.6rem;
-  border-radius: var(--sg-radius);
-  background: var(--sg-card);
-  border: 1px solid var(--sg-card-border);
-  box-shadow: var(--sg-shadow);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-.sg-moments-intro { flex: 1 1 20rem; min-width: 0; }
-.sg-moments-eyebrow {
-  display: inline-flex; align-items: center; gap: .4rem;
-  font-family: var(--font-sans); font-size: .78rem; font-weight: 700;
-  letter-spacing: .18em; color: var(--sg-accent-ink);
-}
-.sg-moments-title {
-  margin: .5rem 0 .35rem;
-  font-family: var(--font-serif); font-size: 1.7rem; font-weight: 800; letter-spacing: .03em;
-  color: var(--sg-text);
-}
-.sg-moments-sub { margin: 0; font-size: .9rem; color: var(--sg-muted); }
-.sg-moments-search {
-  position: relative;
-  display: flex; align-items: center;
-  margin-top: .9rem; max-width: 22rem;
-}
-.sg-moments-search-ico { position: absolute; left: .7rem; display: inline-flex; color: var(--sg-faint); }
-.sg-moments-search-ico svg { width: 1em; height: 1em; }
-.sg-moments-search-input {
-  width: 100%;
-  padding: .5rem .9rem .5rem 2.1rem;
-  border-radius: 999px;
-  border: 1px solid var(--sg-card-border);
-  background: color-mix(in srgb, var(--sg-accent) 6%, transparent);
-  color: var(--sg-text);
-  font: inherit; font-size: .875rem;
-  transition: border-color .25s var(--sg-ease), background .25s var(--sg-ease);
-}
-.sg-moments-search-input:focus-visible {
-  outline: none;
-  border-color: color-mix(in srgb, var(--sg-accent) 42%, transparent);
-  background: color-mix(in srgb, var(--sg-accent) 10%, transparent);
-}
-.sg-moments-stats { display: flex; gap: .7rem; align-items: stretch; }
-.sg-moments-stat {
-  min-width: 5.2rem; padding: .8rem 1rem;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .15rem;
-  border-radius: var(--sg-radius-inner);
-  background: color-mix(in srgb, var(--sg-accent) 8%, transparent);
-  border: 1px solid var(--sg-card-border);
-}
-.sg-moments-stat b {
-  font-family: var(--font-sans); font-size: 1.45rem; font-weight: 800;
-  font-variant-numeric: tabular-nums; color: var(--sg-accent-ink);
-}
-.sg-moments-stat span { font-size: .72rem; color: var(--sg-muted); letter-spacing: .04em; }
-
-//* ---------- 碎语卡片瀑布流（miraii moments 同构） ----------
-   CSS 多列分栏（columns: 3 / 2 / 1）+ break-inside 实现矱子流，
-   卡片 = 头像/昵称 + 相对时间、右上大号日号 + 年月；正文浅色泡泡；图片梛格；标签/心情/地点小尾行。
+/* ---------- 碎语页卡片瀑布流（2026-11-22 第六十一轮：页头回归全站 sg_page_head，概览面板样式移除） ----------
+   CSS 多列分栏（columns: 3 / 2 / 1）+ break-inside 实现瀑布流，
+   卡片 = 头像/昵称 + 相对时间、右上大号日数 + 年月；正文浅色气泡；图片栅格；标签/心情/地点小尾行。
    筛选/排序/长文展开契约与 notes.ts 一致（data-sg-tl-month/items/item 单组承接）。 */
 .sg-moments-section { margin-top: 2rem; }
 .sg-moments-grid {
@@ -1063,12 +992,6 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
   font-size: .72rem; color: var(--sg-muted);
 }
 .sg-moment-loc svg { width: 1em; height: 1em; }
-.sg-moment-permalink {
-  margin-left: auto; display: inline-flex; color: var(--sg-faint);
-  transition: color .25s var(--sg-ease);
-}
-.sg-moment-permalink svg { width: 1em; height: 1em; }
-.sg-moment-permalink:hover { color: var(--sg-accent-ink); }
 .sg-moment.sg-filtered-out { display: none; }
 
 /* ---------- 碎语（合并杂谈 / 说说后的单页短记流） ---------- */
