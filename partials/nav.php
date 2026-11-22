@@ -94,6 +94,11 @@ $sgNavHints = [
 /* 导航图标（2026-11-21 定档）：改用源站 iconfont CDN 多色 symbol（header.php 的 4 个 async JS 注入），
    每枚内嵌独立品牌色、真彩色质感，与全站语义图标同源；原先是 sg_icon + 内联色（假彩色）。 */
 $sgNavIconMap = [
+    /* 书签盒（原网址导航）：模板名 / slug / 改名前后的标题都覆盖，保证后台改名后图标不丢 */
+    'page-nav'  => 'icon-lianjie',
+    'nav'       => 'icon-lianjie',
+    '书签盒'    => 'icon-lianjie',
+    '网址导航'  => 'icon-lianjie',
     'archives'  => 'icon-guidang1',
     'timeline'  => 'icon--article',
     'time'      => 'icon-lishi',
