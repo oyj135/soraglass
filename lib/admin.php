@@ -843,6 +843,16 @@ function themeConfig($form): void
     ) . sg_admin_json_tools() . sg_admin_github_picker('sgProjectList', 'oyj135')));
     $form->addInput(new Text('sgGithubUser', null, 'oyj135', _t('GitHub 账号'), _t('「项目」页从这里列仓库。填用户名即可，例如 <code>oyj135</code>；留空则不启用 GitHub 数据源')));
     $form->addInput(new Text('sgGithubLimit', null, '12', _t('仓库上限（个）'), _t('只在「项目清单」留空（自动模式）时生效，默认 12；想全量显示填 0。手填的清单不受此限')));
+    $form->addInput(new Textarea('sgTimeMilestones', null, '', _t('时光机 · 站史里程碑'), _t(
+        '<b>显示位置</b>：「时光机」页顶部的大事时间线。<br>'
+        . '<b>格式</b>：每行一条「日期|标题|说明」，竖线分隔，说明可省略。<br>'
+        . '留空时显示内置三条：2023-11-02 WordPress 建站（主题 Astra）、2025-12-18 迁移 Typecho（Butterfly 移植版）、2026-11-06 决定开发自己的主题 Soraglass。'
+    )));
+    $form->addInput(new Textarea('sgTimeModels', null, '', _t('时光机 · 使用过的模型与占比'), _t(
+        '<b>显示位置</b>：「时光机」页顶部「使用过的模型」面板。<br>'
+        . '<b>格式</b>：每行一条「模型名|占比」，占比为 0–100 的数字（可带 %），按占比从高到低显示；名称里不要带竖线。<br>'
+        . '留空时整个面板不输出。'
+    )));
     $form->addInput(new Text('sgPlaylist', null, '', _t('Meting 歌单接口地址'), _t(
         '填写一条完整的 Meting 接口地址，例如 '
         . '<code>https://api.injahow.cn/meting/?server=netease&amp;type=playlist&amp;id=2619366284</code>，'

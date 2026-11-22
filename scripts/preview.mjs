@@ -876,42 +876,76 @@ const notfoundPage = `${head('404 - Soraglass')}
 </main>
 ${foot()}`;
 
-/* 时光机（page-time.php）：日期分组 + 编号列表，与 data/history.md 同构 */
+/* 时光机（page-time.php）：年报式页头 + 里程碑/模型面板 + 大年份分区（轴 + 轮次 + 子项） */
 const sgTimeDemo = [
-  { date: '2026-11-22', items: [
-    '<strong>第五十三轮（用户七项）</strong>：标签云背景、封面文字可读性、分类芯片 hover、页头网格、网站图标、精选卡宽。',
-    '<strong>第五十二轮（用户八项）</strong>：项目封面外链/仓库折叠、两卡缩放、访客数 hover、碎语时区修复（<code>sg_date_ts()</code>）、月份胶囊、原文链接、精选标签、夜间标签云。',
+  { date: '2026-11-22', subs: [
+    '标签云背景、封面文字可读性、分类芯片 hover、页头网格、网站图标、精选卡宽。',
   ]},
-  { date: '2026-11-21', items: [
-    '<strong>第四十九轮（用户六项）</strong>：文章标题去背景、夜间三色轮询发光、导航 hover 薄荷青、跑马灯下线、日间波浪换主题色、作者卡换竹叶书签。',
-    '<strong>第四十八轮（用户三问）</strong>：夜间下拉选中态朱批实底白字；社交与导航图标换源站 CDN symbol。',
-  ]},
-  { date: '2026-11-18', items: [
-    '<strong>第十七轮</strong>：只保留源站那一套霞鹜文楷，<code>soraglass.zip</code> 340 文件 / 19.58 MB。',
-    '<strong>第八轮（打造 Soraglass 独有的）</strong>：作者卡横幅改「夜航星海」，头像常驻青瓷装饰星，社交图标升级品牌微光底。',
+  { date: '2026-11-21', subs: [
+    '文章标题去背景、夜间三色轮询发光、导航 hover 薄荷青、跑马灯下线、日间波浪换主题色、作者卡换竹叶书签。',
   ]},
 ];
+const sgTimeRound = (n, lead, subs) => `<li class="sg-time-round">
+  <span class="sg-time-round-num" aria-hidden="true">${n}</span>
+  <div class="sg-time-round-body">
+    <p class="sg-time-round-title">${lead}</p>
+    <ol class="sg-time-subs">
+      ${subs.map((t, i) => `<li><span class="sg-time-sub-num" aria-hidden="true">${i + 1}</span><div class="sg-time-sub-text"><strong>小节标题</strong>：${t}</div></li>`).join('')}
+    </ol>
+  </div>
+</li>`;
 const timePage = `${head('时光机 - Soraglass')}
 <main class="sg-main sg-main--pad" data-sg-page="time">
-  <div class="sg-page-head">
-    <div class="sg-page-head-row is-centered">
-      <div>
-        <h1 class="sg-page-title">时光机</h1>
-        <p class="sg-page-sub">小站建设进程</p>
-      </div>
+  <header class="sg-time-hero">
+    <span class="sg-time-badge">SITE CHANGELOG</span>
+    <h1 class="sg-time-title">时光机</h1>
+    <p class="sg-time-stats">
+      <span>从 <b>2026-11-16</b> 记到 <b>2026-11-22</b></span><i>·</i>
+      <span>历时 <b>7</b> 天</span><i>·</i>
+      <span>更新 <b>0</b> 天</span><i>·</i>
+      <span>共 <b>70</b> 条记录</span><i>·</i>
+      <span>横跨 <b>1</b> 个年份</span>
+    </p>
+    <div class="sg-time-yearpills" role="group" aria-label="按年份筛选" data-sg-time-pills>
+      <button class="sg-time-yearpill" type="button" data-sg-time-pill="2026" aria-pressed="false">
+        <span class="sg-time-yearpill-year">2026</span><span class="sg-time-yearpill-count">70 条</span>
+        <span class="sg-time-yearpill-bar" aria-hidden="true"><span style="width:100%"></span></span>
+      </button>
     </div>
-  </div>
-  <ol class="sg-time" aria-label="网站建设时光轴">
-    ${sgTimeDemo.map((g) => `
-    <li class="sg-time-item">
-      <h2 class="sg-time-when">${g.date}</h2>
-      <div class="sg-time-card">
-        <ol class="sg-time-list">
-          ${g.items.map((t) => `<li>${t}</li>`).join('')}
-        </ol>
-      </div>
-    </li>`).join('')}
-  </ol>
+  </header>
+  <section class="sg-time-milestones" aria-label="站史里程碑">
+    <h2 class="sg-time-section-title">站史 · 里程碑</h2>
+    <ol class="sg-time-ms-list">
+      <li class="sg-time-ms"><time class="sg-time-ms-date">2023-11-02</time><div class="sg-time-ms-body"><h3>拥有属于自己的博客</h3><p>大二这年，用 WordPress 搭起了自己的第一台博客，主题 Astra</p></div></li>
+      <li class="sg-time-ms"><time class="sg-time-ms-date">2025-12-18</time><div class="sg-time-ms-body"><h3>博客迁移到 Typecho</h3><p>从 WordPress 整体迁移，主题换用 Butterfly 移植版</p></div></li>
+      <li class="sg-time-ms"><time class="sg-time-ms-date">2026-11-06</time><div class="sg-time-ms-body"><h3>开始开发自己的主题</h3><p>决定基于 Typecho 框架，开发一个属于自己的博客主题 —— Soraglass（空璃）</p></div></li>
+    </ol>
+  </section>
+  <section class="sg-time-models" aria-label="使用过的模型与占比">
+    <h2 class="sg-time-section-title">使用过的模型</h2>
+    <ul class="sg-time-model-list">
+      <li class="sg-time-model"><span class="sg-time-model-name">Claude Sonnet</span><span class="sg-time-model-bar" aria-hidden="true"><span style="width:60%"></span></span><span class="sg-time-model-ratio">60%</span></li>
+      <li class="sg-time-model"><span class="sg-time-model-name">GLM</span><span class="sg-time-model-bar" aria-hidden="true"><span style="width:40%"></span></span><span class="sg-time-model-ratio">40%</span></li>
+    </ul>
+  </section>
+  <section class="sg-time-year" data-sg-time-year="2026">
+    <div class="sg-time-year-head">
+      <h2 class="sg-time-year-num">2026</h2>
+      <span class="sg-time-year-meta">70 条记录 · 7 天</span>
+    </div>
+    <ol class="sg-time">
+      ${sgTimeDemo.map((g, gi) => `
+      <li class="sg-time-item"${gi === 0 ? ' data-sg-time-latest' : ''}>
+        <h3 class="sg-time-when"><span class="sg-time-when-year">${g.date.slice(0, 4)}</span><span class="sg-time-when-day">${g.date.slice(5)}</span></h3>
+        ${gi === 0 ? '<span class="sg-time-latest">最新记录</span>' : ''}
+        <div class="sg-time-card">
+          <ol class="sg-time-rounds">
+            ${sgTimeRound(1, '第五十三轮（用户七项）', g.subs)}
+          </ol>
+        </div>
+      </li>`).join('')}
+    </ol>
+  </section>
 </main>
 ${foot()}`;
 

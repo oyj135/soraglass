@@ -92,6 +92,7 @@ $sgNavHints = [
 $sgNavIconMap = [
     'archives'  => 'icon-guidang1',
     'timeline'  => 'icon--article',
+    'time'      => 'icon-lishi',
     'notes'     => 'icon-liuyan',
     'chatter'   => 'icon-liuyan',
     'moments'   => 'icon-liuyan',
