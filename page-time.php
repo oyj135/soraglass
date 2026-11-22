@@ -195,14 +195,17 @@ $sgTimeLatest = $sgTimeDates ? max($sgTimeDates) : '';
 $sgTimeSpanDays = 0;
 $sgTimeSpanY = 0;
 $sgTimeSpanM = 0;
+$sgTimeSpanD = 0;
 $sgTimeSinceDays = 0;
 if ($sgTimeEarliest !== '' && $sgTimeLatest !== '') {
     try {
         $sgA = new DateTimeImmutable($sgTimeEarliest);
         $sgB = new DateTimeImmutable($sgTimeLatest);
-        $sgTimeSpanDays = (int) $sgA->diff($sgB)->days;
-        $sgTimeSpanY = $sgA->diff($sgB)->y;
-        $sgTimeSpanM = $sgA->diff($sgB)->m;
+        $sgTimeDiff = $sgA->diff($sgB);
+        $sgTimeSpanDays = (int) $sgTimeDiff->days;
+        $sgTimeSpanY = (int) $sgTimeDiff->y;
+        $sgTimeSpanM = (int) $sgTimeDiff->m;
+        $sgTimeSpanD = (int) $sgTimeDiff->d;
         $sgTimeSinceDays = (int) $sgB->diff(new DateTimeImmutable(date('Y-m-d')))->days;
     } catch (Throwable $e) {
         // 日期解析失败时统计留 0，不阻塞页面
@@ -236,7 +239,12 @@ usort($sgTimeModels, static fn (array $a, array $b): int => $b['ratio'] <=> $a['
     <p class="sg-time-stats">
       <span>从 <b><?php echo sg_e($sgTimeEarliest); ?></b> 记到 <b><?php echo sg_e($sgTimeLatest); ?></b></span>
       <i>·</i>
-      <span>历时 <b><?php echo $sgTimeSpanDays; ?></b> 天<?php if ($sgTimeSpanY > 0) : ?>（约 <?php echo $sgTimeSpanY; ?> 年 <?php echo $sgTimeSpanM; ?> 个月）<?php endif; ?></span>
+      <span>历时 <b><?php echo $sgTimeSpanDays; ?></b> 天<?php
+        if ($sgTimeSpanY > 0 && $sgTimeSpanM > 0) : ?>（约 <?php echo $sgTimeSpanY; ?> 年 <?php echo $sgTimeSpanM; ?> 个月）<?php
+        elseif ($sgTimeSpanY > 0 && $sgTimeSpanD > 0) : ?>（约 <?php echo $sgTimeSpanY; ?> 年 <?php echo $sgTimeSpanD; ?> 天）<?php
+        elseif ($sgTimeSpanY > 0) : ?>（整 <?php echo $sgTimeSpanY; ?> 年）<?php
+        elseif ($sgTimeSpanM > 0) : ?>（约 <?php echo $sgTimeSpanM; ?> 个月）<?php
+        endif; ?></span>
       <i>·</i>
       <span><?php echo $sgTimeSinceDays > 0 ? '更新 <b>' . $sgTimeSinceDays . '</b> 天前' : '更新于<b>今天</b>'; ?></span>
       <i>·</i>

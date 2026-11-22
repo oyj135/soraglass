@@ -94,6 +94,9 @@ $sgNavIconMap = [
     'archives'  => 'icon-guidang1',
     'timeline'  => 'icon--article',
     'time'      => 'icon-lishi',
+    /* 标题兑底：Page List 行的 template/slug 在部分环境下取不到（用户页面 slug 可能改过），
+       页面标题是最稳定的最后一道匹配。 */
+    '时光机'    => 'icon-lishi',
     'notes'     => 'icon-liuyan',
     'chatter'   => 'icon-liuyan',
     'moments'   => 'icon-liuyan',
@@ -105,10 +108,13 @@ $sgNavIconMap = [
     'projects'  => 'icon-codeoptimization',
 ];
 $sgNavIcon = static function (array $sgPage) use ($sgNavIconMap): string {
-    /* 图标优先按模板名（contents.template，去掉 .php）匹配，slug 只是兑底 ——
-       用户可能把页面 slug 改成任意值（如「时光机」拼音），模板名才是稳定标识。 */
+    /* 图标按 模板名（contents.template 去掉 .php）→ slug → 页面标题 三级匹配 ——
+       模板/slug 在部分环境下取不到，标题是用户在导航上直接可见的稳定标识。 */
     $sgTpl = preg_replace('/\.php$/i', '', (string) ($sgPage['template'] ?? ''));
-    $sgSymbol = $sgNavIconMap[$sgTpl] ?? $sgNavIconMap[$sgPage['slug']] ?? null;
+    $sgSymbol = $sgNavIconMap[$sgTpl]
+        ?? $sgNavIconMap[$sgPage['slug']]
+        ?? $sgNavIconMap[trim((string) $sgPage['title'])]
+        ?? null;
     if ($sgSymbol === null) {
         return '';
     }

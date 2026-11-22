@@ -908,7 +908,7 @@ const timePage = `${head('时光机 - Soraglass')}
     <h1 class="sg-time-title">时光机</h1>
     <p class="sg-time-stats">
       <span>从 <b>2023-11-02</b> 记到 <b>2026-11-22</b></span><i>·</i>
-      <span>历时 <b>1116</b> 天（约 3 年 1 个月）</span><i>·</i>
+      <span>历时 <b>1116</b> 天（约 3 年 20 天）</span><i>·</i>
       <span>更新于<b>今天</b></span><i>·</i>
       <span>共 <b>73</b> 条记录</span><i>·</i>
       <span>横跨 <b>3</b> 个年份</span>
