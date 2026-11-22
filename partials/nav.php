@@ -3,8 +3,9 @@
  * 顶部导航 + 移动端半圆盘 + 抽屉。
  * 高亮规则：首页 → index；独立页 → 缩略名；归档/搜索 → 归档页（timeline）。
  *
- * 「碎语」是合并后的统一入口：后台若已建 notes 独立页就用它自己的标题与链接，
- * 没建则退到 chatter / moments 这两个兼容页（模板会渲染同一份碎语流），
+ * 「碎语」是合并后的统一入口（2026-11-22 第五十八轮重写）：slug 为 notes 或模板为碎语模板
+ * （notes.php）的页面都视为统一入口，按它在页面层级里的位置自然显示（父页组内或顶层直链）；
+ * 旧 chatter / moments 地址仅作兼容，不再生成第二份导航条目；真碎语页不存在时才回落兼容条目，
  * 保证任何时候都只有一个入口、且不会指向死链。
  *
  * 分组导航（2026-11-22，参考 miraii.cn 的分组顶栏）：
@@ -39,10 +40,17 @@ while ($sgNavPages->next()) {
 $sgMergedSlugs = ['chatter', 'moments'];   // 合并进「碎语」的旧页面
 $sgHiddenSlugs = array_merge(['tree'], $sgMergedSlugs);
 
+/* 碎语统一入口（2026-11-22 第五十八轮重写）：slug 为 notes 或模板为碎语模板（notes.php）
+   的页面都视为统一入口 —— 真碎语页按它在页面层级里的位置自然显示（父页组内或顶层直链），
+   旧 chatter/moments 地址仅作兼容、不再生成第二份导航条目（此前新建碎语页 slug 不是
+   notes 时，兼容条目会重复出现一份「碎语」）。真碎语页不存在时才回落兼容/合成条目。 */
 $sgNotesEntry = null;
+$sgNotesIsReal = false;
 foreach ($sgPages as $sgPage) {
-    if ($sgPage['slug'] === 'notes') {
+    $sgPageTpl = preg_replace('/\.php$/i', '', (string) $sgPage['template']);
+    if ($sgPage['slug'] === 'notes' || $sgPageTpl === 'notes') {
         $sgNotesEntry = $sgPage;
+        $sgNotesIsReal = true;
         break;
     }
 }
@@ -60,28 +68,16 @@ if ($sgNotesEntry === null) {
 }
 
 $sgNavItems = [];
-$sgNotesDone = false;
 foreach ($sgPages as $sgPage) {
+    /* 旧碎语地址（chatter/moments）与 tree 永不出现在导航；
+       真碎语页与其它页面一样，按自己的层级位置自然进入导航（不在这里特殊插入）。 */
     if (in_array($sgPage['slug'], $sgHiddenSlugs, true)) {
-        /* 在第一个被合并的旧页位置插入「碎语」，保持原来的排序位置 */
-        if (!$sgNotesDone && in_array($sgPage['slug'], $sgMergedSlugs, true)) {
-            $sgNavItems[] = $sgNotesEntry;
-            $sgNotesDone = true;
-        }
-        continue;
-    }
-    if ($sgPage['slug'] === 'notes') {
-        /* 页面自己就是统一入口：直接用它的条目，只输出一次 */
-        if (!$sgNotesDone) {
-            $sgNavItems[] = $sgNotesEntry;
-            $sgNotesDone = true;
-        }
         continue;
     }
     $sgNavItems[] = $sgPage;
 }
-if (!$sgNotesDone) {
-    $sgNavItems[] = $sgNotesEntry;
+if (!$sgNotesIsReal) {
+    $sgNavItems[] = $sgNotesEntry; // 无真实碎语页时，兼容条目放在末尾
 }
 
 /* 高亮：「碎语」相关页面（notes / 兼容旧页 / 旧页被访问时）统一高亮这一条 */
