@@ -1358,3 +1358,25 @@ html.dark [data-sg-gallery] .sg-gallery-masonry .sg-photo {
   .sg-time-year-head { margin: 2.25rem 0 1rem; }
 }
 @media (prefers-reduced-motion: reduce) { .sg-time-yearpill { transition: none; } }
+/* 2026-11-22：时光机页头标题与统计行夜间同步三色轮询发光（复用 article.css 的 sg-post-neon keyframes，
+   text-shadow 可继承，统计行整体动画即可连带全部子文本；日间无阴影，reduced-motion 关） */
+html.dark .sg-time-title { animation: sg-post-neon 12s linear infinite; }
+html.dark .sg-time-stats { animation: sg-post-neon 12s linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  html.dark :is(.sg-time-title, .sg-time-stats) { animation: none; }
+}
+/* 里程碑并入时间轴后在轮次标题尾部的小徽章 */
+.sg-time-ms-tag {
+  display: inline-block;
+  vertical-align: .1em;
+  margin-left: .45rem;
+  padding: .05rem .5rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sg-accent) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sg-accent) 36%, transparent);
+  color: var(--sg-accent-ink);
+  font-family: var(--font-sans);
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+}

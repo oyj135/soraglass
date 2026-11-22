@@ -23,6 +23,7 @@ while ($sgNavPages->next()) {
         'slug'  => (string) $sgNavPages->slug,
         'title' => (string) $sgNavPages->title,
         'url'   => trim((string) ob_get_clean()),
+        'template' => (string) $sgNavPages->template,
     ];
 }
 
@@ -103,8 +104,11 @@ $sgNavIconMap = [
     'about'     => 'icon-shejiaoxinxi',
     'projects'  => 'icon-codeoptimization',
 ];
-$sgNavIcon = static function (string $sgSlug) use ($sgNavIconMap): string {
-    $sgSymbol = $sgNavIconMap[$sgSlug] ?? null;
+$sgNavIcon = static function (array $sgPage) use ($sgNavIconMap): string {
+    /* 图标优先按模板名（contents.template，去掉 .php）匹配，slug 只是兑底 ——
+       用户可能把页面 slug 改成任意值（如「时光机」拼音），模板名才是稳定标识。 */
+    $sgTpl = preg_replace('/\.php$/i', '', (string) ($sgPage['template'] ?? ''));
+    $sgSymbol = $sgNavIconMap[$sgTpl] ?? $sgNavIconMap[$sgPage['slug']] ?? null;
     if ($sgSymbol === null) {
         return '';
     }
@@ -138,7 +142,7 @@ foreach ($sgNavMore as $sgMorePage) {
     <nav class="sg-nav-links" aria-label="主导航">
       <a class="sg-nav-link<?php echo $sgActive === 'index' ? ' is-active' : ''; ?>"<?php echo $sgActive === 'index' ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgHome); ?>"><span class="sg-nav-ico"><svg aria-hidden="true"><use href="#icon-home"></use></svg></span>首页<?php if ($sgActive === 'index') : ?><span class="sg-nav-dot"></span><?php endif; ?></a>
       <?php foreach ($sgNavPrimary as $sgPage) : ?>
-      <a class="sg-nav-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>"<?php echo $sgActiveKey === $sgPage['slug'] ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgPage['url']); ?>"<?php echo isset($sgNavHints[$sgPage['slug']]) ? ' title="' . sg_e($sgNavHints[$sgPage['slug']]) . '"' : ''; ?>><?php echo $sgNavIcon($sgPage['slug']); ?><?php echo sg_e($sgPage['title']); ?><?php if ($sgActiveKey === $sgPage['slug']) : ?><span class="sg-nav-dot"></span><?php endif; ?></a>
+      <a class="sg-nav-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>"<?php echo $sgActiveKey === $sgPage['slug'] ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgPage['url']); ?>"<?php echo isset($sgNavHints[$sgPage['slug']]) ? ' title="' . sg_e($sgNavHints[$sgPage['slug']]) . '"' : ''; ?>><?php echo $sgNavIcon($sgPage); ?><?php echo sg_e($sgPage['title']); ?><?php if ($sgActiveKey === $sgPage['slug']) : ?><span class="sg-nav-dot"></span><?php endif; ?></a>
       <?php endforeach; ?>
       <?php if ($sgNavMore) : ?>
       <div class="sg-nav-more<?php echo $sgMoreActive ? ' is-active' : ''; ?>" data-sg-nav-more>
@@ -148,7 +152,7 @@ foreach ($sgNavMore as $sgMorePage) {
         </button>
         <div class="sg-nav-more-menu" role="menu">
           <?php foreach ($sgNavMore as $sgPage) : ?>
-          <a class="sg-nav-more-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>"<?php echo $sgActiveKey === $sgPage['slug'] ? ' aria-current="page"' : ''; ?> role="menuitem" href="<?php echo sg_e($sgPage['url']); ?>"<?php echo isset($sgNavHints[$sgPage['slug']]) ? ' title="' . sg_e($sgNavHints[$sgPage['slug']]) . '"' : ''; ?>><?php echo $sgNavIcon($sgPage['slug']); ?><?php echo sg_e($sgPage['title']); ?></a>
+          <a class="sg-nav-more-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>"<?php echo $sgActiveKey === $sgPage['slug'] ? ' aria-current="page"' : ''; ?> role="menuitem" href="<?php echo sg_e($sgPage['url']); ?>"<?php echo isset($sgNavHints[$sgPage['slug']]) ? ' title="' . sg_e($sgNavHints[$sgPage['slug']]) . '"' : ''; ?>><?php echo $sgNavIcon($sgPage); ?><?php echo sg_e($sgPage['title']); ?></a>
           <?php endforeach; ?>
         </div>
       </div>
@@ -170,7 +174,7 @@ foreach ($sgNavMore as $sgMorePage) {
     </div>
     <a class="sg-sheet-link<?php echo $sgActive === 'index' ? ' is-active' : ''; ?>"<?php echo $sgActive === 'index' ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgHome); ?>"><span class="sg-nav-ico"><svg aria-hidden="true"><use href="#icon-home"></use></svg></span>首页</a>
     <?php foreach ($sgNavItems as $sgPage) : ?>
-    <a class="sg-sheet-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>"<?php echo $sgActiveKey === $sgPage['slug'] ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgPage['url']); ?>"<?php echo isset($sgNavHints[$sgPage['slug']]) ? ' title="' . sg_e($sgNavHints[$sgPage['slug']]) . '"' : ''; ?>><?php echo $sgNavIcon($sgPage['slug']); ?><?php echo sg_e($sgPage['title']); ?></a>
+    <a class="sg-sheet-link<?php echo $sgActiveKey === $sgPage['slug'] ? ' is-active' : ''; ?>"<?php echo $sgActiveKey === $sgPage['slug'] ? ' aria-current="page"' : ''; ?> href="<?php echo sg_e($sgPage['url']); ?>"<?php echo isset($sgNavHints[$sgPage['slug']]) ? ' title="' . sg_e($sgNavHints[$sgPage['slug']]) . '"' : ''; ?>><?php echo $sgNavIcon($sgPage); ?><?php echo sg_e($sgPage['title']); ?></a>
     <?php endforeach; ?>
     <hr class="sg-divider">
     <button class="sg-sheet-link" type="button" data-sg-theme-toggle><?php echo sg_icon_color('sun', 'sg-i-sun'); ?><?php echo sg_icon_color('moon', 'sg-i-moon'); ?> 切换昼夜</button>

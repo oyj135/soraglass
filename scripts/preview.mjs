@@ -876,15 +876,14 @@ const notfoundPage = `${head('404 - Soraglass')}
 </main>
 ${foot()}`;
 
-/* 时光机（page-time.php）：年报式页头 + 里程碑/模型面板 + 大年份分区（轴 + 轮次 + 子项） */
-const sgTimeDemo = [
-  { date: '2026-11-22', subs: [
-    '标签云背景、封面文字可读性、分类芯片 hover、页头网格、网站图标、精选卡宽。',
-  ]},
-  { date: '2026-11-21', subs: [
-    '文章标题去背景、夜间三色轮询发光、导航 hover 薄荷青、跑马灯下线、日间波浪换主题色、作者卡换竹叶书签。',
-  ]},
-];
+/* 时光机（page-time.php）：年报式页头 + 里程碑/模型面板 + 大年份分区（轴 + 轮次 + 子项，里程碑已并入时间轴） */
+const sgTimeMsRound = (lead, desc) => `<li class="sg-time-round">
+  <span class="sg-time-round-num" aria-hidden="true">1</span>
+  <div class="sg-time-round-body">
+    <p class="sg-time-round-title">${lead} <span class="sg-time-ms-tag">里程碑</span></p>
+    <p class="sg-time-round-text">${desc}</p>
+  </div>
+</li>`;
 const sgTimeRound = (n, lead, subs) => `<li class="sg-time-round">
   <span class="sg-time-round-num" aria-hidden="true">${n}</span>
   <div class="sg-time-round-body">
@@ -894,22 +893,38 @@ const sgTimeRound = (n, lead, subs) => `<li class="sg-time-round">
     </ol>
   </div>
 </li>`;
+const sgTimeYearSection = (year, meta, inner) => `
+  <section class="sg-time-year" data-sg-time-year="${year}">
+    <div class="sg-time-year-head">
+      <h2 class="sg-time-year-num">${year}</h2>
+      <span class="sg-time-year-meta">${meta}</span>
+    </div>
+    <ol class="sg-time">${inner}</ol>
+  </section>`;
 const timePage = `${head('时光机 - Soraglass')}
 <main class="sg-main sg-main--pad" data-sg-page="time">
   <header class="sg-time-hero">
     <span class="sg-time-badge">SITE CHANGELOG</span>
     <h1 class="sg-time-title">时光机</h1>
     <p class="sg-time-stats">
-      <span>从 <b>2026-11-16</b> 记到 <b>2026-11-22</b></span><i>·</i>
-      <span>历时 <b>7</b> 天</span><i>·</i>
-      <span>更新 <b>0</b> 天</span><i>·</i>
-      <span>共 <b>70</b> 条记录</span><i>·</i>
-      <span>横跨 <b>1</b> 个年份</span>
+      <span>从 <b>2023-11-02</b> 记到 <b>2026-11-22</b></span><i>·</i>
+      <span>历时 <b>1116</b> 天（约 3 年 1 个月）</span><i>·</i>
+      <span>更新于<b>今天</b></span><i>·</i>
+      <span>共 <b>73</b> 条记录</span><i>·</i>
+      <span>横跨 <b>3</b> 个年份</span>
     </p>
     <div class="sg-time-yearpills" role="group" aria-label="按年份筛选" data-sg-time-pills>
       <button class="sg-time-yearpill" type="button" data-sg-time-pill="2026" aria-pressed="false">
-        <span class="sg-time-yearpill-year">2026</span><span class="sg-time-yearpill-count">70 条</span>
+        <span class="sg-time-yearpill-year">2026</span><span class="sg-time-yearpill-count">71 条</span>
         <span class="sg-time-yearpill-bar" aria-hidden="true"><span style="width:100%"></span></span>
+      </button>
+      <button class="sg-time-yearpill" type="button" data-sg-time-pill="2025" aria-pressed="false">
+        <span class="sg-time-yearpill-year">2025</span><span class="sg-time-yearpill-count">1 条</span>
+        <span class="sg-time-yearpill-bar" aria-hidden="true"><span style="width:4%"></span></span>
+      </button>
+      <button class="sg-time-yearpill" type="button" data-sg-time-pill="2023" aria-pressed="false">
+        <span class="sg-time-yearpill-year">2023</span><span class="sg-time-yearpill-count">1 条</span>
+        <span class="sg-time-yearpill-bar" aria-hidden="true"><span style="width:4%"></span></span>
       </button>
     </div>
   </header>
@@ -934,18 +949,35 @@ const timePage = `${head('时光机 - Soraglass')}
       <span class="sg-time-year-meta">70 条记录 · 7 天</span>
     </div>
     <ol class="sg-time">
-      ${sgTimeDemo.map((g, gi) => `
-      <li class="sg-time-item"${gi === 0 ? ' data-sg-time-latest' : ''}>
-        <h3 class="sg-time-when"><span class="sg-time-when-year">${g.date.slice(0, 4)}</span><span class="sg-time-when-day">${g.date.slice(5)}</span></h3>
-        ${gi === 0 ? '<span class="sg-time-latest">最新记录</span>' : ''}
+      <li class="sg-time-item" data-sg-time-latest>
+        <h3 class="sg-time-when"><span class="sg-time-when-year">2026</span><span class="sg-time-when-day">11-22</span></h3>
+        <span class="sg-time-latest">最新记录</span>
         <div class="sg-time-card">
           <ol class="sg-time-rounds">
-            ${sgTimeRound(1, '第五十三轮（用户七项）', g.subs)}
+            ${sgTimeMsRound('开始开发自己的主题', '决定基于 Typecho 框架，开发一个属于自己的博客主题 —— Soraglass（空璃）')}
           </ol>
         </div>
-      </li>`).join('')}
+      </li>
+      <li class="sg-time-item">
+        <h3 class="sg-time-when"><span class="sg-time-when-year">2026</span><span class="sg-time-when-day">11-21</span></h3>
+        <div class="sg-time-card">
+          <ol class="sg-time-rounds">
+            ${sgTimeRound(1, '第五十三轮（用户七项）', ['标签云背景、封面文字可读性、分类芯片 hover、页头网格、网站图标、精选卡宽。'])}
+          </ol>
+        </div>
+      </li>
     </ol>
   </section>
+  ${sgTimeYearSection('2025', '1 条记录 · 1 天', `
+    <li class="sg-time-item">
+      <h3 class="sg-time-when"><span class="sg-time-when-year">2025</span><span class="sg-time-when-day">12-18</span></h3>
+      <div class="sg-time-card"><ol class="sg-time-rounds">${sgTimeMsRound('博客迁移到 Typecho', '从 WordPress 整体迁移，主题换用 Butterfly 移植版')}</ol></div>
+    </li>`)}
+  ${sgTimeYearSection('2023', '1 条记录 · 1 天', `
+    <li class="sg-time-item">
+      <h3 class="sg-time-when"><span class="sg-time-when-year">2023</span><span class="sg-time-when-day">11-02</span></h3>
+      <div class="sg-time-card"><ol class="sg-time-rounds">${sgTimeMsRound('拥有属于自己的博客', '大二这年，用 WordPress 搭起了自己的第一台博客，主题 Astra')}</ol></div>
+    </li>`)}
 </main>
 ${foot()}`;
 
