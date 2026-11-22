@@ -61,6 +61,11 @@ addDir('partials');
 addDir('lib');
 // dist/ 里的 preview-*.html 与 _*.html 是本地视觉核对的临时页，不进部署包
 addDir('dist', (rel) => /^(preview-.*|_.*)\.html$/.test(rel));
+// 时光页数据：docs/HISTORY.md 是唯一母本（check.mjs 禁止源码树出现 .md），
+// 发布时拷为 soraglass/data/history.md 供 page-time.php 读取
+const historySrc = path.join(workspace, 'docs', 'HISTORY.md');
+if (!fs.existsSync(historySrc)) throw new Error('缺少 docs/HISTORY.md，时光页将没有数据，请先从 IMPLEMENTATION.md 轮次记录生成');
+files.push({ rel: 'data/history.md', abs: historySrc });
 files.sort((a, b) => a.rel.localeCompare(b.rel));
 
 const entries = files.map(({ rel, abs }) => ({

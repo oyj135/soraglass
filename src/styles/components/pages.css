@@ -1062,3 +1062,117 @@ html.dark [data-sg-gallery] .sg-gallery-masonry .sg-photo {
    给个下限，至少还看得出是相片卡。正常图片有自己的比例，不受影响。 */
 .sg-gallery-masonry .sg-photo img { height: auto; min-height: 8rem; }
 
+/* ---------- 时光机（2026-11-22 新增，参考源站 Fomalhaut「旧时光」）：
+   竖轴在左，日期节点压轴；每张卡内自动编号，列表条目长文可换行；
+   页面主体窄栏居中（52rem），≤640px 轴距收窄。 */
+.sg-time {
+  list-style: none;
+  margin: 0 auto;
+  padding: .5rem 0 1rem;
+  max-width: 52rem;
+  position: relative;
+}
+.sg-time::before {
+  content: '';
+  position: absolute;
+  left: .55rem;
+  top: 1.4rem;
+  bottom: 2.5rem;
+  width: 2px;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--sg-accent) 30%, transparent);
+}
+.sg-time-item {
+  position: relative;
+  padding: 0 0 1.75rem 2.25rem;
+}
+.sg-time-item:last-child { padding-bottom: .5rem; }
+.sg-time-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: .35rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 50%;
+  background: var(--sg-accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--sg-accent) 16%, transparent);
+}
+.sg-time-when {
+  margin: 0 0 .65rem;
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--sg-accent-ink);
+}
+.sg-time-card {
+  background: var(--sg-card);
+  border: 1px solid var(--sg-card-border);
+  border-radius: var(--sg-radius);
+  box-shadow: var(--sg-shadow);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 1.1rem 1.4rem;
+}
+.sg-time-list {
+  list-style: none;
+  counter-reset: sg-time;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+}
+.sg-time-list li {
+  counter-increment: sg-time;
+  position: relative;
+  padding-left: 1.9rem;
+  font-size: .9375rem;
+  line-height: 1.78;
+  color: var(--sg-text);
+  overflow-wrap: anywhere;
+}
+.sg-time-list li::before {
+  content: counter(sg-time);
+  position: absolute;
+  left: 0;
+  top: .18em;
+  width: 1.35rem;
+  height: 1.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--sg-accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sg-accent) 34%, transparent);
+  color: var(--sg-accent-ink);
+  font-family: var(--font-sans);
+  font-size: .72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.sg-time-list li strong { color: var(--sg-accent-ink); font-weight: 700; }
+.sg-time-list li code {
+  font-size: .86em;
+  padding: .06em .34em;
+  border-radius: .3em;
+  background: color-mix(in srgb, var(--sg-accent) 9%, transparent);
+}
+html.dark .sg-time-list li strong { color: var(--sg-accent-ink); }
+.sg-time-empty {
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  color: var(--sg-muted);
+}
+.sg-time-empty p { margin: 0 0 .6rem; }
+.sg-time-empty .sg-time-empty-hint { font-size: .875rem; }
+@media (max-width: 640px) {
+  .sg-time-item { padding-left: 1.9rem; }
+  .sg-time-card { padding: .9rem 1rem; }
+  .sg-time-list li { padding-left: 1.7rem; }
+}
+@media (prefers-reduced-motion: reduce) { .sg-time, .sg-time-card { transition: none; } }
+

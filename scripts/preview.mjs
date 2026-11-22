@@ -100,6 +100,7 @@ const NAV = [
   { name: '光影画廊', href: '#' },
   { name: '项目', href: '#' },
   { name: '知识档案', href: '#' },
+  { name: '时光机', href: '#' },
 ];
 
 /* 与 partials/nav.php 的分组规则一致：顶栏最多 8 个位置（首页 + 6 页 + 更多） */
@@ -875,6 +876,45 @@ const notfoundPage = `${head('404 - Soraglass')}
 </main>
 ${foot()}`;
 
+/* 时光机（page-time.php）：日期分组 + 编号列表，与 data/history.md 同构 */
+const sgTimeDemo = [
+  { date: '2026-11-22', items: [
+    '<strong>第五十三轮（用户七项）</strong>：标签云背景、封面文字可读性、分类芯片 hover、页头网格、网站图标、精选卡宽。',
+    '<strong>第五十二轮（用户八项）</strong>：项目封面外链/仓库折叠、两卡缩放、访客数 hover、碎语时区修复（<code>sg_date_ts()</code>）、月份胶囊、原文链接、精选标签、夜间标签云。',
+  ]},
+  { date: '2026-11-21', items: [
+    '<strong>第四十九轮（用户六项）</strong>：文章标题去背景、夜间三色轮询发光、导航 hover 薄荷青、跑马灯下线、日间波浪换主题色、作者卡换竹叶书签。',
+    '<strong>第四十八轮（用户三问）</strong>：夜间下拉选中态朱批实底白字；社交与导航图标换源站 CDN symbol。',
+  ]},
+  { date: '2026-11-18', items: [
+    '<strong>第十七轮</strong>：只保留源站那一套霞鹜文楷，<code>soraglass.zip</code> 340 文件 / 19.58 MB。',
+    '<strong>第八轮（打造 Soraglass 独有的）</strong>：作者卡横幅改「夜航星海」，头像常驻青瓷装饰星，社交图标升级品牌微光底。',
+  ]},
+];
+const timePage = `${head('时光机 - Soraglass')}
+<main class="sg-main sg-main--pad" data-sg-page="time">
+  <div class="sg-page-head">
+    <div class="sg-page-head-row is-centered">
+      <div>
+        <h1 class="sg-page-title">时光机</h1>
+        <p class="sg-page-sub">小站建设进程</p>
+      </div>
+    </div>
+  </div>
+  <ol class="sg-time" aria-label="网站建设时光轴">
+    ${sgTimeDemo.map((g) => `
+    <li class="sg-time-item">
+      <h2 class="sg-time-when">${g.date}</h2>
+      <div class="sg-time-card">
+        <ol class="sg-time-list">
+          ${g.items.map((t) => `<li>${t}</li>`).join('')}
+        </ol>
+      </div>
+    </li>`).join('')}
+  </ol>
+</main>
+${foot()}`;
+
 fs.writeFileSync(path.join(dist, 'preview-index.html'), indexPage, 'utf8');
 fs.writeFileSync(path.join(dist, 'preview-post.html'), postPage, 'utf8');
 fs.writeFileSync(path.join(dist, 'preview-archive.html'), archivePage, 'utf8');
@@ -882,7 +922,8 @@ fs.writeFileSync(path.join(dist, 'preview-friends.html'), friendsPage, 'utf8');
 fs.writeFileSync(path.join(dist, 'preview-photowall.html'), photowallPage, 'utf8');
 fs.writeFileSync(path.join(dist, 'preview-about.html'), aboutPage, 'utf8');
 fs.writeFileSync(path.join(dist, 'preview-timeline.html'), timelinePage, 'utf8');
+fs.writeFileSync(path.join(dist, 'preview-time.html'), timePage, 'utf8');
 fs.writeFileSync(path.join(dist, 'preview-404.html'), notfoundPage, 'utf8');
 
-console.log('✓ 已生成 dist/preview-{index,post,archive,friends,photowall,about,timeline,404}.html');
+console.log('✓ 已生成 dist/preview-{index,post,archive,friends,photowall,about,timeline,time,404}.html');
 console.log('  这些文件仅供本地核对视觉，release 时会随 dist 一并清理。');

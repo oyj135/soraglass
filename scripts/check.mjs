@@ -83,6 +83,10 @@ if (manifest) {
     if (rel && !hasDistFile(rel)) errors.push(`[构建] 入口资源未进包：dist/${rel}`);
   }
 }
+// 时光页数据只在发布时从 docs/HISTORY.md 拷入 zip（回退包模式才检查）
+if (!distReady && zipNames && !zipNames.includes('soraglass/data/history.md')) {
+  errors.push('[构建] soraglass.zip 内缺少 data/history.md（docs/HISTORY.md 发布拷贝）');
+}
 
 // ---------- 3) 模板资源引用 ----------
 if (manifest) {
@@ -113,7 +117,7 @@ for (const rel of sourceRequired) {
   if (!fs.existsSync(path.join(root, rel))) errors.push(`[源码缺失] soraglass/${rel}`);
 }
 
-const docsRequired = ['AGENS.md', 'IMPLEMENTATION.md', 'STRUCTURE.md', 'deploy/baota.conf'];
+const docsRequired = ['AGENS.md', 'IMPLEMENTATION.md', 'HISTORY.md', 'STRUCTURE.md', 'deploy/baota.conf'];
 for (const rel of docsRequired) {
   if (!fs.existsSync(path.join(workspace, 'docs', rel))) errors.push(`[文档缺失] docs/${rel}`);
 }
