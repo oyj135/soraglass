@@ -1069,6 +1069,7 @@ html.dark [data-sg-gallery] .sg-gallery-masonry .sg-photo {
    卡内轮次自动编号，轮内 (1)(2) / ①② 小序号拆成独立子项再编号。 */
 .sg-time-hero {
   max-width: 62rem;
+  width: 100%;
   margin: 0 auto 2.25rem;
   color: var(--sg-wall-white-ink);
 }
@@ -1151,6 +1152,7 @@ html.dark [data-sg-gallery] .sg-gallery-masonry .sg-photo {
 .sg-time-section-title {
   margin: 2.6rem auto 1rem;
   max-width: 62rem;
+  width: 100%;
   font-family: var(--font-serif);
   font-size: 1.3rem;
   font-weight: 800;
@@ -1163,6 +1165,7 @@ html.dark [data-sg-gallery] .sg-gallery-masonry .sg-photo {
   margin: 0 auto;
   padding: 0;
   max-width: 62rem;
+  width: 100%;
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(15.5rem, 1fr));
@@ -1195,6 +1198,7 @@ html.dark [data-sg-gallery] .sg-gallery-masonry .sg-photo {
   margin: 0 auto;
   padding: 1.15rem 1.35rem;
   max-width: 62rem;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: .7rem;
@@ -1217,7 +1221,7 @@ html.dark [data-sg-gallery] .sg-gallery-masonry .sg-photo {
   font-size: .9rem;
   color: var(--sg-accent-ink);
 }
-.sg-time-year { max-width: 62rem; margin: 0 auto; }
+.sg-time-year { width: 100%; max-width: 62rem; margin-inline: auto; }
 .sg-time-year-head {
   display: flex;
   align-items: baseline;
@@ -1341,6 +1345,7 @@ html.dark [data-sg-gallery] .sg-gallery-masonry .sg-photo {
 }
 .sg-time-empty {
   max-width: 62rem;
+  width: 100%;
   margin: 0 auto;
   padding: 2.5rem 1.5rem;
   text-align: center;
