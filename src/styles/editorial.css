@@ -790,7 +790,7 @@ html.sg-readmode [data-sg-readmode-toggle] { color: var(--sg-accent-ink); border
 }
 .sg-nav-group-item:is(:hover, :focus-visible) {
   color: #fff;
-  background: #b0473a;
+  background: var(--sg-warm-fill);
 }
 
 /* 面板内当前页：朱批实底白字（与旧「更多」选中项同款，2026-11-21 定档） */

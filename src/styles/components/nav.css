@@ -10,7 +10,7 @@
   inset: 0 0 auto;
   z-index: 50;
   /* 2026-11-21 第三十五轮（用户定档）：
-     顶部（y < 56）= 完全透明，只有一层自上下渐隐的极淡 scrim 兜白字；
+     顶部（y < 56）= 完全透明，只有一层自上下渐隐的 scrim 兜白字；
      下滑后（is-scrolled）= 出背景色（日间浅玻璃 / 夜间深玻璃）+ 模糊，
      导航栏与居中页名共用这一条底，回到顶部再平滑退回透明。
      旧写法把「无底色」写死成昼夜恒定，导致下滑时白字压在浅卡片上消失，已废。 */
@@ -21,17 +21,21 @@
 /* 顶部 scrim 单独放伪元素：background-color 才能与滚动态玻璃底平滑过渡
    （gradient 与 color 之间不可插值）。z-index:-1 落在导航自身层叠上下文里，
    只压背景、不盖文字。 */
+/* 2026-11-23 第七十四轮：scrim 由 .18 / .30 提到 .52 / .55，与首屏 --sg-front-veil 同档。
+   原档是按深壁纸定的：壁纸一亮（#cfcabb 一带）白字只剩 2.18:1，站名与导航整条发灰。
+   按 AGENS §8.2 的遮罩表：壁纸亮于 #b3ada0 就要 ≥.55，亮于 #cfcabb 要 ≥.62，
+   所以后台换亮壁纸时这里还要跟着调（现状 .52 兜中亮壁纸，更亮的需换深色图）。 */
 .sg-nav::before {
   content: '';
   position: absolute;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(2, 6, 23, .18), rgba(2, 6, 23, 0));
+  background: linear-gradient(180deg, rgba(2, 6, 23, .52), rgba(2, 6, 23, 0));
   opacity: 1;
   transition: opacity .35s var(--sg-ease);
 }
-html.dark .sg-nav::before { background: linear-gradient(180deg, rgba(2, 6, 23, .30), rgba(2, 6, 23, 0)); }
+html.dark .sg-nav::before { background: linear-gradient(180deg, rgba(2, 6, 23, .55), rgba(2, 6, 23, 0)); }
 .sg-nav.is-scrolled::before { opacity: 0; }
 
 /* 向下滚（is-hidden）：顶栏常驻贴顶，让位给居中页名（源站向下标题态），
@@ -190,7 +194,7 @@ html.dark .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent-ink);
 .sg-sheet-link { display: flex; align-items: center; gap: .45rem; }
 /* 下拉条目横排后的尺寸/hover/选中态统一在 editorial.css 的「更多」下拉段维护 */
 .sg-sheet-link { padding: .45rem .7rem; margin-inline: -.7rem; border-radius: 10px; transition: background-color .25s linear, color .25s linear, opacity .25s linear; }
-.sg-sheet-link:is(:hover, :focus-visible) { background: #b0473a; color: #fff; opacity: 1; }
+.sg-sheet-link:is(:hover, :focus-visible) { background: var(--sg-warm-fill); color: #fff; opacity: 1; }
 /* 导航图标彩色（2026-11-17，对齐源站彩色图标的观感）：每个入口一个专属色，
    与卡片段色一致（日期黄/分类橙/标签绿的同族扩展）。 */
 .sg-nav-ico { flex: none; width: 1em; height: 1em; display: inline-flex; }
@@ -367,35 +371,37 @@ html.dark .sg-sheet-panel {
 
 /* ---------- 全站导航（2026-11-21 第三十六轮定稿：顶部透明 / 下滑出底） ----------
    顶部只留一层伪元素 scrim（见上），导航本体保持透明；
-   hover 反馈：字色薄荷青 + 3px 下划线（源站 .3s 从左长满），**不再有底板**；
-   底板只属于「当前页」——深青实底 + 纯白字，昼夜同款。 */
+   hover 反馈：字色转印朱亮档 + 3px 下划线（源站 .3s 从左长满），**不再有底板**；
+   底板只属于「当前页」——朱批实底 + 纯白字，昼夜同款。 */
 html:not(.dark) .sg-nav :is(.sg-brand, .sg-brand-accent, .sg-nav-link, .sg-nav-group-btn, .sg-nav-page) {
   color: #fff;
   opacity: 1;
   text-shadow: none;
 }
-/* 2026-11-21：顶部 hover 原用月白 #eae5d6，与白字几乎同色；换成亮薄荷青，
-   在 .30 黑 scrim 上和夜间暗底上都能一眼看出当前指向。 */
+/* 2026-11-23 第七十四轮：顶部 hover 由遗留的亮薄荷青 #b8f5e6 换成印朱亮档。
+   薄荷青是上一代签名色（纸白上只有 1.09:1，等于隐形），且与「纸白·灰青·玄墨·印朱」
+   四色体系冲突；--sg-warm-bright 本就是「压在图片/深底上才够看」的专用档，
+   昼夜同一个值即可，见 AGENS §8.4 第 4 条。 */
 html:not(.dark) .sg-nav .sg-brand:hover,
-html:not(.dark) .sg-nav .sg-nav-link:is(:hover, :focus-visible) { color: #b8f5e6; opacity: 1; }
-html:not(.dark) .sg-nav .sg-nav-link::after { background: #b8f5e6; }
-/* 首屏（is-front）底是 .30 黑遮罩，亮青线正是为了在这里可见 */
-html:not(.dark) .sg-nav.is-front .sg-nav-link::after { background: #b8f5e6; }
-/* 夜间：底是 70% 暗遮罩，字与线都取亮薄荷青 */
-html.dark .sg-nav .sg-nav-link::after { background: #b8f5e6; }
-html.dark .sg-nav .sg-nav-link:is(:hover, :focus-visible) { color: #b8f5e6; opacity: 1; }
+html:not(.dark) .sg-nav .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-warm-bright); opacity: 1; }
+html:not(.dark) .sg-nav .sg-nav-link::after { background: var(--sg-warm-bright); }
+/* 首屏（is-front）底是 scrim 渐变的最浓处，印朱亮档在这里仍清晰 */
+html:not(.dark) .sg-nav.is-front .sg-nav-link::after { background: var(--sg-warm-bright); }
+/* 夜间：底是玄墨 + 更浓的 scrim，字与线同走印朱亮档夜值 #e2b4a8 */
+html.dark .sg-nav .sg-nav-link::after { background: var(--sg-warm-bright); }
+html.dark .sg-nav .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-warm-bright); opacity: 1; }
 
 /* 下滑后（is-scrolled）：底色已是浅玻璃，白字会整块消失 → 非当前页字色切深墨，
-   下划线换深竹青。首屏 is-front 不再豁免——顶上时本就没底，一旦下滑就有玻璃底，
+   下划线同步。首屏 is-front 不再豁免——顶上时本就没底，一旦下滑就有玻璃底，
    两种底统一按「深墨字」走，回到顶部 is-scrolled 移除后 .3s 平滑回白。
-   当前页（is-active）排除在外：它在深青底板上必须是白字。 */
+   当前页（is-active）排除在外：它在朱批底板上必须是白字。 */
 html:not(.dark) .sg-nav.is-scrolled :is(.sg-brand, .sg-nav-link:not(.is-active), .sg-nav-group-btn, .sg-nav-page) { color: #252229; }
 html:not(.dark) .sg-nav.is-scrolled .sg-brand-accent { color: #9d3b2f; }
 html:not(.dark) .sg-nav.is-scrolled .sg-nav-link::after { background: #252229; }
-/* 下滑后底是浅玻璃：原 hover 用 #6a706c，与深墨字 #252229 只差一点点；
-   改走深竹青 #0f6b5f，字与下划线同步，hover 状态一眼可辨。 */
-html:not(.dark) .sg-nav.is-scrolled .sg-nav-link:is(:hover, :focus-visible) { color: #0f6b5f; }
-html:not(.dark) .sg-nav.is-scrolled .sg-nav-link:is(:hover, :focus-visible)::after { background: #0f6b5f; }
+/* 下滑后底是浅玻璃：hover 走 --sg-accent-ink「墨淡开」（卡面 4.89:1，与玄墨仍能分辨）。
+   原写法是深竹青 #0f6b5f —— 对比够但不是本主题的色（2026-11-23 回收）。 */
+html:not(.dark) .sg-nav.is-scrolled .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent-ink); }
+html:not(.dark) .sg-nav.is-scrolled .sg-nav-link:is(:hover, :focus-visible)::after { background: var(--sg-accent-ink); }
 
 /* 当前页底板（2026-11-22 第五十四轮用户指定）：朱批实底 + 纯白字，昼夜同款，
    顶部透明与下滑玻璃底两态都不变；hover/focus 保持白字（反馈只走字重与光标），
@@ -418,6 +424,6 @@ html:not(.dark) .sg-nav .sg-nav-group-menu { color: var(--sg-text); }
 /* 下拉/抽屉条目 hover 统一朱批实底（与 editorial.css 的 .sg-nav-group-item 同款，昼夜一致）；
    原日间用 --sg-filter-active 玄墨实底，与选中态深朱不区分，夜间该值又与卡面同色。 */
 html:not(.dark) .sg-nav :is(.sg-nav-group-item, .sg-sheet-link):is(:hover, :focus-visible) {
-  background: #b0473a;
+  background: var(--sg-warm-fill);
   color: #fff;
 }

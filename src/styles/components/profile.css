@@ -248,13 +248,16 @@ html.dark .sg-si-lc-c { stroke: #dfe6f2; }
   background: color-mix(in srgb, var(--sg-accent) 20%, transparent);
 }
 
-/* 简介：小号大写 + 宽字距（源站杂志式排印） */
+/* 简介：小号大写 + 宽字距（源站杂志式排印）
+   2026-11-23 第七十四轮：原 .72rem（11.5px）+ .26em 字距，笔画被字距拉断，
+   远看像一条灰线（颜色本身 7.9:1 是达标的，问题在尺度不在明度）。
+   字号提到 .78rem（12.5px）满足 AGENS §8.2 的 12px 下限，字距收到 .18em。 */
 .sg-profile-bio {
   margin: .3rem 0 0;
   max-width: 16rem;
-  font-size: .72rem;
+  font-size: .78rem;
   font-weight: 700;
-  letter-spacing: .26em;
+  letter-spacing: .18em;
   text-transform: uppercase;
   line-height: 1.7;
   color: var(--sg-muted);

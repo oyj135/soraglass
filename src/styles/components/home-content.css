@@ -472,17 +472,17 @@ html.dark .sg-i-moon { display: inline-flex; }
 }
 
 .sg-briefing-date { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .12em; }
-.sg-briefing-label { color: rgba(255, 255, 255, .72); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sg-briefing-label { color: rgba(255, 255, 255, .80); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* 当前主题名：翻页翻的是主题，得让人看见自己停在哪一个 */
 .sg-briefing-theme {
-  color: rgba(255, 255, 255, .72);
+  color: rgba(255, 255, 255, .80);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.sg-briefing-theme::before { content: '· '; color: rgba(255, 255, 255, .35); }
+.sg-briefing-theme::before { content: '· '; color: rgba(255, 255, 255, .55); }
 
 .sg-briefing-mid { display: block; max-width: 82%; }
 
@@ -515,7 +515,7 @@ html.dark .sg-i-moon { display: inline-flex; }
 
 .sg-briefing-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; }
 
-.sg-briefing-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem .9rem; font-size: 10px; color: rgba(255, 255, 255, .75); }
+.sg-briefing-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem .9rem; font-size: 10px; color: rgba(255, 255, 255, .80); }
 .sg-briefing-meta b { margin-left: .35rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 400; color: #fff; }
 
 .sg-briefing-meta .is-unread { display: inline-flex; align-items: center; gap: .35rem; color: #d8a79e; }
