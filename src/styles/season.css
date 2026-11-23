@@ -449,15 +449,19 @@ html.dark .sg-season {
   stroke-width: 2.4;
   stroke-dasharray: none;
 }
-/* hover：只出描边，不动填充 —— 填充现在承载「墨分四浓 + 选中」，不能再被 hover 借走。
-   第七十九轮：描边改朱砂（原玄墨）。当令格本身就是朱边，两者同色，
-   所以「当令 + 悬停」靠线宽再抬一档（2.4 → 3.4）兑现反馈，颜色不劈成两档朱。 */
+/* hover：整格翻成朱砂底，字随底色反相（昼：朱底纸白字 / 夜：淡朱底夜卡深字）。
+   墨分四浓是静置时读四季的分级，指到哪一格时该让位给它 ——
+   于是盘上有了两种实块语义：朱块 = 正在指，玄墨块 = 已选中，扫过去一眼分得清。 */
 .sg-wheel-term.is-linked .sg-wheel-term-arc {
-  stroke: var(--sg-warm);
+  fill: color-mix(in srgb, var(--sg-warm) 88%, transparent);
+  stroke: color-mix(in srgb, var(--sg-warm) 88%, transparent);
   stroke-width: 2.4;
   stroke-dasharray: none;
 }
-.sg-wheel-term.is-current.is-linked .sg-wheel-term-arc { stroke-width: 3.4; }
+.sg-wheel-term.is-linked .sg-wheel-term-label { fill: var(--sg-card); }
+/* 无字的格静置退到 .72，指示到它时要提回本色，否则朱印看着是「虚的」 */
+.sg-wheel-term.is-empty.is-linked .sg-wheel-term-arc,
+.sg-wheel-term.is-empty.is-linked .sg-wheel-term-label { opacity: 1; }
 
 .sg-wheel-term-label {
   font-family: var(--font-serif);
@@ -496,12 +500,15 @@ html.dark .sg-season {
   stroke: var(--sg-warm);
   stroke-width: 1.6;
 }
+/* 宫块同一条规则：朱底 + 反相字，阳块（浅）阴块（深）hover 后都落到同一个朱色上 */
 .sg-wheel-gong.is-linked .sg-wheel-gong-arc {
-  stroke: var(--sg-warm);
+  fill: color-mix(in srgb, var(--sg-warm) 88%, transparent);
+  stroke: color-mix(in srgb, var(--sg-warm) 88%, transparent);
   stroke-width: 1.6;
 }
-/* 选中的宫也是朱边：悬停时同样靠线宽区分 */
-.sg-wheel-gong.is-sel.is-linked .sg-wheel-gong-arc { stroke-width: 2.4; }
+.sg-wheel-gong.is-linked .sg-wheel-gong-label { fill: var(--sg-card); }
+/* 无篇的宫同样从 .72 提回本色，否则指示到它时朱印比节气环那格浅一档 */
+.sg-wheel-gong.is-empty.is-linked .sg-wheel-gong-arc { opacity: 1; }
 .sg-wheel-gong-label {
   font-family: var(--font-serif);
   font-size: calc(var(--sg-wheel-fs, 16.5px) * .82);
