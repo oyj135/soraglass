@@ -19,6 +19,27 @@
   border: 0;
 }
 
+/* ---------- 纸面（2026-11-23 第七十五轮）----------
+   整页原先所有文字都直接叠在壁纸上（当令条与轮盘例外），而壁纸可能是任何亮度的
+   照片：线上那张蓝天白云下，页头标题 1.9:1、对照表行几乎不可见。与本主题「卡面
+   恒为纸白 --sg-card、可读性不依赖壁纸」的既有决策一致，这里给每段内容各铺一张
+   纸面，与 .sg-season-now 同一配方（--sg-card + --sg-line + --sg-radius）。
+   只加背景与内边距，不改结构、顺序与链接。 */
+.sg-season {
+  --sg-sheet-x: clamp(1.1rem, 3vw, 1.9rem);
+  --sg-sheet-y: clamp(1rem, 2.4vw, 1.5rem);
+}
+.sg-season-head,
+.sg-season-range,
+.sg-season-table,
+.sg-season-years,
+.sg-season-note {
+  padding: var(--sg-sheet-y) var(--sg-sheet-x);
+  background: var(--sg-card);
+  border: 1px solid var(--sg-line);
+  border-radius: var(--sg-radius);
+}
+
 /* ---------- 页头 ---------- */
 .sg-season-head {
   display: flex;
@@ -111,14 +132,17 @@
 /* ---------- 轮盘 ---------- */
 .sg-wheel { width: 100%; max-width: 520px; margin: 0 auto clamp(1.5rem, 4vw, 2.5rem); }
 .sg-wheel-plot { position: relative; width: 100%; }
-/* 轮盘不套硬边卡片（页头、展陈都是浮在壁纸上的），但环线需要一层纸底才读得清：
-   径向渐变的纸色圆盘，边缘化开，不切出一个新卡型。 */
+/* 轮盘不套硬边卡片（它是图形不是文字块），但环线与节气名需要一层纸底才读得清：
+   径向渐变的纸色圆盘，边缘化开，不切出一个新卡型。
+   2026-11-23 第七十五轮：原来按 farthest-corner 算百分比，58% 实心只到 r≈222，
+   外环节气名（r 198–240）正好压在渐隐带上，亮壁纸下会发灰；改成 closest-side +
+   实心到 86%（≈r 232，兜住整个外环），边缘 6% 内化开。 */
 .sg-wheel-plot::before {
   content: '';
   position: absolute;
   inset: -4%;
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 50%, var(--sg-card) 0 58%, color-mix(in srgb, var(--sg-card) 55%, transparent) 74%, transparent 78%);
+  background: radial-gradient(circle closest-side at 50% 50%, var(--sg-card) 0 86%, color-mix(in srgb, var(--sg-card) 82%, transparent) 94%, transparent 100%);
   pointer-events: none;
 }
 .sg-wheel-svg { position: relative; display: block; width: 100%; height: auto; overflow: visible; }
@@ -273,7 +297,17 @@
 }
 @media (max-width: 640px) {
   .sg-wheel-plot { display: none; }
-  .sg-season-strip { display: block; margin-bottom: 1.75rem; }
+  /* 手机上轮盘换成滑条，滑条同样要纸底（否则节气名压在壁纸上）。
+     底部留 1.7rem：12 格宫条下面还压着一行宫名（白羊 / 双鱼），原来只留 1.15rem
+     时那行字正好贴到纸边。 */
+  .sg-season-strip {
+    display: block;
+    margin-bottom: 1.75rem;
+    padding: .85rem var(--sg-sheet-x) 1.7rem;
+    background: var(--sg-card);
+    border: 1px solid var(--sg-line);
+    border-radius: var(--sg-radius);
+  }
 }
 
 /* ---------- 区间展陈 ---------- */
@@ -343,7 +377,9 @@
   overflow: hidden;
 }
 .sg-range-card-date { flex: 0 0 auto; font-size: .68rem; letter-spacing: .06em; opacity: .78; font-variant-numeric: tabular-nums; }
-.sg-range-card.is-plain { aspect-ratio: auto; min-height: 0; }
+/* 展陈区改成纸面之后，无封面卡与纸面同色、只剩一圈描边，看着像表格行。
+   给一层浅墨（--sg-chip）让它仍然「是一张卡」。 */
+.sg-range-card.is-plain { aspect-ratio: auto; min-height: 0; background: var(--sg-chip); }
 .sg-range-card.is-plain .sg-range-card-body {
   position: static;
   padding: 1rem .9rem;
@@ -413,6 +449,8 @@
 .sg-table-more[open] summary { margin-bottom: .8rem; }
 @media (max-width: 640px) {
   .sg-table th, .sg-table td { padding: .45rem .35rem; font-size: .8rem; }
+  /* 纸面内缩后「篇数」这列表头会被折成两行，收紧字距并不许换行 */
+  .sg-table thead th { letter-spacing: .08em; white-space: nowrap; }
   .sg-table-gong td:nth-child(3){ display: none; }
 }
 
@@ -423,9 +461,7 @@
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
-  padding: 1rem 0;
-  border-top: 1px solid var(--sg-line);
-  border-bottom: 1px solid var(--sg-line);
+  padding: var(--sg-sheet-y) var(--sg-sheet-x);
 }
 .sg-years-row { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
 .sg-years-label { font-size: .72rem; letter-spacing: .24em; color: var(--sg-muted); }
@@ -441,19 +477,22 @@
 .sg-season-nav a { color: var(--sg-accent-deep); }
 
 /* ---------- 页脚口径 ---------- */
+/* 纸面拉到与其它段同宽，行宽仍按 62ch 收（否则窄窄一块悬在左边） */
 .sg-season-note {
-  max-width: 62ch;
   margin: 1.6rem 0 0;
   font-size: .74rem;
   line-height: 1.95;
   color: var(--sg-muted);
 }
-.sg-season-note p { margin: 0; }
+.sg-season-note p { max-width: 62ch; margin: 0; }
 .sg-season-note p + p { margin-top: .3rem; }
 
 /* ---------- 整年空态 ---------- */
 .sg-season-empty {
-  padding: clamp(2.5rem, 8vw, 5rem) 0;
+  padding: clamp(2.4rem, 8vw, 4.2rem) var(--sg-sheet-x);
+  background: var(--sg-card);
+  border: 1px solid var(--sg-line);
+  border-radius: var(--sg-radius);
   text-align: center;
   font-family: var(--font-serif);
   color: var(--sg-muted);
