@@ -185,6 +185,7 @@ foreach (sg_home_articles($sgHomeListLimit) as $sgHomeCard) {
       ?>
       <script type="application/json" data-sg-sidebar-config><?php echo json_encode($sgSidePublic, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG); ?></script>
       <?php $this->need('partials/side-calendar.php'); ?>
+      <?php $this->need('partials/side-season.php'); ?>
       <?php $this->need('partials/side-countdown.php'); ?>
       <?php $this->need('partials/side-welcome.php'); ?>
       </div>

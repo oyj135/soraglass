@@ -35,13 +35,22 @@ if ($sgFavicon === '') {
     /* 「杂谈」「说说」两个旧页现在渲染的是「碎语」流（1），
        标题标签跟着统一，别让浏览器标签页还写着旧名字。 */
     $sgDocSlug = sg_current_slug($this);
-    if (in_array($sgDocSlug, ['chatter', 'moments'], true)) {
+    /* 岁候：24 个 ?t= 与 12 个 ?g= 各自需要唯一标题，模板在 header 之后改不了 <title>，
+       所以由 page-season.php 先算好放进 SG_DOC_TITLE。 */
+    $sgDocOverride = isset($GLOBALS['SG_DOC_TITLE']) ? (string) $GLOBALS['SG_DOC_TITLE'] : '';
+    if ($sgDocOverride !== '') {
+        echo sg_e($sgDocOverride) . ' - ';
+    } elseif (in_array($sgDocSlug, ['chatter', 'moments'], true)) {
         echo '碎语 - ';
     } elseif ($this->is('post') || $this->is('page') || $this->is('category') || $this->is('tag')) {
         $this->archiveTitle('', '', ' - ');
     }
     $this->options->title();
     ?></title>
+<?php /* canonical：只有岁候页会设置（?d= 指向所属 ?t=，?t=/?g= 指向自身），其余页面维持现状不输出 */ ?>
+<?php if (!empty($GLOBALS['SG_CANONICAL'])) : ?>
+<link rel="canonical" href="<?php echo sg_e((string) $GLOBALS['SG_CANONICAL']); ?>">
+<?php endif; ?>
 <link rel="icon" href="<?php echo sg_e($sgFavicon); ?>">
 <?php /* 阿里 iconfont 多色语义图标（对齐源站 fomal.cc）：4 个 async JS 向 body 首部注入
         隐藏 <symbol>，每枚内嵌独立品牌色；页面用 <use href="#icon-*"> 引用（见 icons.php）。
@@ -70,7 +79,18 @@ if ($sgFavicon === '') {
   }
 })();
 </script>
-<?php $this->header(); ?>
+<?php
+/* Typecho 核心的 header() 对 single 会输出一条不带查询串的 canonical；
+   岁候页需要 ?t= / ?g= 各自指向自身（§6.3），所以这里缓冲一次、去掉核心那条，
+   由上面第 50 行的 canonical 接管；其余页面不设置则原样输出，行为不变。 */
+ob_start();
+$this->header();
+$sgHeadHtml = (string) ob_get_clean();
+if (!empty($GLOBALS['SG_CANONICAL'])) {
+    $sgHeadHtml = (string) preg_replace('#<link rel="canonical"[^>]*>\s*#i', '', $sgHeadHtml);
+}
+echo $sgHeadHtml;
+?>
 <?php echo sg_runtime_config(); ?>
 <?php echo sg_asset(); ?>
 </head>

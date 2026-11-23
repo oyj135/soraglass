@@ -867,8 +867,12 @@ function themeConfig($form): void
         . '<code>desc</code> 简介可省略；<code>icon</code> 留空自动用 favicon 在线服务按域名取图标，加载失败回退站名首字圆徽，也可以手填完整图片地址。<br>'
         . '总站点数上限 200，超出截断；页面正文与本栏都为空时显示空态。'
     ) . sg_admin_json_tools()));
-    $form->addInput(new Text('sgGithubUser', null, 'oyj135', _t('GitHub 账号'), _t('「项目」页从这里列仓库。填用户名即可，例如 <code>oyj135</code>；留空则不启用 GitHub 数据源')));
-    $form->addInput(new Text('sgGithubLimit', null, '12', _t('仓库上限（个）'), _t('只在「项目清单」留空（自动模式）时生效，默认 12；想全量显示填 0。手填的清单不受此限')));
+    $form->addInput(new Radio('sgGongRing', ['gong' => _t('显示（默认）'), 'off' => _t('关闭')], 'gong', _t('岁候 · 宫内环'), _t(
+        '<b>显示位置</b>：「岁候」页轮盘内侧那一圈黄道十二宫。<br>'
+        . '关闭后内环不渲染，宫名只在对照表与首页挂件出现，节气环、展陈与对照表不受影响。<br>'
+        . '640px 以下轮盘换为滑条，宫改由 12 格小条表示，仍然可见。'
+    )));
+    $form->addInput(new Text('sgGithubUser', null, 'oyj135', _t('GitHub 账号'), _t('「项目」页从这里列仓库。填用户名即可，例如 <code>oyj135</code>；留空则不启用 GitHub 数据源')));    $form->addInput(new Text('sgGithubLimit', null, '12', _t('仓库上限（个）'), _t('只在「项目清单」留空（自动模式）时生效，默认 12；想全量显示填 0。手填的清单不受此限')));
     $form->addInput(new Textarea('sgTimeMilestones', null, '', _t('时光机 · 站史里程碑'), _t(
         '<b>显示位置</b>：「时光机」页顶部的大事时间线。<br>'
         . '<b>格式</b>：每行一条「日期|标题|说明」，竖线分隔，说明可省略。<br>'

@@ -1,0 +1,512 @@
+/* 岁候：二十四节气 × 黄道十二宫
+   ------------------------------------------------------------------
+   一条黄道，两种读法。外环 24 节气按四时给「色 + 线型」，内环 12 宫只给中性
+   灰（两套色彩系统叠在 10px 宽度里会脏），中气位置外沿一枚朱点 = 宫界。
+   夜间只有当前节气名参与 12s 三色轮询（复用 article.css 的 sg-post-neon），
+   宫环、当令条、挂件都不发光。
+
+   命名：页面级 .sg-season-* / .sg-range-* / .sg-table-* / .sg-strip-*；
+   轮盘级 .sg-wheel-*。不复用 .sg-hero*（首页 grid）与 .sg-post-hero*（文章头图）。 */
+
+.sg-sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- 页头 ---------- */
+.sg-season-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: clamp(1rem, 4vw, 2.5rem);
+  margin: 1.5rem 0 clamp(1.5rem, 4vw, 2.5rem);
+}
+.sg-season-title {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 4.4vw, 2.75rem);
+  font-weight: 400;
+  letter-spacing: .1em;
+  color: var(--sg-text);
+}
+.sg-season-sub {
+  margin-top: .5rem;
+  font-size: .82rem;
+  letter-spacing: .22em;
+  color: var(--sg-muted);
+}
+.sg-season-intro {
+  max-width: 44ch;
+  margin-top: .9rem;
+  font-size: .9rem;
+  line-height: 1.95;
+  color: var(--sg-muted);
+}
+
+/* 朱印：三案共用（题跋五枚、灯下页头），一枚页头只放一个重色块 */
+.sg-seal {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: .62rem .38rem;
+  background: var(--sg-warm);
+  color: #fdfbf4;
+  font-family: var(--font-serif);
+  font-size: .95rem;
+  line-height: 1;
+  letter-spacing: .22em;
+  writing-mode: vertical-rl;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 1px rgba(253, 251, 244, .28);
+  user-select: none;
+}
+
+/* ---------- 当令条 ---------- */
+.sg-season-now {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: clamp(1rem, 2.5vw, 1.4rem) clamp(1.1rem, 3vw, 1.75rem);
+  margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
+  background: var(--sg-card);
+  border: 1px solid var(--sg-line);
+  border-radius: var(--sg-radius);
+}
+.sg-now-main { display: flex; align-items: baseline; flex-wrap: wrap; gap: .1rem .7rem; }
+.sg-now-term {
+  font-family: var(--font-serif);
+  font-size: clamp(1.4rem, 3vw, 1.85rem);
+  letter-spacing: .1em;
+  color: var(--sg-text);
+}
+.sg-now-gong { font-size: .85rem; letter-spacing: .14em; color: var(--sg-muted); }
+.sg-now-gloss { flex: 1 0 100%; font-size: .86rem; line-height: 1.8; color: var(--sg-muted); }
+.sg-now-meta {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: .15rem;
+  text-align: right;
+  font-size: .74rem;
+  letter-spacing: .08em;
+  color: var(--sg-muted);
+}
+.sg-now-meta b {
+  font-family: var(--font-serif);
+  font-size: 1.45rem;
+  font-weight: 400;
+  letter-spacing: .02em;
+  color: var(--sg-text);
+}
+.sg-now-hou { color: var(--sg-muted); }
+
+/* ---------- 轮盘 ---------- */
+.sg-wheel { width: 100%; max-width: 520px; margin: 0 auto clamp(1.5rem, 4vw, 2.5rem); }
+.sg-wheel-plot { position: relative; width: 100%; }
+/* 轮盘不套硬边卡片（页头、展陈都是浮在壁纸上的），但环线需要一层纸底才读得清：
+   径向渐变的纸色圆盘，边缘化开，不切出一个新卡型。 */
+.sg-wheel-plot::before {
+  content: '';
+  position: absolute;
+  inset: -4%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, var(--sg-card) 0 58%, color-mix(in srgb, var(--sg-card) 55%, transparent) 74%, transparent 78%);
+  pointer-events: none;
+}
+.sg-wheel-svg { position: relative; display: block; width: 100%; height: auto; overflow: visible; }
+
+.sg-wheel-term-arc {
+  fill: color-mix(in srgb, var(--sg-text) 3%, transparent);
+  stroke-width: 1;
+  transition: fill .2s ease-out, stroke .2s ease-out, opacity .2s ease-out;
+}
+/* 四时：色 + 线型双编码，不只靠色相（WCAG 1.4.1） */
+.sg-wheel-term.is-spring .sg-wheel-term-arc { stroke: var(--sg-accent); stroke-width: 1; }
+.sg-wheel-term.is-summer .sg-wheel-term-arc { stroke: #c98f7e; stroke-width: 1.5; }
+.sg-wheel-term.is-autumn .sg-wheel-term-arc { stroke: #b08968; stroke-dasharray: 4 3; }
+.sg-wheel-term.is-winter .sg-wheel-term-arc { stroke: #5f6563; stroke-dasharray: 1.5 3; stroke-linecap: round; }
+.sg-wheel-term.is-empty .sg-wheel-term-arc { opacity: .55; }
+/* 无字节气仍要能读（它是导航入口，不是装饰）：标签 opacity 由 .55 提到 .72，
+   压夜卡时 muted 6.19:1 × .72 ≈ 4.5:1，日间 5.75 × .72 ≈ 4.3:1 就近可读；
+   再低就会与「当前节气」拉不开又看不清（AGENS §8.2）。 */
+.sg-wheel-term.is-empty .sg-wheel-term-label { opacity: .72; }
+.sg-wheel-term.is-current .sg-wheel-term-arc {
+  fill: color-mix(in srgb, var(--sg-accent) 13%, transparent);
+  stroke-width: 1.6;
+}
+.sg-wheel-term.is-sel .sg-wheel-term-arc {
+  fill: color-mix(in srgb, var(--sg-warm) 17%, transparent);
+  stroke: var(--sg-warm);
+  stroke-width: 1.6;
+}
+.sg-wheel-term.is-linked .sg-wheel-term-arc { fill: color-mix(in srgb, var(--sg-text) 9%, transparent); }
+.sg-wheel-term.is-sel.is-linked .sg-wheel-term-arc { fill: color-mix(in srgb, var(--sg-warm) 24%, transparent); }
+
+.sg-wheel-term-label {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  fill: var(--sg-muted);
+  letter-spacing: .04em;
+  transition: fill .2s ease-out;
+}
+.sg-wheel-term.is-current .sg-wheel-term-label { fill: var(--sg-text); }
+.sg-wheel-term.is-sel .sg-wheel-term-label { fill: var(--sg-warm); }
+.sg-wheel-term:focus { outline: none; }
+.sg-wheel-term:focus-visible .sg-wheel-term-arc { stroke: var(--sg-accent-ink, var(--sg-text)); stroke-width: 2; }
+
+.sg-wheel-gong-arc {
+  fill: color-mix(in srgb, var(--sg-text) 3%, transparent);
+  stroke: var(--sg-line);
+  stroke-width: .5;
+  transition: fill .2s ease-out, opacity .2s ease-out;
+}
+.sg-wheel-gong.is-empty .sg-wheel-gong-arc { opacity: .55; }
+.sg-wheel-gong.is-sel .sg-wheel-gong-arc { fill: color-mix(in srgb, var(--sg-warm) 10%, transparent); stroke: var(--sg-warm); stroke-width: .8; }
+.sg-wheel-gong.is-linked .sg-wheel-gong-arc { fill: color-mix(in srgb, var(--sg-text) 10%, transparent); }
+.sg-wheel-gong-label {
+  font-family: var(--font-serif);
+  font-size: 11.5px;
+  fill: var(--sg-muted);
+  letter-spacing: .08em;
+  transition: fill .2s ease-out;
+}
+.sg-wheel-gong.is-sel .sg-wheel-gong-label,
+.sg-wheel-gong.is-linked .sg-wheel-gong-label { fill: var(--sg-text); }
+.sg-wheel-gong:focus { outline: none; }
+
+.sg-wheel-mark { fill: var(--sg-warm); opacity: .72; }
+.sg-wheel-year { stroke: var(--sg-warm); stroke-width: 1.2; fill: none; }
+.sg-wheel-year-label { font-size: 10px; fill: var(--sg-warm); letter-spacing: .12em; }
+
+.sg-wheel-center {
+  position: absolute;
+  inset: 25%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .3rem;
+  text-align: center;
+  pointer-events: none;
+}
+.sg-wheel-center-name {
+  font-family: var(--font-serif);
+  font-size: clamp(1.05rem, 2.3vw, 1.35rem);
+  letter-spacing: .06em;
+  white-space: nowrap;
+  color: var(--sg-text);
+}
+.sg-wheel-center-sub {
+  font-size: .74rem;
+  letter-spacing: .06em;
+  line-height: 1.65;
+  color: var(--sg-muted);
+}
+
+/* ---------- 移动端滑条 + 12 格宫条 ---------- */
+.sg-season-strip { display: none; }
+.sg-strip-terms {
+  display: flex;
+  gap: .4rem;
+  overflow-x: auto;
+  padding: .2rem 0 .6rem;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.sg-strip-terms li { flex: 0 0 auto; scroll-snap-align: center; }
+.sg-strip-term {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .1rem;
+  min-width: 3.5rem;
+  padding: .4rem .45rem;
+  border: 1px solid var(--sg-line);
+  border-radius: var(--sg-radius-inner);
+  font-family: var(--font-serif);
+  font-size: .82rem;
+  color: var(--sg-muted);
+}
+.sg-strip-term em { font-style: normal; font-size: .7rem; color: var(--sg-muted); font-variant-numeric: tabular-nums; }
+.sg-strip-term.is-empty { opacity: .55; }
+.sg-strip-term.is-current { border-color: var(--sg-accent-deep); color: var(--sg-text); }
+.sg-strip-term.is-sel { border-color: var(--sg-warm); color: var(--sg-warm); }
+
+.sg-strip-gongs {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 3px;
+  align-items: end;
+  margin-top: .1rem;
+}
+.sg-strip-gong {
+  position: relative;
+  display: block;
+  height: .7rem;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--sg-text) 6%, transparent);
+}
+.sg-strip-gong.has-content { box-shadow: inset 0 -2px 0 var(--sg-accent-deep); }
+.sg-strip-gong.is-sel { background: var(--sg-warm); }
+.sg-strip-gong span {
+  position: absolute;
+  top: calc(100% + .2rem);
+  left: 0;
+  font-size: .68rem;
+  color: var(--sg-muted);
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+.sg-strip-gong:last-child span { left: auto; right: 0; }
+.sg-strip-gong i { display: none; }
+
+@media (max-width: 900px) {
+  .sg-wheel { max-width: 440px; }
+}
+@media (max-width: 640px) {
+  .sg-wheel-plot { display: none; }
+  .sg-season-strip { display: block; margin-bottom: 1.75rem; }
+}
+
+/* ---------- 区间展陈 ---------- */
+.sg-season-range { margin-bottom: clamp(2rem, 5vw, 3rem); }
+.sg-range-head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: .2rem 1rem;
+  padding-bottom: .8rem;
+  border-bottom: 1px solid var(--sg-line);
+}
+.sg-range-eyebrow { grid-column: 1 / -1; font-size: .72rem; letter-spacing: .3em; color: var(--sg-muted); }
+.sg-range-title { font-family: var(--font-serif); font-size: clamp(1.3rem, 3vw, 1.65rem); font-weight: 400; letter-spacing: .08em; color: var(--sg-text); }
+.sg-range-sub { grid-column: 1 / -1; font-size: .82rem; line-height: 1.8; color: var(--sg-muted); }
+.sg-range-count { font-size: .78rem; letter-spacing: .1em; color: var(--sg-muted); justify-self: end; }
+
+.sg-range-hou { margin-top: 1.4rem; }
+.sg-range-hou-title {
+  margin-bottom: .7rem;
+  padding-left: .55rem;
+  border-left: 2px solid var(--sg-warm);
+  font-family: var(--font-serif);
+  font-size: .85rem;
+  font-weight: 400;
+  letter-spacing: .1em;
+  color: var(--sg-muted);
+}
+.sg-range-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+.sg-range-card {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border: 1px solid var(--sg-line);
+  border-radius: var(--sg-radius-inner);
+  background: var(--sg-card);
+}
+.sg-range-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .6s ease-in-out;
+}
+.sg-range-card-body {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: 1.4rem .8rem .65rem;
+  background: linear-gradient(to top, rgba(24, 21, 26, .84), rgba(24, 21, 26, 0));
+  color: #f9f2e0;
+}
+.sg-range-card-title {
+  font-family: var(--font-serif);
+  font-size: .92rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.sg-range-card-date { flex: 0 0 auto; font-size: .68rem; letter-spacing: .06em; opacity: .78; font-variant-numeric: tabular-nums; }
+.sg-range-card.is-plain { aspect-ratio: auto; min-height: 0; }
+.sg-range-card.is-plain .sg-range-card-body {
+  position: static;
+  padding: 1rem .9rem;
+  background: none;
+  color: var(--sg-text);
+}
+.sg-range-card.is-plain .sg-range-card-title { -webkit-line-clamp: 4; }
+
+@media (hover: hover) and (pointer: fine) {
+  .sg-range-card:hover .sg-range-card-img { transform: scale(1.06); }
+}
+
+.sg-range-all { margin-top: 1rem; }
+.sg-range-all summary {
+  cursor: pointer;
+  font-size: .8rem;
+  letter-spacing: .1em;
+  color: var(--sg-muted);
+}
+.sg-range-all[open] summary { margin-bottom: .8rem; }
+
+.sg-range-photos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.6rem;
+}
+.sg-range-photo { margin: 0; }
+.sg-range-photo img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--sg-radius-inner); }
+.sg-range-photo figcaption { margin-top: .35rem; font-size: .74rem; color: var(--sg-muted); }
+
+.sg-range-notes { margin-top: 1.6rem; padding-top: .9rem; border-top: 1px dashed var(--sg-line); }
+.sg-range-note { font-family: var(--font-serif); font-size: .92rem; line-height: 1.95; color: var(--sg-muted); }
+.sg-range-note + .sg-range-note { margin-top: .5rem; }
+
+.sg-range-empty {
+  padding: 2.4rem 0 1rem;
+  text-align: center;
+  color: var(--sg-muted);
+}
+.sg-range-empty p { font-family: var(--font-serif); font-size: 1rem; letter-spacing: .08em; }
+.sg-range-near { margin-top: .8rem; font-size: .82rem; letter-spacing: .04em; }
+.sg-range-near a { color: var(--sg-accent-deep); }
+.sg-range-near a + a { margin-left: 1.2rem; }
+
+/* ---------- 对照表 ---------- */
+.sg-season-table { margin-bottom: clamp(2rem, 5vw, 3rem); }
+.sg-table-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: .9rem; }
+.sg-table-title { font-family: var(--font-serif); font-size: 1.15rem; font-weight: 400; letter-spacing: .1em; color: var(--sg-text); }
+.sg-table-note { font-size: .76rem; color: var(--sg-muted); }
+.sg-table { width: 100%; border-collapse: collapse; font-size: .86rem; }
+.sg-table th, .sg-table td {
+  padding: .55rem .6rem;
+  border-bottom: 1px solid var(--sg-line);
+  text-align: left;
+  font-weight: 400;
+  color: var(--sg-muted);
+}
+.sg-table thead th { font-size: .72rem; letter-spacing: .18em; color: var(--sg-muted); }
+.sg-table tbody th { color: var(--sg-text); font-family: var(--font-serif); letter-spacing: .06em; }
+.sg-table td.is-num { text-align: right; font-variant-numeric: tabular-nums; }
+.sg-table td.is-link { text-align: right; width: 2.2rem; }
+.sg-table td.is-link a { color: var(--sg-accent-deep); }
+.sg-table tr.is-sel { background: color-mix(in srgb, var(--sg-warm) 7%, transparent); }
+.sg-table-more { margin-top: .8rem; }
+.sg-table-more summary { cursor: pointer; font-size: .8rem; letter-spacing: .1em; color: var(--sg-muted); }
+.sg-table-more[open] summary { margin-bottom: .8rem; }
+@media (max-width: 640px) {
+  .sg-table th, .sg-table td { padding: .45rem .35rem; font-size: .8rem; }
+  .sg-table-gong td:nth-child(3){ display: none; }
+}
+
+/* ---------- 年份行与相邻节气 ---------- */
+.sg-season-years {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem 0;
+  border-top: 1px solid var(--sg-line);
+  border-bottom: 1px solid var(--sg-line);
+}
+.sg-years-row { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
+.sg-years-label { font-size: .72rem; letter-spacing: .24em; color: var(--sg-muted); }
+.sg-year {
+  padding: .2rem .55rem;
+  border-radius: 999px;
+  font-size: .82rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--sg-muted);
+}
+.sg-year.is-current { background: var(--sg-accent); color: #fdfbf4; }
+.sg-season-nav { display: flex; align-items: center; gap: 1.1rem; font-size: .8rem; letter-spacing: .06em; }
+.sg-season-nav a { color: var(--sg-accent-deep); }
+
+/* ---------- 页脚口径 ---------- */
+.sg-season-note {
+  max-width: 62ch;
+  margin: 1.6rem 0 0;
+  font-size: .74rem;
+  line-height: 1.95;
+  color: var(--sg-muted);
+}
+.sg-season-note p { margin: 0; }
+.sg-season-note p + p { margin-top: .3rem; }
+
+/* ---------- 整年空态 ---------- */
+.sg-season-empty {
+  padding: clamp(2.5rem, 8vw, 5rem) 0;
+  text-align: center;
+  font-family: var(--font-serif);
+  color: var(--sg-muted);
+}
+.sg-season-empty p + p { margin-top: 1rem; font-size: .86rem; }
+.sg-season-empty a { color: var(--sg-accent-deep); }
+
+/* ---------- 首页挂件 ---------- */
+.sg-hseason {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  padding: .85rem 1rem;
+  text-decoration: none;
+}
+.sg-hseason-icon { display: inline-flex; flex: 0 0 auto; }
+.sg-hseason-text { display: flex; align-items: baseline; gap: .45rem; flex: 1 1 auto; min-width: 0; }
+.sg-hseason-text b {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 1rem;
+  letter-spacing: .08em;
+  color: var(--sg-text);
+}
+.sg-hseason-text span { font-size: .74rem; letter-spacing: .1em; color: var(--sg-muted); }
+.sg-hseason-meta { flex: 0 0 auto; font-size: .72rem; letter-spacing: .04em; color: var(--sg-muted); }
+.sg-hseason:hover .sg-hseason-text b { color: var(--sg-accent-deep); }
+
+/* ---------- 夜间 ---------- */
+html.dark .sg-seal { background: var(--sg-warm-bright); color: #1b191e; }
+html.dark .sg-wheel-term-arc { fill: color-mix(in srgb, var(--sg-text) 5%, transparent); }
+html.dark .sg-wheel-gong-arc { fill: color-mix(in srgb, var(--sg-text) 4%, transparent); }
+html.dark .sg-wheel-term.is-current .sg-wheel-term-label {
+  fill: #eae5d6;
+  animation: sg-post-neon 12s linear infinite;
+}
+html.dark .sg-range-card-body { background: linear-gradient(to top, rgba(8, 7, 10, .88), rgba(8, 7, 10, 0)); }
+
+@media (prefers-reduced-motion: reduce) {
+  html.dark .sg-wheel-term.is-current .sg-wheel-term-label { animation: none; }
+  .sg-range-card-img { transition: none; }
+}
+
+/* ---------- 窄屏布局 ---------- */
+@media (max-width: 900px) {
+  .sg-range-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .sg-season-head { align-items: flex-start; }
+  .sg-season-intro { font-size: .85rem; }
+  .sg-season-now { flex-direction: column; align-items: flex-start; gap: .8rem; }
+  .sg-now-meta { flex-direction: row; align-items: baseline; gap: .5rem; }
+  .sg-now-meta b { font-size: 1.2rem; }
+  .sg-range-grid { grid-template-columns: minmax(0, 1fr); }
+  .sg-range-photos { grid-template-columns: minmax(0, 1fr); }
+}

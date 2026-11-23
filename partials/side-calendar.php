@@ -18,7 +18,7 @@ $sgCalWeekday = (int) $sgCalNow->format('w');
 $sgCalTitle = $sgCalYear . '年' . $sgCalMonth . '月' . $sgCalToday . '日 星期' . $sgCalWeekNames[$sgCalWeekday];
 ?>
 <section class="sg-hcard sg-hcal" aria-label="本月日历" data-sg-calendar title="<?php echo sg_e($sgCalTitle); ?>">
-  <noscript><style>[data-sg-calendar-lunar], [data-sg-calendar-term], [data-sg-weather] { display: none; }</style></noscript>
+  <noscript><style>[data-sg-calendar-lunar], [data-sg-weather] { display: none; }</style></noscript>
   <div class="sg-hcard-head">
     <span class="sg-hcard-title"><?php echo sg_icon_color('calendar'); ?>日历</span>
   </div>
@@ -54,7 +54,12 @@ $sgCalTitle = $sgCalYear . '年' . $sgCalMonth . '月' . $sgCalToday . '日 星�
     </table>
   </div>
   <div class="sg-hcal-extra" data-sg-calendar-extra hidden>
-    <?php if ($sgSideCfg['detail']) : ?><span class="sg-hcal-term" data-sg-calendar-term></span><?php endif; ?>
+    <?php if ($sgSideCfg['detail']) : ?>
+    <?php /* 节气名服务端直出（S0.5 同源）：与岁候页同一张 data/season-terms.php，
+            关 JS 也读得到，午夜不会再和页面读数差一天。农历仍由前端补。 */ ?>
+    <?php $sgCalTerm = sg_season_sidebar(); ?>
+    <span class="sg-hcal-term" data-sg-calendar-term><?php if ($sgCalTerm) : ?><?php echo sg_e($sgCalTerm['prefix']); ?><strong><?php echo sg_e($sgCalTerm['name']); ?></strong><?php endif; ?></span>
+    <?php endif; ?>
     <span class="sg-hcal-sun" data-sg-sun hidden><span data-sg-sun-rise></span><span data-sg-sun-set></span></span>
   </div>
   <?php if ($sgSideCfg['weather']) : ?>

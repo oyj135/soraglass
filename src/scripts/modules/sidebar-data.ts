@@ -213,20 +213,12 @@ export function initSidebarData(): void {
     if (calendarLibrary) {
       try {
         const lunar = lunarFacts(date, calendarLibrary);
-        if (cfg.detail && calendar) {
-          put(calendar, '[data-sg-calendar-lunar]', lunar.label);
-          // 节气名单独加粗（对应源站 .cal-term 的 <em>），前缀保持常规字重。
-          const term = calendar.querySelector<HTMLElement>('[data-sg-calendar-term]');
-          if (term && term.dataset.sgTerm !== lunar.term) {
-            const name = document.createElement('strong');
-            name.textContent = lunar.termName;
-            term.replaceChildren(lunar.term.slice(0, lunar.term.length - lunar.termName.length), name);
-            term.dataset.sgTerm = lunar.term;
-          }
-        }
+        /* 节气名由服务端直出（与岁候页同一张表），前端不再算第二遍；
+           这里只补农历与春节倒计时。 */
+        if (cfg.detail && calendar) put(calendar, '[data-sg-calendar-lunar]', lunar.label);
         target = lunar.festival ?? target;
       } catch {
-        if (calendar) { put(calendar, '[data-sg-calendar-lunar]', '农历暂不可用'); put(calendar, '[data-sg-calendar-term]', ''); }
+        if (calendar) put(calendar, '[data-sg-calendar-lunar]', '农历暂不可用');
       }
     }
     if (countdown) {

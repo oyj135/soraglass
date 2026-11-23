@@ -66,6 +66,35 @@ addDir('dist', (rel) => /^(preview-.*|_.*)\.html$/.test(rel));
 const historySrc = path.join(workspace, 'docs', 'HISTORY.md');
 if (!fs.existsSync(historySrc)) throw new Error('缺少 docs/HISTORY.md，时光页将没有数据，请先从 IMPLEMENTATION.md 轮次记录生成');
 files.push({ rel: 'data/history.md', abs: historySrc });
+
+// 节气表：scripts/gen-season.mjs 生成，线上不跑 Node，所以必须随包发布。
+// data/ 不在 addDir 白名单里，漏 push 的后果是岁候页读不到表、整页空态。
+const termsSrc = path.join(root, 'data/season-terms.php');
+if (!fs.existsSync(termsSrc)) throw new Error('缺少 data/season-terms.php，请先 node scripts/gen-season.mjs');
+files.push({ rel: 'data/season-terms.php', abs: termsSrc });
+
+// 占位清零闸门（评审稿 §4.3）：〔待写〕是对渲染结果有约束的可见标记，
+// 忘了替换就是「把占位当成品发出去」，所以在打包前直接失败。
+const placeholder = '〔待写〕';
+for (const dir of ['lib', 'data', 'partials']) {
+  const stack = [path.join(root, dir)];
+  while (stack.length) {
+    const current = stack.pop();
+    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+      const abs = path.join(current, entry.name);
+      if (entry.isDirectory()) { stack.push(abs); continue; }
+      if (!/\.(php|json|md)$/.test(entry.name)) continue;
+      if (fs.readFileSync(abs, 'utf8').includes(placeholder)) {
+        throw new Error(`存在占位文案 ${placeholder}：${path.relative(root, abs).replace(/\\/g, '/')}，请先定稿再发布`);
+      }
+    }
+  }
+}
+const seasonPage = path.join(root, 'page-season.php');
+if (fs.existsSync(seasonPage) && fs.readFileSync(seasonPage, 'utf8').includes(placeholder)) {
+  throw new Error(`存在占位文案 ${placeholder}：page-season.php，请先定稿再发布`);
+}
+
 files.sort((a, b) => a.rel.localeCompare(b.rel));
 
 const entries = files.map(({ rel, abs }) => ({
