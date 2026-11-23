@@ -331,7 +331,11 @@ $GLOBALS['SG_SEASON'] = [
 ];
 ?>
 <main id="sg-main" tabindex="-1" class="sg-main sg-main--pad sg-season" data-sg-page="season">
-  <?php /* 幕一 · 舞台 —— 定调文案 + 仪表：轮盘居中，四个读数环绕四角，整页只有这一处大容器 */ ?>
+  <?php /* 一整张纸（第七十八轮）：舞台与年表共用一个纸面。分成两张卡时，轮盘卡底与
+     「这一段」之间会露出壁纸，读起来像两个互不相干的部件；并成一张之后，纸面从盘面
+     一直落到对照表底，两段只用一条渐隐细线分栏。幕三的跋仍是独立一条低对比页脚。 */ ?>
+  <div class="sg-season-sheet">
+  <?php /* 幕一 · 舞台 —— 定调文案 + 仪表：轮盘居中，四个读数环绕四角 */ ?>
   <section class="sg-season-stage" data-sg-stage>
     <header class="sg-stage-copy">
       <p class="sg-stage-kicker">Seasonal almanac · 岁时记</p>
@@ -347,12 +351,13 @@ $GLOBALS['SG_SEASON'] = [
     </header>
 
   <?php if ($sgSMode === 'none') : ?>
-  <?php /* 整年无字 / 表缺年份：留在舞台里，不另起一张卡 */ ?>
+  <?php /* 整年无字 / 表缺年份：纸面照铺，只是没有年表可接 */ ?>
   <div class="sg-season-empty">
     <p>这一年还没有落笔。</p>
     <p><a href="<?php echo sg_e(sg_season_url(['y' => $sgSThisYear])); ?>">回到 <?php echo (int) $sgSThisYear; ?> 年 →</a></p>
   </div>
   </section>
+  </div>
   <?php else : ?>
 
   <?php /* 仪表：轮盘居中，四个读数环绕四角 */ ?>
@@ -374,14 +379,14 @@ $GLOBALS['SG_SEASON'] = [
   <span class="sg-seal sg-seal--stage" aria-label="<?php echo sg_e('当前节气 ' . $sgSCurTerm['name']); ?>"><?php echo sg_e($sgSCurTerm['name']); ?></span>
   <?php endif; ?>
   </section>
-  <?php endif; ?>
 
-  <?php if ($sgSMode !== 'none') : ?>
-  <?php /* 幕二 · 年表：展陈与对照表挂在同一条时间轴脊柱上 */ ?>
+  <?php /* 幕二 · 年表：与舞台同处一张纸，展陈与对照表仍挂同一条时间轴脊柱 */ ?>
   <section class="sg-season-chronicle" data-sg-reveal>
     <?php $this->need('partials/season-range.php'); ?>
     <?php $this->need('partials/season-table.php'); ?>
   </section>
+  </div>
+  <?php /* 纸面到此合上；跋在纸外，单独一条低对比页脚 */ ?>
 
   <?php /* 幕三 · 跋：年份、前后节气与口径，收成一条低对比的页脚 */ ?>
   <footer class="sg-season-colophon" data-sg-reveal>

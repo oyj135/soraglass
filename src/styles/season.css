@@ -44,23 +44,21 @@ html.dark .sg-season {
 }
 
 /* ============================================================
-   幕一 · 舞台
+   纸面 · 舞台与年表共用一张（第七十八轮）
    ============================================================ */
-.sg-season-stage {
+/* 分两张卡时，盘面卡底与「这一段」之间露出一条壁纸，读起来像两个互不相干的部件。
+   并成一张之后：纸面从这里一直落到对照表底，舞台与年表只靠一条渐隐细线分栏。 */
+.sg-season-sheet {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: clamp(.7rem, 1.8vw, 1.2rem);
-  /* 舞台比正文栏窄一档：纸面聚拢，四角读数才不显得散在旷野里 */
   width: min(100%, 62rem);
-  min-height: clamp(34rem, 82vh, 52rem);
-  margin: 1.2rem auto clamp(2rem, 5vw, 3rem);
-  padding: clamp(.9rem, 2vw, 1.3rem) var(--sg-sheet-x) clamp(.9rem, 2.2vw, 1.3rem);
-  /* 环境层：右上一点朱砂暖、左上一点灰青冷，都极淡；底色仍是纸/墨，不引入新色 */
+  /* 与纸外的「跋」只隔一档常规间距：两张纸像同一组的表与注，而不是两块独立内容 */
+  margin: 1.2rem auto clamp(1rem, 2.4vw, 1.5rem);
+  /* 环境层：右上一点朱砂暖、左上一点灰青冷，都极淡；底色仍是纸/墨，不引入新色。
+     两束光的高度要盖住整张纸（纸比原来长得多）：只铺上半段的话，纸会从中间
+     由暖白转回冷白，看起来像两截纸拼起来。 */
   background:
-    radial-gradient(118% 90% at 80% -14%, color-mix(in srgb, var(--sg-warm) 8%, transparent), transparent 60%),
-    radial-gradient(62% 54% at 2% -2%, color-mix(in srgb, var(--sg-muted) 12%, transparent), transparent 58%),
+    radial-gradient(122% 104% at 80% -14%, color-mix(in srgb, var(--sg-warm) 7%, transparent), transparent 70%),
+    radial-gradient(70% 72% at 2% -4%, color-mix(in srgb, var(--sg-muted) 10%, transparent), transparent 62%),
     var(--sg-card);
   border: 1px solid var(--sg-line);
   border-radius: var(--sg-radius);
@@ -69,7 +67,7 @@ html.dark .sg-season {
   isolation: isolate;
 }
 /* 仪器面板的顶沿高光：一条从中间亮到两端消失的印朱细线 */
-.sg-season-stage::before {
+.sg-season-sheet::before {
   content: '';
   position: absolute;
   inset: 0 0 auto;
@@ -78,14 +76,41 @@ html.dark .sg-season {
   pointer-events: none;
   background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--sg-warm) 52%, transparent), transparent);
 }
-/* 暗角：把注意力压回盘面中央；15% 的墨，边缘收但纸底不脏 */
+
+/* ============================================================
+   幕一 · 舞台
+   ============================================================ */
+/* 舞台不再自带纸面：底色、边框、圆角、投影都由 .sg-season-sheet 承担，
+   这里只管「一屏之内怎么排」。 */
+.sg-season-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(.7rem, 1.8vw, 1.2rem);
+  width: 100%;
+  /* 合并成一张纸后，舞台仍是首屏的主角，但上限收到 76vh：
+     再高一点，810px 窗口里求签按钮就会掉出首屏下沿（它现在是纸内第一段）。 */
+  min-height: clamp(34rem, 76vh, 48rem);
+  margin: 0;
+  padding: clamp(.9rem, 2vw, 1.3rem) var(--sg-sheet-x) clamp(1.1rem, 2.4vw, 1.5rem);
+}
+/* 暗角：把注意力压回盘面中央。合并成一张纸之后必须让边缘淡出到透明 ——
+   留一圈有边界的暗角，会在盘与年表之间显出一道横切的口子，反而更像两张卡。
+   底部再用 mask 收到 0：390 窄屏上，舞台底的暗角若剩一点灰，就会跟下面的
+   白纸接出一条清晰的分界线（实测就是这么翻车的）。 */
 .sg-season-stage::after {
   content: '';
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: radial-gradient(112% 86% at 50% 46%, transparent 46%, color-mix(in srgb, var(--sg-text) 15%, transparent));
+  background: radial-gradient(120% 94% at 50% 44%,
+    transparent 44%,
+    color-mix(in srgb, var(--sg-text) 12%, transparent) 76%,
+    transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, #000 50%, transparent 90%);
+  mask-image: linear-gradient(180deg, #000 50%, transparent 90%);
 }
 
 /* ---------- 定调文案 ---------- */
@@ -249,7 +274,9 @@ html.dark .sg-season {
   /* 第七十七轮：去掉 48vh 这道死上限（它是 8px 字的直接原因），改用 clamp 三段——
      24rem 是字号下限的保险丝，44vw 跟着栏宽，56vh 只在矮窗口里才收。
      vh 这一档不能取消：四角读数要和盘面同屏，盘面就必须给标题与四角留出高度。 */
-  width: clamp(24rem, min(44vw, 50vh), 33rem);
+  /* 48vh：合并成一张纸后，舞台要给下面的年表让出一点高度，
+     求签按钮必须落在首屏内（它现在是纸内第一段的收尾，不该被裁一半）。 */
+  width: clamp(24rem, min(44vw, 48vh), 33rem);
   margin: 0 auto;
 }
 .sg-wheel-disc { display: block; }
@@ -592,24 +619,39 @@ html.dark .sg-season {
 .sg-strip-gong i { display: none; }
 
 /* ============================================================
-   幕二 · 年表
+   幕二 · 年表（与舞台同处一张纸）
    ============================================================ */
+/* 纸面已在 .sg-season-sheet 上，这里只剩内距与一条分栏细线。 */
 .sg-season-chronicle {
+  --sg-chron-pad: clamp(1.7rem, 3.8vw, 2.3rem);
   position: relative;
-  width: min(100%, 62rem);
-  margin: 0 auto clamp(2rem, 5vw, 3rem);
-  padding: var(--sg-sheet-y) var(--sg-sheet-x);
-  background: var(--sg-card);
-  border: 1px solid var(--sg-line);
-  border-radius: var(--sg-radius);
+  width: 100%;
+  margin: 0;
+  padding: var(--sg-chron-pad) var(--sg-sheet-x) clamp(1.5rem, 3.2vw, 2.1rem);
+}
+/* 纸内分栏：一条两端渐隐的细线。它分隔内容，但不把纸切成两张卡 ——
+   所以不能是通栏 border，必须左右各让出纸面内距、两头淡出。 */
+.sg-season-chronicle::after {
+  content: '';
+  position: absolute;
+  left: var(--sg-sheet-x);
+  right: var(--sg-sheet-x);
+  top: 0;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg,
+    transparent,
+    color-mix(in srgb, var(--sg-line) 92%, transparent) 16%,
+    color-mix(in srgb, var(--sg-line) 92%, transparent) 84%,
+    transparent);
 }
 /* 时间轴脊柱：一条从展陈顶端落到表格底端的竖线，内容挂在它右侧 */
 .sg-season-chronicle::before {
   content: '';
   position: absolute;
   left: calc(var(--sg-sheet-x) + .1rem);
-  top: calc(var(--sg-sheet-y) + .5rem);
-  bottom: calc(var(--sg-sheet-y) + .5rem);
+  top: calc(var(--sg-chron-pad) + .45rem);
+  bottom: calc(clamp(1.5rem, 3.2vw, 2.1rem) + .45rem);
   width: 1px;
   background: linear-gradient(180deg,
     color-mix(in srgb, var(--sg-warm) 42%, transparent),
@@ -634,18 +676,52 @@ html.dark .sg-season {
 }
 
 /* ---------- 区间展陈 ---------- */
+/* 三行：眉标 + 篇数（同一行，一左一右）／标题／说明。
+   篇数原本挂在说明同一行的最右端，离标题太远、读起来是「飘着的 0 篇」；
+   提到眉标行后，元信息成一条、标题独占一行，层级才立得住。 */
 .sg-range-head {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: end;
-  gap: .2rem 1rem;
-  padding-bottom: .8rem;
+  gap: .3rem 1rem;
+  padding-bottom: .9rem;
   border-bottom: 1px solid var(--sg-line);
 }
-.sg-range-eyebrow { grid-column: 1 / -1; font-size: .72rem; letter-spacing: .3em; color: var(--sg-muted); }
-.sg-range-title { font-family: var(--font-serif); font-size: clamp(1.3rem, 3vw, 1.65rem); font-weight: 400; letter-spacing: .08em; color: var(--sg-text); }
-.sg-range-sub { grid-column: 1 / -1; font-size: .82rem; line-height: 1.8; color: var(--sg-muted); }
-.sg-range-count { font-family: var(--sg-num); font-size: .76rem; letter-spacing: .1em; color: var(--sg-muted); justify-self: end; }
+.sg-range-eyebrow {
+  grid-row: 1;
+  grid-column: 1;
+  align-self: baseline;
+  font-size: .72rem;
+  letter-spacing: .24em;
+  color: var(--sg-muted);
+}
+.sg-range-count {
+  grid-row: 1;
+  grid-column: 2;
+  align-self: baseline;
+  justify-self: end;
+  font-family: var(--sg-num);
+  font-size: .72rem;
+  letter-spacing: .1em;
+  color: var(--sg-muted);
+}
+.sg-range-title {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  font-family: var(--font-serif);
+  font-size: clamp(1.5rem, 3.4vw, 2rem);
+  font-weight: 400;
+  letter-spacing: .08em;
+  line-height: 1.25;
+  color: var(--sg-text);
+}
+.sg-range-sub {
+  grid-row: 3;
+  grid-column: 1 / -1;
+  font-size: .82rem;
+  line-height: 1.8;
+  color: var(--sg-muted);
+}
 
 .sg-range-hou { margin-top: 1.4rem; }
 .sg-range-hou-title {
@@ -738,14 +814,25 @@ html.dark .sg-season {
 .sg-range-note + .sg-range-note { margin-top: .5rem; }
 
 .sg-range-empty {
-  padding: 2.4rem 0 1rem;
+  /* 合并成一张纸后，空态上下都是纸面，2.4rem 的顶距会把「这一段」整段拉开；
+     收到 1.9rem，空态仍居中留白但不与上文的标题脱节。 */
+  padding: 1.9rem 0 .8rem;
   text-align: center;
   color: var(--sg-muted);
 }
 .sg-range-empty p { font-family: var(--font-serif); font-size: 1rem; letter-spacing: .08em; }
-.sg-range-near { margin-top: .8rem; font-size: .82rem; letter-spacing: .04em; }
-.sg-range-near a { color: var(--sg-accent-deep); }
-.sg-range-near a + a { margin-left: 1.2rem; }
+/* 两个相邻区间的入口：用 flex + gap 排，箭头永远跟着自己的链接走。
+   原来靠 margin-left 拼在一行，窄屏折行时「→」会单独掉到下一行居中，看着像断句。 */
+.sg-range-near {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .35rem 1.4rem;
+  margin-top: .8rem;
+  font-size: .82rem;
+  letter-spacing: .04em;
+}
+.sg-range-near a { color: var(--sg-accent-deep); white-space: nowrap; }
 
 /* ---------- 对照表 ---------- */
 .sg-table-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: .9rem; }
@@ -855,11 +942,20 @@ html.dark .sg-season {
 /* ---------- 夜间 ---------- */
 html.dark .sg-seal { background: var(--sg-warm-bright); color: #1b191e; }
 /* 夜间：右上换成淡朱的月光晕，左上换成雾青；不再借用 --sg-glow-a（夜间是墨色，看不出光） */
-html.dark .sg-season-stage {
+html.dark .sg-season-sheet {
   background:
-    radial-gradient(118% 90% at 80% -14%, color-mix(in srgb, var(--sg-warm-bright) 13%, transparent), transparent 62%),
-    radial-gradient(62% 54% at 2% -2%, color-mix(in srgb, var(--sg-accent-ink) 9%, transparent), transparent 60%),
+    radial-gradient(122% 104% at 80% -14%, color-mix(in srgb, var(--sg-warm-bright) 11%, transparent), transparent 70%),
+    radial-gradient(70% 72% at 2% -4%, color-mix(in srgb, var(--sg-accent-ink) 8%, transparent), transparent 62%),
     var(--sg-card);
+}
+/* 纸内分栏线在夜间要单独提亮一档：--sg-line 在墨纸上几乎是隐形的，
+   浅色下看得见、夜间看不见，两段就会又像各走各的。 */
+html.dark .sg-season-chronicle::after {
+  background: linear-gradient(90deg,
+    transparent,
+    color-mix(in srgb, var(--sg-text) 15%, transparent) 16%,
+    color-mix(in srgb, var(--sg-text) 15%, transparent) 84%,
+    transparent);
 }
 html.dark .sg-wheel-term-arc { fill: color-mix(in srgb, var(--sg-text) 5%, transparent); }
 html.dark .sg-wheel-gong-arc { fill: color-mix(in srgb, var(--sg-text) 4%, transparent); }
@@ -899,6 +995,9 @@ html.dark .sg-range-card-body { background: linear-gradient(to top, rgba(8, 7, 1
 /* ---------- 断点 ---------- */
 /* 1080 以下轮盘两侧放不下四角读数：改为盘下 2×2，仍读得成「仪表」 */
 @media (max-width: 1080px) {
+  /* 读数退到盘下之后，舞台变成「盘 → 读数 → 年表」的纵向堆叠，
+     暗角压不到盘面、只会在读数区留下一条灰带 —— 与下面的年表接出色差，直接关掉。 */
+  .sg-season-stage::after { display: none; }
   .sg-stage-instrument { flex-direction: column; gap: clamp(1rem, 3vw, 1.6rem); }
   /* 读数退到盘下 2×2 之后，盘面可以把 44vw 这档吃满 */
   .sg-wheel { width: min(28rem, 100%); }
@@ -917,6 +1016,16 @@ html.dark .sg-range-card-body { background: linear-gradient(to top, rgba(8, 7, 1
 }
 
 @media (max-width: 900px) {
+  /* 手机上舞台只占整张纸的上半，两束环境光会在舞台底部淡出，
+     与下面「一段白纸」接出一条灰带（看起来又像两张卡）。纸本来就窄，
+     环境光根本看不出来，直接去掉，留纯纸色最干净。 */
+  .sg-season-sheet,
+  html.dark .sg-season-sheet {
+    /* 用 background-color + background-image:none 而不是简写：简写在某些层叠顺序下
+       会被上面的渐变吃掉，留下一条「上暖下白」的分界线。 */
+    background-color: var(--sg-card);
+    background-image: none;
+  }
   .sg-season-stage { min-height: 0; }
   .sg-range-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -939,13 +1048,12 @@ html.dark .sg-range-card-body { background: linear-gradient(to top, rgba(8, 7, 1
   .sg-gauge-k { font-size: .64rem; letter-spacing: .16em; }
   .sg-gauge-v { font-size: .95rem; }
 
+  /* 整页已经是一张纸，小条不该再套一张白卡（会在纸里再切出第三块）。
+     改成纸面直排，只用一条淡分隔说明「这里是可横滑的 24 节气」。 */
   .sg-season-strip {
     display: block;
-    margin-bottom: 1.75rem;
-    padding: .85rem var(--sg-sheet-x) 1.7rem;
-    background: var(--sg-card);
-    border: 1px solid var(--sg-line);
-    border-radius: var(--sg-radius);
+    margin-bottom: 1.4rem;
+    padding: .1rem 0 1.1rem;
   }
   .sg-range-grid { grid-template-columns: minmax(0, 1fr); }
   .sg-range-photos { grid-template-columns: minmax(0, 1fr); }
