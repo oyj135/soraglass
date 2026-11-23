@@ -1,9 +1,13 @@
 /* 岁候：二十四节气 × 黄道十二宫
    ------------------------------------------------------------------
-   一条黄道，两种读法。外环 24 节气按四时给「色 + 线型」，内环 12 宫只给中性
-   灰（两套色彩系统叠在 10px 宽度里会脏），中气位置外沿一枚朱点 = 宫界。
+   一条黄道，两种读法。外环 24 节气按四时分「墨分四浓」（焦 / 浓 / 重 / 淡，
+   第七十七轮由「四时色 + 线型」改为纯墨阶，黑白下也分得出四季），内环 12 宫
+   按阳性 / 阴性交替做实墨与素块 —— 太极的色块层，中气位置外沿一枚朱点 = 宫界。
    夜间只有当前节气名参与 12s 三色轮询（复用 article.css 的 sg-post-neon），
    宫环、读数、挂件都不发光。
+
+   2026-11-23 第七十七轮：盘转针定。指针恒在 12 点钟，整盘绕心旋转，
+   静置角 = −α(选中区间中心)；字号不再随盘面缩水（JS 反算 --sg-wheel-fs）。
 
    2026-11-23 第七十六轮：整页由「六张纸面卡接龙」改成三幕
    —— 舞台（轮盘居中 + 四角读数）、年表（展陈与对照表挂同一条脊柱）、跋。
@@ -32,20 +36,10 @@
   --sg-sheet-y: clamp(1rem, 2.4vw, 1.5rem);
   /* 仪表数字：站点没有等宽中文字体，只给数字与英文标签用系统等宽栈 */
   --sg-num: ui-monospace, 'SFMono-Regular', 'JetBrains Mono', Menlo, Consolas, monospace;
-  /* 四时色：节气的季节编码（与线型一起用，WCAG 1.4.1），不属于四色体系。
-     集中定义在这里，别处不要再新增硬编码色；夜间统一提亮一档。 */
-  --sg-spring: #6f8a6a;
-  --sg-summer: #b4765f;
-  --sg-autumn: #9a7b4f;
-  --sg-winter: #5f6b74;
   /* 盘面：比舞台底再亮一档，轮盘才像一块「放上去的盘」而不是挖空的洞 */
   --sg-dial: var(--sg-panel);
 }
 html.dark .sg-season {
-  --sg-spring: #9cc0a3;
-  --sg-summer: #d9a390;
-  --sg-autumn: #c9a877;
-  --sg-winter: #9aa7b2;
   --sg-dial: var(--sg-card-strong);
 }
 
@@ -57,12 +51,12 @@ html.dark .sg-season {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: clamp(.9rem, 2.2vw, 1.6rem);
+  gap: clamp(.7rem, 1.8vw, 1.2rem);
   /* 舞台比正文栏窄一档：纸面聚拢，四角读数才不显得散在旷野里 */
   width: min(100%, 62rem);
   min-height: clamp(34rem, 82vh, 52rem);
   margin: 1.2rem auto clamp(2rem, 5vw, 3rem);
-  padding: clamp(1.1rem, 2.4vw, 1.6rem) var(--sg-sheet-x) clamp(1.1rem, 2.6vw, 1.7rem);
+  padding: clamp(.9rem, 2vw, 1.3rem) var(--sg-sheet-x) clamp(.9rem, 2.2vw, 1.3rem);
   /* 环境层：右上一点朱砂暖、左上一点灰青冷，都极淡；底色仍是纸/墨，不引入新色 */
   background:
     radial-gradient(118% 90% at 80% -14%, color-mix(in srgb, var(--sg-warm) 8%, transparent), transparent 60%),
@@ -108,16 +102,17 @@ html.dark .sg-season {
   color: var(--sg-warm);
 }
 .sg-season-title {
-  margin-top: .55rem;
+  margin-top: .38rem;
   font-family: var(--font-serif);
-  font-size: clamp(2.1rem, 4.6vw, 3rem);
+  /* 第七十七轮：标题收一档（3rem → 2.66rem），省下的高度让给盘面 */
+  font-size: clamp(2rem, 4.2vw, 2.66rem);
   font-weight: 400;
   letter-spacing: .12em;
   line-height: 1.1;
   color: var(--sg-text);
 }
 .sg-season-sub {
-  margin-top: .45rem;
+  margin-top: .35rem;
   font-size: .8rem;
   letter-spacing: .24em;
   color: var(--sg-muted);
@@ -129,7 +124,7 @@ html.dark .sg-season {
   justify-content: center;
   gap: 1rem;
   max-width: 40rem;
-  margin: .9rem auto 0;
+  margin: .7rem auto 0;
   font-family: var(--font-serif);
   font-size: .95rem;
   letter-spacing: .06em;
@@ -147,7 +142,7 @@ html.dark .sg-season {
 
 /* 「这一页怎么读」默认收起：文案一个字没删，只是不再占首屏 */
 .sg-stage-manual {
-  margin-top: .6rem;
+  margin-top: .3rem;
   font-size: .78rem;
 }
 .sg-stage-manual summary {
@@ -174,7 +169,7 @@ html.dark .sg-season {
   align-items: center;
   justify-content: center;
   /* 仪表整体收窄到「轮盘 + 两侧读数」，四角读数才贴着盘面，而不是飘在舞台角上 */
-  width: min(100%, 48rem);
+  width: min(100%, 52rem);
   margin: 0 auto;
 }
 
@@ -191,7 +186,9 @@ html.dark .sg-season {
   display: flex;
   flex-direction: column;
   gap: .18rem;
-  width: clamp(6.6rem, 13vw, 9.5rem);
+  /* 9rem 是「一候 · 虹藏不见」不折行的下限（6 个汉字 + 间隔 ≈ 138px）；
+     再宽就会在 33rem 盘面下顶到盘缘（两侧各剩 (52-33)/2 = 9.5rem） */
+  width: clamp(6.2rem, 11vw, 9rem);
 }
 .sg-gauge-k {
   font-family: var(--sg-num);
@@ -249,10 +246,21 @@ html.dark .sg-season {
    ============================================================ */
 .sg-wheel {
   position: relative;
-  width: min(31rem, 48vh, 64%);
+  /* 第七十七轮：去掉 48vh 这道死上限（它是 8px 字的直接原因），改用 clamp 三段——
+     24rem 是字号下限的保险丝，44vw 跟着栏宽，56vh 只在矮窗口里才收。
+     vh 这一档不能取消：四角读数要和盘面同屏，盘面就必须给标题与四角留出高度。 */
+  width: clamp(24rem, min(44vw, 50vh), 33rem);
   margin: 0 auto;
 }
-.sg-wheel-plot { position: relative; width: 100%; }
+.sg-wheel-disc { display: block; }
+.sg-wheel-plot {
+  position: relative;
+  width: 100%;
+  /* 字号按「真实像素」钉死：--sg-wheel-target 是想要的 px（14），JS 用 ResizeObserver
+     反算出等价 viewBox 单位写进 --sg-wheel-fs。CSS 只声明意图，不参与换算——
+     这样盘面被缩到 336px 时也不会把 13px 缩成 8.4px（第七十七轮根因）。 */
+  --sg-wheel-target: 14;
+}
 /* 盘面：closest-side + 实心 86% 兜住整个外环（第七十五轮修正，勿退回 farthest-corner）。
    一圈 1px 描边 + 内侧极淡的墨，让它是「放上去的盘」而不是挖空的洞。 */
 .sg-wheel-plot::before {
@@ -282,8 +290,78 @@ html.dark .sg-season {
       transparent .62deg 15deg);
   -webkit-mask: radial-gradient(circle closest-side, transparent 0 91.6%, #000 91.9% 94.6%, transparent 94.9%);
   mask: radial-gradient(circle closest-side, transparent 0 91.6%, #000 91.9% 94.6%, transparent 94.9%);
+  /* 刻度带属于盘面，跟着转子一起转：与 rotor 共用 --sg-rot，JS 只改一个值 */
+  transform: rotate(var(--sg-rot, 0deg));
 }
 .sg-wheel-svg { position: relative; display: block; width: 100%; height: auto; overflow: visible; }
+
+/* 转子：盘面上会转的一切（宫环 / 节气环 / 朱点 / 岁首）都在这一个 g 里。
+   transform-box: view-box 让 260px 直接落在 viewBox 坐标系，不必换算百分比。 */
+.sg-wheel-rotor {
+  transform-box: view-box;
+  transform-origin: 260px 260px;
+  transform: rotate(var(--sg-rot, 0deg));
+}
+
+/* 指针：盘转针定 —— 全盘唯一不动的东西，恒在 12 点钟。
+   墨针压 paper 描边（paint-order: stroke 把描边画在填充之下），
+   针尖落一枚朱锋，压在深墨扇区上也剥得出来。 */
+.sg-wheel-needle-body {
+  fill: var(--sg-text);
+  stroke: var(--sg-card);
+  stroke-width: 2.6;
+  stroke-linejoin: round;
+  paint-order: stroke;
+}
+.sg-wheel-needle-tip { fill: var(--sg-warm); }
+
+/* 旋转动效：只在这两种状态下开 transition ——
+   .is-drawing 是求签（长程、先快后慢、末尾长尾），.is-snapping 是拖动松手后的 15° 吸附。
+   平时不挂 transition，拖动时每一帧写 --sg-rot 才不会被「追赶」拖出橡皮筋感。 */
+.sg-wheel-plot.is-drawing .sg-wheel-rotor,
+.sg-wheel-plot.is-drawing::after {
+  transition: transform var(--sg-spin-dur, 3.4s) cubic-bezier(.16, .86, .24, 1);
+}
+.sg-wheel-plot.is-snapping .sg-wheel-rotor,
+.sg-wheel-plot.is-snapping::after {
+  transition: transform .28s cubic-bezier(.22, .8, .24, 1);
+}
+.sg-wheel-plot.is-drawing { cursor: progress; }
+.sg-wheel-plot.is-drawing .sg-wheel-rotor a { pointer-events: none; }
+.sg-wheel-plot.is-drawing .sg-wheel-center { opacity: .18; }
+
+/* 求签：摇一次落一节气。与自动旋转共用 spinTo()，样式只负责外壳。 */
+.sg-wheel-foot {
+  display: flex;
+  justify-content: center;
+  margin-top: clamp(.5rem, 1.2vw, .8rem);
+}
+.sg-wheel-draw {
+  display: inline-flex;
+  align-items: baseline;
+  gap: .5rem;
+  padding: .36rem .98rem;
+  border: 1px solid color-mix(in srgb, var(--sg-warm) 40%, transparent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--sg-warm);
+  cursor: pointer;
+  transition: background .22s ease-out, color .22s ease-out, border-color .22s ease-out;
+}
+.sg-wheel-draw-cn { font-family: var(--font-serif); font-size: .84rem; letter-spacing: .18em; }
+.sg-wheel-draw-en {
+  font-family: var(--sg-num);
+  font-size: .58rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  opacity: .7;
+}
+.sg-wheel-draw:hover {
+  background: var(--sg-warm);
+  border-color: var(--sg-warm);
+  color: #fdfbf4;
+}
+.sg-wheel-draw:focus-visible { outline: 2px solid var(--sg-warm); outline-offset: 3px; }
 
 /* 可拖动：桌面显示抓手，拖动中变握持（触屏不启用拖动，见 season.ts） */
 @media (hover: hover) and (pointer: fine) {
@@ -294,62 +372,115 @@ html.dark .sg-season {
 }
 
 .sg-wheel-term-arc {
-  fill: color-mix(in srgb, var(--sg-text) 3%, transparent);
+  fill: none;
   stroke-width: 1;
-  transition: fill .2s ease-out, stroke .2s ease-out, opacity .2s ease-out;
+  transition: fill .2s ease-out, stroke .2s ease-out, stroke-width .2s ease-out, opacity .2s ease-out;
 }
-/* 四时：色 + 线型双编码，不只靠色相（WCAG 1.4.1）。四时色见文件顶部变量 */
-.sg-wheel-term.is-spring .sg-wheel-term-arc { stroke: var(--sg-spring); stroke-width: 1; }
-.sg-wheel-term.is-summer .sg-wheel-term-arc { stroke: var(--sg-summer); stroke-width: 1.5; }
-.sg-wheel-term.is-autumn .sg-wheel-term-arc { stroke: var(--sg-autumn); stroke-dasharray: 4 3; }
-.sg-wheel-term.is-winter .sg-wheel-term-arc { stroke: var(--sg-winter); stroke-dasharray: 1.5 3; stroke-linecap: round; }
-.sg-wheel-term.is-empty .sg-wheel-term-arc { opacity: .55; }
-/* 无字节气仍要能读（它是导航入口，不是装饰）：标签 opacity .72，
-   压夜卡时 muted 6.19:1 × .72 ≈ 4.5:1，日间 5.75 × .72 ≈ 4.3:1 就近可读（AGENS §8.2）。 */
-.sg-wheel-term.is-empty .sg-wheel-term-label { opacity: .72; }
-.sg-wheel-term.is-current .sg-wheel-term-arc {
-  fill: color-mix(in srgb, var(--sg-accent) 13%, transparent);
-  stroke-width: 1.6;
+/* 墨分四浓（第七十七轮）：四季不再用色相，改用墨的四级浓淡 + 线宽。
+   夏·焦墨 / 秋·浓墨 / 春·重墨 / 冬·淡墨，浓淡与线宽同向变化，
+   所以灰度打印、色盲、夜间反相下都能读出四季（WCAG 1.4.1 不靠单一色相）。
+   最深一档 30%，节气名仍用玄墨（≈7.9:1），不加描边也不糊。 */
+.sg-wheel-term.is-summer .sg-wheel-term-arc {
+  fill: color-mix(in srgb, var(--sg-text) 30%, transparent);
+  stroke: color-mix(in srgb, var(--sg-text) 92%, transparent);
+  stroke-width: 2.2;
 }
+.sg-wheel-term.is-autumn .sg-wheel-term-arc {
+  fill: color-mix(in srgb, var(--sg-text) 20%, transparent);
+  stroke: color-mix(in srgb, var(--sg-text) 68%, transparent);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 3;
+}
+.sg-wheel-term.is-spring .sg-wheel-term-arc {
+  fill: color-mix(in srgb, var(--sg-text) 13%, transparent);
+  stroke: color-mix(in srgb, var(--sg-text) 46%, transparent);
+  stroke-width: 1.1;
+}
+.sg-wheel-term.is-winter .sg-wheel-term-arc {
+  fill: color-mix(in srgb, var(--sg-text) 6%, transparent);
+  stroke: color-mix(in srgb, var(--sg-text) 30%, transparent);
+  stroke-width: 1;
+  stroke-dasharray: 1.5 3;
+  stroke-linecap: round;
+}
+/* 无字节气仍要能读（它是导航入口，不是装饰）。
+   第七十七轮：填充开始承载「墨分四浓」，压到 .55 会把整盘拖成一片灰，
+   所以只退到 .72 —— 仍比有字的扇区淡一档，但墨的层次还在。 */
+.sg-wheel-term.is-empty .sg-wheel-term-arc { opacity: .72; }
+.sg-wheel-term.is-empty .sg-wheel-term-label { opacity: .66; }
+/* 选中：阴阳翻转成实墨块，字反白 —— 「这一段被翻过来了」，比加一圈亮边更能说明选择 */
 .sg-wheel-term.is-sel .sg-wheel-term-arc {
-  fill: color-mix(in srgb, var(--sg-warm) 17%, transparent);
-  stroke: var(--sg-warm);
-  stroke-width: 1.6;
+  fill: color-mix(in srgb, var(--sg-text) 88%, transparent);
+  stroke: color-mix(in srgb, var(--sg-text) 88%, transparent);
+  stroke-width: 1.4;
+  stroke-dasharray: none;
 }
-.sg-wheel-term.is-linked .sg-wheel-term-arc { fill: color-mix(in srgb, var(--sg-text) 9%, transparent); }
-.sg-wheel-term.is-sel.is-linked .sg-wheel-term-arc { fill: color-mix(in srgb, var(--sg-warm) 24%, transparent); }
+.sg-wheel-term.is-sel .sg-wheel-term-label { fill: var(--sg-card); }
+/* 当令：只加朱边、不改填充（填充已被「选中」占用，两者经常同时出现在同一格） */
+.sg-wheel-term.is-current .sg-wheel-term-arc {
+  stroke: var(--sg-warm);
+  stroke-width: 2.4;
+  stroke-dasharray: none;
+}
+/* hover：只出描边，不动填充 —— 填充现在承载「墨分四浓 + 选中」，不能再被 hover 借走 */
+.sg-wheel-term.is-linked .sg-wheel-term-arc {
+  stroke: var(--sg-text);
+  stroke-width: 2.4;
+  stroke-dasharray: none;
+}
 
 .sg-wheel-term-label {
   font-family: var(--font-serif);
-  font-size: 13px;
-  fill: var(--sg-muted);
+  /* 由 JS 按渲染宽度反算；未接管时 16.5px 兜底（34rem 盘面 ≈ 17px，25rem ≈ 12.6px） */
+  font-size: calc(var(--sg-wheel-fs, 16.5px) * 1);
+  font-weight: 500;
+  fill: var(--sg-text);
+  letter-spacing: .02em;
+  transition: fill .2s ease-out;
+}
+.sg-wheel-term:focus { outline: none; }
+.sg-wheel-term:focus-visible .sg-wheel-term-arc { stroke: var(--sg-accent-ink, var(--sg-text)); stroke-width: 2.6; }
+
+/* 宫环 = 太极的色块层：十二块阳/阴交替（i % 2）。
+   黄道十二宫古典上就是阳性/阴性交替排列（白羊阳、金牛阴、双子阳……），
+   所以这个交替不是硬贴的装饰，和 gong = floor(i/2) 一样是自洽的。 */
+.sg-wheel-gong-arc {
+  stroke-width: .6;
+  transition: fill .2s ease-out, stroke .2s ease-out, opacity .2s ease-out;
+}
+.sg-wheel-gong.is-yang .sg-wheel-gong-arc {
+  fill: color-mix(in srgb, var(--sg-text) 74%, transparent);
+  stroke: color-mix(in srgb, var(--sg-text) 74%, transparent);
+}
+/* 阴块必须留着可见的细边和极淡的墨，否则它退成盘底的「缺口」——
+   十二块会读成一圈被打掉齿的齿轮，而不是「一半实、一半虚」的两仪。 */
+.sg-wheel-gong.is-yin .sg-wheel-gong-arc {
+  fill: color-mix(in srgb, var(--sg-text) 7%, transparent);
+  stroke: color-mix(in srgb, var(--sg-text) 30%, transparent);
+  stroke-width: .7;
+}
+.sg-wheel-gong.is-empty .sg-wheel-gong-arc { opacity: .72; }
+/* 选中的宫也走「翻转」：实块转虚、虚块仍是虚，靠朱边与朱字确认 */
+.sg-wheel-gong.is-sel .sg-wheel-gong-arc {
+  fill: color-mix(in srgb, var(--sg-text) 7%, transparent);
+  stroke: var(--sg-warm);
+  stroke-width: 1.6;
+}
+.sg-wheel-gong.is-linked .sg-wheel-gong-arc {
+  stroke: var(--sg-text);
+  stroke-width: 1.6;
+}
+.sg-wheel-gong-label {
+  font-family: var(--font-serif);
+  font-size: calc(var(--sg-wheel-fs, 16.5px) * .82);
+  fill: var(--sg-text);
   letter-spacing: .04em;
   transition: fill .2s ease-out;
 }
-.sg-wheel-term.is-current .sg-wheel-term-label { fill: var(--sg-text); }
-.sg-wheel-term.is-sel .sg-wheel-term-label { fill: var(--sg-warm); }
-.sg-wheel-term:focus { outline: none; }
-.sg-wheel-term:focus-visible .sg-wheel-term-arc { stroke: var(--sg-accent-ink, var(--sg-text)); stroke-width: 2; }
-
-.sg-wheel-gong-arc {
-  fill: color-mix(in srgb, var(--sg-text) 3%, transparent);
-  stroke: var(--sg-line);
-  stroke-width: .5;
-  transition: fill .2s ease-out, opacity .2s ease-out;
-}
-.sg-wheel-gong.is-empty .sg-wheel-gong-arc { opacity: .55; }
-.sg-wheel-gong.is-sel .sg-wheel-gong-arc { fill: color-mix(in srgb, var(--sg-warm) 10%, transparent); stroke: var(--sg-warm); stroke-width: .8; }
-.sg-wheel-gong.is-linked .sg-wheel-gong-arc { fill: color-mix(in srgb, var(--sg-text) 10%, transparent); }
-.sg-wheel-gong-label {
-  font-family: var(--font-serif);
-  font-size: 11.5px;
-  fill: var(--sg-muted);
-  letter-spacing: .08em;
-  transition: fill .2s ease-out;
-}
-.sg-wheel-gong.is-sel .sg-wheel-gong-label,
-.sg-wheel-gong.is-linked .sg-wheel-gong-label { fill: var(--sg-text); }
+.sg-wheel-gong.is-yang .sg-wheel-gong-label { fill: var(--sg-card); }
+.sg-wheel-gong.is-sel .sg-wheel-gong-label { fill: var(--sg-warm); }
 .sg-wheel-gong:focus { outline: none; }
+.sg-wheel-gong:focus-visible .sg-wheel-gong-arc { stroke: var(--sg-text); stroke-width: 1.8; }
 
 .sg-wheel-mark { fill: var(--sg-warm); opacity: .72; transition: opacity .2s ease-out; }
 .sg-wheel-mark.is-now { opacity: 1; }
@@ -368,12 +499,17 @@ html.dark .sg-season {
   100% { transform: scale(2.6); opacity: 0; }
 }
 .sg-wheel-year { stroke: var(--sg-warm); stroke-width: 1.2; fill: none; }
-.sg-wheel-year-label { font-size: 10px; fill: var(--sg-warm); letter-spacing: .12em; }
+.sg-wheel-year-label {
+  font-size: calc(var(--sg-wheel-fs, 16.5px) * .66);
+  fill: var(--sg-warm);
+  letter-spacing: .1em;
+}
 
-/* 中心读数：仪表排法 —— 名称大字、日期小字等宽 */
+/* 中心读数：仪表排法 —— 名称大字、日期小字等宽。
+   inset 21.5% 对齐新的中心留白 r150（180→150 后中心收了一圈，读数才不悬空）。 */
 .sg-wheel-center {
   position: absolute;
-  inset: 22%;
+  inset: 21.5%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -381,10 +517,11 @@ html.dark .sg-season {
   gap: .35rem;
   text-align: center;
   pointer-events: none;
+  transition: opacity .3s ease-out;
 }
 .sg-wheel-center-name {
   font-family: var(--font-serif);
-  font-size: clamp(1.2rem, 2.6vw, 1.6rem);
+  font-size: clamp(1.3rem, 2.9vw, 1.82rem);
   letter-spacing: .08em;
   line-height: 1.3;
   color: var(--sg-text);
@@ -750,6 +887,11 @@ html.dark .sg-range-card-body { background: linear-gradient(to top, rgba(8, 7, 1
   html.dark .sg-wheel-term.is-current .sg-wheel-term-label { animation: none; }
   .sg-range-card-img { transition: none; }
   .sg-wheel-pulse { animation: none; opacity: 0; }
+  /* 求签不转：直接落到结果（JS 也走 reduced-motion 分支，这里兜底） */
+  .sg-wheel-plot.is-drawing .sg-wheel-rotor,
+  .sg-wheel-plot.is-drawing::after,
+  .sg-wheel-plot.is-snapping .sg-wheel-rotor,
+  .sg-wheel-plot.is-snapping::after { transition: none; }
   [data-sg-stage],
   [data-sg-reveal] { animation: none; }
 }
@@ -758,7 +900,8 @@ html.dark .sg-range-card-body { background: linear-gradient(to top, rgba(8, 7, 1
 /* 1080 以下轮盘两侧放不下四角读数：改为盘下 2×2，仍读得成「仪表」 */
 @media (max-width: 1080px) {
   .sg-stage-instrument { flex-direction: column; gap: clamp(1rem, 3vw, 1.6rem); }
-  .sg-wheel { width: min(26rem, 46vh, 82%); }
+  /* 读数退到盘下 2×2 之后，盘面可以把 44vw 这档吃满 */
+  .sg-wheel { width: min(28rem, 100%); }
   .sg-stage-gauges {
     position: static;
     display: grid;
@@ -783,15 +926,15 @@ html.dark .sg-range-card-body { background: linear-gradient(to top, rgba(8, 7, 1
   .sg-season-stage { padding-top: 1.2rem; }
   .sg-season-title { font-size: 1.9rem; }
   .sg-stage-romance { font-size: .88rem; gap: .7rem; }
-  /* 手机上不裁环：裁到内环只剩一圈细带，像残件。改为整轮可见 + 把 SVG 内的
-     字号按视口放大（520 单位缩到 300px，13px 会变 8px，故给到 20/17px）。 */
-  .sg-wheel { width: min(17rem, 82vw); }
-  .sg-wheel-term-label { font-size: 22px; }
-  .sg-wheel-gong-label { font-size: 19px; }
-  .sg-wheel-year-label { font-size: 16px; }
+  /* 手机上不裁环：裁到内环只剩一圈细带，像残件。改为整轮可见 + 把字号目标压到 12px，
+     由 JS 按 520 视角换算（不再手写 22/19/16px 三行魔法数字，那三行只在某一档盘宽下对）。
+     盘宽同时从 17.5rem 抬到 19rem / 88vw：12px 的两个汉字要 24px，扇区弧长（r210、15°）
+     在 280px 盘上只有 29.6px，会贴字；304px 盘上 32px 才松得开。 */
+  .sg-wheel { width: min(19rem, 88vw); --sg-wheel-target: 12; }
   .sg-wheel-center-name { font-size: 1.02rem; letter-spacing: .04em; }
   .sg-wheel-center-sub { font-size: .6rem; letter-spacing: .06em; }
   .sg-wheel-plot::after { display: none; }
+  .sg-wheel-draw-en { display: none; }
   .sg-stage-gauges { gap: .7rem 1rem; }
   .sg-gauge-k { font-size: .64rem; letter-spacing: .16em; }
   .sg-gauge-v { font-size: .95rem; }

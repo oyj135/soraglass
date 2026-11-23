@@ -302,6 +302,12 @@ if ($sgSMode === 'gong') {
     $sgSRangeSub = $sgSDateRange($sgSCurTerm, $sgSCurTerm) . ' · ' . $sgSCurTerm['gloss'];
 }
 
+/* ---------- 盘转针定（第七十七轮）----------
+   轮盘整盘旋转，指针恒在正上方：静置角 = −α(focus)，focus 是当前区间的中心角度。
+   没有选参数时（裸地址）允许开局自动求签一次，落地后由 JS 跳到抽中的节气。 */
+$sgSWheelFocus = $sgSMode === 'gong' ? $sgSGIndex * 30 + 15.0 : $sgSTerm * 15 + 7.5;
+$sgSAutoDraw = $sgST === '' && $sgSG === '' && $sgSD === '' && !isset($_GET['y']) && !isset($_GET['draw']);
+
 /* 三幕与三个片段共用的页面态。Typecho 的 $this->need() 在 Widget 方法作用域里 require，
    模板局部变量传不进去，所以统一走 $GLOBALS（与 page-notes.php 的 SG_NOTES_HEAD 同惯例）。 */
 $GLOBALS['SG_SEASON'] = [
@@ -315,6 +321,8 @@ $GLOBALS['SG_SEASON'] = [
         'showGong' => $sgSShowGong,
         'centerName' => $sgCenterName,
         'centerSub' => $sgCenterSub,
+        'focus' => $sgSWheelFocus,
+        'autoDraw' => $sgSAutoDraw,
     ],
     'range' => $sgSRange,
     'groups' => $sgSGroups,
