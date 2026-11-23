@@ -179,9 +179,8 @@ if ($sgSMode === 'gong') {
     $sgCenterSub = $sgSCurTerm['hou'][$sgSHouIndex] . ' · ' . $sgSDateRange(['ts' => $sgSFrom], ['end' => $sgSTo]);
 } else {
     $sgCenterName = $sgSCurTerm['name'] . ' · ' . $sgSCurGong[1] . '宫';
-    $sgCenterSub = $sgSMode === 'term' && $sgSYear === $sgSThisYear && $sgSNow && $sgSTerm === (int) $sgSNow['term']
-        ? '黄经 ' . $sgSCurTerm['lon'] . '° · 距' . $sgSNow['nextName'] . ' ' . $sgSNow['nextDays'] . ' 天'
-        : '黄经 ' . $sgSCurTerm['lon'] . '° · ' . $sgSDateRange($sgSCurTerm, $sgSCurTerm);
+    /* 黄经与「距下一节气」已移到舞台四角（第七十六轮），中心只留日期区间，不重复读数 */
+    $sgCenterSub = $sgSDateRange($sgSCurTerm, $sgSCurTerm);
 }
 
 /* ---------- 对照表 ---------- */
@@ -195,6 +194,8 @@ foreach ($sgSGongs as $sgGI => $sgG) {
         'span' => $sgStart ? $sgStart['name'] . ' → ' . ($sgSTerms[$sgGI * 2 + 1]['name'] ?? '') : '',
         'count' => count($sgSCounts['gongs'][$sgGI] ?? []),
         'selected' => $sgSMode === 'gong' && $sgGI === $sgSGIndex,
+        /* 第七十六轮：当令宫单独标一行，看年表时能立刻对上轮盘上亮着的那一段 */
+        'now' => $sgSYear === $sgSThisYear && $sgSNow && (int) $sgSNow['gong'] === $sgGI,
         'url' => sg_season_url(['g' => $sgG[0], 'y' => $sgSYear]),
     ];
 }
@@ -248,118 +249,158 @@ $sgSYearUrl = static function (int $y) use ($sgSMode, $sgSCurTerm, $sgSCurGong, 
 };
 $sgSSub = sg_page_sub($this, '日子的两种读法');
 $sgSShowGong = sg_opt('sgGongRing', 'gong') !== 'off';
+
+/* ---------- 幕一：四角仪表读数（第七十六轮）----------
+   三格恒描述「这一段」，只有第四格在「看的就是当令这一段」时切成「距下一节气」，
+   这样 ?t / ?g / ?d / ?y 任何参数下四角都成立，不会出现「今天」与所选年份打架。
+   读数不重复中心：黄经与「距下一节气」原本在中心副行，已让位到这里。 */
+$sgSTermDays = max(1, (int) round(($sgSTo - $sgSFrom) / 86400));
+$sgSIsNowTerm = $sgSMode !== 'none' && $sgSYear === $sgSThisYear && $sgSNow && (int) $sgSNow['term'] === $sgSTerm;
+$sgSGauge = [];
+if ($sgSMode !== 'none') {
+    $sgSGauge = [
+        ['tl', '黄经', $sgSCurTerm['lon'] . '°', '春分起算 · λ'],
+        [
+            'tr',
+            $sgSIsNowTerm ? '候' : '起于',
+            $sgSIsNowTerm
+                ? ($sgSHouNames[$sgSNow['houIndex']] ?? '一候') . ' · ' . $sgSNow['houName']
+                : date('m.d', sg_date_ts((int) $sgSCurTerm['ts'])),
+            $sgSIsNowTerm ? $sgSCurTerm['name'] . ' 第 ' . ((int) $sgSNow['houIndex'] + 1) . ' 候' : $sgSCurTerm['name'],
+        ],
+        [
+            'bl',
+            '跨度',
+            $sgSTermDays . ' 天',
+            $sgSMode === 'gong' ? '两节气 · 一宫' : ($sgSMode === 'day' ? '一候 · 五天' : '一节气的长度'),
+        ],
+        [
+            'br',
+            $sgSIsNowTerm ? '距' . $sgSNow['nextName'] : '止于',
+            $sgSIsNowTerm ? $sgSNow['nextDays'] . ' 天' : date('m.d', sg_date_ts((int) $sgSCurTerm['end'] - 86400)),
+            $sgSIsNowTerm ? '太阳走完这一段' : '这一段最后一天',
+        ],
+    ];
+}
+
+/* 幕二的小标题在三幕输出之前就要定好（片段从 $GLOBALS 取，模板局部变量传不进去） */
+if ($sgSMode === 'gong') {
+    $sgSRangeEyebrow = '这一宫';
+    $sgSRangeTitle = $sgSCurGong[1] . '宫';
+    $sgSRangeSub = $sgSTerms[$sgSTerm]['name'] . ' – ' . $sgSTerms[$sgSTerm + 1]['name'] . ' · ' . $sgSCurGong[2];
+} elseif ($sgSMode === 'day') {
+    $sgSRangeEyebrow = '这一候';
+    $sgSRangeTitle = $sgSCurTerm['name'] . ' · ' . ($sgSHouNames[$sgSHouIndex] ?? '一候');
+    $sgSRangeSub = $sgSDateRange(['ts' => $sgSFrom], ['end' => $sgSTo]) . ' · ' . $sgSCurTerm['hou'][$sgSHouIndex];
+} elseif ($sgSMode === 'none') {
+    $sgSRangeEyebrow = '这一年';
+    $sgSRangeTitle = (string) $sgSYear;
+    $sgSRangeSub = '';
+} else {
+    $sgSRangeEyebrow = '这一段';
+    $sgSRangeTitle = $sgSCurTerm['name'];
+    $sgSRangeSub = $sgSDateRange($sgSCurTerm, $sgSCurTerm) . ' · ' . $sgSCurTerm['gloss'];
+}
+
+/* 三幕与三个片段共用的页面态。Typecho 的 $this->need() 在 Widget 方法作用域里 require，
+   模板局部变量传不进去，所以统一走 $GLOBALS（与 page-notes.php 的 SG_NOTES_HEAD 同惯例）。 */
+$GLOBALS['SG_SEASON'] = [
+    'year' => $sgSYear,
+    'wheel' => [
+        'terms' => $sgWheelTerms,
+        'gongs' => $sgWheelGongs,
+        'current' => (int) ($sgSNow['term'] ?? -1),
+        'selectedTerm' => $sgSMode === 'term' ? $sgSTerm : -1,
+        'selectedGong' => $sgSMode === 'gong' ? $sgSGIndex : -1,
+        'showGong' => $sgSShowGong,
+        'centerName' => $sgCenterName,
+        'centerSub' => $sgCenterSub,
+    ],
+    'range' => $sgSRange,
+    'groups' => $sgSGroups,
+    'rangeMeta' => ['eyebrow' => $sgSRangeEyebrow, 'title' => $sgSRangeTitle, 'sub' => $sgSRangeSub],
+    'table' => ['gongs' => $sgTableGongs, 'terms' => $sgTableTerms],
+];
 ?>
 <main id="sg-main" tabindex="-1" class="sg-main sg-main--pad sg-season" data-sg-page="season">
-  <?php /* 第 1 段：页头 —— 标题 / 副题 / 一句说明 / 唯一一枚节气朱印 */ ?>
-  <header class="sg-season-head">
-    <div class="sg-season-head-main">
+  <?php /* 幕一 · 舞台 —— 定调文案 + 仪表：轮盘居中，四个读数环绕四角，整页只有这一处大容器 */ ?>
+  <section class="sg-season-stage" data-sg-stage>
+    <header class="sg-stage-copy">
+      <p class="sg-stage-kicker">Seasonal almanac · 岁时记</p>
       <h1 class="sg-season-title"><?php echo sg_e((string) $this->title); ?></h1>
       <p class="sg-season-sub"><?php echo sg_e($sgSSub); ?></p>
-      <p class="sg-season-intro">一条黄道，两种读法：节气把黄道分成二十四段，宫分成十二段。宫不是天上的星座，是同一条黄道的十二等分。</p>
-    </div>
-    <?php if ($sgSCurTerm) : ?>
-    <span class="sg-seal" aria-label="<?php echo sg_e('当前节气 ' . $sgSCurTerm['name']); ?>"><?php echo sg_e($sgSCurTerm['name']); ?></span>
-    <?php endif; ?>
-  </header>
+      <?php if ($sgSCurTerm) : ?>
+      <p class="sg-stage-romance"><?php echo sg_e($sgSCurTerm['gloss']); ?></p>
+      <?php endif; ?>
+      <details class="sg-stage-manual">
+        <summary>这一页怎么读</summary>
+        <p>一条黄道，两种读法：节气把黄道分成二十四段，宫分成十二段。宫不是天上的星座，是同一条黄道的十二等分。</p>
+      </details>
+    </header>
 
   <?php if ($sgSMode === 'none') : ?>
-  <?php /* 整年无字 / 表缺年份 */ ?>
-  <section class="sg-season-empty">
+  <?php /* 整年无字 / 表缺年份：留在舞台里，不另起一张卡 */ ?>
+  <div class="sg-season-empty">
     <p>这一年还没有落笔。</p>
     <p><a href="<?php echo sg_e(sg_season_url(['y' => $sgSThisYear])); ?>">回到 <?php echo (int) $sgSThisYear; ?> 年 →</a></p>
+  </div>
   </section>
   <?php else : ?>
 
-  <?php /* 第 2 段：当令条 —— 现在是何时（B 双读） */ ?>
-  <section class="sg-season-now" aria-label="当令">
-    <div class="sg-now-main">
-      <?php if ($sgSNow) : ?>
-      <span class="sg-now-term"><?php echo sg_e($sgSNow['termName']); ?></span>
-      <span class="sg-now-gong"><?php echo sg_e($sgSNow['gongName'] . '宫'); ?></span>
-      <p class="sg-now-gloss"><?php echo sg_e($sgSNow['gloss']); ?></p>
-      <?php else : ?>
-      <span class="sg-now-term">岁候</span>
-      <p class="sg-now-gloss">节气表覆盖 1900–2100，当前时间不在表内。</p>
-      <?php endif; ?>
-    </div>
-    <?php if ($sgSNow) : ?>
-    <div class="sg-now-meta">
-      <b><?php echo (int) $sgSNow['nextDays']; ?> 天</b>
-      <span>距<?php echo sg_e($sgSNow['nextName']); ?></span>
-      <span class="sg-now-hou"><?php echo sg_e($sgSHouNames[$sgSNow['houIndex']] . ' · ' . $sgSNow['houName']); ?></span>
-    </div>
-    <?php endif; ?>
-  </section>
+  <?php /* 仪表：轮盘居中，四个读数环绕四角 */ ?>
+  <div class="sg-stage-instrument">
+    <?php $this->need('partials/season-wheel.php'); ?>
 
-  <?php
-  /* Typecho 的 $this->need() 在 Widget 方法作用域里 require，模板局部变量传不进去，
-     所以页面态统一放进 $GLOBALS['SG_SEASON']（与 page-notes.php 的 SG_NOTES_HEAD 同一惯例）。 */
-  if ($sgSMode === 'gong') {
-      $sgSRangeEyebrow = '这一宫';
-      $sgSRangeTitle = $sgSCurGong[1] . '宫';
-      $sgSRangeSub = $sgSTerms[$sgSTerm]['name'] . ' – ' . $sgSTerms[$sgSTerm + 1]['name'] . ' · ' . $sgSCurGong[2];
-  } elseif ($sgSMode === 'day') {
-      $sgSRangeEyebrow = '这一候';
-      $sgSRangeTitle = $sgSCurTerm['name'] . ' · ' . ($sgSHouNames[$sgSHouIndex] ?? '一候');
-      $sgSRangeSub = $sgSDateRange(['ts' => $sgSFrom], ['end' => $sgSTo]) . ' · ' . $sgSCurTerm['hou'][$sgSHouIndex];
-  } else {
-      $sgSRangeEyebrow = '这一段';
-      $sgSRangeTitle = $sgSCurTerm['name'];
-      $sgSRangeSub = $sgSDateRange($sgSCurTerm, $sgSCurTerm) . ' · ' . $sgSCurTerm['gloss'];
-  }
-  $GLOBALS['SG_SEASON'] = [
-      'year' => $sgSYear,
-      'wheel' => [
-          'terms' => $sgWheelTerms,
-          'gongs' => $sgWheelGongs,
-          'current' => (int) ($sgSNow['term'] ?? -1),
-          'selectedTerm' => $sgSMode === 'term' ? $sgSTerm : -1,
-          'selectedGong' => $sgSMode === 'gong' ? $sgSGIndex : -1,
-          'showGong' => $sgSShowGong,
-          'centerName' => $sgCenterName,
-          'centerSub' => $sgCenterSub,
-      ],
-      'range' => $sgSRange,
-      'groups' => $sgSGroups,
-      'rangeMeta' => ['eyebrow' => $sgSRangeEyebrow, 'title' => $sgSRangeTitle, 'sub' => $sgSRangeSub],
-      'table' => ['gongs' => $sgTableGongs, 'terms' => $sgTableTerms],
-  ];
-  ?>
-
-  <?php /* 第 3 段：双刻度轮盘 */ ?>
-  <?php $this->need('partials/season-wheel.php'); ?>
-
-  <?php /* 第 4 段：区间展陈 */ ?>
-  <?php $this->need('partials/season-range.php'); ?>
-
-  <?php /* 第 5 段：对照长表 */ ?>
-  <?php $this->need('partials/season-table.php'); ?>
-
-  <?php /* 第 6 段：年份行 + 前后节气 */ ?>
-  <nav class="sg-season-years" aria-label="年份与相邻节气">
-    <div class="sg-years-row">
-      <span class="sg-years-label">年份</span>
-      <?php foreach ($sgSYears as $sgY) : ?>
-      <a class="sg-year<?php echo $sgY === $sgSYear ? ' is-current' : ''; ?>" href="<?php echo sg_e($sgSYearUrl($sgY)); ?>"<?php echo $sgY === $sgSYear ? ' aria-current="true"' : ''; ?>><?php echo (int) $sgY; ?></a>
+    <div class="sg-stage-gauges">
+      <?php foreach ($sgSGauge as $sgGauge) : ?>
+      <div class="sg-gauge sg-gauge--<?php echo sg_e($sgGauge[0]); ?>">
+        <span class="sg-gauge-k"><?php echo sg_e($sgGauge[1]); ?></span>
+        <b class="sg-gauge-v"><?php echo sg_e($sgGauge[2]); ?></b>
+        <span class="sg-gauge-u"><?php echo sg_e($sgGauge[3]); ?></span>
+      </div>
       <?php endforeach; ?>
     </div>
-    <div class="sg-season-nav">
-      <?php if ($sgSPrevUrl !== '') : ?>
-      <a href="<?php echo sg_e($sgSPrevUrl); ?>">← 上一节气</a>
-      <?php endif; ?>
-      <a href="<?php echo sg_e(sg_season_url(['y' => $sgSYear])); ?>">回到当令</a>
-      <?php if ($sgSNextUrl !== '') : ?>
-      <a href="<?php echo sg_e($sgSNextUrl); ?>">下一节气 →</a>
-      <?php endif; ?>
-    </div>
-  </nav>
+  </div>
 
-  <?php /* 第 7 段：口径声明 */ ?>
-  <footer class="sg-season-note">
-    <p>采用回归黄道，春分点为白羊宫 0°，与节气同源；不使用恒星黄道。</p>
-    <p>宫界按中气实日逐年计算，不采用固定月日的通行星座表。</p>
-    <p>此处为黄道十二宫（signs），非天文星座；黄道带上实际有 13 个星座，含蛇夫座。宫名取通行译名，古译作室女 / 人马 / 磨羯 / 宝瓶。</p>
-    <p>刻度原点为春分，故 1 月的节气在表盘左上（太阳黄经 285°–345° 在春分之前），这是黄道顺序，不是排版错误；纪年仍用公历年，立春只作「岁首」刻度。</p>
+  <?php if ($sgSCurTerm) : ?>
+  <span class="sg-seal sg-seal--stage" aria-label="<?php echo sg_e('当前节气 ' . $sgSCurTerm['name']); ?>"><?php echo sg_e($sgSCurTerm['name']); ?></span>
+  <?php endif; ?>
+  </section>
+  <?php endif; ?>
+
+  <?php if ($sgSMode !== 'none') : ?>
+  <?php /* 幕二 · 年表：展陈与对照表挂在同一条时间轴脊柱上 */ ?>
+  <section class="sg-season-chronicle" data-sg-reveal>
+    <?php $this->need('partials/season-range.php'); ?>
+    <?php $this->need('partials/season-table.php'); ?>
+  </section>
+
+  <?php /* 幕三 · 跋：年份、前后节气与口径，收成一条低对比的页脚 */ ?>
+  <footer class="sg-season-colophon" data-sg-reveal>
+    <nav class="sg-season-years" aria-label="年份与相邻节气">
+      <div class="sg-years-row">
+        <span class="sg-years-label">年份</span>
+        <?php foreach ($sgSYears as $sgY) : ?>
+        <a class="sg-year<?php echo $sgY === $sgSYear ? ' is-current' : ''; ?>" href="<?php echo sg_e($sgSYearUrl($sgY)); ?>"<?php echo $sgY === $sgSYear ? ' aria-current="true"' : ''; ?>><?php echo (int) $sgY; ?></a>
+        <?php endforeach; ?>
+      </div>
+      <div class="sg-season-nav">
+        <?php if ($sgSPrevUrl !== '') : ?>
+        <a href="<?php echo sg_e($sgSPrevUrl); ?>">← 上一节气</a>
+        <?php endif; ?>
+        <a href="<?php echo sg_e(sg_season_url(['y' => $sgSYear])); ?>">回到当令</a>
+        <?php if ($sgSNextUrl !== '') : ?>
+        <a href="<?php echo sg_e($sgSNextUrl); ?>">下一节气 →</a>
+        <?php endif; ?>
+      </div>
+    </nav>
+
+    <div class="sg-season-note">
+      <p>采用回归黄道，春分点为白羊宫 0°，与节气同源；不使用恒星黄道。</p>
+      <p>宫界按中气实日逐年计算，不采用固定月日的通行星座表。</p>
+      <p>此处为黄道十二宫（signs），非天文星座；黄道带上实际有 13 个星座，含蛇夫座。宫名取通行译名，古译作室女 / 人马 / 磨羯 / 宝瓶。</p>
+      <p>刻度原点为春分，故 1 月的节气在表盘左上（太阳黄经 285°–345° 在春分之前），这是黄道顺序，不是排版错误；纪年仍用公历年，立春只作「岁首」刻度。</p>
+    </div>
   </footer>
   <?php endif; ?>
 </main>

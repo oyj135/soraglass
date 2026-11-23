@@ -136,4 +136,90 @@ export function initSeasonWheel(): void {
       }
     }
   });
+
+  /* ---------- 拖动走时间（第七十六轮）----------
+     沿轮盘拖一圈，中心读数跟着走，松手才跳转——等价于天文馆的时间轴，
+     但复用轮盘本身，不新增一根滑杆。只在「有精确指针」的设备上启用：
+     触屏要保留页面滚动，手机上走滑条与键盘。 */
+  const plot = wheel.querySelector<HTMLElement>('.sg-wheel-plot');
+  const hasFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  if (plot && hasFinePointer) {
+    const hrefs = terms.map((el) => el.getAttribute('href') ?? '');
+    let dragging = false;
+    let moved = false;
+    let suppressClick = false;
+    let startX = 0;
+    let startY = 0;
+    let lastIndex = -1;
+
+    /* 屏幕角度 → 节气序：α(i) = i×15°，0° 在正上、顺时针，与 SVG 的约定一致 */
+    const indexAt = (clientX: number, clientY: number): number => {
+      const rect = plot.getBoundingClientRect();
+      const dx = clientX - (rect.left + rect.width / 2);
+      const dy = clientY - (rect.top + rect.height / 2);
+      let deg = (Math.atan2(dx, -dy) * 180) / Math.PI;
+      if (deg < 0) deg += 360;
+      return Math.floor(deg / 15) % 24;
+    };
+
+    pageOn(plot, 'pointerdown', (event) => {
+      if (event.button !== 0) return;
+      dragging = true;
+      moved = false;
+      startX = event.clientX;
+      startY = event.clientY;
+      lastIndex = -1;
+    });
+
+    pageOn(document, 'pointermove', (event) => {
+      if (!dragging) return;
+      if (!moved) {
+        /* 6px 死区：手抖不算拖动，点按仍然是一次点击 */
+        if (Math.hypot(event.clientX - startX, event.clientY - startY) < 6) return;
+        moved = true;
+        plot.classList.add('is-drag');
+      }
+      const index = indexAt(event.clientX, event.clientY);
+      if (index === lastIndex) return;
+      lastIndex = index;
+      const term = terms[index];
+      if (term) highlightTerm(term);
+    });
+
+    pageOn(document, 'pointerup', () => {
+      if (!dragging) return;
+      dragging = false;
+      plot.classList.remove('is-drag');
+      if (moved && lastIndex >= 0) {
+        const href = hrefs[lastIndex];
+        suppressClick = true;
+        moved = false;
+        if (href) window.location.assign(href);
+        return;
+      }
+      moved = false;
+      restore();
+    });
+
+    pageOn(plot, 'pointercancel', () => {
+      dragging = false;
+      moved = false;
+      plot.classList.remove('is-drag');
+      restore();
+    });
+
+    /* 拖动结束浏览器还会补一次 click：拦掉，否则「松手跳一次、click 再跳一次」 */
+    pageOn(
+      plot,
+      'click',
+      (event) => {
+        if (!suppressClick) return;
+        suppressClick = false;
+        event.preventDefault();
+        event.stopPropagation();
+      },
+      true,
+    );
+  }
 }

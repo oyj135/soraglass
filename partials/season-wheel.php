@@ -55,6 +55,11 @@ $sgWSeason = static function (int $i): string {
     }
     return 'spring';
 };
+
+/* 当令所属宫界（中气）在 marks 里的序号：宫界永远落在偶数序节气上。
+   第七十六轮：给它一枚会呼吸的脉冲圆，轮盘「此刻在哪」才看得见，不只是一个高亮扇区。 */
+$sgWNow = (int) ($sgSWheel['current'] ?? -1);
+$sgMNow = $sgWNow >= 0 ? (int) floor($sgWNow / 2) * 2 : -1;
 ?>
 <nav class="sg-wheel" aria-label="二十四节气与黄道十二宫">
   <div class="sg-wheel-plot">
@@ -123,8 +128,13 @@ $sgWSeason = static function (int $i): string {
       <g class="sg-wheel-marks" aria-hidden="true">
         <?php for ($sgM = 0; $sgM < 24; $sgM += 2) : ?>
         <?php [$sgMx, $sgMy] = $sgWPt(247.0, $sgM * 15); ?>
-        <circle class="sg-wheel-mark" cx="<?php echo round($sgMx, 2); ?>" cy="<?php echo round($sgMy, 2); ?>" r="<?php echo $sgM === 0 ? 3.4 : 2.1; ?>"></circle>
+        <circle class="sg-wheel-mark<?php echo $sgM === $sgMNow ? ' is-now' : ''; ?>" cx="<?php echo round($sgMx, 2); ?>" cy="<?php echo round($sgMy, 2); ?>" r="<?php echo $sgM === 0 ? 3.4 : 2.1; ?>"></circle>
         <?php endfor; ?>
+        <?php /* 当令宫界的脉冲：一圈从朱点散开，2.8s 一次，与天文馆的 ripple 同节奏 */ ?>
+        <?php if ($sgMNow >= 0) : ?>
+        <?php [$sgPx, $sgPy] = $sgWPt(247.0, $sgMNow * 15); ?>
+        <circle class="sg-wheel-pulse" cx="<?php echo round($sgPx, 2); ?>" cy="<?php echo round($sgPy, 2); ?>" r="3"></circle>
+        <?php endif; ?>
         <?php /* 岁首：立春 i=21 起点（315°），细朱刻 + 二字 */ ?>
         <?php [$sgYx, $sgYy] = $sgWPt(247.0, 315.0); ?>
         <path class="sg-wheel-year" d="M<?php echo round($sgYx, 1); ?> <?php echo round($sgYy, 1); ?> L<?php echo round($sgYx + 5, 1); ?> <?php echo round($sgYy - 9, 1); ?>" aria-hidden="true"></path>

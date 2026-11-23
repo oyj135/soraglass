@@ -21,7 +21,7 @@ $sgSTable = $GLOBALS['SG_SEASON']['table'] ?? ['gongs' => [], 'terms' => []];
     </thead>
     <tbody>
       <?php foreach ($sgSTable['gongs'] as $sgRow) : ?>
-      <tr<?php echo $sgRow['selected'] ? ' class="is-sel"' : ''; ?>>
+      <tr<?php echo $sgRow['selected'] ? ' class="is-sel"' : ((!empty($sgRow['now'])) ? ' class="is-now"' : ''); ?>>
         <th scope="row"><?php echo sg_e($sgRow['name'] . '宫'); ?></th>
         <td><?php echo sg_e($sgRow['startName'] . ' ' . $sgRow['startDate']); ?></td>
         <td><?php echo sg_e($sgRow['span']); ?></td>
