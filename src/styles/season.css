@@ -449,12 +449,15 @@ html.dark .sg-season {
   stroke-width: 2.4;
   stroke-dasharray: none;
 }
-/* hover：只出描边，不动填充 —— 填充现在承载「墨分四浓 + 选中」，不能再被 hover 借走 */
+/* hover：只出描边，不动填充 —— 填充现在承载「墨分四浓 + 选中」，不能再被 hover 借走。
+   第七十九轮：描边改朱砂（原玄墨）。当令格本身就是朱边，两者同色，
+   所以「当令 + 悬停」靠线宽再抬一档（2.4 → 3.4）兑现反馈，颜色不劈成两档朱。 */
 .sg-wheel-term.is-linked .sg-wheel-term-arc {
-  stroke: var(--sg-text);
+  stroke: var(--sg-warm);
   stroke-width: 2.4;
   stroke-dasharray: none;
 }
+.sg-wheel-term.is-current.is-linked .sg-wheel-term-arc { stroke-width: 3.4; }
 
 .sg-wheel-term-label {
   font-family: var(--font-serif);
@@ -494,9 +497,11 @@ html.dark .sg-season {
   stroke-width: 1.6;
 }
 .sg-wheel-gong.is-linked .sg-wheel-gong-arc {
-  stroke: var(--sg-text);
+  stroke: var(--sg-warm);
   stroke-width: 1.6;
 }
+/* 选中的宫也是朱边：悬停时同样靠线宽区分 */
+.sg-wheel-gong.is-sel.is-linked .sg-wheel-gong-arc { stroke-width: 2.4; }
 .sg-wheel-gong-label {
   font-family: var(--font-serif);
   font-size: calc(var(--sg-wheel-fs, 16.5px) * .82);
