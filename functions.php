@@ -6,6 +6,7 @@ require_once __DIR__ . '/lib/config.php';
 require_once __DIR__ . '/lib/http.php';
 require_once __DIR__ . '/lib/sidebar-data.php';
 require_once __DIR__ . '/lib/fields.php';
+require_once __DIR__ . '/lib/season.php';
 require_once __DIR__ . '/lib/zi.php';
 require_once __DIR__ . '/lib/playlist.php';
 require_once __DIR__ . '/lib/gallery.php';

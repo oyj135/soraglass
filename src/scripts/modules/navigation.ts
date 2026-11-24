@@ -73,25 +73,49 @@ export async function navigate(href: string, push = true, y = 0): Promise<void> 
       pushState({ [key]: true, y: 0 }, destination.href);
     }
     paceFinish();
-    disposePage();
-    document.querySelectorAll('.sg-lightbox').forEach(n => n.remove());
-    closeNavigationUI();
-    current.replaceWith(main); window.SG = cfg; document.querySelector('[data-sg-config]')?.replaceWith(runtime); document.title = next.title; currentRoute = routeKey(new URL(location.href));
-    for (const name of ['description', 'keywords', 'robots']) {
-      document.querySelector(`meta[name="${name}"]`)?.remove(); const meta = next.querySelector(`meta[name="${name}"]`); if (meta) document.head.append(meta);
+    /* 岁候回归（2026-11-24）：仅「岁候 → 岁候」的站内换页启用 View Transitions ——
+       盘转针定保证了轮盘角度换页不跳，转场时盘几乎不动、只有纸面内容换。
+       不支持的浏览器 / reduced-motion / 跨页型导航一律走原路径。 */
+    const seasonToSeason = !!current.querySelector('.sg-season') && !!main.querySelector('.sg-season');
+    const vtApi = document as unknown as { startViewTransition?: (update: () => void) => { finished: Promise<void> } };
+    const useVT = typeof vtApi.startViewTransition === 'function'
+      && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      && seasonToSeason;
+    const swap = (): void => {
+      disposePage();
+      document.querySelectorAll('.sg-lightbox').forEach(n => n.remove());
+      closeNavigationUI();
+      current.replaceWith(main); window.SG = cfg; document.querySelector('[data-sg-config]')?.replaceWith(runtime); document.title = next.title; currentRoute = routeKey(new URL(location.href));
+      for (const name of ['description', 'keywords', 'robots']) {
+        document.querySelector(`meta[name="${name}"]`)?.remove(); const meta = next.querySelector(`meta[name="${name}"]`); if (meta) document.head.append(meta);
+      }
+      for (const rel of ['canonical', 'prev', 'next']) {
+        document.querySelector(`link[rel="${rel}"]`)?.remove(); const link = next.querySelector(`link[rel="${rel}"]`); if (link) document.head.append(link);
+      }
+      for (const attr of ['data-sg-blur']) { const value = next.documentElement.getAttribute(attr); if (value) document.documentElement.setAttribute(attr, value); }
+      const bg = document.querySelector('[data-sg-bg]'), newBg = next.querySelector('[data-sg-bg]'); if (bg && newBg) bg.replaceWith(newBg);
+      for (const selector of ['[data-sg-nav]', '[data-sg-sheet]', '[data-sg-rightside]']) {
+        const previous = document.querySelector(selector), replacement = next.querySelector(selector);
+        if (previous && replacement) previous.replaceWith(replacement);
+      }
+      render?.(); main.setAttribute('tabindex', '-1'); (main as HTMLElement).focus({ preventScroll: true }); position(new URL(location.href), y);
+    };
+    if (useVT) {
+      /* 旧帧快照前先揭加载遮罩，转场才不会把遮罩拍进去 */
+      loadingHide();
+      document.documentElement.classList.add('sg-vt');
+      const startVT = vtApi.startViewTransition;
+      const vt = startVT?.call(document, () => { swap(); });
+      if (vt) {
+        void vt.finished.finally(() => document.documentElement.classList.remove('sg-vt'));
+      } else {
+        document.documentElement.classList.remove('sg-vt');
+      }
+    } else {
+      swap();
+      /* 新页已挂载，揭遮罩（源站 pjax:complete → endLoading） */
+      loadingHide();
     }
-    for (const rel of ['canonical', 'prev', 'next']) {
-      document.querySelector(`link[rel="${rel}"]`)?.remove(); const link = next.querySelector(`link[rel="${rel}"]`); if (link) document.head.append(link);
-    }
-    for (const attr of ['data-sg-blur']) { const value = next.documentElement.getAttribute(attr); if (value) document.documentElement.setAttribute(attr, value); }
-    const bg = document.querySelector('[data-sg-bg]'), newBg = next.querySelector('[data-sg-bg]'); if (bg && newBg) bg.replaceWith(newBg);
-    for (const selector of ['[data-sg-nav]', '[data-sg-sheet]', '[data-sg-rightside]']) {
-      const previous = document.querySelector(selector), replacement = next.querySelector(selector);
-      if (previous && replacement) previous.replaceWith(replacement);
-    }
-    render(); main.setAttribute('tabindex', '-1'); (main as HTMLElement).focus({ preventScroll: true }); position(new URL(location.href), y);
-    /* 新页已挂载，揭遮罩（源站 pjax:complete → endLoading） */
-    loadingHide();
     document.dispatchEvent(new CustomEvent('sg:navigated'));
   } catch {
     loadingHide();

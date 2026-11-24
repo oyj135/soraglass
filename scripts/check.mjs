@@ -91,6 +91,10 @@ if (manifest) {
 if (!distReady && zipNames && !zipNames.includes('soraglass/data/history.md')) {
   errors.push('[构建] soraglass.zip 内缺少 data/history.md（docs/HISTORY.md 发布拷贝）');
 }
+// 节气表同理：gen-season.mjs 的生成物，线上不跑 Node，缺了岁候页整页空态
+if (!distReady && zipNames && !zipNames.includes('soraglass/data/season-terms.php')) {
+  errors.push('[构建] soraglass.zip 内缺少 data/season-terms.php（scripts/gen-season.mjs 生成物）');
+}
 
 // ---------- 3) 模板资源引用 ----------
 if (manifest) {

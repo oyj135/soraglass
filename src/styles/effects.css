@@ -443,3 +443,15 @@ html.sg-ready .sg-post-hero img { animation: sg-imgblur .8s ease-in-out both; }
 @media (prefers-reduced-motion: reduce) {
   .sg-profile .sg-avatar-ring::after { animation: none; }
 }
+
+
+/* 岁候页间 PJAX 转场（View Transitions，navigation.ts 挂 html.sg-vt，岁候回归时恢复）：
+   旧纸面淡出微浮、新纸面落定。盘转针定的设计红利 —— 盘几乎不动，只有内容换。 */
+html.sg-vt::view-transition-old(root) { animation: sg-vt-out .32s var(--sg-ease) both; }
+html.sg-vt::view-transition-new(root) { animation: sg-vt-in .4s var(--sg-ease) both; }
+@keyframes sg-vt-out { to { opacity: 0; transform: translateY(-10px); } }
+@keyframes sg-vt-in { from { opacity: 0; transform: translateY(12px); } }
+@media (prefers-reduced-motion: reduce) {
+  html.sg-vt::view-transition-old(root),
+  html.sg-vt::view-transition-new(root) { animation: none; }
+}

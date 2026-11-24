@@ -10,6 +10,7 @@
 @import "./gallery.css";
 @import "./home.css";
 @import "./zi.css";
+@import "./season.css";
 
 /* Tailwind 4 必须显式扫描 PHP 模板，否则模板里的工具类不会生成 */
 @source "../../**/*.php";

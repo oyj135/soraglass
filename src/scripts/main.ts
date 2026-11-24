@@ -20,7 +20,8 @@ import { initReveal } from './modules/reveal';
 import { initStatsCache } from './modules/stats-cache';
 import { initSidebarData } from './modules/sidebar-data';
 import { initTimeMachine } from './modules/time-machine';
-import { initZiGate } from './modules/zi-gate';
+import { initSeasonWheel } from './modules/season';
+import { initSeasonSky } from './modules/season-sky';
 
 /**
  * 单独兜住每个模块的异常。
@@ -61,7 +62,8 @@ function mountPage(): void {
   safe('reveal', initReveal);
   safe('stats-cache', initStatsCache);
   safe('time-machine', initTimeMachine);
-  safe('zi-gate', initZiGate);
+  safe('season', initSeasonWheel);
+  safe('season-sky', initSeasonSky);
 }
 function boot(): void {
   mountPage(); safe('effects', initEffects); initNavigation(mountPage);

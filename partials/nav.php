@@ -105,6 +105,12 @@ $sgNavIconMap = [
     /* 标题兑底：Page List 行的 template/slug 在部分环境下取不到（用户页面 slug 可能改过），
        页面标题是最稳定的最后一道匹配。 */
     '时光机'    => 'icon-lishi',
+    /* 岁候（第八十二轮）：icon-suihou 是本主题自绘的节气罗盘（nav.php 顶部内联 symbol）——
+       iconfont 集里没有合适的节气图标，自绘保证常驻、PJAX 安全；
+       slug 级匹配意味着后台改名后图标仍在 */
+    'page-season' => 'icon-suihou',
+    'season'      => 'icon-suihou',
+    '岁候'        => 'icon-suihou',
     'notes'     => 'icon-liuyan',
     'chatter'   => 'icon-liuyan',
     'moments'   => 'icon-liuyan',
@@ -253,6 +259,27 @@ $sgGroupHasActive = static function (array $sgSeqEntry) use ($sgActiveKey): bool
     return false;
 };
 ?>
+<?php /* 岁候 · 自绘节气罗盘 symbol（第八十二轮，iconfont 集里没有合适的节气图标）：
+   外环 + 11 道刻度（12 点钟让位给指针）+ 朱锋指针指正上 —— 轮盘的缩影。
+   刻度走 currentColor 随昼夜换色；指针/盘心用 var(--sg-warm)，
+   CSS 变量可穿透 <use> 的 shadow DOM，昼夜各落印朱的两档。
+   内联在 nav 顶部常驻：symbol 先于所有 <use> 出现，PJAX 只换 #sg-main 也不受影响。 */ ?>
+<svg style="display:none" aria-hidden="true">
+  <symbol id="icon-suihou" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <g stroke="currentColor" stroke-width="1.2" stroke-linecap="round">
+      <line x1="21" y1="12" x2="19.2" y2="12"/>
+      <line x1="12" y1="21" x2="12" y2="19.2"/>
+      <line x1="3" y1="12" x2="4.8" y2="12"/>
+      <line x1="18.36" y1="5.64" x2="17.23" y2="6.77"/>
+      <line x1="18.36" y1="18.36" x2="17.23" y2="17.23"/>
+      <line x1="5.64" y1="18.36" x2="6.77" y2="17.23"/>
+      <line x1="5.64" y1="5.64" x2="6.77" y2="6.77"/>
+    </g>
+    <path d="M12 4.4 L13 6.5 L12 7.5 L11 6.5 Z" fill="var(--sg-warm)"/>
+    <circle cx="12" cy="12" r="1.2" fill="var(--sg-warm)"/>
+  </symbol>
+</svg>
 <header class="sg-nav" data-sg-nav>
   <div class="sg-nav-inner">
     <a class="sg-brand" href="<?php echo sg_e($sgHome); ?>"><?php echo sg_e($sgBrandTitle); ?><span class="sg-brand-accent"><?php echo sg_e($sgBrandSuffix); ?></span><?php echo sg_e($sgBrandAfter); ?></a>
