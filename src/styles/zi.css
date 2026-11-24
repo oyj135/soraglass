@@ -643,3 +643,174 @@
   border-color: var(--sg-warm);
   color: var(--sg-warm);
 }
+
+
+/* ---------- 秘境 · 彩蛋门（M5）：门厅页脚一枚暗印，认满三个孤证字才亮 ---------- */
+.sg-zi-gate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  margin: 0 auto 1.1rem;
+  border: 1px dashed var(--sg-line);
+  border-radius: .35rem;
+  background: transparent;
+  color: var(--sg-faint);
+  font-family: inherit;
+  font-size: .8rem;
+  cursor: pointer;
+  transition: color .25s ease, border-color .25s ease;
+}
+
+.sg-zi-gate[hidden] { display: none; }
+
+.sg-zi-gate:hover {
+  color: var(--sg-warm);
+  border-color: var(--sg-warm);
+}
+
+/* 信页：恒夜色，与昼夜主题无关（异世界感） */
+.sg-zi-gate-letter {
+  margin-top: 2.2rem;
+  padding: 2.4rem clamp(1.4rem, 4vw, 2.8rem);
+  background: #1d1a21;
+  color: #e9e0cf;
+  border: 1px solid rgb(233 224 207 / .14);
+  border-radius: .9rem;
+}
+
+.sg-zi-gate-cap {
+  font-family: var(--font-sans, sans-serif);
+  font-size: .68rem;
+  letter-spacing: .4em;
+  color: #8b8492;
+  margin-bottom: 1rem;
+}
+
+.sg-zi-gate-title {
+  font-size: 1.5rem;
+  letter-spacing: .25em;
+  font-weight: 700;
+  color: #e9e0cf;
+}
+
+.sg-zi-gate-body,
+.sg-zi-gate-sign { display: none; }
+
+.sg-zi-gate-letter.is-open .sg-zi-gate-body { display: block; }
+.sg-zi-gate-letter.is-open .sg-zi-gate-sign { display: flex; }
+.sg-zi-gate-letter.is-open .sg-zi-gate-locked { display: none; }
+
+.sg-zi-gate-line {
+  margin-top: 1.1rem;
+  font-size: .92rem;
+  line-height: 1.9;
+  color: #b7ae9c;
+  max-width: 42em;
+}
+
+.sg-zi-gate-char {
+  margin-top: 1.6rem;
+  text-align: center;
+}
+
+.sg-zi-gate-char a {
+  font-size: clamp(4.6rem, 13vw, 7rem);
+  font-weight: 700;
+  line-height: 1.1;
+  color: #d8a79e;
+  text-decoration: none;
+  animation: sg-zi-gate-breath 3.4s ease-in-out infinite;
+}
+
+@keyframes sg-zi-gate-breath {
+  0%, 100% { text-shadow: 0 0 0 rgb(216 167 158 / 0); }
+  50% { text-shadow: 0 0 18px rgb(216 167 158 / .45); }
+}
+
+.sg-zi-gate-meta {
+  margin-top: .8rem;
+  text-align: center;
+  font-family: var(--font-sans, sans-serif);
+  font-size: .74rem;
+  letter-spacing: .12em;
+  color: #8b8492;
+}
+
+.sg-zi-gate-quote {
+  margin: 1.4rem 0 0;
+  padding-left: 1.1rem;
+  border-left: 2px solid rgb(216 167 158 / .5);
+  font-size: .95rem;
+  line-height: 1.9;
+  color: #b7ae9c;
+}
+
+.sg-zi-gate-src {
+  display: inline-block;
+  margin-top: 1.2rem;
+  font-size: .85rem;
+  color: #d8a79e;
+  text-decoration: none;
+  border-bottom: 1px dotted #d8a79e;
+}
+
+.sg-zi-gate-closed {
+  margin-top: 1.4rem;
+  font-size: .9rem;
+  color: #b7ae9c;
+}
+
+.sg-zi-gate-sign {
+  margin-top: 2rem;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.sg-zi-gate-name {
+  font-family: var(--font-kai, var(--font-serif, serif));
+  font-size: .95rem;
+  color: #d8a79e;
+  letter-spacing: .2em;
+}
+
+.sg-zi-gate-seal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: .3rem;
+  background: #d8a79e;
+  color: #1d1a21;
+  font-weight: 700;
+  font-size: .95rem;
+  animation: sg-zi-gate-seal-breath 3.4s ease-in-out infinite;
+}
+
+@keyframes sg-zi-gate-seal-breath {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(216 167 158 / .35); }
+  50% { box-shadow: 0 0 0 9px rgb(216 167 158 / 0); }
+}
+
+.sg-zi-gate-locked {
+  margin-top: 1.6rem;
+  font-size: .85rem;
+  color: #8b8492;
+}
+
+.sg-zi-gate-backrow { margin-top: 1.4rem; }
+
+.sg-zi-gate-back {
+  font-size: .82rem;
+  color: #8b8492;
+  text-decoration: none;
+}
+
+.sg-zi-gate-back:hover { color: #d8a79e; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sg-zi-gate-char a,
+  .sg-zi-gate-seal { animation: none; }
+}

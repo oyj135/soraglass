@@ -49,11 +49,23 @@ if ($sgZRaw !== '') {
 /* ---------- 模式与数据 ---------- */
 $sgZEntry = $sgZChar !== '' ? sg_zi_char($sgZChar) : null;
 $sgZMode = ($sgZChar !== '' && $sgZEntry !== null) ? 'char' : 'hall';
+
+/* ---------- 秘境态：?gate=1（彩蛋门，无任何导航入口，M5） ----------
+   触发在访客本地（认满 3 个仅一见的字）；这里只负责在门后备好一封每日轮换的信。 */
+$sgZGate = $sgZiOn && isset($_GET['gate']);
+if ($sgZGate) {
+    $sgZMode = 'gate';
+}
+
 $sgZIndex = $sgZiOn ? sg_zi_index() : ['rank' => [], 'chars' => []];
 $sgZStats = $sgZiOn ? sg_zi_stats() : ['total' => 0, 'distinct' => 0, 'newThisYear' => 0, 'posts' => 0, 'notes' => 0];
 
 /* ---------- 文档标题与 canonical（header.php 读取） ---------- */
-if ($sgZMode === 'char') {
+if ($sgZMode === 'gate') {
+    /* 秘境页不进索引：canonical 一律归到门厅 */
+    $GLOBALS['SG_DOC_TITLE'] = '深夜来信 · 字海';
+    $GLOBALS['SG_CANONICAL'] = sg_zi_url();
+} elseif ($sgZMode === 'char') {
     $GLOBALS['SG_DOC_TITLE'] = $sgZChar . ' · 字海';
     $GLOBALS['SG_CANONICAL'] = sg_zi_url(['c' => $sgZChar]);
 } else {
@@ -200,6 +212,32 @@ if ($sgZMode === 'char') {
     <div><b class="sg-zi-count-v sg-zi-count-warm"><?php echo number_format($sgZStats['newThisYear']); ?></b><span>今年新见字</span></div>
   </section>
 
+<?php elseif ($sgZMode === 'gate') : ?>
+  <?php /* ============ 秘境 · 深夜来信（恒夜色，与昼夜主题无关） ============ */ ?>
+  <?php $sgZLetter = sg_zi_gate_letter(); ?>
+  <section class="sg-zi-gate-letter" data-sg-zi-gate-letter aria-label="深夜来信">
+    <p class="sg-zi-gate-cap">秘 境 · 深 夜 来 信</p>
+    <h1 class="sg-zi-gate-title">致走到这里的人</h1>
+    <?php if ($sgZLetter) : ?>
+    <div class="sg-zi-gate-body">
+      <p class="sg-zi-gate-line">你在字海里认出了三个只出现一次的字。作为回礼，这里有一个连导航都不会收录的字：</p>
+      <p class="sg-zi-gate-char"><a href="<?php echo sg_e($sgZLetter['charUrl']); ?>"><?php echo sg_e($sgZLetter['ch']); ?></a></p>
+      <p class="sg-zi-gate-meta">全站仅此一见 · <?php echo sg_e($sgZLetter['year']); ?> 年《<?php echo sg_e($sgZLetter['title']); ?>》落笔</p>
+      <blockquote class="sg-zi-gate-quote"><?php echo sg_e($sgZLetter['quote']); ?></blockquote>
+      <p class="sg-zi-gate-line">出门之后它就会变回灰青色。此页导航里永远不会有，朋友问起时，请让他自己去冷字墙里认字。</p>
+      <a class="sg-zi-gate-src" href="<?php echo sg_e($sgZLetter['url'] . (str_contains($sgZLetter['url'], '?') ? '&' : '?') . 'hl=' . rawurlencode($sgZLetter['ch'])); ?>">去读它的孤证原文 →</a>
+    </div>
+    <?php else : ?>
+    <p class="sg-zi-gate-closed">门开了，但字海里暂时没有「仅一见」的字，信无处落笔。</p>
+    <?php endif; ?>
+    <div class="sg-zi-gate-sign">
+      <span class="sg-zi-gate-name">空璃 手书</span>
+      <span class="sg-zi-gate-seal" aria-hidden="true">密</span>
+    </div>
+    <p class="sg-zi-gate-locked">这扇门还没有为你打开：去门厅的冷字墙，认得三个只出现一次的字再来。</p>
+    <p class="sg-zi-gate-backrow"><a class="sg-zi-gate-back" href="<?php echo sg_e(sg_zi_url()); ?>">← 回门厅</a></p>
+  </section>
+
 <?php else : ?>
   <?php /* ============ 字卡 ============ */ ?>
   <header class="sg-zi-head sg-zi-head--card">
@@ -207,7 +245,7 @@ if ($sgZMode === 'char') {
     <p class="sg-zi-kicker">Zi hall · <?php echo sg_e($sgZSub); ?></p>
   </header>
 
-  <section class="sg-zi-card<?php echo $sgZIsRare ? ' is-rare' : ''; ?>" aria-label="字卡">
+  <section class="sg-zi-card<?php echo $sgZIsRare ? ' is-rare' : ''; ?>" aria-label="字卡"<?php echo $sgZIsRare ? ' data-sg-zi-rare-char="' . sg_e($sgZChar) . '"' : ''; ?>>
     <div class="sg-zi-big" aria-hidden="true"><?php echo sg_e($sgZChar); ?><?php if ($sgZActive) : ?><span class="sg-zi-dot"></span><?php endif; ?></div>
     <span class="sg-zi-big-sr"><?php echo sg_e($sgZChar); ?></span>
 
@@ -262,8 +300,11 @@ if ($sgZMode === 'char') {
 <?php endif; ?>
   </div><?php /* /.sg-zi-sheet 纸面到此合上 */ ?>
 
-  <?php /* 跋：口径与边界，收进折叠，纸外低对比 */ ?>
+  <?php /* 跋：口径与边界，收进折叠，纸外低对比；秘境态不渲染（信页自成一界）。
+     页脚那枚暗印是彩蛋门：认满三个仅一见的字后由 zi-gate.ts 揭开。 */ ?>
+<?php if ($sgZMode !== 'gate') : ?>
   <footer class="sg-zi-colophon">
+    <button type="button" class="sg-zi-gate" data-sg-zi-gate data-sg-zi-gate-url="<?php echo sg_e(sg_zi_url(['gate' => 1])); ?>" hidden aria-label="一枚不起眼的印">密</button>
     <details class="sg-zi-note">
       <summary>口径与边界</summary>
       <div class="sg-zi-note-body">
@@ -274,6 +315,7 @@ if ($sgZMode === 'char') {
       </div>
     </details>
   </footer>
+<?php endif; /* gate 不渲染跋 */ ?>
 <?php endif; ?>
 </main>
 <?php $this->need('footer.php'); ?>

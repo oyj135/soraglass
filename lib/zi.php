@@ -430,15 +430,22 @@ function sg_zi_build(string $version): ?array
  * 五、读数与整形（page-zi.php / side-zi.php 的出口）
  * ============================================================ */
 
-/** 字海页地址：无参门厅，['c' => 字] 进字卡。中文单字 urlencode 后短而稳。 */
+/** 字海页地址：无参门厅，['c' => 字] 进字卡，['gate' => 1] 进秘境信页。
+ * 中文单字 urlencode 后短而稳；秘境地址必须服务端拼好（兼容 ?p= 型无伪静态地址）。 */
 function sg_zi_url(array $params = []): string
 {
     $base = sg_page_url('zi');
+    $glue = str_contains($base, '?') ? '&' : '?';
+    $out = $base;
     $ch = (string) ($params['c'] ?? '');
-    if ($ch === '') {
-        return $base;
+    if ($ch !== '') {
+        $out .= $glue . 'c=' . urlencode($ch);
+        $glue = '&';
     }
-    return $base . (str_contains($base, '?') ? '&' : '?') . 'c=' . urlencode($ch);
+    if (!empty($params['gate'])) {
+        $out .= $glue . 'gate=1';
+    }
+    return $out;
 }
 
 /** 文章永久链接：与 sg_season_post_url 同一拼法（Router 失败退回 /archives/{cid}/）。
@@ -602,5 +609,48 @@ function sg_zi_char(string $ch): ?array
         'last' => (int) ($row['li'] ?? 0),
         'quotes' => $quotes,
         'mates' => $mates,
+    ];
+}
+
+
+/* ============================================================
+ * 六、秘境彩蛋门（M5）：?gate=1 深夜来信
+ * ============================================================ */
+
+/**
+ * 每日轮换的一封「深夜来信」：从「仅一见」里按本地日期确定性挑一个字，
+ * 带出它的孤证句与原文。与今日一字同一确定性哲学（无随机数，午夜换字）。
+ * 门是否打开由访客本地记账决定（zi-gate.ts），这里只备信。
+ */
+function sg_zi_gate_letter(): ?array
+{
+    $data = sg_zi_cache();
+    if ($data === null) {
+        return null;
+    }
+    $rare = [];
+    foreach ((array) ($data['rank'] ?? []) as $pair) {
+        if ((int) $pair[1] === 1) {
+            $rare[] = (string) $pair[0];
+        }
+    }
+    if (!$rare) {
+        return null;
+    }
+    $seed = (int) date('Ymd', sg_date_ts(time()));
+    $ch = $rare[$seed % count($rare)];
+    $card = sg_zi_char($ch);
+    if (!$card || !$card['quotes']) {
+        return null;
+    }
+    $q = $card['quotes'][0];
+    $title = (string) $q['title'];
+    return [
+        'ch' => $ch,
+        'year' => date('Y', sg_date_ts((int) ($card['first']['ts'] ?? 0))),
+        'title' => $title !== '' ? $title : '碎语',
+        'quote' => (string) $q['text'],
+        'url' => (string) $q['url'],
+        'charUrl' => sg_zi_url(['c' => $ch]),
     ];
 }
