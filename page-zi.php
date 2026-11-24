@@ -23,10 +23,10 @@ if (!defined('SG_ROOT')) {
 $sgZiOn = sg_zi_enabled();
 
 /* ---------- 管理员重建入口（静默失败：非管理员当没看见） ---------- */
-$sgZiRebuilt = false;
+$sgZRebuilt = false;
 if ($sgZiOn && isset($_GET['rebuild']) && sg_user_is_admin()) {
     sg_zi_rebuild();
-    $sgZiRebuilt = true;
+    $sgZRebuilt = true;
 }
 
 /* ---------- 检字参数：只取第一个汉字，其余丢弃 ---------- */
@@ -298,10 +298,6 @@ if ($sgZMode === 'char') {
   <?php endif; ?>
 
 <?php endif; ?>
-  </div><?php /* /.sg-zi-sheet 纸面到此合上 */ ?>
-
-  <?php /* 跋：口径与边界，收进折叠，纸外低对比；秘境态不渲染（信页自成一界）。
-     页脚那枚暗印是彩蛋门：认满三个仅一见的字后由 zi-gate.ts 揭开。 */ ?>
 <?php if ($sgZMode !== 'gate') : ?>
   <footer class="sg-zi-colophon">
     <button type="button" class="sg-zi-gate" data-sg-zi-gate data-sg-zi-gate-url="<?php echo sg_e(sg_zi_url(['gate' => 1])); ?>" hidden aria-label="一枚不起眼的印">密</button>
@@ -316,6 +312,7 @@ if ($sgZMode === 'char') {
     </details>
   </footer>
 <?php endif; /* gate 不渲染跋 */ ?>
+  </div><?php /* /.sg-zi-sheet 纸面到此合上（跋已收入纸面内） */ ?>
 <?php endif; ?>
 </main>
 <?php $this->need('footer.php'); ?>

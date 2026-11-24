@@ -4,7 +4,7 @@
    全部颜色走 tokens.css 的 --sg-*（昼夜自动反转），印朱一律 --sg-warm。
    接替岁候（season.css，2026-11-24 退役）：天文轴换成字轴，纸面一体的版式哲学保留。 */
 
-/* ---------- 纸面：一张卡从页头铺到口径折叠之前 ---------- */
+/* ---------- 纸面：一张卡从页头铺到口径折叠（跋收入纸内，不再叠壁纸） ---------- */
 .sg-zi {
   display: block;
 }
@@ -19,10 +19,11 @@
   box-shadow: var(--sg-shadow-card, 0 1px 2px rgb(37 34 41 / .05));
 }
 
+/* 跋在纸面内：顶部一条细线分隔，文字压纸白，对比度恢复 */
 .sg-zi-colophon {
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: 1.2rem .4rem 0;
+  margin-top: 2.6rem;
+  border-top: 1px solid var(--sg-line);
+  padding-top: 1.4rem;
 }
 
 /* ---------- 页头 ---------- */
