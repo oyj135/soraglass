@@ -91,10 +91,6 @@ if (manifest) {
 if (!distReady && zipNames && !zipNames.includes('soraglass/data/history.md')) {
   errors.push('[构建] soraglass.zip 内缺少 data/history.md（docs/HISTORY.md 发布拷贝）');
 }
-// 节气表同理：gen-season.mjs 的生成物，线上不跑 Node，缺了岁候页整页空态
-if (!distReady && zipNames && !zipNames.includes('soraglass/data/season-terms.php')) {
-  errors.push('[构建] soraglass.zip 内缺少 data/season-terms.php（scripts/gen-season.mjs 生成物）');
-}
 
 // ---------- 3) 模板资源引用 ----------
 if (manifest) {
@@ -135,7 +131,7 @@ for (const rel of docsRequired) {
 //   .zwork 2026-11-17 登记、.kimi-attachments 2026-11-18 登记；
 //   壁纸候选 / 配色 是用户本地的素材目录，不是文档，2026-11-21 登记「配色」；
 //   vectorizer 是用户的描摹 SVG 素材目录（墨龙/作者卡场景），2026-11-22 登记）
-const allowedTop = new Set(['soraglass', 'docs', 'soraglass.zip', 'plugins', 'SoraglassGallery.zip', 'hexo-theme-fomalhaut', '.workbuddy', '.agents', '.zwork', '.kimi-attachments', '.git', '壁纸候选', '配色', 'vectorizer']);
+const allowedTop = new Set(['soraglass', 'docs', 'soraglass.zip', 'plugins', 'SoraglassGallery.zip', 'hexo-theme-fomalhaut', '.workbuddy', '.agents', '.zwork', '.kimi-attachments', '.git', '壁纸候选', '配色', 'vectorizer', '预览-六方向.html', '预览-字海.html']);
 for (const entry of fs.readdirSync(workspace)) {
   if (!allowedTop.has(entry)) errors.push(`[顶层结构] 多余条目 ${entry}，顶层只允许三件套及已列明的参考/协作目录`);
   if (entry.endsWith('.md')) errors.push(`[文档归置] 根目录不应有 ${entry}，沉淀文档统一放 docs/`);

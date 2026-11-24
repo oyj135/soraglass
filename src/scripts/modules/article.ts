@@ -508,6 +508,76 @@ function initAsidePin(): void {
   onPageDispose(() => ro.disconnect());
 }
 
+/**
+ * 字海回链高亮：例句/初现链接带 ?hl=字，正文里朱点该字，命中过多封顶，
+ * 角标可一键清除（去参数不刷新）。只处理纯文本节点，跳过 pre/code/链接。
+ */
+function initZiHl(): void {
+  const article = document.querySelector<HTMLElement>('[data-sg-article]');
+  if (!article) return;
+  const raw = new URLSearchParams(window.location.search).get('hl') ?? '';
+  const ch = Array.from(raw.trim())[0];
+  if (!ch) return;
+  const cp = ch.codePointAt(0) ?? 0;
+  const isHan = (cp >= 0x4e00 && cp <= 0x9fff) || (cp >= 0x3400 && cp <= 0x4dbf);
+  if (!isHan) return;
+
+  /* 命中封顶：常字（的/一/是）一篇里可能几百处，全包会卡长文 */
+  const NODE_LIMIT = 80;
+  const targets: Text[] = [];
+  const walker = document.createTreeWalker(article, NodeFilter.SHOW_TEXT, {
+    acceptNode: (node) => {
+      const parent = (node as Text).parentElement;
+      if (!parent || parent.closest('pre, code, a, mark')) return NodeFilter.FILTER_REJECT;
+      return (node.nodeValue ?? '').includes(ch) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+    },
+  });
+  let node: Node | null;
+  while ((node = walker.nextNode()) !== null && targets.length < NODE_LIMIT) {
+    targets.push(node as Text);
+  }
+
+  let count = 0;
+  let first: HTMLElement | null = null;
+  for (const t of targets) {
+    const text = t.nodeValue ?? '';
+    const frag = document.createDocumentFragment();
+    let last = 0;
+    let idx = text.indexOf(ch);
+    while (idx !== -1) {
+      if (idx > last) frag.appendChild(document.createTextNode(text.slice(last, idx)));
+      const mark = document.createElement('mark');
+      mark.className = 'sg-zi-hl';
+      mark.textContent = ch;
+      frag.appendChild(mark);
+      if (!first) first = mark;
+      count++;
+      last = idx + ch.length;
+      idx = text.indexOf(ch, last);
+    }
+    if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+    t.parentNode?.replaceChild(frag, t);
+  }
+  if (count === 0) return;
+
+  /* 角标：告知命中数，一键清除（不刷新，只去参数与解包 mark） */
+  const badge = document.createElement('button');
+  badge.type = 'button';
+  badge.className = 'sg-zi-hl-badge';
+  badge.innerHTML = `字海回链 · <b></b> ×${count} · 清除`;
+  (badge.querySelector('b') as HTMLElement).textContent = ch;
+  badge.addEventListener('click', () => {
+    article.querySelectorAll('mark.sg-zi-hl').forEach((m) => {
+      m.replaceWith(document.createTextNode(m.textContent ?? ''));
+    });
+    badge.remove();
+    window.history.replaceState(null, '', window.location.pathname + window.location.hash);
+  });
+  document.body.appendChild(badge);
+
+  first?.scrollIntoView({ block: 'center' });
+}
+
 export function initArticle(): void {
   initTOC();
   initAsidePin();
@@ -517,4 +587,5 @@ export function initArticle(): void {
   void initHighlight();
   void initMath();
   initShare();
+  initZiHl();
 }

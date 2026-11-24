@@ -11,7 +11,7 @@
     "preview:static": "node scripts/preview.mjs",
     "typecheck": "tsc --noEmit",
     "check": "node scripts/check.mjs",
-    "release": "node scripts/gen-season.mjs && node scripts/release.mjs",
+    "release": "node scripts/release.mjs",
     "verify:browser": "node scripts/verify-browser.mjs"
   },
   "dependencies": {

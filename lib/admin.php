@@ -760,7 +760,7 @@ function themeConfig($form): void
     $form->addInput(new Radio('sgSplash', $effectOptions, 'on', _t('开屏动画'), _t('每个会话首次进入时约 0.6 秒的品牌遮罩，站内切页不再重放')));
 
     /* ---------------- 文章页与侧栏 ---------------- */
-    $form->addInput(new Radio('sgCalendarDetail', $effectOptions, 'on', _t('首页详细日期'), _t('显示大日期、农历、生肖、节气与年内第几天。公历月历和春节倒计时始终保留。')));
+    $form->addInput(new Radio('sgCalendarDetail', $effectOptions, 'on', _t('首页详细日期'), _t('显示大日期、农历、生肖与年内第几天。公历月历和春节倒计时始终保留。')));
     $form->addInput(new Text('sgCalendarTimezone', null, 'Asia/Shanghai', _t('日历时区'), _t('公历、农历、春节与进度条共同使用的时区，例如 Asia/Shanghai；无效值回退上海时区。')));
     $form->addInput(new Select('sgSidebarLocation', ['off' => _t('关闭欢迎卡'), 'site' => _t('站长城市'), 'visitor' => _t('访客 IP 归属地')], 'site', _t('首页欢迎信息'), _t('站长城市模式不查询访客位置；访客模式通过服务端定位，默认不显示 IP 地址。定位失败时显示通用欢迎，天气回退站长城市。')));
     $form->addInput(new Text('sgSiteCity', null, '', _t('站长城市'), _t('用于欢迎、天气回退和距离基点。留空不输出虚构城市，例如填写自己的城市名称。可填到区县，如「杭州市西湖区」，坐标按该区县解析。填好后可点下面按钮用和风 GeoAPI 反查坐标与时区。') . sg_admin_geo_lookup()));
@@ -867,10 +867,11 @@ function themeConfig($form): void
         . '<code>desc</code> 简介可省略；<code>icon</code> 留空自动用 favicon 在线服务按域名取图标，加载失败回退站名首字圆徽，也可以手填完整图片地址。<br>'
         . '总站点数上限 200，超出截断；页面正文与本栏都为空时显示空态。'
     ) . sg_admin_json_tools()));
-    $form->addInput(new Radio('sgGongRing', ['gong' => _t('显示（默认）'), 'off' => _t('关闭')], 'gong', _t('岁候 · 宫内环'), _t(
-        '<b>显示位置</b>：「岁候」页轮盘内侧那一圈黄道十二宫。<br>'
-        . '关闭后内环不渲染，宫名只在对照表与首页挂件出现，节气环、展陈与对照表不受影响。<br>'
-        . '640px 以下轮盘换为滑条，宫改由 12 格小条表示，仍然可见。'
+    $form->addInput(new Radio('sgZi', ['on' => _t('开启（默认）'), 'off' => _t('关闭')], 'on', _t('字海 · 检字馆'), _t(
+        '<b>显示位置</b>：独立页面「字海」（模板选「字海」、缩略名建议 <code>zi</code>）与首页侧栏挂件。<br>'
+        . '以「字」为轴组织全站文字：查一个字，看它何时初现、用在哪里、是否久违。<br>'
+        . '字表按内容指纹自动失效（发文/改文后首个访问自动重建），一般无需手动干预；'
+        . '若数据异常，管理员在字海页地址后加 <code>?rebuild=1</code> 即强制重建。'
     )));
     $form->addInput(new Text('sgGithubUser', null, 'oyj135', _t('GitHub 账号'), _t('「项目」页从这里列仓库。填用户名即可，例如 <code>oyj135</code>；留空则不启用 GitHub 数据源')));    $form->addInput(new Text('sgGithubLimit', null, '12', _t('仓库上限（个）'), _t('只在「项目清单」留空（自动模式）时生效，默认 12；想全量显示填 0。手填的清单不受此限')));
     $form->addInput(new Textarea('sgTimeMilestones', null, '', _t('时光机 · 站史里程碑'), _t(

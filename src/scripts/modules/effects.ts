@@ -22,7 +22,10 @@ interface Particle {
   phase: number;
 }
 
-type Season = 'sakura' | 'snow' | 'fireflies' | 'leaf';
+export type Season = 'sakura' | 'snow' | 'fireflies' | 'leaf';
+
+let stopSeason: (() => void) | null = null;
+
 
 const DENSITY: Record<Season, number> = {
   sakura: 24,   // 墨分五色：降低密度，樱花粉只作少量点缀
@@ -67,10 +70,14 @@ function createParticle(kind: Season, width: number, height: number, seed = fals
   return base;
 }
 
-function initSeason(kinds: Season[]): void {
+function startSeason(kinds: Season[], ambient: boolean): void {
   const canvas = document.querySelector<HTMLCanvasElement>('[data-sg-effects]');
   const ctx = canvas?.getContext('2d');
   if (!canvas || !ctx) return;
+
+  /* PJAX 换页可能带来新的天气：先停掉上一轮 rAF 与监听，再按新档位重启。 */
+  stopSeason?.();
+  if (kinds.length === 0) return;
 
   let width = 0;
   let height = 0;
@@ -91,9 +98,13 @@ function initSeason(kinds: Season[]): void {
 
   /* 每种粒子按自己的密度单独取数量，再合到一个数组里 —— 组合档位里两类粒子
      互不挤占名额，也不会因为种类变多而把同屏粒子数翻倍。 */
+  /* 密度：全站配置按视口自适应；岁候页天气覆盖档整体乘 0.6，小屏再减半 ——
+     窗外只需一点天气，铺满就抢戏了。 */
+  const densityScale = ambient ? (isSmallScreen() ? 0.3 : 0.6) : 1;
   const particles: Particle[] = [];
   for (const kind of kinds) {
-    const count = Math.min(DENSITY[kind], Math.round((width * height) / 26000) + 12);
+    const full = Math.min(DENSITY[kind], Math.round((width * height) / 26000) + 12);
+    const count = Math.max(4, Math.round(full * densityScale));
     for (let i = 0; i < count; i += 1) particles.push(createParticle(kind, width, height, true));
   }
 
@@ -194,8 +205,7 @@ function initSeason(kinds: Season[]): void {
 
   step();
 
-  window.addEventListener('resize', resize, { passive: true });
-  document.addEventListener('visibilitychange', () => {
+  const onVisibility = (): void => {
     if (document.hidden) {
       running = false;
       window.cancelAnimationFrame(raf);
@@ -203,7 +213,19 @@ function initSeason(kinds: Season[]): void {
       running = true;
       step();
     }
-  });
+  };
+  window.addEventListener('resize', resize, { passive: true });
+  document.addEventListener('visibilitychange', onVisibility);
+
+  /* 停机钩子：换页重启时先摘掉旧监听与 rAF，避免双层粒子叠加滚动掉帧 */
+  stopSeason = () => {
+    running = false;
+    window.cancelAnimationFrame(raf);
+    window.removeEventListener('resize', resize);
+    document.removeEventListener('visibilitychange', onVisibility);
+    ctx.clearRect(0, 0, width, height);
+    stopSeason = null;
+  };
 }
 
 function initDanmaku(list: string[]): void {
@@ -338,6 +360,7 @@ export function initEffects(): void {
     initClickEffect();
   }
 
+
   if (off) return;
 
   /* 后台的值可能是组合（`sakura,snow`），拆开后只保留认识的粒子名；
@@ -348,10 +371,10 @@ export function initEffects(): void {
     .filter((name): name is Season => (SEASONS as string[]).includes(name));
 
   if (cfg.effects && kinds.length) {
-    initSeason(kinds);
+    startSeason(kinds, false);
   }
 
-  if (cfg.danmaku.length) {
+  if (cfg.danmaku.length && !off) {
     initDanmaku(cfg.danmaku);
   }
 }

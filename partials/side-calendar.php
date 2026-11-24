@@ -2,7 +2,7 @@
 /**
  * 首页日期卡首帧。结构对齐源站 aside-calendar.js 的 renderToday()：
  *   左栏 44%（周次 星期 → 大日期 → 年月 第N天 → 农历）+ 右栏当月月历
- *   → 底部一条虚线附加行（节气 · 日出日落）→ 可选天气块。
+ *   → 底部一条虚线附加行（日出日落）→ 可选天气块。
  * sidebar-data.ts 负责农历/节气、跨天刷新及天气。
  * 卡片标题行是 Soraglass 自有语言（源站两卡隐藏 item-headline），已与用户确认保留。
  */
@@ -54,12 +54,7 @@ $sgCalTitle = $sgCalYear . '年' . $sgCalMonth . '月' . $sgCalToday . '日 星�
     </table>
   </div>
   <div class="sg-hcal-extra" data-sg-calendar-extra hidden>
-    <?php if ($sgSideCfg['detail']) : ?>
-    <?php /* 节气名服务端直出（S0.5 同源）：与岁候页同一张 data/season-terms.php，
-            关 JS 也读得到，午夜不会再和页面读数差一天。农历仍由前端补。 */ ?>
-    <?php $sgCalTerm = sg_season_sidebar(); ?>
-    <span class="sg-hcal-term" data-sg-calendar-term><?php if ($sgCalTerm) : ?><?php echo sg_e($sgCalTerm['prefix']); ?><strong><?php echo sg_e($sgCalTerm['name']); ?></strong><?php endif; ?></span>
-    <?php endif; ?>
+    <?php /* 节气行已随岁候退役（2026-11-24）：农历由前端补，日出日落走 JS 探测。 */ ?>
     <span class="sg-hcal-sun" data-sg-sun hidden><span data-sg-sun-rise></span><span data-sg-sun-set></span></span>
   </div>
   <?php if ($sgSideCfg['weather']) : ?>
