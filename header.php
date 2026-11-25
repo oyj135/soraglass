@@ -26,10 +26,6 @@ $sgFavicon = sg_bg_url((string) sg_opt('sgFavicon', ''));
 if ($sgFavicon === '') {
     $sgFavicon = sg_theme_url('dist/favicon.svg');
 }
-/* apple-touch-icon（第八十五轮）：iOS「添加到主屏幕」只认 PNG、且不读 rel=icon。
-   固定指向主题自带的 180×180 PNG（不随 sgFavicon 外链变化，保证图标与太极品牌一致）；
-   后台更换的图标只作用于浏览器标签页 / 收藏夹。 */
-$sgAppleIcon = sg_theme_url('dist/apple-touch-icon.png');
 ?>
 <!DOCTYPE html>
 <html lang="zh-CN" data-sg-blur="<?php echo sg_e($sgBlur); ?>">
@@ -58,7 +54,6 @@ $sgAppleIcon = sg_theme_url('dist/apple-touch-icon.png');
 <link rel="canonical" href="<?php echo sg_e((string) $GLOBALS['SG_CANONICAL']); ?>">
 <?php endif; ?>
 <link rel="icon" href="<?php echo sg_e($sgFavicon); ?>">
-<link rel="apple-touch-icon" sizes="180x180" href="<?php echo sg_e($sgAppleIcon); ?>">
 <?php /* 阿里 iconfont 多色语义图标（对齐源站 fomal.cc）：4 个 async JS 向 body 首部注入
         隐藏 <symbol>，每枚内嵌独立品牌色；页面用 <use href="#icon-*"> 引用（见 icons.php）。
         symbol 常驻 DOM，PJAX 只换 #sg-main 不受影响；CDN 不可达时图标位留白但布局不塌。 */ ?>
