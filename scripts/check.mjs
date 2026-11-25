@@ -114,7 +114,7 @@ const sourceRequired = [
   'archive.php', '404.php', 'functions.php', 'sidebar.php', 'screenshot.png',
   'package.json', 'package-lock.json', 'vite.config.ts', 'tsconfig.json', '.gitignore',
   'scripts/check.mjs', 'scripts/release.mjs', 'scripts/zip.mjs',
-  'src/styles/main.css', 'src/scripts/main.ts', 'public/data/playlist.json',
+  'src/styles/main.css', 'src/scripts/main.ts',
   'lib/config.php', 'lib/assets.php', 'lib/fields.php', 'lib/admin.php',
   'lib/http.php', 'lib/playlist.php', 'lib/stats.php',
   // P0 拆分后 components/ 的 9 个子文件（聚合入口不得缺失任一）

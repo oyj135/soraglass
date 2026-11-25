@@ -889,8 +889,9 @@ function themeConfig($form): void
         . '留空时整个面板不输出。'
     )));
     $form->addInput(new Text('sgPlaylist', null, '', _t('Meting 歌单接口地址'), _t(
-        '填写一条完整的 Meting 接口地址，例如 '
-        . '<code>https://api.injahow.cn/meting/?server=netease&amp;type=playlist&amp;id=2619366284</code>，'
+        '填写一条完整的 Meting 接口地址，例如本主题默认可用的 '
+        . '<code>https://api.injahow.cn/meting/?server=netease&amp;type=playlist&amp;id=13257994678</code>'
+        . '（或换成你自己的网易云歌单 ID），'
         . '歌曲、封面和歌词由接口提供；留空不展示歌单。<br>'
         . '保存新地址后使用新接口。相同地址缓存 1 小时；管理员需要重新拉取时，在音乐页地址后加 <code>?sg-refresh=1</code>。'
     )));

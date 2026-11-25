@@ -2,6 +2,8 @@
 /**
  * One configurable source: a complete Meting-compatible HTTP(S) endpoint.
  * Keep the sgPlaylist option key so existing endpoint settings survive upgrades.
+ * 2026-11-25：随包示例 MP3 与 playlist.json 已移除，歌单完全依赖后台填写的
+ * Meting 兼容端点；留空仍表示不展示歌单（语义不变）。
  */
 function sg_playlist(): array
 {
@@ -93,9 +95,9 @@ function sg_playlist_cap(array $list): array
 /**
  * 歌单里的 url / cover 归一化。
  *
- * 自带音源放在 `public/audio/`，打包后在 `dist/audio/`，JSON 里只写相对路径；
- * 不补主题前缀的话浏览器会去站点根找 `/dist/audio/...`，必然 404。
- * 外链（网易云封面、用户自己的图床）原样返回，见 sg_media() 的解析规则。
+ * 歌单只来自 Meting 接口（见 sg_playlist()），url / pic 均为完整 https 地址，
+ * sg_media() 对外链原样返回；主题内相对路径（如默认封面 cover-default.svg）
+ * 才补主题目录前缀。随包示例 MP3 与 playlist.json 已于 2026-11-25 移除。
  */
 function sg_playlist_media(array $list): array
 {

@@ -20,6 +20,41 @@ const workspace = path.dirname(root);
 const zipPath = path.join(workspace, 'soraglass.zip');
 const viteBin = path.join(root, 'node_modules/vite/bin/vite.js');
 
+/**
+ * KaTeX 的 @font-face 默认同时声明 woff2 / woff / truetype 三种格式，
+ * Vite 会把三种文件全部输出。主流浏览器早已全面支持 woff2，后两种是纯冗余
+ * （20 个 woff + 20 个 ttf，约 0.6 MiB）。这里在构建后改写 CSS 引用并删除
+ * 对应文件：不改 node_modules，不改源码样式，LXGW WenKai 分片（全为 woff2）不受影响。
+ */
+function trimLegacyKaTeXFonts() {
+  const assetsDir = path.join(root, 'dist/assets');
+  if (!fs.existsSync(assetsDir)) return;
+
+  let cssFixed = 0;
+  for (const name of fs.readdirSync(assetsDir)) {
+    if (!name.endsWith('.css')) continue;
+    const abs = path.join(assetsDir, name);
+    const css = fs.readFileSync(abs, 'utf8');
+    if (!css.includes('format("woff")') && !css.includes('format("truetype")')) continue;
+    const next = css.replace(/,\s*url\([^)]*\.(?:woff|ttf)\)\s*format\("(?:woff|truetype)"\)/g, '');
+    if (/format\("(?:woff|truetype)"\)/.test(next)) {
+      throw new Error(`KaTeX 旧字体引用未清理干净：dist/assets/${name}`);
+    }
+    fs.writeFileSync(abs, next);
+    cssFixed++;
+  }
+
+  let filesRemoved = 0;
+  for (const name of fs.readdirSync(assetsDir)) {
+    if (!/^KaTeX_.*\.(woff|ttf)$/i.test(name)) continue;
+    fs.rmSync(path.join(assetsDir, name));
+    filesRemoved++;
+  }
+  if (cssFixed) {
+    console.log(`  · KaTeX 字体仅保留 woff2：改写 ${cssFixed} 个 CSS，移除 ${filesRemoved} 个旧格式文件`);
+  }
+}
+
 if (!fs.existsSync(viteBin)) {
   console.error('✗ 未找到依赖，请先在 soraglass/ 目录执行：npm install');
   process.exit(1);
@@ -27,6 +62,7 @@ if (!fs.existsSync(viteBin)) {
 
 console.log('[1/5] 构建前端资源（vite build）…');
 execFileSync(process.execPath, [viteBin, 'build'], { cwd: root, stdio: 'inherit' });
+trimLegacyKaTeXFonts();
 
 console.log('\n[2/5] 全量静态校验…');
 execFileSync(process.execPath, [path.join(root, 'scripts/check.mjs')], { cwd: root, stdio: 'inherit' });
