@@ -919,6 +919,7 @@ const sgTimeYearSection = (year, meta, inner) => `
   </section>`;
 const timePage = `${head('时光机 - Soraglass')}
 <main class="sg-main sg-main--pad" data-sg-page="time">
+  <div class="sg-time-sheet">
   <header class="sg-time-hero">
     <span class="sg-time-badge">SITE CHANGELOG</span>
     <h1 class="sg-time-title">时光机</h1>
@@ -994,6 +995,7 @@ const timePage = `${head('时光机 - Soraglass')}
       <h3 class="sg-time-when"><span class="sg-time-when-year">2023</span><span class="sg-time-when-day">11-02</span></h3>
       <div class="sg-time-card"><ol class="sg-time-rounds">${sgTimeMsRound('拥有属于自己的博客', '大二这年，用 WordPress 搭起了自己的第一台博客，主题 Astra')}</ol></div>
     </li>`)}
+  </div>
 </main>
 ${foot()}`;
 

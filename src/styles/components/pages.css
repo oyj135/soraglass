@@ -1063,25 +1063,38 @@ html.dark [data-sg-gallery] .sg-gallery-masonry .sg-photo {
    页头下两块：站史里程碑（后台 sgTimeMilestones，留空用内置三条）、使用过的模型与占比（后台 sgTimeModels，留空不输出）；
    主体 = 大年份分区（巨号年份 + N 条记录 · N 天）→ 竖轴 + 日期节点 + 日期卡，
    卡内轮次自动编号，轮内 (1)(2) / ①② 小序号拆成独立子项再编号。 */
+/* 整页收纳进一张纸面大底板：底色/描边/圆角/投影/内距只在这里给，
+   内部页头、里程碑、模型、日期卡一律退到纸面之下（同书签盒语言，2026-11-25）。
+   flex column 承接原 .sg-main 对子区块的 gap，间距不变。 */
+.sg-time-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  background: var(--sg-card);
+  border: 1px solid var(--sg-line);
+  border-radius: var(--sg-radius);
+  box-shadow: var(--sg-shadow);
+}
 .sg-time-hero {
   max-width: 62rem;
   width: 100%;
   margin: 0 auto 2.25rem;
-  color: var(--sg-wall-white-ink);
+  color: var(--sg-text);
 }
 .sg-time-badge {
   display: inline-block;
   padding: .34rem .9rem .34rem 1.1rem;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, .26);
-  background: rgba(10, 16, 26, .30);
+  border: 1px solid var(--sg-line);
+  background: var(--sg-chip);
   font-family: var(--font-sans);
   font-size: .72rem;
   font-weight: 700;
   letter-spacing: .32em;
   text-indent: .32em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, .92);
+  color: var(--sg-text);
 }
 .sg-time-title {
   margin: .9rem 0 0;
@@ -1090,7 +1103,7 @@ html.dark [data-sg-gallery] .sg-gallery-masonry .sg-photo {
   font-weight: 800;
   letter-spacing: .06em;
   line-height: 1.22;
-  color: var(--sg-wall-white-ink);
+  color: var(--sg-text);
 }
 .sg-time-stats {
   margin: .85rem 0 0;
@@ -1101,7 +1114,7 @@ html.dark [data-sg-gallery] .sg-gallery-masonry .sg-photo {
   font-size: .9rem;
 }
 .sg-time-stats i { opacity: .45; font-style: normal; }
-.sg-time-stats b { color: #fff; font-weight: 800; }
+.sg-time-stats b { color: var(--sg-text); font-weight: 800; }
 .sg-time-yearpills {
   display: flex;
   flex-wrap: wrap;
@@ -1153,7 +1166,7 @@ html.dark [data-sg-gallery] .sg-gallery-masonry .sg-photo {
   font-size: 1.3rem;
   font-weight: 800;
   letter-spacing: .05em;
-  color: var(--sg-wall-white-ink);
+  color: var(--sg-text);
 }
 .sg-time-milestones, .sg-time-models { margin-bottom: .5rem; }
 .sg-time-ms-list {
@@ -1168,12 +1181,9 @@ html.dark [data-sg-gallery] .sg-gallery-masonry .sg-photo {
 }
 .sg-time-ms {
   position: relative;
-  background: var(--sg-card);
-  border: 1px solid var(--sg-card-border);
-  border-radius: var(--sg-radius);
-  box-shadow: var(--sg-shadow);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: var(--sg-chip);
+  border: 1px solid var(--sg-line);
+  border-radius: var(--sg-radius-inner);
   padding: 1rem 1.2rem 1.05rem 1.35rem;
   overflow: hidden;
 }
@@ -1198,11 +1208,9 @@ html.dark [data-sg-gallery] .sg-gallery-masonry .sg-photo {
   display: flex;
   flex-direction: column;
   gap: .7rem;
-  background: var(--sg-card);
-  border: 1px solid var(--sg-card-border);
-  border-radius: var(--sg-radius);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: var(--sg-chip);
+  border: 1px solid var(--sg-line);
+  border-radius: var(--sg-radius-inner);
 }
 .sg-time-model { display: grid; grid-template-columns: minmax(7rem, auto) 1fr auto; align-items: center; gap: .85rem; }
 .sg-time-model-name { font-weight: 600; font-size: .92rem; color: var(--sg-text); overflow-wrap: anywhere; }
@@ -1232,9 +1240,9 @@ html.dark [data-sg-gallery] .sg-gallery-masonry .sg-photo {
   font-weight: 800;
   letter-spacing: .02em;
   line-height: 1;
-  color: var(--sg-wall-white-ink);
+  color: var(--sg-text);
 }
-.sg-time-year-meta { font-size: .85rem; color: var(--sg-wall-white-ink); opacity: .78; font-variant-numeric: tabular-nums; }
+.sg-time-year-meta { font-size: .85rem; color: var(--sg-muted); font-variant-numeric: tabular-nums; }
 .sg-time { list-style: none; margin: 0; padding: 0; position: relative; }
 .sg-time::before {
   content: '';
@@ -1265,7 +1273,7 @@ html.dark [data-sg-gallery] .sg-gallery-masonry .sg-photo {
   align-items: baseline;
   gap: .5rem;
   font-family: var(--font-serif);
-  color: var(--sg-wall-white-ink);
+  color: var(--sg-text);
 }
 .sg-time-when-year { font-size: 1rem; font-weight: 700; opacity: .72; letter-spacing: .02em; }
 .sg-time-when-day { font-size: 1.5rem; font-weight: 800; letter-spacing: .04em; }
@@ -1283,12 +1291,9 @@ html.dark [data-sg-gallery] .sg-gallery-masonry .sg-photo {
   letter-spacing: .08em;
 }
 .sg-time-card {
-  background: var(--sg-card);
-  border: 1px solid var(--sg-card-border);
-  border-radius: var(--sg-radius);
-  box-shadow: var(--sg-shadow);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: var(--sg-chip);
+  border: 1px solid var(--sg-line);
+  border-radius: var(--sg-radius-inner);
   padding: 1.15rem 1.35rem;
 }
 .sg-time-rounds { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1.05rem; }

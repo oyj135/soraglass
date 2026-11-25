@@ -231,6 +231,8 @@ foreach (preg_split('/\r\n|\r|\n/', trim(sg_opt('sgTimeModels', ''))) ?: [] as $
 usort($sgTimeModels, static fn (array $a, array $b): int => $b['ratio'] <=> $a['ratio']);
 ?>
 <main id="sg-main" tabindex="-1" class="sg-main sg-main--pad" data-sg-page="time">
+  <?php /* 大底板：整页内容收纳进一张纸面卡（与书签盒同语言，2026-11-25）；纯视觉容器，无 data 挂点。 */ ?>
+  <div class="sg-time-sheet">
   <?php /* 页头：徽章 + 大标题 + 统计行 + 年份筛选（版式参考源站「旧时光」年报） */ ?>
   <header class="sg-time-hero">
     <span class="sg-time-badge">SITE CHANGELOG</span>
@@ -344,6 +346,7 @@ usort($sgTimeModels, static fn (array $a, array $b): int => $b['ratio'] <=> $a['
     <p class="sg-time-empty-hint">在仓库 <code>docs/HISTORY.md</code> 里按「## 日期 + - 条目」补几行，跑 <code>npm run release</code> 重新打包即可看到这里。</p>
   </div>
   <?php endif; ?>
+  </div>
 </main>
 
 <?php $this->need('footer.php'); ?>
