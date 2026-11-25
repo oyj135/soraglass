@@ -56,12 +56,13 @@ html.dark .sg-aside .sg-glass.sg-profile {
 /* 夜间：换场景图与底色（此时整卡恒为焦墨，配色见下方「夜航档」）。
    2026-11-22 第六十四轮：夜景整图换成 AI 重绘版（月亮右上、男孩扶梯在右侧月亮正
    下方、中左留白避开头像与文字；原图栅格化后由 Seedream 两轮编辑重绘，底部
-   60%→100% 已烘焙 #17141b 渐隐，与卡面无缝衔接）。源文件 banner-night.jpg
-   （2000×1660，仅夜间），日间仍走 banner-day.svg；原 SVG 夜景与第六十二轮避让
-   构图的改法留档见 vectorizer/ 与 docs/HISTORY.md 第六十二/六十四轮。 */
+   60%→100% 已烘焙 #17141b 渐隐，与卡面无缝衔接）。
+   2026-11-25 第八十八轮：该图以 base64 内联进 banner-night.svg（2000×1660，
+   仅夜间），删除独立 banner-night.jpg，assets 只留一份 SVG；日间仍走 banner-day.svg。
+   第六十二轮矢量夜景与避让构图的改法留档见 vectorizer/ 与 docs/HISTORY.md。 */
 html.dark .sg-profile-banner {
   background-color: #17141b;
-  background-image: url("../../assets/banner-night.jpg");
+  background-image: url("../../assets/banner-night.svg");
 }
 
 /* 纱：日间白玻璃（上透明 → 下近白，压在名字/统计/按钮那半张卡上）。
