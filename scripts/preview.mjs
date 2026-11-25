@@ -27,14 +27,14 @@ const js = entry?.file ? `./${entry.file}` : '';
 
 const IMG = {
   bg: './img/bg-1.svg',
-  bg2: './img/bg-2.svg',
+  bg2: './img/bg-1.svg',
   avatar: './img/avatar.svg',
   cover: './img/cover-default.svg',
 };
 
 const runtime = {
   themeUrl: './',
-  bgImages: [IMG.bg, IMG.bg2],
+  bgImages: [IMG.bg, IMG.bg],
   themeColors: ['#a18cd1', '#fbc2eb', '#a1c4fd', '#c2e9fb'],
   danmaku: ['空璃', '今日也要好好写代码', '毛玻璃调好了吗'],
   effects: true,
@@ -235,7 +235,7 @@ const player = `
   <div class="sg-player-top"><i class="sg-player-state-dot" aria-hidden="true"></i><span data-sg-playback-status>等待播放</span></div>
   <div class="sg-album-art" data-sg-album-art aria-hidden="true">
     <div class="sg-album-cd"><div class="sg-album-rotor"><span class="sg-album-hub"></span></div></div>
-    <div class="sg-album-sleeve"><img src="${IMG.bg2}" alt="" data-sg-track-cover></div>
+    <div class="sg-album-sleeve"><img src="${IMG.bg}" alt="" data-sg-track-cover></div>
   </div>
   <div class="sg-player-info">
     <a class="sg-player-title" href="#" data-sg-track-title>放心去飞</a>
@@ -309,7 +309,7 @@ const slide = (i, title, desc, date, cat) => `
 
 const chatter = (i, title, desc, date) => `
 <article class="sg-chatter-slide${i === 0 ? ' is-active' : ''}" data-sg-slide>
-  <img src="${IMG.bg2}" alt="">
+  <img src="${IMG.bg}" alt="">
   <span class="sg-veil"></span>
   <a class="sg-chatter-body" href="#">
     <span class="sg-chatter-meta"><span class="sg-chip--tag">杂谈</span><time>${date}</time></span>
@@ -358,11 +358,11 @@ const briefing = `
   </div>
 </section>`;
 
-/* 首屏：独立图（日间 bg-2 / 夜间 bg-1），与正文壁纸 bg-1 区分，对齐 home-front.php */
+/* 首屏：静态预览统一用 bg-1（2026-11-25 删 bg-2.svg 后），对齐 home-front.php */
 const front = `
 <section class="sg-front" data-sg-front aria-label="站点首屏">
   <div class="sg-front-media" aria-hidden="true">
-    <img class="sg-front-img sg-front-img--light" src="${IMG.bg2}" alt="" fetchpriority="high">
+    <img class="sg-front-img sg-front-img--light" src="${IMG.bg}" alt="" fetchpriority="high">
     <img class="sg-front-img sg-front-img--dark" src="${IMG.bg}" alt="" fetchpriority="high">
     <span class="sg-front-veil"></span>
   </div>
@@ -543,7 +543,7 @@ const indexPage = `${head('Soraglass · 空璃')}
         </div>
         <div class="sg-home-stories">
           <a class="sg-poster-wide" href="#" data-sg-hover>
-            <img src="${IMG.bg2}" alt="" loading="lazy">
+            <img src="${IMG.bg}" alt="" loading="lazy">
             <span class="sg-veil"></span>
             <div class="sg-poster-body">
               <span class="sg-poster-kicker">${icons.image}光影画廊</span>
@@ -614,7 +614,7 @@ const postPage = `${head('把毛玻璃调成呼吸的频率 - Soraglass')}
 }</code></pre>
         <h2>三、最后才是动效</h2>
         <p>渐变每 15 秒一轮，壁纸 2 秒交叉淡入，其余一律不做——动效越多，越像廉价模板。</p>
-        <p><img src="${IMG.bg2}" alt="毛玻璃层级示意：卡片、导航与光晕的三层配比"></p>
+        <p><img src="${IMG.bg}" alt="毛玻璃层级示意：卡片、导航与光晕的三层配比"></p>
       </div>
       <div class="sg-meta sg-article-tags" aria-label="文章标签">
         <a class="sg-meta-chip is-pink" href="#">${icons.tag}CSS</a>
@@ -626,7 +626,7 @@ const postPage = `${head('把毛玻璃调成呼吸的频率 - Soraglass')}
       </div>
       <nav class="sg-post-nav" aria-label="上下篇">
         <a class="sg-post-nav-item is-prev" href="#">
-          <img src="${IMG.bg2}" alt="" loading="lazy">
+          <img src="${IMG.bg}" alt="" loading="lazy">
           <span class="sg-post-nav-info"><em>上一篇</em><b>Typecho 主题里那些会踩的坑</b></span>
         </a>
         <a class="sg-post-nav-item is-next" href="#">
@@ -749,7 +749,7 @@ const photowallPage = `${head('光影画廊 - Soraglass')}
       <button class="sg-album-open" type="button" data-sg-album-open="${id}" aria-label="打开专辑：${title}">
         <span class="sg-polaroid-stack">
           <img class="sg-polaroid" src="${IMG.cover}" alt="" loading="lazy">
-          <img class="sg-polaroid" src="${IMG.bg2}" alt="" loading="lazy">
+          <img class="sg-polaroid" src="${IMG.bg}" alt="" loading="lazy">
           <img class="sg-polaroid" src="${IMG.bg}" alt="${title}" loading="lazy">
         </span>
       </button>
@@ -778,7 +778,7 @@ const photowallPage = `${head('光影画廊 - Soraglass')}
     <div class="sg-gallery-masonry" data-sg-photo-group>
       ${Array.from({ length: count }, (_, i) => `
       <a class="sg-photo" href="${IMG.bg}" data-sg-photo>
-        <img src="${i % 2 ? IMG.bg2 : IMG.bg}" alt="图 ${i + 1}" loading="lazy">
+        <img src="${i % 2 ? IMG.bg : IMG.bg}" alt="图 ${i + 1}" loading="lazy">
         <span class="sg-photo-cap">图注 ${i + 1}</span>
       </a>`).join('')}
     </div>
