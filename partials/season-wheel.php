@@ -127,7 +127,7 @@ $sgMNow = $sgWNow >= 0 ? (int) floor($sgWNow / 2) * 2 : -1;
             <path class="sg-wheel-gong-arc" d="<?php echo $sgWArc($sgWGongIn, $sgWGongOut, $sgGA0, $sgGA1); ?>" aria-hidden="true"></path>
             <text class="sg-wheel-gong-label" x="<?php echo round($sgGLx, 1); ?>" y="<?php echo round($sgGLy, 1); ?>"
                   text-anchor="middle" dominant-baseline="middle"
-                  transform="rotate(calc(-1 * var(--sg-rot, 0deg)) <?php echo round($sgGLx, 1); ?> <?php echo round($sgGLy, 1); ?>)"
+                  style="transform-origin: <?php echo round($sgGLx, 1); ?>px <?php echo round($sgGLy, 1); ?>px"
                   aria-hidden="true"><?php echo sg_e($sgG['name']); ?></text>
           </a>
           <?php endforeach; ?>
@@ -163,7 +163,7 @@ $sgMNow = $sgWNow >= 0 ? (int) floor($sgWNow / 2) * 2 : -1;
             <path class="sg-wheel-term-arc" d="<?php echo $sgWArc($sgWTermIn, $sgWTermOut, $sgA0, $sgA1); ?>" aria-hidden="true"></path>
             <text class="sg-wheel-term-label" x="<?php echo round($sgLx, 1); ?>" y="<?php echo round($sgLy, 1); ?>"
                   text-anchor="middle" dominant-baseline="middle"
-                  transform="rotate(calc(-1 * var(--sg-rot, 0deg)) <?php echo round($sgLx, 1); ?> <?php echo round($sgLy, 1); ?>)"
+                  style="transform-origin: <?php echo round($sgLx, 1); ?>px <?php echo round($sgLy, 1); ?>px"
                   aria-hidden="true"><?php echo sg_e($sgT['name']); ?></text>
             <?php /* P1-14 盘心导线：从节气名向盘心的一条细朱线，只在 hover 时出现。
                    起点在节气名边缘（r 222 内缩 4px），终点在盘心 (260,260)，由 CSS .sg-wheel-term-leader 控制 */ ?>
@@ -214,7 +214,9 @@ $sgMNow = $sgWNow >= 0 ? (int) floor($sgWNow / 2) * 2 : -1;
             <?php /* 岁首：立春 i=21 起点（315°），细朱刻 + 二字 */ ?>
             <?php [$sgYx, $sgYy] = $sgWPt($sgWMarkR, 315.0); ?>
             <path class="sg-wheel-year" d="M<?php echo round($sgYx, 1); ?> <?php echo round($sgYy, 1); ?> L<?php echo round($sgYx + 5, 1); ?> <?php echo round($sgYy - 9, 1); ?>" aria-hidden="true"></path>
-            <text class="sg-wheel-year-label" x="<?php echo round($sgYx + 12, 1); ?>" y="<?php echo round($sgYy - 12, 1); ?>" text-anchor="middle">岁首</text>
+            <text class="sg-wheel-year-label" x="<?php echo round($sgYx + 12, 1); ?>" y="<?php echo round($sgYy - 12, 1); ?>"
+                  text-anchor="middle"
+                  style="transform-origin: <?php echo round($sgYx + 12, 1); ?>px <?php echo round($sgYy - 12, 1); ?>px">岁首</text>
           </g>
         </g>
 

@@ -130,8 +130,13 @@ export function initNavigation(mount: () => void): void {
   document.addEventListener('click', event => {
     if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
     const link = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href]') : null;
-    if (!link || link.target && link.target !== '_self' || link.hasAttribute('download') || link.hasAttribute('data-no-navigation') || link.closest('[contenteditable]')) return;
-    const url = new URL(link.href, location.href); if (!eligible(url) || /\.[a-z0-9]{1,8}$/i.test(url.pathname) && !/\.(html?|php)$/i.test(url.pathname)) return;
+    if (!link) return;
+    /* SVG <a>（岁轮扇区）的 .target / .href 是 SVGAnimatedString 对象而非字符串：
+       对象恒真且 ≠ '_self'，旧写法在这里直接 return，轮盘链接全部退回整页刷新。
+       统一读属性，HTML 与 SVG 锚点走同一条 PJAX 链路（岁轮再设计 P1-4）。 */
+    const linkTarget = link.getAttribute('target');
+    if (linkTarget && linkTarget !== '_self' || link.hasAttribute('download') || link.hasAttribute('data-no-navigation') || link.closest('[contenteditable]')) return;
+    const url = new URL(link.getAttribute('href') || '', location.href); if (!eligible(url) || /\.[a-z0-9]{1,8}$/i.test(url.pathname) && !/\.(html?|php)$/i.test(url.pathname)) return;
     if (local(url) && url.hash && currentRoute === routeKey(url)) {
       cancelNavigation(); closeNavigationUI(); return;
     }

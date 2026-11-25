@@ -87,16 +87,18 @@ html.dark .sg-season {
 .sg-season-stage {
   position: relative;
   display: grid;
-  grid-template-columns: 1fr 0.5fr;
-  grid-template-rows: auto 1fr;
-  grid-template-areas:
-    "copy ."
-    "instrument instrument";
+  /* 岁轮再设计 P0-2：左文右器一行排布。旧 "copy ." / "instrument instrument"
+     两行方案里 instrument 没写 grid-area，被自动放进 "." 格，min-content
+     宽度把文案列挤到 76px、还留下一行空行。改为显式两列单行，文案列有保底宽。 */
+  grid-template-columns: minmax(12rem, 0.5fr) minmax(0, 1.5fr);
+  grid-template-rows: auto;
+  grid-template-areas: "copy instrument";
   gap: clamp(1rem, 2.4vw, 1.5rem);
   width: 100%;
   /* R2-1 内容下移居中：grid 行在 min-height 内垂直居中，不再顶头贴边。
      min-height 同步抬到 88vh/60rem，给放大后的盘面让出呼吸位 */
   align-content: center;
+  align-items: center;
   justify-content: center;
   min-height: clamp(38rem, 88vh, 60rem);
   margin: 0;
@@ -184,15 +186,15 @@ html.dark .sg-season {
 .sg-stage-instrument {
   position: relative;
   z-index: 2;
+  /* P0-2：显式占位 + min-width:0，允许盘面列被压缩而不是撑破栅格 */
+  grid-area: instrument;
+  min-width: 0;
   display: grid;
-  grid-template-columns: 1fr clamp(16rem, 20vw, 20rem);
-  gap: clamp(1.5rem, 3vw, 2.5rem);
+  grid-template-columns: minmax(0, 1fr) clamp(14rem, 17vw, 17rem);
+  gap: clamp(1.2rem, 2.4vw, 2rem);
   align-items: center;
   width: 100%;
-  max-width: 72rem;
   margin: 0 auto;
-  padding-top: 1rem;
-  border-top: 1px dashed color-mix(in srgb, var(--sg-line) 60%, transparent);
 }
 
 /* 右栏读数栏（P1-11 替换四角 gauges） */
@@ -317,13 +319,9 @@ html.dark .sg-season {
    ============================================================ */
 .sg-wheel {
   position: relative;
-  /* 第七十七轮：去掉 48vh 这道死上限（它是 8px 字的直接原因），改用 clamp 三段——
-     24rem 是字号下限的保险丝，44vw 跟着栏宽，56vh 只在矮窗口里才收。
-     vh 这一档不能取消：四角读数要和盘面同屏，盘面就必须给标题与四角留出高度。 */
-  /* R2-1 轮盘加大：盘面是这页唯一一台仪器，占首屏六成以上。
-     40rem 上限 + 66rem 纸面内仍有 20rem 给右栏读数；
-     52vw/62vh 两档保证宽屏与矮窗里都不溢出。 */
-  width: clamp(28rem, min(52vw, 62vh), 40rem);
+  /* P0-2 左文右器后，盘宽跟随仪表左列（min(100%,…) 不会撑破栅格）：
+     30rem 上限 + 62vh 矮窗保险；字号由 JS 按实际盘宽钉死，缩到 300px 也不糊。 */
+  width: min(100%, 30rem, 62vh);
   margin: 0 auto;
 }
 .sg-wheel-disc { display: block; }
@@ -384,6 +382,17 @@ html.dark .sg-season {
   transform-box: view-box;
   transform-origin: 260px 260px;
   transform: rotate(var(--sg-rot, 0deg));
+}
+
+/* 标签永远正立（岁轮再设计 P0-1）：SVG 的 transform 属性不吃 calc()/var()，
+   反向抵消必须走 CSS transform 属性。每个标签的旋转原点由模板内联写在
+   style="transform-origin: {x}px {y}px"（viewBox 坐标，与 rotor 同一坐标系），
+   于是盘怎么转，字都朝着人。 */
+.sg-wheel-term-label,
+.sg-wheel-gong-label,
+.sg-wheel-year-label {
+  transform-box: view-box;
+  transform: rotate(calc(-1 * var(--sg-rot, 0deg)));
 }
 
 /* 指针：盘转针定 —— 全盘唯一不动的东西，恒在 12 点钟。
@@ -449,6 +458,18 @@ html.dark .sg-season {
 .sg-wheel-plot.is-snapping .sg-wheel-rotor,
 .sg-wheel-plot.is-snapping::after {
   transition: transform .28s cubic-bezier(.22, .8, .24, 1);
+}
+/* 标签的反向旋转与转子共用同一条时长/缓动，旋转全程字都正立；
+   拖动时两者都不挂 transition，逐帧同步（P0-1） */
+.sg-wheel-plot.is-drawing .sg-wheel-term-label,
+.sg-wheel-plot.is-drawing .sg-wheel-gong-label,
+.sg-wheel-plot.is-drawing .sg-wheel-year-label {
+  transition: transform var(--sg-spin-dur, 3.4s) cubic-bezier(.16, .86, .24, 1), fill .2s ease-out;
+}
+.sg-wheel-plot.is-snapping .sg-wheel-term-label,
+.sg-wheel-plot.is-snapping .sg-wheel-gong-label,
+.sg-wheel-plot.is-snapping .sg-wheel-year-label {
+  transition: transform .28s cubic-bezier(.22, .8, .24, 1), fill .2s ease-out;
 }
 .sg-wheel-plot.is-drag,
 .sg-wheel-plot.is-drawing {
@@ -1412,7 +1433,13 @@ html.dark .sg-range-card-body { background: linear-gradient(to top, rgba(8, 7, 1
   .sg-wheel-plot.is-drawing .sg-wheel-rotor,
   .sg-wheel-plot.is-drawing::after,
   .sg-wheel-plot.is-snapping .sg-wheel-rotor,
-  .sg-wheel-plot.is-snapping::after { transition: none; }
+  .sg-wheel-plot.is-snapping::after,
+  .sg-wheel-plot.is-drawing .sg-wheel-term-label,
+  .sg-wheel-plot.is-drawing .sg-wheel-gong-label,
+  .sg-wheel-plot.is-drawing .sg-wheel-year-label,
+  .sg-wheel-plot.is-snapping .sg-wheel-term-label,
+  .sg-wheel-plot.is-snapping .sg-wheel-gong-label,
+  .sg-wheel-plot.is-snapping .sg-wheel-year-label { transition: none; }
   [data-sg-stage],
   [data-sg-reveal] { animation: none; }
 }
@@ -1422,18 +1449,20 @@ html.dark .sg-range-card-body { background: linear-gradient(to top, rgba(8, 7, 1
 @media (max-width: 1080px) {
   .sg-season-stage {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto;
+    grid-template-rows: auto auto;
     grid-template-areas:
       "copy"
-      "instrument"
-      ".";
+      "instrument";
   }
   .sg-stage-copy { grid-area: copy; text-align: center; }
   .sg-stage-instrument {
     grid-area: instrument;
-    grid-template-columns: 1fr;
+    /* minmax(0,…) 而非 1fr：滑条 24 格的 min-content 会把 auto 下限撑到整条轨宽 */
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto auto;
     gap: clamp(1rem, 3vw, 1.6rem);
+    padding-top: 1rem;
+    border-top: 1px dashed color-mix(in srgb, var(--sg-line) 60%, transparent);
   }
   .sg-wheel { width: min(28rem, 100%); }
   .sg-stage-readings {
@@ -1522,6 +1551,18 @@ html.dark .sg-range-card-body { background: linear-gradient(to top, rgba(8, 7, 1
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
+  /* P2-7：左文右器布局下，弧与星只留在仪表一侧；文案列底下渐隐为空，
+     标题与定调句不再压在刻度线上 */
+  -webkit-mask: linear-gradient(90deg, transparent 0, transparent 16%, #000 42%);
+  mask: linear-gradient(90deg, transparent 0, transparent 16%, #000 42%);
+}
+/* P2-7：纵向堆叠后文案在舞台顶部，天空改为自上而下渐显，避开文案。
+   必须写在上面基规则之后：同特异性下后写者胜，放进前面的断点块会被基规则盖掉。 */
+@media (max-width: 1080px) {
+  .sg-season-sky {
+    -webkit-mask: linear-gradient(180deg, transparent 0, #000 62%);
+    mask: linear-gradient(180deg, transparent 0, #000 62%);
+  }
 }
 .sg-season-sky svg { display: block; width: 100%; height: 100%; }
 .sg-season-sky .sky-arc {

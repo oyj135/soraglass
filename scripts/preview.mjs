@@ -112,7 +112,8 @@ const head = (title) => `<!DOCTYPE html>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${title}</title>
-${css.map((href) => `<link rel="stylesheet" href="${href}">`).join('\n')}
+${css.map((href) => `<link rel="stylesheet" data-sg-style href="${href}">`).join('\n')}
+<script type="application/json" data-sg-config>${JSON.stringify(runtime)}</script>
 <script>window.SG=${JSON.stringify(runtime)};</script>
 ${js ? `<script type="module" src="${js}"></script>` : ''}
 </head>
@@ -998,6 +999,319 @@ const timePage = `${head('时光机 - Soraglass')}
   </div>
 </main>
 ${foot()}`;
+
+/* ============================================================
+   岁轮预览（镜像 page-season.php + partials/season-wheel.php / season-range.php / season-table.php）
+   几何、类名、data 挂点与模板逐一对应；日期取 data/season-terms.php 的 2026 行，
+   元数据镜像 lib/season.php（静态文化数据，不随构建变化）。
+   生成 1 个当令页 + 24 节气页 + 12 宫页，互相链接，供 PJAX / 拖动 / 求签验证。
+   ============================================================ */
+const SG_YEAR = 2026;
+const sgRow = fs.readFileSync(path.join(root, 'data/season-terms.php'), 'utf8').match(new RegExp(`${SG_YEAR} => '(\\d{96})'`))?.[1];
+if (!sgRow) { console.error('岁轮预览：data/season-terms.php 缺 2026 行'); process.exit(1); }
+const SG_DATES = Array.from({ length: 24 }, (_, i) => sgRow.slice(i * 4, i * 4 + 4));
+const SG_META = [
+  ['chunfen', '春分'], ['qingming', '清明'], ['guyu', '谷雨'], ['lixia', '立夏'],
+  ['xiaoman', '小满'], ['mangzhong', '芒种'], ['xiazhi', '夏至'], ['xiaoshu', '小暑'],
+  ['dashu', '大暑'], ['liqiu', '立秋'], ['chushu', '处暑'], ['bailu', '白露'],
+  ['qiufen', '秋分'], ['hanlu', '寒露'], ['shuangjiang', '霜降'], ['lidong', '立冬'],
+  ['xiaoxue', '小雪'], ['daxue', '大雪'], ['dongzhi', '冬至'], ['xiaohan', '小寒'],
+  ['dahan', '大寒'], ['lichun', '立春'], ['yushui', '雨水'], ['jingzhe', '惊蛰'],
+];
+const SG_HOU = [
+  ['玄鸟至', '雷乃发声', '始电'], ['桐始华', '田鼠化为鴽', '虹始见'], ['萍始生', '鸣鸠拂其羽', '戴胜降于桑'],
+  ['蝼蝈鸣', '蚯蚓出', '王瓜生'], ['苦菜秀', '靡草死', '麦秋至'], ['螳螂生', '鵙始鸣', '反舌无声'],
+  ['鹿角解', '蜩始鸣', '半夏生'], ['温风至', '蟋蟀居壁', '鹰始击'], ['腐草为萤', '土润溽暑', '大雨时行'],
+  ['凉风至', '白露降', '寒蝉鸣'], ['鹰乃祭鸟', '天地始肃', '禾乃登'], ['鸿雁来', '玄鸟归', '群鸟养羞'],
+  ['雷始收声', '蛰虫坯户', '水始涸'], ['鸿雁来宾', '雀入大水为蛤', '菊有黄华'], ['豺乃祭兽', '草木黄落', '蛰虫咸俯'],
+  ['水始冰', '地始冻', '雉入大水为蜃'], ['虹藏不见', '天气上升地气下降', '闭塞而成冬'], ['鹖鴠不鸣', '虎始交', '荔挺出'],
+  ['蚯蚓结', '麋角解', '水泉动'], ['雁北乡', '鹊始巢', '雉始雊'], ['鸡始乳', '征鸟厉疾', '水泽腹坚'],
+  ['东风解冻', '蛰虫始振', '鱼陟负冰'], ['獭祭鱼', '候雁北', '草木萌动'], ['桃始华', '仓庚鸣', '鹰化为鸠'],
+];
+const SG_GLOSS = [
+  '昼夜对半，风里开始有土腥气。', '雨多了，桐花开，天也洗干净了。', '最后一场春雨，秧苗扎下根。',
+  '日头开始咬人，蛙声从夜里起来。', '麦粒灌浆未满，雨水却先满了。', '一边收一边种，最忙的几天。',
+  '白天最长，之后一天短过一天。', '热得发闷，蟋蟀躲进墙缝。', '一年最热，雷雨说来就来。',
+  '还热，但风里有了一丝凉。', '暑气退场，早晚开始有凉意。', '草叶结露，天亮时一片白。',
+  '昼夜再对半，天高得厉害。', '露水凉透了，菊花开了。', '夜里结霜，最后一茬叶子落尽。',
+  '水面初结薄冰，冬天从这天算起。', '不再见虹，天光短，万物收进土里。', '雪落得住了，夜最长前的一段。',
+  '白天最短，数九从这天开始。', '冷到骨头里，但白天在变长。', '一年最冷，河面冻实。',
+  '土松了，风转暖，一切重新起头。', '雪化成雨，泥里冒出新芽。', '一声雷，虫子都醒了。',
+];
+const SG_GONGS = [
+  ['aries', '白羊'], ['taurus', '金牛'], ['gemini', '双子'], ['cancer', '巨蟹'],
+  ['leo', '狮子'], ['virgo', '处女'], ['libra', '天秤'], ['scorpio', '天蝎'],
+  ['sagittarius', '射手'], ['capricorn', '摩羯'], ['aquarius', '水瓶'], ['pisces', '双鱼'],
+];
+const SG_COUNTS = [2, 1, 0, 3, 1, 2, 4, 1, 0, 2, 1, 3, 2, 0, 1, 2, 3, 1, 2, 0, 1, 1, 2, 1];
+const SG_NOW = 16; /* 2026-11-25 → 小雪；dayInTerm = 4 → 一候 */
+const SG_NOW_HOU = 0;
+const SG_HOU_ORD = ['一候', '二候', '三候'];
+const sgMD = (mmdd) => `${mmdd.slice(0, 2)}.${mmdd.slice(2)}`;
+const sgEndMD = (i) => {
+  const cur = +SG_DATES[i], next = +SG_DATES[(i + 1) % 24];
+  const nm = SG_DATES[(i + 1) % 24];
+  const d = new Date(next < cur ? SG_YEAR + 1 : SG_YEAR, +nm.slice(0, 2) - 1, +nm.slice(2));
+  d.setDate(d.getDate() - 1);
+  return `${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+};
+const sgTermURL = (i) => `./preview-season-t${i}.html`;
+const sgGongURL = (g) => `./preview-season-g${g}.html`;
+const sgGongCount = (g) => SG_COUNTS[g * 2] + SG_COUNTS[g * 2 + 1];
+const sgSeasonOf = (i) => (i >= 3 && i < 9 ? 'summer' : i >= 9 && i < 15 ? 'autumn' : i >= 15 && i < 21 ? 'winter' : 'spring');
+
+/* 盘面几何（与 partials/season-wheel.php 同一套公式，viewBox 520 / 圆心 260） */
+const sgPt = (r, deg) => { const a = (deg * Math.PI) / 180; return [260 + r * Math.sin(a), 260 - r * Math.cos(a)]; };
+const sgF = (n, p = 2) => Number(n.toFixed(p));
+const sgArc = (rIn, rOut, a0, a1) => {
+  const [x0, y0] = sgPt(rOut, a0), [x1, y1] = sgPt(rOut, a1), [x2, y2] = sgPt(rIn, a1), [x3, y3] = sgPt(rIn, a0);
+  return `M${sgF(x0)} ${sgF(y0)} A${rOut} ${rOut} 0 0 1 ${sgF(x1)} ${sgF(y1)} L${sgF(x2)} ${sgF(y2)} A${rIn} ${rIn} 0 0 0 ${sgF(x3)} ${sgF(y3)} Z`;
+};
+/* 日轨：与 PHP 同式，dayLon 取「今天」（244°），所有 2026 页共用 */
+const sgDayLon = SG_NOW * 15 + 15 * (4 / 15);
+const sgSinDec = Math.sin((23.44 * Math.PI) / 180) * Math.sin((sgDayLon * Math.PI) / 180);
+const sgSunH = sgF(88 + 28 * sgSinDec, 1);
+const sgShadowLen = sgF(96 - 26 * sgSinDec, 1);
+const sgSunR = 47;
+const sgSunArcR = (sgSunR * sgSunR + sgSunH * sgSunH) / (2 * sgSunH);
+const sgSunArcCy = 260 + sgSunArcR - sgSunH;
+const sgSunHalf = (Math.asin(sgSunR / sgSunArcR) * 180) / Math.PI;
+const sgSunDeg0 = 90 - sgSunHalf, sgSunDeg1 = 90 + sgSunHalf;
+const sgSunDotDeg = sgSunDeg0 + (sgSunDeg1 - sgSunDeg0) * ((SG_NOW_HOU + 0.5) / 3);
+const sgSunDotAt = (deg) => [260 + sgSunArcR * Math.sin((deg * Math.PI) / 180), sgSunArcCy - sgSunArcR * Math.cos((deg * Math.PI) / 180)];
+const [sgSDx, sgSDy] = sgSunDotAt(sgSunDotDeg);
+const [sgSunX0, sgSunY0] = sgSunDotAt(sgSunDeg0);
+const [sgSunX1, sgSunY1] = sgSunDotAt(sgSunDeg1);
+const sgMNow = Math.floor(SG_NOW / 2) * 2;
+const [sgYx, sgYy] = sgPt(248, 315);
+
+function sgWheelHTML(selTerm, selGong) {
+  const focus = selGong >= 0 ? selGong * 30 + 15 : selTerm * 15 + 7.5;
+  const rot = sgF(-focus);
+  const centerName = selGong >= 0
+    ? `${SG_GONGS[selGong][1]}宫`
+    : `${SG_META[selTerm][1]} · ${SG_GONGS[Math.floor(selTerm / 2)][1]}宫`;
+  const centerSub = selGong >= 0
+    ? `${SG_META[selGong * 2][1]} – ${SG_META[selGong * 2 + 1][1]} · ${sgGongCount(selGong)} 篇`
+    : `${sgMD(SG_DATES[selTerm])} – ${sgEndMD(selTerm)}`;
+
+  const gongs = SG_GONGS.map((g, i) => {
+    const mid = i * 30 + 15;
+    const [lx, ly] = sgPt(164, mid);
+    const span = `${SG_META[i * 2][1]} – ${SG_META[i * 2 + 1][1]}`;
+    const count = sgGongCount(i);
+    const cls = `sg-wheel-gong is-${i % 2 === 0 ? 'yang' : 'yin'}${i === selGong ? ' is-sel' : ''}${count > 0 ? '' : ' is-empty'}`;
+    return `<a class="${cls}" href="${sgGongURL(i)}" data-sg-gong-i="${i}" data-sg-label="${g[1]}宫 · ${span}" tabindex="-1"${i === selGong ? ' aria-current="true"' : ''}>
+      <title>${g[1]}宫 · ${span} · ${count === 0 ? '未落笔' : count + ' 篇'}</title>
+      <path class="sg-wheel-gong-arc" d="${sgArc(148, 180, i * 30 + 0.8, i * 30 + 29.2)}" aria-hidden="true"></path>
+      <text class="sg-wheel-gong-label" x="${sgF(lx, 1)}" y="${sgF(ly, 1)}" text-anchor="middle" dominant-baseline="middle" style="transform-origin: ${sgF(lx, 1)}px ${sgF(ly, 1)}px" aria-hidden="true">${g[1]}</text>
+    </a>`;
+  }).join('\n');
+
+  const terms = SG_META.map((t, i) => {
+    const mid = i * 15 + 7.5;
+    const [lx, ly] = sgPt(210, mid);
+    const [ldx0, ldy0] = sgPt(206, mid);
+    const gong = Math.floor(i / 2);
+    const count = SG_COUNTS[i];
+    const isCurrent = i === SG_NOW;
+    const sub = isCurrent ? '12 天后是大雪' : `${sgMD(SG_DATES[i])} – ${sgEndMD(i)}`;
+    let cls = `sg-wheel-term is-${sgSeasonOf(i)}`;
+    if (isCurrent) cls += ' is-current';
+    if (i === selTerm) cls += ' is-sel';
+    if (count === 0) cls += ' is-empty';
+    return `<a class="${cls}" href="${sgTermURL(i)}" data-sg-term-i="${i}" data-sg-gong="${gong}" data-sg-label="${t[1]} · ${SG_GONGS[gong][1]}宫" data-sg-sub="${i * 15}° · ${sub}" tabindex="${i === selTerm ? '0' : '-1'}"${i === selTerm ? ' aria-current="true"' : ''}>
+      <title>${t[1]} · ${sgMD(SG_DATES[i])} · ${count === 0 ? '未落笔' : count + ' 篇'}</title>
+      <path class="sg-wheel-term-arc" d="${sgArc(182, 238, i * 15 + 0.9, i * 15 + 14.1)}" aria-hidden="true"></path>
+      <text class="sg-wheel-term-label" x="${sgF(lx, 1)}" y="${sgF(ly, 1)}" text-anchor="middle" dominant-baseline="middle" style="transform-origin: ${sgF(lx, 1)}px ${sgF(ly, 1)}px" aria-hidden="true">${t[1]}</text>
+      <line class="sg-wheel-term-leader" x1="${sgF(ldx0, 1)}" y1="${sgF(ldy0, 1)}" x2="260" y2="260" aria-hidden="true"></line>
+    </a>`;
+  }).join('\n');
+
+  const houTicks = Array.from({ length: 24 }, (_, i) => [5, 10].map((h) => {
+    const [x0, y0] = sgPt(240, i * 15 + h), [x1, y1] = sgPt(246, i * 15 + h);
+    return `<line x1="${sgF(x0)}" y1="${sgF(y0)}" x2="${sgF(x1)}" y2="${sgF(y1)}"></line>`;
+  }).join('')).join('\n');
+
+  const marks = Array.from({ length: 12 }, (_, k) => {
+    const m = k * 2;
+    const [mx, my] = sgPt(248, m * 15);
+    return `<circle class="sg-wheel-mark${m === sgMNow ? ' is-now' : ''}" cx="${sgF(mx)}" cy="${sgF(my)}" r="${m === 0 ? 3.4 : 2.1}"></circle>`;
+  }).join('\n');
+  const [px, py] = sgPt(248, sgMNow * 15);
+
+  return `<div class="sg-wheel" data-sg-wheel>
+  <nav class="sg-wheel-disc" aria-label="二十四节气与黄道十二宫">
+    <div class="sg-wheel-plot" data-sg-wheel-plot style="--sg-rot: ${rot}deg">
+      <svg class="sg-wheel-svg" viewBox="0 0 520 520" role="group" aria-label="双刻度轮盘">
+        <g class="sg-wheel-rotor">
+          ${gongs}
+          ${terms}
+          <g class="sg-wheel-hou" aria-hidden="true">${houTicks}</g>
+          <g class="sg-wheel-etch" aria-hidden="true"><circle cx="260" cy="260" r="141"></circle><circle cx="260" cy="260" r="136" stroke-dasharray="1 5"></circle></g>
+          <g class="sg-wheel-marks" aria-hidden="true">
+            ${marks}
+            <circle class="sg-wheel-pulse" cx="${sgF(px)}" cy="${sgF(py)}" r="3"></circle>
+            <path class="sg-wheel-year" d="M${sgF(sgYx, 1)} ${sgF(sgYy, 1)} L${sgF(sgYx + 5, 1)} ${sgF(sgYy - 9, 1)}" aria-hidden="true"></path>
+            <text class="sg-wheel-year-label" x="${sgF(sgYx + 12, 1)}" y="${sgF(sgYy - 12, 1)}" text-anchor="middle" style="transform-origin: ${sgF(sgYx + 12, 1)}px ${sgF(sgYy - 12, 1)}px">岁首</text>
+          </g>
+        </g>
+        <g class="sg-wheel-needle" aria-hidden="true">
+          <line class="sg-wheel-needle-tail" x1="260" y1="36" x2="260" y2="47"></line>
+          <path class="sg-wheel-needle-body" d="M260 34 L265.5 12 L260 2 L254.5 12 Z"></path>
+          <circle class="sg-wheel-needle-tip" cx="260" cy="32" r="2.2"></circle>
+        </g>
+        <g class="sg-wheel-sun" aria-hidden="true">
+          <path class="sg-wheel-sun-track" d="M${sgF(sgSunX0)} ${sgF(sgSunY0)} A${sgF(sgSunArcR)} ${sgF(sgSunArcR)} 0 0 1 ${sgF(sgSunX1)} ${sgF(sgSunY1)}" style="--sg-sun-h: ${sgSunH};"></path>
+          <circle class="sg-wheel-sun-dot" r="2.5" cx="${sgF(sgSDx)}" cy="${sgF(sgSDy)}" data-sg-arc-cx="260" data-sg-arc-cy="${sgF(sgSunArcCy)}" data-sg-arc-r="${sgF(sgSunArcR, 3)}" data-sg-arc-deg0="${sgF(sgSunDeg0, 4)}" data-sg-arc-deg1="${sgF(sgSunDeg1, 4)}"></circle>
+        </g>
+        <g class="sg-wheel-sweep" aria-hidden="true">
+          <defs><linearGradient id="sg-sweep-grad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="var(--sg-warm)" stop-opacity="0"></stop><stop offset="100%" stop-color="var(--sg-warm)" stop-opacity=".08"></stop></linearGradient></defs>
+          <path class="sg-wheel-sweep-wedge" d="M260 260 L260 40 L300 48 Z"></path>
+          <path d="M260 260 L260 40 L300 48 Z" fill="url(#sg-sweep-grad)"></path>
+        </g>
+        <g class="sg-wheel-needle-shadow" aria-hidden="true"><path class="sg-wheel-needle-shadow-path" d="M260 32 L260 ${sgF(32 + sgShadowLen, 1)}"></path></g>
+      </svg>
+      <div class="sg-wheel-center" data-sg-wheel-center>
+        <span class="sg-wheel-center-name" data-sg-wheel-name>${centerName}</span>
+        <span class="sg-wheel-center-sub" data-sg-wheel-sub>${centerSub}</span>
+        <span class="sg-wheel-hou-dots" aria-hidden="true">
+          <span class="sg-wheel-hou-dots-row">${[0, 1, 2].map((h) => `<i class="${h === SG_NOW_HOU ? 'is-now' : ''}"></i>`).join('')}</span>
+          <span class="sg-wheel-hou-caption">${SG_HOU_ORD[SG_NOW_HOU]} · ${SG_HOU[SG_NOW][SG_NOW_HOU]}</span>
+        </span>
+      </div>
+      <span class="sg-seal sg-seal--draw" aria-hidden="true">求签</span>
+    </div>
+    <ul class="sg-sr-only">${SG_META.map((t, i) => `<li><a href="${sgTermURL(i)}">${t[1]}，${sgMD(SG_DATES[i])}，${SG_COUNTS[i]} 篇</a></li>`).join('')}</ul>
+  </nav>
+  <div class="sg-wheel-foot">
+    <button type="button" class="sg-wheel-draw" data-sg-draw aria-disabled="false"><span class="sg-wheel-draw-cn">求签</span><span class="sg-wheel-draw-en">draw a lot</span></button>
+  </div>
+</div>
+<div class="sg-season-strip" data-sg-strip>
+  <ol class="sg-strip-terms" aria-label="节气滑条">${SG_META.map((t, i) => `<li><a class="sg-strip-term${i === SG_NOW ? ' is-current' : ''}${i === selTerm ? ' is-sel' : ''}${SG_COUNTS[i] === 0 ? ' is-empty' : ''}" href="${sgTermURL(i)}"${i === selTerm ? ' aria-current="true"' : ''}><span>${t[1]}</span><em>${SG_COUNTS[i] === 0 ? '–' : SG_COUNTS[i]}</em></a></li>`).join('')}</ol>
+  <ol class="sg-strip-gongs" aria-label="十二宫">${SG_GONGS.map((g, i) => `<li><a class="sg-strip-gong${i === selGong ? ' is-sel' : ''}${sgGongCount(i) > 0 ? ' has-content' : ''}" href="${sgGongURL(i)}" title="${g[1]}宫 · ${sgGongCount(i)} 篇" aria-label="${g[1]}宫，${sgGongCount(i)} 篇">${i === 0 || i === 11 ? `<span>${g[1]}</span>` : '<i></i>'}</a></li>`).join('')}</ol>
+</div>`;
+}
+
+const SG_POST_TITLES = ['物候记', '夜航书', '玻璃与雪', '给远人的信', '炉边札记', '晴窗抄', '风土小识', '迟来的雨'];
+function sgChronicleHTML(selTerm, selGong) {
+  const baseTerm = selGong >= 0 ? selGong * 2 : selTerm;
+  const title = selGong >= 0 ? `${SG_GONGS[selGong][1]}宫` : SG_META[selTerm][1];
+  const eyebrow = selGong >= 0 ? '这一宫' : '这一段';
+  const total = selGong >= 0 ? sgGongCount(selGong) : SG_COUNTS[selTerm];
+  const sub = selGong >= 0
+    ? `${SG_META[baseTerm][1]} – ${SG_META[baseTerm + 1][1]}`
+    : `${sgMD(SG_DATES[selTerm])} – ${sgEndMD(selTerm)} · ${SG_GLOSS[selTerm]}`;
+  const rail = [0, 1, 2].map((h) => {
+    const d0 = new Date(SG_YEAR, +SG_DATES[baseTerm].slice(0, 2) - 1, +SG_DATES[baseTerm].slice(2));
+    const fmt = (d) => `${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+    const from = new Date(d0); from.setDate(from.getDate() + h * 5);
+    const to = new Date(d0); to.setDate(to.getDate() + h * 5 + 4);
+    return `<button type="button" class="sg-range-hou-btn${h === 0 ? ' is-now' : ''}" data-sg-hou-index="${h}"${h === 0 ? ' aria-current="true"' : ''}>
+      <span class="sg-range-hou-ord">${SG_HOU_ORD[h]}</span>
+      <span class="sg-range-hou-name">${SG_HOU[baseTerm][h]}</span>
+      <span class="sg-range-hou-date">${fmt(from)} – ${fmt(to)}</span>
+    </button>`;
+  }).join('');
+  /* 文章按候轮转分组；0 篇走空态（与模板一致） */
+  const groups = [[], [], []];
+  for (let k = 0; k < total; k++) groups[k % 3].push(k);
+  const groupsHTML = total === 0
+    ? `<div class="sg-range-empty"><p>这一段还没有落笔。</p><p class="sg-range-near"><a href="./preview-season.html">回到当前这一段 →</a></p></div>`
+    : groups.map((posts, h) => posts.length === 0 ? '' : `<section class="sg-range-hou" id="hou-${baseTerm}-${h}">
+      <h3 class="sg-range-hou-title">${SG_META[baseTerm][1]} · ${SG_HOU_ORD[h]} · ${SG_HOU[baseTerm][h]}</h3>
+      <div class="sg-range-grid">${posts.map((k) => `<a class="sg-range-card is-plain" href="./preview-post.html"><span class="sg-range-card-body"><span class="sg-range-card-title">${SG_POST_TITLES[(baseTerm + h + k) % SG_POST_TITLES.length]} · ${SG_META[baseTerm][1]}手记</span><span class="sg-range-card-date">${sgMD(SG_DATES[baseTerm])} 第 ${h * 5 + k + 1} 天</span></span></a>`).join('')}</div>
+    </section>`).join('');
+  const gongRows = SG_GONGS.map((g, i) => `<tr${i === selGong ? ' class="is-sel"' : i === Math.floor(SG_NOW / 2) ? ' class="is-now"' : ''}>
+    <th scope="row">${g[1]}宫</th><td>${SG_META[i * 2][1]} ${sgMD(SG_DATES[i * 2])}</td><td>${SG_META[i * 2][1]} → ${SG_META[i * 2 + 1][1]}</td><td class="is-num">${sgGongCount(i)}</td><td class="is-link"><a href="${sgGongURL(i)}" aria-label="查看${g[1]}宫的 30 天">→</a></td>
+  </tr>`).join('');
+  const termRows = SG_META.map((t, i) => `<tr${i === selTerm ? ' class="is-sel"' : ''}>
+    <th scope="row">${t[1]}</th><td>${sgMD(SG_DATES[i])}</td><td class="is-num">${i * 15}°</td><td>${SG_GONGS[Math.floor(i / 2)][1]}宫</td><td class="is-num">${SG_COUNTS[i]}</td><td class="is-link"><a href="${sgTermURL(i)}" aria-label="查看${t[1]}的 15 天">→</a></td>
+  </tr>`).join('');
+  return `<section class="sg-season-chronicle" data-sg-reveal>
+  <section class="sg-season-range" aria-label="这一段时间的内容" data-sg-range>
+    <div class="sg-range-hou-rail" aria-label="三候尺">${rail}</div>
+    <header class="sg-range-head">
+      <span class="sg-range-eyebrow">${eyebrow}</span>
+      <h2 class="sg-range-title" id="sg-range-title">${title}</h2>
+      <p class="sg-range-sub">${sub}</p>
+      <span class="sg-range-count">${total} 篇</span>
+    </header>
+    ${groupsHTML}
+    <div class="sg-range-notes" aria-label="这一段写下的碎语"><p class="sg-range-note">风把日子吹薄了，字还留在纸上。</p></div>
+  </section>
+  <section class="sg-season-table" aria-label="二十四节气与黄道十二宫对照表">
+    <header class="sg-table-head"><h2 class="sg-table-title">对照表</h2><p class="sg-table-note">宫界落在中气实日上，随年份浮动；篇数按发表日期统计。</p></header>
+    <table class="sg-table sg-table-gong">
+      <caption class="sg-sr-only">十二宫及其覆盖的节气</caption>
+      <thead><tr><th scope="col">宫</th><th scope="col">起于</th><th scope="col">覆盖</th><th scope="col">篇数</th><th scope="col"><span class="sg-sr-only">打开</span></th></tr></thead>
+      <tbody>${gongRows}</tbody>
+    </table>
+    <details class="sg-table-more"><summary>展开 24 节气</summary>
+      <table class="sg-table sg-table-term">
+        <caption class="sg-sr-only">二十四节气及其所属宫</caption>
+        <thead><tr><th scope="col">节气</th><th scope="col">日期</th><th scope="col">黄经</th><th scope="col">宫</th><th scope="col">篇数</th><th scope="col"><span class="sg-sr-only">打开</span></th></tr></thead>
+        <tbody>${termRows}</tbody>
+      </table>
+    </details>
+  </section>
+</section>`;
+}
+
+function sgSeasonPage(selTerm, selGong) {
+  const isGong = selGong >= 0;
+  const term = isGong ? selGong * 2 : selTerm;
+  const t = SG_META[term];
+  const docTitle = isGong ? `${SG_GONGS[selGong][1]}宫 · ${t[1]} · 岁候` : `${t[1]} · ${SG_GONGS[Math.floor(term / 2)][1]}宫 · 岁候`;
+  const readings = isGong
+    ? [['黄经', `${term * 15}°`, '春分起算 · λ'], ['起于', sgMD(SG_DATES[term]), t[1]], ['跨度', '30 天', '两节气 · 一宫'], ['止于', sgEndMD(term + 1), '这一段最后一天']]
+    : term === SG_NOW
+      ? [['黄经', `${term * 15}°`, '春分起算 · λ'], ['候', '一候 · 虹藏不见', '小雪 第 1 候'], ['跨度', '15 天', '一节气的长度'], ['距大雪', '12 天', '太阳走完这一段']]
+      : [['黄经', `${term * 15}°`, '春分起算 · λ'], ['起于', sgMD(SG_DATES[term]), t[1]], ['跨度', '15 天', '一节气的长度'], ['止于', sgEndMD(term), '这一段最后一天']];
+  const prev = (term + 23) % 24, next = (term + 1) % 24;
+  return `${head(docTitle)}
+<main id="sg-main" tabindex="-1" class="sg-main sg-main--pad sg-season" data-sg-page="season">
+  <div class="sg-season-sheet">
+  <section class="sg-season-stage" data-sg-stage data-sg-term-counts="${SG_COUNTS.join(',')}">
+    <header class="sg-stage-copy">
+      <p class="sg-stage-kicker">SEASONAL ALMANAC · 岁时记</p>
+      <h1 class="sg-season-title">岁轮</h1>
+      <p class="sg-season-sub">日子的两种读法</p>
+      <p class="sg-stage-romance">${SG_GLOSS[term]}</p>
+      <details class="sg-stage-manual"><summary>这一页怎么读</summary><p>一条黄道，两种读法：节气把黄道分成二十四段，宫分成十二段。宫不是天上的星座，是同一条黄道的十二等分。</p></details>
+    </header>
+    <div class="sg-stage-instrument">
+      ${sgWheelHTML(selTerm, selGong)}
+      <aside class="sg-stage-readings" aria-label="这一段读数">${readings.map(([k, v, u]) => `<div class="sg-reading"><span class="sg-reading-k">${k}</span><b class="sg-reading-v">${v}</b><span class="sg-reading-u">${u}</span></div>`).join('')}</aside>
+    </div>
+    <span class="sg-seal sg-seal--stage" aria-label="当前节气 ${t[1]}">${t[1]}</span>
+  </section>
+  ${sgChronicleHTML(selTerm, selGong)}
+  </div>
+  <footer class="sg-season-colophon" data-sg-reveal>
+    <nav class="sg-season-years" aria-label="年份与相邻节气">
+      <div class="sg-years-row"><span class="sg-years-label">年份</span>${[2024, 2025, 2026, 2027, 2028].map((y) => `<a class="sg-year${y === SG_YEAR ? ' is-current' : ''}" href="./preview-season.html"${y === SG_YEAR ? ' aria-current="true"' : ''}>${y}</a>`).join('')}</div>
+      <div class="sg-season-nav">
+        <a href="${sgTermURL(prev)}">← 上一节气</a>
+        <a href="./preview-season.html">回到当令</a>
+        <a href="${sgTermURL(next)}">下一节气 →</a>
+      </div>
+    </nav>
+    <div class="sg-season-note">
+      <p>采用回归黄道，春分点为白羊宫 0°，与节气同源；不使用恒星黄道。</p>
+      <p>宫界按中气实日逐年计算，不采用固定月日的通行星座表。</p>
+      <p>此处为黄道十二宫（signs），非天文星座；黄道带上实际有 13 个星座，含蛇夫座。宫名取通行译名，古译作室女 / 人马 / 磨羯 / 宝瓶。</p>
+      <p>刻度原点为春分，故 1 月的节气在表盘左上（太阳黄经 285°–345° 在春分之前），这是黄道顺序，不是排版错误；纪年仍用公历年，立春只作「岁首」刻度。</p>
+    </div>
+  </footer>
+</main>
+${foot()}`;
+}
+
+fs.writeFileSync(path.join(dist, 'preview-season.html'), sgSeasonPage(SG_NOW, -1), 'utf8');
+for (let i = 0; i < 24; i++) fs.writeFileSync(path.join(dist, `preview-season-t${i}.html`), sgSeasonPage(i, -1), 'utf8');
+for (let g = 0; g < 12; g++) fs.writeFileSync(path.join(dist, `preview-season-g${g}.html`), sgSeasonPage(-1, g), 'utf8');
 
 fs.writeFileSync(path.join(dist, 'preview-index.html'), indexPage, 'utf8');
 fs.writeFileSync(path.join(dist, 'preview-post.html'), postPage, 'utf8');

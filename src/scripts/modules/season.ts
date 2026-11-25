@@ -18,6 +18,7 @@
  * 事件全部走 pageOn（随页面销毁自动解绑），DOM 引用一律现查，不存模块顶层。
  */
 import { onPageDispose, pageOn, pageSignal, pageTimeout } from './lifecycle';
+import { navigate } from './navigation';
 
 type Focusable = { focus: () => void; getAttribute: (name: string) => string | null; setAttribute: (name: string, value: string) => void };
 
@@ -216,7 +217,15 @@ export function initSeasonWheel(): void {
       return;
     }
     const rotor = plot.querySelector('.sg-wheel-rotor');
-    rotor?.addEventListener('transitionend', finish, { once: true, signal: pageSignal() });
+    /* 只认转子自己的 transform 结束：标签的反向旋转与 fill 过渡也会冒泡上来，
+       不滤掉会提前收尾（P0-1 标签挂上 transform 过渡后必须加这道闸） */
+    rotor?.addEventListener(
+      'transitionend',
+      (event) => {
+        if (event.target === rotor && (event as TransitionEvent).propertyName === 'transform') finish();
+      },
+      { signal: pageSignal() },
+    );
     pageTimeout(finish, SPIN_MS + 120);
   };
 
@@ -245,7 +254,9 @@ export function initSeasonWheel(): void {
         wheel.classList.add('is-stamped');
       }
       const href = term.getAttribute('href');
-      if (href) pageTimeout(() => window.location.assign(href), 1200);
+      /* P2-5：签文与落章停留 2.6s 再走；P1-4：走 PJAX（navigate），
+         不再 location.assign 整页刷新、重放入场动画 */
+      if (href) pageTimeout(() => { void navigate(href); }, 2600);
     });
   };
 
@@ -355,6 +366,9 @@ export function initSeasonWheel(): void {
 
     pageOn(plot, 'pointerdown', (event) => {
       if (event.button !== 0 || locked || plot.classList.contains('is-drawing')) return;
+      /* P2-6：上一次拖动若在盘外松手，补发的 click 落不到盘上，suppressClick
+         会一直挂着吃掉下一次真点击 —— 每次按下先清掉 */
+      suppressClick = false;
       dragging = true;
       moved = false;
       startX = event.clientX;
@@ -402,8 +416,10 @@ export function initSeasonWheel(): void {
         plot.classList.add('is-snapping');
         setRot(nearest);
         const href = terms[dragIndex].getAttribute('href');
+        /* P1-4：吸附落位后走 PJAX，与目标页静置角同值 + View Transitions，
+           换页盘面不跳、入场不重放 */
         pageTimeout(() => {
-          if (href) window.location.assign(href);
+          if (href) void navigate(href);
         }, 320);
         return;
       }
