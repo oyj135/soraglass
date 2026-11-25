@@ -1214,8 +1214,8 @@ html.dark [data-sg-gallery] .sg-gallery-masonry .sg-photo {
 }
 .sg-time-model { display: grid; grid-template-columns: minmax(7rem, auto) 1fr auto; align-items: center; gap: .85rem; }
 .sg-time-model-name { font-weight: 600; font-size: .92rem; color: var(--sg-text); overflow-wrap: anywhere; }
-.sg-time-model-bar { height: .55rem; border-radius: 999px; background: color-mix(in srgb, var(--sg-accent) 12%, transparent); overflow: hidden; }
-.sg-time-model-bar span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--sg-accent), var(--sg-accent-2, var(--sg-accent))); }
+.sg-time-model-bar { height: .55rem; border-radius: 999px; background: color-mix(in srgb, var(--sg-warm) 12%, transparent); overflow: hidden; }
+.sg-time-model-bar span { display: block; height: 100%; border-radius: 999px; background: var(--sg-warm); }
 .sg-time-model-ratio {
   min-width: 3rem;
   text-align: right;
@@ -1223,7 +1223,7 @@ html.dark [data-sg-gallery] .sg-gallery-masonry .sg-photo {
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   font-size: .9rem;
-  color: var(--sg-accent-ink);
+  color: var(--sg-warm);
 }
 .sg-time-year { width: 100%; max-width: 62rem; margin-inline: auto; }
 .sg-time-year-head {
