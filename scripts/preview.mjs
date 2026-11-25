@@ -1005,7 +1005,7 @@ fs.writeFileSync(path.join(dist, 'preview-photowall.html'), photowallPage, 'utf8
 fs.writeFileSync(path.join(dist, 'preview-about.html'), aboutPage, 'utf8');
 fs.writeFileSync(path.join(dist, 'preview-timeline.html'), timelinePage, 'utf8');
 fs.writeFileSync(path.join(dist, 'preview-time.html'), timePage, 'utf8');
-/* 碎语页（notes-stream.php）：sg_page_head 页头 + miraii 三列卡片瀑布流 */
+/* 碎语页（notes-stream.php）：sg_page_head 页头 + 行优先响应式卡片网格 */
 const notesPage = `${head('碎语 - Soraglass')}
 <main class="sg-main sg-main--pad" data-sg-page="notes" data-sg-notes>
   <div class="sg-page-head">
@@ -1017,51 +1017,89 @@ const notesPage = `${head('碎语 - Soraglass')}
     </div>
   </div>
   <div class="sg-notes-bar">
-    <div class="sg-notes-tags"><span class="sg-notes-count">共 12 条</span></div>
+    <div class="sg-notes-tags" role="group" aria-label="按标签筛选">
+      <button class="sg-notes-tag is-active" type="button" data-sg-notes-tag="">全部<span>6</span></button>
+      <button class="sg-notes-tag" type="button" data-sg-notes-tag="瞎语">瞎语<span>2</span></button>
+      <button class="sg-notes-tag" type="button" data-sg-notes-tag="日常">日常<span>2</span></button>
+      <button class="sg-notes-tag" type="button" data-sg-notes-tag="随想">随想<span>2</span></button>
+    </div>
     <div class="sg-notes-sort" role="group" aria-label="排序">
       <button class="is-active" type="button" data-sg-notes-sort="desc" aria-pressed="true">最新</button>
       <button type="button" data-sg-notes-sort="asc" aria-pressed="false">最早</button>
     </div>
   </div>
-  
-    
-    <section class="sg-moments-section" data-sg-tl-month="all">
+
+  <section class="sg-moments-section" data-sg-tl-month="all">
     <div class="sg-moments-grid" data-sg-tl-items>
-    <article class="sg-moment" data-sg-tl-item data-ts="1766000000" data-tag="瞎语" data-keywords="把喜欢的文字留在夜里">
+    <article class="sg-moment" data-sg-tl-item data-ts="${Date.parse('2026-11-22T10:00:00+08:00') / 1000}" data-tag="瞎语">
       <header class="sg-moment-head">
         <img class="sg-moment-avatar" src="${IMG.avatar}" alt="">
-        <div class="sg-moment-who"><b>Xinghuisama</b><span class="sg-moment-ago">1 个月前</span></div>
-        <div class="sg-moment-day"><b>18</b><span>2026.05</span></div>
+        <div class="sg-moment-who"><b>Xinghuisama</b><span class="sg-moment-ago">3 天前</span></div>
+        <time class="sg-moment-day" datetime="2026-11-22"><b aria-hidden="true">22</b><span class="sg-sr-only">2026 年 11 月 22 日</span></time>
       </header>
       <div class="sg-moment-bubble">把喜欢的文字留在夜里，把不确定的事交给明天。毛玻璃的呼吸频率刚刚好，再多一分就糊了。</div>
       <div class="sg-moment-media is-many" data-sg-photo-group>
-        <a class="sg-photo" href="#"><img src="${IMG.cover}" alt=""></a>
-        <a class="sg-photo" href="#"><img src="${IMG.cover}" alt=""></a>
-        <a class="sg-photo" href="#"><img src="${IMG.cover}" alt=""></a>
+        <a class="sg-photo" href="${IMG.cover}" data-sg-photo><img src="${IMG.cover}" alt=""></a>
+        <a class="sg-photo" href="${IMG.cover}" data-sg-photo><img src="${IMG.cover}" alt=""></a>
+        <a class="sg-photo" href="${IMG.cover}" data-sg-photo><img src="${IMG.cover}" alt=""></a>
       </div>
       <footer class="sg-moment-foot"><span class="sg-tl-tag">#瞎语</span><span class="sg-moment-loc">📍 杭州</span></footer>
     </article>
-    <article class="sg-moment" data-sg-tl-item data-ts="1764000000" data-tag="日常" data-keywords="毛玻璃调好了吗">
+    <article class="sg-moment" data-sg-tl-item data-ts="${Date.parse('2026-11-18T10:00:00+08:00') / 1000}" data-tag="日常">
       <header class="sg-moment-head">
         <img class="sg-moment-avatar" src="${IMG.avatar}" alt="">
-        <div class="sg-moment-who"><b>Xinghuisama</b><span class="sg-moment-ago">2 个月前</span></div>
-        <div class="sg-moment-day"><b>30</b><span>2026.03</span></div>
+        <div class="sg-moment-who"><b>Xinghuisama</b><span class="sg-moment-ago">7 天前</span></div>
+        <time class="sg-moment-day" datetime="2026-11-18"><b aria-hidden="true">18</b><span class="sg-sr-only">2026 年 11 月 18 日</span></time>
       </header>
       <div class="sg-moment-bubble">背景渐变标题一样流畅，毛玻璃调好了吗？</div>
       <footer class="sg-moment-foot"><span class="sg-tl-tag">#日常</span><span class="sg-moment-loc">📍 杭州</span></footer>
     </article>
-    <article class="sg-moment" data-sg-tl-item data-ts="1734400000" data-tag="随想" data-keywords="深空色">
+    <article class="sg-moment" data-sg-tl-item data-ts="${Date.parse('2026-11-09T10:00:00+08:00') / 1000}" data-tag="随想">
       <header class="sg-moment-head">
         <img class="sg-moment-avatar" src="${IMG.avatar}" alt="">
-        <div class="sg-moment-who"><b>Xinghuisama</b><span class="sg-moment-ago">1 年前</span></div>
-        <div class="sg-moment-day"><b>2</b><span>2025.08</span></div>
+        <div class="sg-moment-who"><b>Xinghuisama</b><span class="sg-moment-ago">16 天前</span></div>
+        <time class="sg-moment-day" datetime="2026-11-09"><b aria-hidden="true">9</b><span class="sg-sr-only">2026 年 11 月 9 日</span></time>
       </header>
       <div class="sg-moment-bubble">夜里把深空色调成了 #020617，字像掉进银河。</div>
-      <footer class="sg-moment-foot"><span class="sg-tl-tag">#随想</span></footer>
+      <div class="sg-moment-media is-one" data-sg-photo-group>
+        <a class="sg-photo" href="${IMG.cover}" data-sg-photo><img src="${IMG.cover}" alt=""></a>
+      </div>
+      <footer class="sg-moment-foot"><span class="sg-tl-tag">#随想</span><span class="sg-moment-mood">安静</span></footer>
+    </article>
+    <article class="sg-moment" data-sg-tl-item data-ts="${Date.parse('2026-10-27T10:00:00+08:00') / 1000}" data-tag="日常">
+      <header class="sg-moment-head">
+        <img class="sg-moment-avatar" src="${IMG.avatar}" alt="">
+        <div class="sg-moment-who"><b>Xinghuisama</b><span class="sg-moment-ago">1 个月前</span></div>
+        <time class="sg-moment-day" datetime="2026-10-27"><b aria-hidden="true">27</b><span class="sg-sr-only">2026 年 10 月 27 日</span></time>
+      </header>
+      <div class="sg-moment-bubble">把今天的碎语留在这里：改了行优先网格之后，卡片终于按写下的时间从左到右、从上到下出现，不再先沿着第一列往下跑。正文也重新回到舒服的阅读字号，短句不再挤成一小团。标签筛选和最早、最新切换仍然只移动真实卡片，键盘顺序与眼睛看到的顺序保持一致。至于那些还没有想好的事，就交给明天，交给下一次打开这个页面时，窗外刚好吹过的一阵风。也想把绕过的弯路和偶然捡到的好天气记下来：清晨六点的云、雨停后路边的一小块积水、夜里亮着的一扇窗。等以后再回头看，大概会发现，真正留下来的从来不是结论，而是当时认真生活过的心情。</div>
+      <footer class="sg-moment-foot"><span class="sg-tl-tag">#日常</span><span class="sg-moment-loc">📍 杭州</span></footer>
+    </article>
+    <article class="sg-moment" data-sg-tl-item data-ts="${Date.parse('2026-10-12T10:00:00+08:00') / 1000}" data-tag="瞎语">
+      <header class="sg-moment-head">
+        <img class="sg-moment-avatar" src="${IMG.avatar}" alt="">
+        <div class="sg-moment-who"><b>Xinghuisama</b><span class="sg-moment-ago">上个月</span></div>
+        <time class="sg-moment-day" datetime="2026-10-12"><b aria-hidden="true">12</b><span class="sg-sr-only">2026 年 10 月 12 日</span></time>
+      </header>
+      <div class="sg-moment-bubble">云很轻，风很慢，适合把没说完的话再写一行。</div>
+      <div class="sg-moment-media is-two" data-sg-photo-group>
+        <a class="sg-photo" href="${IMG.cover}" data-sg-photo><img src="${IMG.cover}" alt=""></a>
+        <a class="sg-photo" href="${IMG.cover}" data-sg-photo><img src="${IMG.cover}" alt=""></a>
+      </div>
+      <footer class="sg-moment-foot"><span class="sg-tl-tag">#瞎语</span><span class="sg-moment-mood">松弛</span></footer>
+    </article>
+    <article class="sg-moment" data-sg-tl-item data-ts="${Date.parse('2026-09-02T10:00:00+08:00') / 1000}" data-tag="随想">
+      <header class="sg-moment-head">
+        <img class="sg-moment-avatar" src="${IMG.avatar}" alt="">
+        <div class="sg-moment-who"><b>Xinghuisama</b><span class="sg-moment-ago">2 个月前</span></div>
+        <time class="sg-moment-day" datetime="2026-09-02"><b aria-hidden="true">2</b><span class="sg-sr-only">2026 年 9 月 2 日</span></time>
+      </header>
+      <div class="sg-moment-bubble">秋天适合整理桌面，也适合整理那些迟迟没有答案的念头。</div>
+      <footer class="sg-moment-foot"><span class="sg-tl-tag">#随想</span><span class="sg-moment-loc">📍 杭州</span></footer>
     </article>
     </div>
-    </section>
-    
+  </section>
+  <p class="sg-filter-empty" data-sg-notes-empty hidden>没有匹配的碎语，换个词试试。</p>
 </main>
 `;
 

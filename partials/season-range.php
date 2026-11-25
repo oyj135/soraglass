@@ -39,9 +39,25 @@ $sgRangeCard = static function (array $post): string {
 };
 ?>
 <section class="sg-season-range" aria-label="这一段时间的内容" data-sg-range>
+  <?php /* P1-16 三候尺：挂在 .sg-range-head 之上、压线起（上距 0、下距 40px）。
+         三段等宽 grid，当前候 2px 朱线 + 候应转墨；点击锚点跳到对应候组。 */ ?>
+  <?php if (!empty($sgSRangeMeta['hou'])) : ?>
+  <div class="sg-range-hou-rail" aria-label="三候尺">
+    <?php foreach ($sgSRangeMeta['hou'] as $sgHi => $sgH) : ?>
+    <button type="button"
+            class="sg-range-hou-btn<?php echo $sgHi === ($sgSRangeMeta['houCurrent'] ?? -1) ? ' is-now' : ''; ?>"
+            data-sg-hou-index="<?php echo (int) $sgHi; ?>"
+            <?php echo $sgHi === ($sgSRangeMeta['houCurrent'] ?? -1) ? ' aria-current="true"' : ''; ?>>
+      <span class="sg-range-hou-ord"><?php echo sg_e($sgH['ord']); ?></span>
+      <span class="sg-range-hou-name"><?php echo sg_e($sgH['name']); ?></span>
+      <span class="sg-range-hou-date"><?php echo sg_e($sgH['date'] ?? ''); ?></span>
+    </button>
+    <?php endforeach; ?>
+  </div>
+  <?php endif; ?>
   <header class="sg-range-head">
     <span class="sg-range-eyebrow"><?php echo sg_e($sgSRangeEyebrow); ?></span>
-    <h2 class="sg-range-title"><?php echo sg_e($sgSRangeTitle); ?></h2>
+    <h2 class="sg-range-title" id="sg-range-title"><?php echo sg_e($sgSRangeTitle); ?></h2>
     <p class="sg-range-sub"><?php echo sg_e($sgSRangeSub); ?></p>
     <span class="sg-range-count"><?php echo (int) $sgRangeTotal; ?> 篇</span>
   </header>
@@ -68,7 +84,7 @@ $sgRangeCard = static function (array $post): string {
   <?php if ($sgGroup['posts'] === []) {
       continue;
   } ?>
-  <section class="sg-range-hou">
+  <section class="sg-range-hou"<?php echo !empty($sgGroup['id']) ? ' id="' . sg_e($sgGroup['id']) . '"' : ''; ?>>
     <h3 class="sg-range-hou-title"><?php echo sg_e($sgGroup['label']); ?></h3>
     <div class="sg-range-grid">
       <?php foreach ($sgGroup['posts'] as $sgPost) : ?>

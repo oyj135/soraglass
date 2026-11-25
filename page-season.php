@@ -129,11 +129,36 @@ foreach ($sgSRange['posts'] as $sgPost) {
             'label' => $sgT['name'] . ' · ' . ($sgSHouNames[$sgPost['houIndex']] ?? '一候') . ' · ' . $sgT['hou'][$sgPost['houIndex']],
             'order' => $sgPost['term'] * 10 + $sgPost['houIndex'],
             'posts' => [],
+            'houIndex' => (int) $sgPost['houIndex'],
+            'id' => 'hou-' . $sgPost['term'] . '-' . $sgPost['houIndex'], /* P1-16 锚点 id */
         ];
     }
     $sgSGroups[$sgKey]['posts'][] = $sgPost;
 }
 uasort($sgSGroups, static fn(array $a, array $b): int => $a['order'] <=> $b['order']);
+
+/* P1-16 三候尺的候数据（三候名 + 日期区间 + 当前候）；文案字段在下方 $sgSRangeEyebrow 定好后再合。 */
+$sgSHouRail = [];
+$sgSHouCurrent = -1;
+if ($sgSMode !== 'none' && isset($sgSTerms[$sgSTerm])) {
+    $sgCurTermData = $sgSTerms[$sgSTerm];
+    for ($sgHi = 0; $sgHi < 3; $sgHi++) {
+        $sgHouFrom = (int) $sgCurTermData['ts'] + $sgHi * 5 * 86400;
+        $sgHouTo = min((int) $sgCurTermData['end'], $sgHouFrom + 5 * 86400);
+        $sgSHouRail[$sgHi] = [
+            'ord' => $sgSHouNames[$sgHi] ?? '一候',
+            'name' => $sgCurTermData['hou'][$sgHi],
+            'date' => date('m.d', sg_date_ts($sgHouFrom)) . ' – ' . date('m.d', sg_date_ts($sgHouTo - 86400)),
+        ];
+    }
+    /* 当令：用今天的候；看别的段：按区间起始落在第几候 */
+    if ($sgSYear === $sgSThisYear && $sgSNow && (int) $sgSNow['term'] === $sgSTerm) {
+        $sgSHouCurrent = (int) $sgSNow['houIndex'];
+    } else {
+        $sgDayInTerm = max(1, min(16, (int) floor(($sgSFrom - $sgCurTermData['ts']) / 86400) + 1));
+        $sgSHouCurrent = min(2, intdiv($sgDayInTerm - 1, 5));
+    }
+}
 
 /* ---------- 轮盘数据 ---------- */
 $sgWheelTerms = [];
@@ -302,11 +327,54 @@ if ($sgSMode === 'gong') {
     $sgSRangeSub = $sgSDateRange($sgSCurTerm, $sgSCurTerm) . ' · ' . $sgSCurTerm['gloss'];
 }
 
+/* 组装 rangeMeta（含三候尺所需 hou 数组） */
+$sgSRangeMeta = [
+    'eyebrow' => $sgSRangeEyebrow,
+    'title' => $sgSRangeTitle,
+    'sub' => $sgSRangeSub,
+    'hou' => $sgSHouRail,
+    'houCurrent' => $sgSHouCurrent,
+];
+
 /* ---------- 盘转针定（第七十七轮）----------
    轮盘整盘旋转，指针恒在正上方：静置角 = −α(focus)，focus 是当前区间的中心角度。
-   没有选参数时（裸地址）允许开局自动求签一次，落地后由 JS 跳到抽中的节气。 */
+   岁轮再设计 P0-6：取消裸地址自动求签 —— 打开页面就是「今天」，不该替人摇卦。
+   求签仍由盘脚那颗朱线小签手动触发。 */
 $sgSWheelFocus = $sgSMode === 'gong' ? $sgSGIndex * 30 + 15.0 : $sgSTerm * 15 + 7.5;
-$sgSAutoDraw = $sgST === '' && $sgSG === '' && $sgSD === '' && !isset($_GET['y']) && !isset($_GET['draw']);
+$sgSAutoDraw = false;
+
+/* ---------- 日轨与晷影（P1-12）----------
+   太阳赤纬由黄经推出：δ = asin(sin(ε) · sin(λ))，ε = 23.44°。
+   夏至（λ=90°）δ 最大 → 日轨最高、晷影最短；冬至反之。只在 PHP 算两个数：
+   viewBox 单位下的弧高 --sg-sun-h（60–116）与影长 --sg-shadow-len（冬至 122 / 夏至 70）。
+   与太阳位置相关的「今天」用 atan2 时刻的黄经，即 $sgSNow['term'] 起点 + 当日进度。 */
+$sgSObliquity = 23.44 * M_PI / 180.0;
+$sgSDayLon = 0.0;
+if ($sgSNow) {
+    $sgSDayLon = (float) $sgSNow['term'] * 15.0 + 15.0 * ((int) $sgSNow['dayInTerm'] / 15.0);
+}
+$sgSSinDec = sin($sgSObliquity) * sin($sgSDayLon * M_PI / 180.0);
+$sgSSunAltitude = min(1.0, max(-1.0, $sgSSinDec)); /* -1..1 */
+/* 弧高：南回归线最低 60、北回归线最高 116，线性映射 */
+$sgSSunH = 88.0 + 28.0 * $sgSSunAltitude;
+/* 影长：夏至 70、冬至 122，与弧高反相 */
+$sgSShadowLen = 96.0 - 26.0 * $sgSSunAltitude;
+
+/* R2-3 盘心三候：点与 caption 必须同源，否则会出现「三个点指着二候、下面写着三候」。
+   优先级：明选了某一候（?d=）就用它；否则用「今天」所在的那一候（仅当看的是今年）。 */
+$sgSWheelHou = -1;
+$sgSHouName = '';
+$sgSHouOrd = '';
+if ($sgSMode === 'day' && $sgSHouIndex >= 0) {
+    $sgSWheelHou = $sgSHouIndex;
+    $sgSHouName = (string) ($sgSCurTerm['hou'][$sgSHouIndex] ?? '');
+} elseif ($sgSYear === $sgSThisYear && $sgSNow) {
+    $sgSWheelHou = (int) $sgSNow['houIndex'];
+    $sgSHouName = (string) ($sgSNow['houName'] ?? '');
+}
+if ($sgSWheelHou >= 0) {
+    $sgSHouOrd = $sgSHouNames[$sgSWheelHou] ?? '';
+}
 
 /* 三幕与三个片段共用的页面态。Typecho 的 $this->need() 在 Widget 方法作用域里 require，
    模板局部变量传不进去，所以统一走 $GLOBALS（与 page-notes.php 的 SG_NOTES_HEAD 同惯例）。 */
@@ -323,10 +391,15 @@ $GLOBALS['SG_SEASON'] = [
         'centerSub' => $sgCenterSub,
         'focus' => $sgSWheelFocus,
         'autoDraw' => $sgSAutoDraw,
+        'sunH' => round($sgSSunH, 1),
+        'shadowLen' => round($sgSShadowLen, 1),
+        'houIndex' => $sgSWheelHou,
+        'houName' => $sgSHouName,
+        'houOrd'  => $sgSHouOrd,
     ],
     'range' => $sgSRange,
     'groups' => $sgSGroups,
-    'rangeMeta' => ['eyebrow' => $sgSRangeEyebrow, 'title' => $sgSRangeTitle, 'sub' => $sgSRangeSub],
+    'rangeMeta' => $sgSRangeMeta,
     'table' => ['gongs' => $sgTableGongs, 'terms' => $sgTableTerms],
 ];
 ?>
@@ -338,8 +411,8 @@ $GLOBALS['SG_SEASON'] = [
   <?php /* 幕一 · 舞台 —— 定调文案 + 仪表：轮盘居中，四个读数环绕四角 */ ?>
   <section class="sg-season-stage" data-sg-stage data-sg-term-counts="<?php echo implode(',', array_map(static fn(array $sgT2): int => (int) $sgT2['count'], $sgWheelTerms)); ?>">
     <header class="sg-stage-copy">
-      <p class="sg-stage-kicker">Seasonal almanac · 岁时记</p>
-      <h1 class="sg-season-title"><?php echo sg_e((string) $this->title); ?></h1>
+      <p class="sg-stage-kicker">SEASONAL ALMANAC · 岁时记</p>
+      <h1 class="sg-season-title">岁轮</h1>
       <p class="sg-season-sub"><?php echo sg_e($sgSSub); ?></p>
       <?php if ($sgSCurTerm) : ?>
       <p class="sg-stage-romance"><?php echo sg_e($sgSCurTerm['gloss']); ?></p>
@@ -360,19 +433,21 @@ $GLOBALS['SG_SEASON'] = [
   </div>
   <?php else : ?>
 
-  <?php /* 仪表：轮盘居中，四个读数环绕四角 */ ?>
+  <?php /* 仪表：左轮盘 + 右栏读数（P1-11 替换四角 gauges） */ ?>
   <div class="sg-stage-instrument">
     <?php $this->need('partials/season-wheel.php'); ?>
 
-    <div class="sg-stage-gauges">
+    <?php if (!empty($sgSGauge)) : ?>
+    <aside class="sg-stage-readings" aria-label="这一段读数">
       <?php foreach ($sgSGauge as $sgGauge) : ?>
-      <div class="sg-gauge sg-gauge--<?php echo sg_e($sgGauge[0]); ?>">
-        <span class="sg-gauge-k"><?php echo sg_e($sgGauge[1]); ?></span>
-        <b class="sg-gauge-v"><?php echo sg_e($sgGauge[2]); ?></b>
-        <span class="sg-gauge-u"><?php echo sg_e($sgGauge[3]); ?></span>
+      <div class="sg-reading">
+        <span class="sg-reading-k"><?php echo sg_e($sgGauge[1]); ?></span>
+        <b class="sg-reading-v"><?php echo sg_e($sgGauge[2]); ?></b>
+        <span class="sg-reading-u"><?php echo sg_e($sgGauge[3]); ?></span>
       </div>
       <?php endforeach; ?>
-    </div>
+    </aside>
+    <?php endif; ?>
   </div>
 
   <?php if ($sgSCurTerm) : ?>

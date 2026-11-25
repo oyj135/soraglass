@@ -4,8 +4,8 @@
  *
  * 2026-11-22 重构（第六十一轮定稿）：
  *   结构 = 全站标准 sg_page_head 页头（大标题 + 副标题压壁纸、居中，与项目/归档等独立页同款；
- *          miraii moments 的概览面板已按用户要求整块移除）+ 三列卡片瀑布流：
- *   卡片 = 头像/昵称 + 相对时间（sg_time_ago）+ 右上大号日数与年月 +
+ *          miraii moments 的概览面板已按用户要求整块移除）+ 三列响应式卡片网格：
+ *   卡片 = 头像/昵称 + 相对时间（sg_time_ago）+ 右上大号日数（完整日期供读屏）+
  *   浅色气泡正文（超 10 行可展开）+ 图片栅格（灯箱）+ 尾部标签/心情/地点（不输出原文链接）。
  *   筛选/排序沿用 notes.ts 契约（单组 data-sg-tl-month 承接全部卡片）。
  *
@@ -68,9 +68,9 @@ $sgAvatar = sg_media((string) sg_opt('sgAvatarUrl', ''), sg_theme_url('dist/img/
     </div>
   </div>
 
-  <?php /* 卡片瀑布流（miraii moments 同构）：单一分组承接 notes.ts 契约
+  <?php /* 响应式卡片网格：单一分组承接 notes.ts 契约
      （data-sg-tl-month/items/item），卡片按时间倒序/升序、标签筛选全部照旧。
-     布局用 CSS 多列分栏（columns: 3）+ break-inside 实现矱子流。 */ ?>
+     布局用行优先 CSS Grid，视觉顺序与 DOM、键盘及读屏顺序一致。 */ ?>
   <section class="sg-moments-section" data-sg-tl-month="all">
     <div class="sg-moments-grid" data-sg-tl-items>
     <?php foreach ($sgNotes as $sgNote) : ?>
@@ -97,10 +97,10 @@ $sgAvatar = sg_media((string) sg_opt('sgAvatarUrl', ''), sg_theme_url('dist/img/
           <b><?php echo sg_e($sgAuthor); ?></b>
           <span class="sg-moment-ago"><?php echo sg_e($sgAgo); ?></span>
         </div>
-        <div class="sg-moment-day" aria-hidden="true">
-          <b><?php echo sg_e(date('j', $sgTs)); ?></b>
-          <span><?php echo sg_e(date('Y.m', $sgTs)); ?></span>
-        </div>
+        <time class="sg-moment-day" datetime="<?php echo sg_e(date('Y-m-d', $sgTs)); ?>">
+          <b aria-hidden="true"><?php echo sg_e(date('j', $sgTs)); ?></b>
+          <span class="sg-sr-only"><?php echo sg_e(date('Y 年 n 月 j 日', $sgTs)); ?></span>
+        </time>
       </header>
       <?php if ($sgBody !== '') : ?>
       <div class="sg-moment-bubble"><?php echo nl2br(sg_e($sgBody)); ?></div>

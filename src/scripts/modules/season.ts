@@ -28,8 +28,6 @@ const STEP = 15;
 const HALF = STEP / 2;
 /** 与 CSS 的 --sg-spin-dur 对齐（求签旋转时长） */
 const SPIN_MS = 3400;
-/** 求签开局是否已经用过（一次会话只摇一次，别每开一页都摇） */
-const DRAWN_KEY = 'sg-season-drawn';
 
 export function initSeasonWheel(): void {
   const wheel = document.querySelector<HTMLElement>('.sg-wheel');
@@ -222,9 +220,13 @@ export function initSeasonWheel(): void {
     pageTimeout(finish, SPIN_MS + 120);
   };
 
+  const drawBtn = wheel.querySelector<HTMLButtonElement>('[data-sg-draw]');
+  const drawSeal = wheel.querySelector<HTMLElement>('.sg-seal--draw');
+
   const draw = (): void => {
     if (locked || terms.length === 0) return;
     locked = true;
+    drawBtn?.setAttribute('aria-disabled', 'true');
     const index = Math.floor(Math.random() * terms.length);
     const term = terms[index];
     const parts = (term.getAttribute('data-sg-label') ?? '').split(' · ');
@@ -234,27 +236,24 @@ export function initSeasonWheel(): void {
     spin(index, () => {
       if (nameEl) nameEl.textContent = parts[0] ?? originName;
       if (subEl) subEl.textContent = '签 · ' + (parts[1] ?? '');
+      /* R2-4 落章：把抽到的节气刻进朱印，再从盘心压下去 */
+      if (drawSeal) {
+        drawSeal.textContent = parts[0] ?? '求签';
+        wheel.classList.remove('is-stamped');
+        /* 强制重排，让重复求签时动画能重新播放 */
+        void drawSeal.offsetWidth;
+        wheel.classList.add('is-stamped');
+      }
       const href = term.getAttribute('href');
-      if (href) pageTimeout(() => window.location.assign(href), 900);
+      if (href) pageTimeout(() => window.location.assign(href), 1200);
     });
   };
 
-  const drawBtn = wheel.querySelector<HTMLButtonElement>('[data-sg-draw]');
   if (drawBtn) pageOn(drawBtn, 'click', () => draw());
 
-  /* 开局自动求签：只在「裸地址」（没有任何参数）且本会话还没摇过时触发。
-     带 ?t/?g/?d/?y 进来的人已经明确要看某一段，不该被摇晃打断；
-     reduced-motion 下也不摇 —— 否则页面会毫无预兆地跳到随机一节。 */
-  if (wheel.dataset.sgAutoDraw === '1' && !reduceMotion) {
-    let drawn = false;
-    try {
-      drawn = sessionStorage.getItem(DRAWN_KEY) === '1';
-      if (!drawn) sessionStorage.setItem(DRAWN_KEY, '1');
-    } catch {
-      /* 隐私模式禁用了 sessionStorage：按「没摇过」处理，不影响功能 */
-    }
-    if (!drawn) pageTimeout(draw, 900);
-  }
+  /* 岁轮再设计 P0-6：取消裸地址自动求签。
+     打开页面就是「今天」，不该替人摇卦；求签仍由盘脚那颗朱线小签手动触发。
+     服务端 $sgSAutoDraw 已恒为 false，这里的分支保留为死路（不再触发）。 */
 
   /* ---------- 拖动转盘（第七十六轮，第七十七轮改为盘转针定）----------
      抓住盘面任意位置转，盘跟着手走，针不动、针尖所指即读数；松手吸附到扇区中心再跳页。
@@ -265,6 +264,19 @@ export function initSeasonWheel(): void {
      死区比桌面大一倍，手滑不会误发跳页 */
   const canDrag = hasFinePointer || window.matchMedia('(hover: none)').matches;
 
+  /* ---------- P1-15 入场光扫 + 晷影回弹 ----------
+     进页面：光扫一圈 → 停在当令 → 晷影从 0 伸出到 --sg-shadow-len。
+     减弱动效：光扫不播、晷影直接到位。整段 1.4s（评审稿 §7.1）。 */
+  if (!reduceMotion) {
+    wheel.classList.add('is-sweeping');
+    /* 光扫结束即摘标记：animation 带 forwards 会锁住 backdrop 采样根，不能常驻 */
+    window.setTimeout(() => wheel.classList.remove('is-sweeping'), 1500);
+  }
+  /* 晷影回弹：dasharray 从 0 长到全长，600ms ease-out */
+  const shadowPath = plot.querySelector<SVGElement>('.sg-wheel-needle-shadow-path');
+  if (shadowPath && !reduceMotion) {
+    shadowPath.style.setProperty('--sg-shadow-anim', 'sg-shadow-grow 600ms cubic-bezier(.16,.86,.24,1) forwards');
+  }
   /* ---------- 盘面 3D 倾斜（L2 交互层，升级）----------
      桌面精确指针下，盘面朝指针方向轻倾 ±3.2 度：仪器被「拿在手里看」的错觉。
      rAF 节流写 CSS 变量；拖动/求签时让位（CSS 里 .is-drag/.is-drawing 直接 none）。 */
@@ -415,6 +427,118 @@ export function initSeasonWheel(): void {
         suppressClick = false;
         event.preventDefault();
         event.stopPropagation();
+      },
+      true,
+    );
+  }
+
+  /* ---------- P1-17 滚动即候（--sg-hou 0→1）----------
+     幕二的三个候组决定进度：进入第一个候组顶部 0，走到第三个候组底 1，线性映射。
+     只写一个 CSS 变量，日点角度 = 节气起点 + 15° × --sg-hou；盘心三候点同步点亮。
+     只有三个候组都在时才启用（空态 / 单候时静态显示当前候）。 */
+  const houGroups = Array.from(document.querySelectorAll<HTMLElement>('.sg-range-hou'));
+  const sunDot = plot.querySelector<SVGCircleElement>('.sg-wheel-sun-dot');
+  if (houGroups.length === 3 && !reduceMotion) {
+    let houRaf = 0;
+    const applyHou = (): void => {
+      houRaf = 0;
+      const first = houGroups[0].getBoundingClientRect();
+      const last = houGroups[2].getBoundingClientRect();
+      /* 起点：第一个候组顶端进入视口下缘；终点：第三个候组底端离开视口上缘 */
+      const start = first.top + window.scrollY - window.innerHeight;
+      const end = last.bottom + window.scrollY;
+      const span = Math.max(1, end - start);
+      const p = Math.min(1, Math.max(0, (window.scrollY - start) / span));
+      plot.style.setProperty('--sg-hou', p.toFixed(4));
+      /* 日点：沿弧走。几何来自 PHP 写在 circle 上的 data-sg-arc-*，
+         这里只做「角度插值 → 直角坐标」，避免 CSS offset-path 在 SVG 上的兼容坑。 */
+      if (sunDot) {
+        const cx0 = Number(sunDot.dataset.sgArcCx ?? 0);
+        const cyc = Number(sunDot.dataset.sgArcCy ?? 0);
+        const r0 = Number(sunDot.dataset.sgArcR ?? 0);
+        const d0 = Number(sunDot.dataset.sgArcDeg0 ?? 0);
+        const d1 = Number(sunDot.dataset.sgArcDeg1 ?? 0);
+        if (r0 > 0) {
+          const rad = ((d0 + (d1 - d0) * p) * Math.PI) / 180;
+          sunDot.setAttribute('cx', (cx0 + r0 * Math.sin(rad)).toFixed(2));
+          sunDot.setAttribute('cy', (cyc - r0 * Math.cos(rad)).toFixed(2));
+        }
+      }
+      /* 三候点：卡到 0–2 段 */
+      const dots = document.querySelectorAll<HTMLElement>('.sg-wheel-hou-dots i');
+      if (dots.length === 3) {
+        const seg = Math.min(2, Math.floor(p * 3));
+        dots.forEach((dot, i) => dot.classList.toggle('is-now', i === seg));
+      }
+      /* 纸面暖度：0–4% 之间微调（P1-17 §7.2） */
+      const sheet = document.querySelector<HTMLElement>('.sg-season-sheet');
+      if (sheet) sheet.style.setProperty('--sg-warmth', `${(p * 4).toFixed(2)}%`);
+    };
+    document.addEventListener(
+      'scroll',
+      () => {
+        if (!houRaf) houRaf = requestAnimationFrame(applyHou);
+      },
+      { passive: true, signal: pageSignal() },
+    );
+    applyHou();
+  }
+
+  /* ---------- P1-16 三候尺跳转 ----------
+     点哪一候就滚到那一候的候组（id 由 page-season.php 写进 groups）。
+     该候还没有文章时退到页面下方最近的那个候组 —— 空态不该点了没反应。
+     平滑滚动跟随全站的 reduce-motion 策略。 */
+  const houRail = document.querySelector<HTMLElement>('.sg-range-hou-rail');
+  if (houRail) {
+    pageOn(houRail, 'click', (event) => {
+      const btn = (event.target as Element | null)?.closest<HTMLButtonElement>('[data-sg-hou-index]');
+      if (!btn) return;
+      const groups = Array.from(document.querySelectorAll<HTMLElement>('.sg-range-hou'));
+      if (!groups.length) return;
+      const want = Number(btn.dataset.sgHouIndex ?? 0);
+      /* 候组按「节气 × 候」排序，找第一个 order >= 目标候的组 */
+      const target =
+        groups.find((g, i) => i >= want) ?? groups[groups.length - 1];
+      target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    });
+  }
+
+  /* ---------- P1-18 换页共享元素 ----------
+     盘心节气名 → 年表标题。换页本身由 navigation.ts 的 PJAX + View Transitions
+     接管（只有 season → season 才启用），这里只负责「两端同名」：
+       · 出站：点节气链时给盘心名挂 view-transition-name=sg-term-name
+         （旧帧快照在点击之后才拍，名字一定进快照），另留一个 sessionStorage 标记；
+       · 落地：读到标记就给 .sg-range-title 挂同一个名字，随即清掉。
+     两处永不同时挂名 —— 同名元素共存会让 View Transitions 直接失效。
+     不支持 / 减弱动效时什么都不做，退回普通换页。 */
+  const NAME_KEY = 'sg-season-vt';
+  const vtReady =
+    'startViewTransition' in document &&
+    window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
+  if (vtReady) {
+    const rangeTitle = document.querySelector<HTMLElement>('.sg-range-title');
+    try {
+      if (rangeTitle && sessionStorage.getItem(NAME_KEY) === '1') {
+        rangeTitle.style.viewTransitionName = 'sg-term-name';
+        sessionStorage.removeItem(NAME_KEY);
+      }
+    } catch {
+      /* 隐私模式不给 sessionStorage：跳过，退化成普通换页 */
+    }
+    pageOn(
+      wheel,
+      'click',
+      (event) => {
+        /* 只挂名，不拦事件：导航仍走 navigation.ts 的统一链路 */
+        const link = (event.target as Element | null)?.closest<HTMLAnchorElement>('[data-sg-term-i]');
+        if (!link?.getAttribute('href')) return;
+        const nameEl2 = wheel.querySelector<HTMLElement>('[data-sg-wheel-name]');
+        if (nameEl2) nameEl2.style.viewTransitionName = 'sg-term-name';
+        try {
+          sessionStorage.setItem(NAME_KEY, '1');
+        } catch {
+          /* 忽略 */
+        }
       },
       true,
     );

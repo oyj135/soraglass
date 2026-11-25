@@ -23,7 +23,11 @@
 $sgSWheel = $GLOBALS['SG_SEASON']['wheel'] ?? [
     'terms' => [], 'gongs' => [], 'current' => -1, 'selectedTerm' => -1,
     'selectedGong' => -1, 'showGong' => true, 'centerName' => '岁候', 'centerSub' => '',
-    'focus' => 0, 'autoDraw' => false,
+    'focus' => 0,
+    'sunH' => 88.0,
+    'shadowLen' => 96.0,
+    'houIndex' => -1,
+    'lightSweep' => true, /* P1-15 入场光扫 */
 ];
 $sgWTerms = $sgSWheel['terms'];
 
@@ -39,6 +43,21 @@ $sgWTermOut = 238.0;
 $sgWMarkR = 248.0;
 $sgWLonGong = 164.0;
 $sgWLonTerm = 210.0;
+
+/* P1-12：日轨几何 —— 以圆心 (260,260) 为圆心，水平直径为 18% 盘面（r=47）。
+   弧高由 --sg-sun-h 决定（60–116，圆心向上为正），弧形为圆弧而非椭圆。
+   太阳点：在弧上按当前节气进度（--sg-hou 0→1，日点走 15°）分布。 */
+$sgWSunH = (float) ($sgSWheel['sunH'] ?? 88.0);
+$sgWShadowLen = (float) ($sgSWheel['shadowLen'] ?? 96.0);
+$sgWHouIndex = (int) ($sgSWheel['houIndex'] ?? -1);
+$sgWSunR = 47.0; /* 水平半径：18% 盘面 */
+$sgWSunCx = $sgWCx;
+$sgWSunCy = $sgWCy; /* 圆心同盘心 */
+
+/* 计算日轨圆弧的圆心偏移：弧高 h 对应的圆心在圆心正下方 d = (R^2 - (W/2)^2) / (2h)
+   这里简化：用三个定点（两端在 r=150 水平线、最高点在 (0, -h)）拟合圆弧 */
+$sgWSunArcR = ($sgWSunR * $sgWSunR + $sgWSunH * $sgWSunH) / (2.0 * $sgWSunH);
+$sgWSunArcCy = $sgWSunCy + $sgWSunArcR - $sgWSunH; /* 圆弧圆心在盘心正下 */
 
 /* 静置角：把 focus 转到正上方。focus 由页面模板按模式给（节气 +7.5 / 宫 +15）。 */
 $sgWFocus = (float) ($sgSWheel['focus'] ?? 0.0);
@@ -80,7 +99,7 @@ $sgWSeason = static function (int $i): string {
 $sgWNow = (int) ($sgSWheel['current'] ?? -1);
 $sgMNow = $sgWNow >= 0 ? (int) floor($sgWNow / 2) * 2 : -1;
 ?>
-<div class="sg-wheel" data-sg-wheel<?php echo !empty($sgSWheel['autoDraw']) ? ' data-sg-auto-draw="1"' : ''; ?>>
+<div class="sg-wheel" data-sg-wheel>
   <nav class="sg-wheel-disc" aria-label="二十四节气与黄道十二宫">
     <div class="sg-wheel-plot" data-sg-wheel-plot style="--sg-rot: <?php echo round($sgWRot, 2); ?>deg">
       <svg class="sg-wheel-svg" viewBox="0 0 520 520" role="group" aria-label="双刻度轮盘">
@@ -95,10 +114,8 @@ $sgMNow = $sgWNow >= 0 ? (int) floor($sgWNow / 2) * 2 : -1;
           $sgGA1 = $sgG['i'] * 30 + 29.2;
           $sgGMid = $sgG['i'] * 30 + 15;
           [$sgGLx, $sgGLy] = $sgWPt($sgWLonGong, $sgGMid);
-          /* 翻转要按「转到屏幕上的角度」判断，不能按盘面角：整盘被旋转后，
-             盘面角 90–270 的那半圈可能正好朝上，按盘面角翻会翻反（第七十七轮修正）。 */
-          $sgGScreen = fmod($sgGMid + $sgWRot + 720.0, 360.0);
-          $sgGRot = $sgGScreen > 90 && $sgGScreen < 270 ? $sgGMid + 180 : $sgGMid;
+          /* 标签永远正立：不再按屏幕角判断翻转，每个 text 反向抵消 --sg-rot，
+             盘面怎么转字都朝着人（岁轮再设计 P0-1）。 */
           $sgGTone = $sgG['i'] % 2 === 0 ? 'yang' : 'yin';
           ?>
           <a class="sg-wheel-gong is-<?php echo $sgGTone; ?><?php echo $sgG['selected'] ? ' is-sel' : ''; ?><?php echo $sgG['count'] > 0 ? '' : ' is-empty'; ?>"
@@ -110,7 +127,7 @@ $sgMNow = $sgWNow >= 0 ? (int) floor($sgWNow / 2) * 2 : -1;
             <path class="sg-wheel-gong-arc" d="<?php echo $sgWArc($sgWGongIn, $sgWGongOut, $sgGA0, $sgGA1); ?>" aria-hidden="true"></path>
             <text class="sg-wheel-gong-label" x="<?php echo round($sgGLx, 1); ?>" y="<?php echo round($sgGLy, 1); ?>"
                   text-anchor="middle" dominant-baseline="middle"
-                  transform="rotate(<?php echo round($sgGRot, 1); ?> <?php echo round($sgGLx, 1); ?> <?php echo round($sgGLy, 1); ?>)"
+                  transform="rotate(calc(-1 * var(--sg-rot, 0deg)) <?php echo round($sgGLx, 1); ?> <?php echo round($sgGLy, 1); ?>)"
                   aria-hidden="true"><?php echo sg_e($sgG['name']); ?></text>
           </a>
           <?php endforeach; ?>
@@ -123,9 +140,7 @@ $sgMNow = $sgWNow >= 0 ? (int) floor($sgWNow / 2) * 2 : -1;
           $sgA1 = $sgT['i'] * 15 + 14.1;
           $sgMid = $sgT['i'] * 15 + 7.5;
           [$sgLx, $sgLy] = $sgWPt($sgWLonTerm, $sgMid);
-          /* 同上：按屏幕角判断，盘转之后字才都朝着人 */
-          $sgScreen = fmod($sgMid + $sgWRot + 720.0, 360.0);
-          $sgRot = $sgScreen > 90 && $sgScreen < 270 ? $sgMid + 180 : $sgMid;
+          /* 标签永远正立：反向抵消 --sg-rot，不再按屏幕角判断翻转 */
           $sgCls = 'sg-wheel-term is-' . $sgWSeason($sgT['i']);
           if ($sgT['current']) {
               $sgCls .= ' is-current';
@@ -148,8 +163,21 @@ $sgMNow = $sgWNow >= 0 ? (int) floor($sgWNow / 2) * 2 : -1;
             <path class="sg-wheel-term-arc" d="<?php echo $sgWArc($sgWTermIn, $sgWTermOut, $sgA0, $sgA1); ?>" aria-hidden="true"></path>
             <text class="sg-wheel-term-label" x="<?php echo round($sgLx, 1); ?>" y="<?php echo round($sgLy, 1); ?>"
                   text-anchor="middle" dominant-baseline="middle"
-                  transform="rotate(<?php echo round($sgRot, 1); ?> <?php echo round($sgLx, 1); ?> <?php echo round($sgLy, 1); ?>)"
+                  transform="rotate(calc(-1 * var(--sg-rot, 0deg)) <?php echo round($sgLx, 1); ?> <?php echo round($sgLy, 1); ?>)"
                   aria-hidden="true"><?php echo sg_e($sgT['name']); ?></text>
+            <?php /* P1-14 盘心导线：从节气名向盘心的一条细朱线，只在 hover 时出现。
+                   起点在节气名边缘（r 222 内缩 4px），终点在盘心 (260,260)，由 CSS .sg-wheel-term-leader 控制 */ ?>
+            <?php
+            /* 导线起点：从节气名位置沿半径向内缩 4px（在 r210 名字环的内侧） */
+            $sgLd0 = 206.0;
+            $sgLd1 = 0.0;
+            [$sgLdx0, $sgLdy0] = $sgWPt($sgLd0, $sgMid);
+            [$sgLdx1, $sgLdy1] = $sgWPt($sgLd1, $sgMid);
+            ?>
+            <line class="sg-wheel-term-leader"
+                  x1="<?php echo round($sgLdx0, 1); ?>" y1="<?php echo round($sgLdy0, 1); ?>"
+                  x2="<?php echo round($sgLdx1, 1); ?>" y2="<?php echo round($sgLdy1, 1); ?>"
+                  aria-hidden="true"></line>
           </a>
           <?php endforeach; ?>
 
@@ -198,12 +226,96 @@ $sgMNow = $sgWNow >= 0 ? (int) floor($sgWNow / 2) * 2 : -1;
           <path class="sg-wheel-needle-body" d="M260 34 L265.5 12 L260 2 L254.5 12 Z"></path>
           <circle class="sg-wheel-needle-tip" cx="260" cy="32" r="2.2"></circle>
         </g>
+
+        <?php /* P1-12：日轨 + 日点 + 晷影 —— 盘心留白的上 55% 区域（r150 内） */ ?>
+        <g class="sg-wheel-sun" aria-hidden="true">
+          <?php
+          /* 日轨弧：水平直径 = 2 * $sgWSunR (94，即 18% 盘面)，左/右端点在 y = $sgWSunCy。
+             弧顶在 (cx, cy - $sgWSunH)，即向上 h 单位。三点确定圆弧：
+             圆心在 (cx, cy + d)，半径 R = (r^2 + h^2) / (2h)，d = R - h。
+             端点角度 ±θ，sin θ = r / R，θ = asin(r/R)。
+             这样端点刚好在 (cx ± r, cy)，弧顶在 (cx, cy - h)，完全自洽。 */
+          $sgWSunArcR = ($sgWSunR * $sgWSunR + $sgWSunH * $sgWSunH) / (2.0 * $sgWSunH);
+          $sgWSunArcCy = $sgWSunCy + $sgWSunArcR - $sgWSunH;
+          $sgSunHalfAngle = asin($sgWSunR / $sgWSunArcR); /* rad，端点角度相对于圆心正上方 */
+          $sgSunStartDeg = 90.0 - $sgSunHalfAngle * 180.0 / M_PI; /* 从左端点起，顺时针到右端点 */
+          $sgSunEndDeg   = 90.0 + $sgSunHalfAngle * 180.0 / M_PI;
+          $sgSunStartX = $sgWSunCx + $sgWSunArcR * sin(deg2rad($sgSunStartDeg));
+          $sgSunStartY = $sgWSunArcCy - $sgWSunArcR * cos(deg2rad($sgSunStartDeg));
+          $sgSunEndX   = $sgWSunCx + $sgWSunArcR * sin(deg2rad($sgSunEndDeg));
+          $sgSunEndY   = $sgWSunArcCy - $sgWSunArcR * cos(deg2rad($sgSunEndDeg));
+          ?>
+          <path class="sg-wheel-sun-track"
+                d="M<?php echo round($sgSunStartX, 2); ?> <?php echo round($sgSunStartY, 2); ?>
+                   A<?php echo round($sgWSunArcR, 2); ?> <?php echo round($sgWSunArcR, 2); ?> 0 0 1
+                   <?php echo round($sgSunEndX, 2); ?> <?php echo round($sgSunEndY, 2); ?>"
+                style="--sg-sun-h: <?php echo round($sgWSunH, 1); ?>;"></path>
+
+          <?php /* 日点：落在弧上的位置由 --sg-hou（0→1，season.ts 按滚动写入）驱动。
+             PHP 只负责给出「几何」与「无 JS 时的静态落点」：
+               · cx / cy  —— 当令候（houIndex）的候中点落点，无 JS 时也对；
+               · data-sg-arc-{cx,cy,r,deg0,deg1} —— JS 用它把 --sg-hou 换算成 cx/cy，
+                 不依赖 CSS offset-path（SVG 元素对 offset-path 支持不稳）。
+             设计稿 §7.2：日点角度 = 节气起点 + 15° × --sg-hou。 */ ?>
+          <?php
+          $sgSunT0 = $sgWHouIndex >= 0 ? ($sgWHouIndex + 0.5) / 3.0 : 0.5;
+          $sgSunDotDeg = $sgSunStartDeg + ($sgSunEndDeg - $sgSunStartDeg) * $sgSunT0;
+          $sgSunDotX = $sgWSunCx + $sgWSunArcR * sin(deg2rad($sgSunDotDeg));
+          $sgSunDotY = $sgWSunArcCy - $sgWSunArcR * cos(deg2rad($sgSunDotDeg));
+          ?>
+          <circle class="sg-wheel-sun-dot" r="2.5"
+                  cx="<?php echo round($sgSunDotX, 2); ?>"
+                  cy="<?php echo round($sgSunDotY, 2); ?>"
+                  data-sg-arc-cx="<?php echo round($sgWSunCx, 2); ?>"
+                  data-sg-arc-cy="<?php echo round($sgWSunArcCy, 2); ?>"
+                  data-sg-arc-r="<?php echo round($sgWSunArcR, 3); ?>"
+                  data-sg-arc-deg0="<?php echo round($sgSunStartDeg, 4); ?>"
+                  data-sg-arc-deg1="<?php echo round($sgSunEndDeg, 4); ?>"></circle>
+        </g>
+
+        <?php /* P1-15 入场光扫：一道极淡朱色 wedge 沿盘面扫一圈然后消失。
+                实现：15° 扇形 + 朱色渐变遮罩，动画 rotate(-360deg→0) 3.5s linear。
+                只在页面加载时触发一次（由 .is-sweeping 控制）。 */ ?>
+        <g class="sg-wheel-sweep" aria-hidden="true">
+          <defs>
+            <linearGradient id="sg-sweep-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="var(--sg-warm)" stop-opacity="0"></stop>
+              <stop offset="100%" stop-color="var(--sg-warm)" stop-opacity=".08"></stop>
+            </linearGradient>
+          </defs>
+          <path class="sg-wheel-sweep-wedge" d="M260 260 L260 40 L300 48 Z"></path>
+          <path d="M260 260 L260 40 L300 48 Z" fill="url(#sg-sweep-grad)"></path>
+        </g>
+
+        <?php /* P1-12 晷影：从针尖 (260,32) 垂直落下到 r150 上沿，长度 = --sg-shadow-len。
+                方向沿 +Y（向盘心），宽度 6、透明度 12%、blur(2)。 */ ?>
+        <g class="sg-wheel-needle-shadow" aria-hidden="true">
+          <path class="sg-wheel-needle-shadow-path"
+                d="M260 32 L260 <?php echo round(32 + $sgWShadowLen, 1); ?>"></path>
+        </g>
       </svg>
 
       <div class="sg-wheel-center" data-sg-wheel-center>
         <span class="sg-wheel-center-name" data-sg-wheel-name><?php echo sg_e($sgSWheel['centerName']); ?></span>
         <span class="sg-wheel-center-sub" data-sg-wheel-sub><?php echo sg_e($sgSWheel['centerSub']); ?></span>
+        <?php /* R2-3 三候点 + caption：点只作指示，「二候 · 麋角解」才说得清含义。 */ ?>
+        <?php if ($sgWHouIndex >= 0) : ?>
+        <?php
+        $sgWHouName = $sgSWheel['houName'] ?? ($sgSTerms[$sgSYear === $sgSThisYear && $sgSNow ? (int)$sgSNow['term'] : $sgST]->hou[$sgWHouIndex] ?? '');
+        $sgWHouOrd  = $sgSWheel['houOrd']  ?? ($sgSHouNames[$sgWHouIndex] ?? '一候');
+        ?>
+        <span class="sg-wheel-hou-dots" aria-hidden="true">
+          <span class="sg-wheel-hou-dots-row">
+            <?php for ($sgHd = 0; $sgHd < 3; $sgHd++) : ?>
+            <i class="<?php echo $sgHd === $sgWHouIndex ? 'is-now' : ''; ?>"></i>
+            <?php endfor; ?>
+          </span>
+          <span class="sg-wheel-hou-caption"><?php echo sg_e($sgWHouOrd . ' · ' . $sgWHouName); ?></span>
+        </span>
+        <?php endif; ?>
       </div>
+      <?php /* R2-4 求签落章：朱印压在盘心读数上（与 .sg-wheel-center 同级，absolute 相对 .sg-wheel-plot） */ ?>
+      <span class="sg-seal sg-seal--draw" aria-hidden="true">求签</span>
     </div>
 
     <?php /* 读屏用：24 项文字列表，比听环形 SVG 的 aria-label 可靠 */ ?>
@@ -216,7 +328,7 @@ $sgMNow = $sgWNow >= 0 ? (int) floor($sgWNow / 2) * 2 : -1;
 
   <?php /* 求签：摇一次，落一节气，然后去看它。自动旋转与手动求签走同一条链路（season.ts 的 spinTo） */ ?>
   <div class="sg-wheel-foot">
-    <button type="button" class="sg-wheel-draw" data-sg-draw>
+    <button type="button" class="sg-wheel-draw" data-sg-draw aria-disabled="false">
       <span class="sg-wheel-draw-cn">求签</span>
       <span class="sg-wheel-draw-en">draw a lot</span>
     </button>
