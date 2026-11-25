@@ -1199,6 +1199,8 @@ html.dark [data-sg-gallery] .sg-gallery-masonry .sg-photo {
 .sg-time-ms-date { font-family: var(--font-serif); font-weight: 800; font-size: .98rem; letter-spacing: .03em; color: var(--sg-accent-ink); }
 .sg-time-ms h3 { margin: .3rem 0 .25rem; font-size: 1rem; font-weight: 700; color: var(--sg-text); }
 .sg-time-ms p { margin: 0; font-size: .84rem; line-height: 1.72; color: var(--sg-muted); }
+/* ECharts 柱状图容器（2026-11-25）：与参考图同款浅格底 + 圆角，柱由 JS 绘制；
+   横条列表保留为读屏内容，仅视觉隐藏（不用 display:none，读屏仍可读到名称与占比）。 */
 .sg-time-model-list {
   list-style: none;
   margin: 0 auto;
@@ -1211,6 +1213,26 @@ html.dark [data-sg-gallery] .sg-gallery-masonry .sg-photo {
   background: var(--sg-chip);
   border: 1px solid var(--sg-line);
   border-radius: var(--sg-radius-inner);
+}
+.sg-time-model-chart {
+  width: 100%;
+  max-width: 62rem;
+  height: clamp(15rem, 32vw, 20rem);
+  margin: 0 auto;
+  padding: .75rem .5rem .25rem;
+  box-sizing: border-box;
+  background: var(--sg-chip);
+  border: 1px solid var(--sg-line);
+  border-radius: var(--sg-radius-inner);
+}
+.sg-time-models.is-charted .sg-time-model-list {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 .sg-time-model { display: grid; grid-template-columns: minmax(7rem, auto) 1fr auto; align-items: center; gap: .85rem; }
 .sg-time-model-name { font-weight: 600; font-size: .92rem; color: var(--sg-text); overflow-wrap: anywhere; }

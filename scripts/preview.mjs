@@ -953,7 +953,7 @@ const timePage = `${head('时光机 - Soraglass')}
       <li class="sg-time-ms"><time class="sg-time-ms-date">2026-11-06</time><div class="sg-time-ms-body"><h3>开始开发自己的主题</h3><p>决定基于 Typecho 框架，开发一个属于自己的博客主题 —— Soraglass（空璃）</p></div></li>
     </ol>
   </section>
-  <section class="sg-time-models" aria-label="使用过的模型与占比">
+  <section class="sg-time-models" aria-label="使用过的模型与占比" data-sg-model-chart>
     <h2 class="sg-time-section-title">使用过的模型</h2>
     <ul class="sg-time-model-list">
       <li class="sg-time-model"><span class="sg-time-model-name">Claude Sonnet</span><span class="sg-time-model-bar" aria-hidden="true"><span style="width:60%"></span></span><span class="sg-time-model-ratio">60%</span></li>

@@ -285,7 +285,8 @@ usort($sgTimeModels, static fn (array $a, array $b): int => $b['ratio'] <=> $a['
   <?php endif; ?>
 
   <?php if ($sgTimeModels) : ?>
-  <section class="sg-time-models" aria-label="使用过的模型与占比">
+  <?php /* data-sg-model-chart：ECharts 柱状图挂点（2026-11-25）；下方横条列表保留为无 JS 降级与读屏内容。 */ ?>
+  <section class="sg-time-models" aria-label="使用过的模型与占比" data-sg-model-chart>
     <h2 class="sg-time-section-title">使用过的模型</h2>
     <ul class="sg-time-model-list">
       <?php foreach ($sgTimeModels as $sgModel) : ?>

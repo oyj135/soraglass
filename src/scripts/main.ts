@@ -20,6 +20,7 @@ import { initReveal } from './modules/reveal';
 import { initStatsCache } from './modules/stats-cache';
 import { initSidebarData } from './modules/sidebar-data';
 import { initTimeMachine } from './modules/time-machine';
+import { initTimeModelChart } from './modules/time-model-chart';
 import { initSeasonWheel } from './modules/season';
 import { initSeasonSky } from './modules/season-sky';
 
@@ -62,6 +63,7 @@ function mountPage(): void {
   safe('reveal', initReveal);
   safe('stats-cache', initStatsCache);
   safe('time-machine', initTimeMachine);
+  safe('time-model-chart', initTimeModelChart);
   safe('season', initSeasonWheel);
   safe('season-sky', initSeasonSky);
 }
