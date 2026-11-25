@@ -19,7 +19,9 @@
 
 /* 全局字体对齐 Fomalhaut：**只保留源站那一套霞鹜文楷 LXGW WenKai**（2026-11-18 第十七轮清理）。
    （lxgw-wenkai-webfont 按 unicode-range 切片，浏览器只拉用到的分片）
-   jsDelivr 在国内不稳定，自托管才能保证字体真的生效。
+   2026-11-25 第八十四轮：发布包改走 CDN（gcore 镜像，前缀见 scripts/release.mjs 的 LXGW_CDN_BASE），
+   构建后由 release 改写 dist CSS 的字体 URL 并删掉本地分片；这里的 @import 保留给本地 dev/build，
+   两边字体字节完全一致。源站同样把字体放在 jsDelivr CDN，只是它用整包单文件、我们仍按分片按需加载。
    源站没有自托管任何中文 Webfont，LXGW 缺字形时同样回落到系统字体，我们保持同一行为：
    原来那套自托管思源宋体（Noto Serif SC，101 分片 / 6.1 MB）已删除，不再有第二套字体文件。 */
 @import "lxgw-wenkai-webfont/lxgwwenkai-regular.css";

@@ -21,6 +21,20 @@ const zipPath = path.join(workspace, 'soraglass.zip');
 const viteBin = path.join(root, 'node_modules/vite/bin/vite.js');
 
 /**
+ * 霞鹜文楷分片字体的 CDN 前缀（2026-11-25 第八十四轮，方案 B）。
+ *
+ * 换 CDN 只改这一行，再跑一次 npm run release：
+ *   - 主站 cdn.jsdelivr.net 在本机实测不可达，gcore 是其国内镜像，作为兜底托管；
+ *   - 前缀必须指向保留 `/files/<npm 包原文件名>.woff2` 结构的镜像，否则 404；
+ *   - 若改用自建 COS，把前缀换成 `https://<域名>/<路径>` 并照原结构上传 files/ 即可。
+ *
+ * 源码 main.css 仍 @import node_modules 里的字体包：本地 dev/build 的字体不变，
+ * 只有发布包在构建后把 URL 改指 CDN 并删掉本地分片（包体 -9 MB）。
+ * 访客仍按 unicode-range 只取命中的 3–8 片，传输量与自托管时一致。
+ */
+const LXGW_CDN_BASE = 'https://gcore.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0';
+
+/**
  * KaTeX 的 @font-face 默认同时声明 woff2 / woff / truetype 三种格式，
  * Vite 会把三种文件全部输出。主流浏览器早已全面支持 woff2，后两种是纯冗余
  * （20 个 woff + 20 个 ttf，约 0.6 MiB）。这里在构建后改写 CSS 引用并删除
@@ -55,6 +69,51 @@ function trimLegacyKaTeXFonts() {
   }
 }
 
+/**
+ * 把构建产物里的 LXGW WenKai 分片 URL 改指 CDN，并删掉随包的 woff2。
+ *
+ * Vite 会把 `url(./files/lxgwwenkai-regular-subset-4.woff2)` 重命名成带 hash 的
+ * `url(./lxgwwenkai-regular-subset-4-Dd9RLhEm.woff2)`，CDN 上只有不带 hash 的原文件名，
+ * 所以这里必须剥掉 hash、补回 /files/ 目录，不能直接替换前缀了事。
+ * 闸门：改写后 CSS 若仍指向本地分片，或文件名不匹配导致漏删，直接失败不出包。
+ */
+function externalizeLxgwFonts() {
+  const assetsDir = path.join(root, 'dist/assets');
+  if (!fs.existsSync(assetsDir)) return;
+
+  const localUrl = /url\(\.\/(lxgwwenkai-(?:regular|bold)-subset-\d+)-[A-Za-z0-9_-]+\.woff2\)/g;
+  const emittedFile = /^lxgwwenkai-(?:regular|bold)-subset-\d+-[A-Za-z0-9_-]+\.woff2$/;
+  let rewritten = 0;
+
+  for (const name of fs.readdirSync(assetsDir)) {
+    if (!name.endsWith('.css')) continue;
+    const abs = path.join(assetsDir, name);
+    const css = fs.readFileSync(abs, 'utf8');
+    if (!css.includes('url(./lxgwwenkai-')) continue;
+    const next = css.replace(localUrl, (_, original) => {
+      rewritten++;
+      return `url(${LXGW_CDN_BASE}/files/${original}.woff2)`;
+    });
+    if (/url\(\.\/lxgwwenkai-/.test(next)) {
+      throw new Error(`LXGW 分片仍有本地 URL 未改写：dist/assets/${name}`);
+    }
+    fs.writeFileSync(abs, next);
+  }
+
+  let filesRemoved = 0;
+  for (const name of fs.readdirSync(assetsDir)) {
+    if (!emittedFile.test(name)) continue;
+    fs.rmSync(path.join(assetsDir, name));
+    filesRemoved++;
+  }
+  if (rewritten !== filesRemoved) {
+    throw new Error(`LXGW 分片改写数与删除数不一致：${rewritten} 条 URL / ${filesRemoved} 个文件`);
+  }
+  if (rewritten) {
+    console.log(`  · LXGW 分片改走 CDN：${rewritten} 条 URL → ${LXGW_CDN_BASE}，移除 ${filesRemoved} 个本地分片`);
+  }
+}
+
 if (!fs.existsSync(viteBin)) {
   console.error('✗ 未找到依赖，请先在 soraglass/ 目录执行：npm install');
   process.exit(1);
@@ -63,6 +122,7 @@ if (!fs.existsSync(viteBin)) {
 console.log('[1/5] 构建前端资源（vite build）…');
 execFileSync(process.execPath, [viteBin, 'build'], { cwd: root, stdio: 'inherit' });
 trimLegacyKaTeXFonts();
+externalizeLxgwFonts();
 
 console.log('\n[2/5] 全量静态校验…');
 execFileSync(process.execPath, [path.join(root, 'scripts/check.mjs')], { cwd: root, stdio: 'inherit' });
