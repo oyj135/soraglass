@@ -379,18 +379,16 @@ html.sg-ready .sg-reveal.is-revealed {
 .sg-hinfo-bar-n {
   font-variant-numeric: tabular-nums;
 }
-/* 懒加载占位：图片未换装前的流光扫过（第 8 项 Shimmer）——
-   lazyload 换装时移除 data-lazy-src，流光随之停止；加载完成另有 .is-lazy-in 淡入。 */
+/* 懒加载占位：图片未加载出来时的模糊态（源站 Fomalhaut lazyload blur）。
+   源站链路 = post_lazyload.js 把 src 换成 1px 透明 GIF + data-lazy-src 存真图，
+   CSS 对 [data-lazy-src]:not(.loaded) 加 filter: blur(8px)；
+   2026-11-25 起 Soraglass 由 shimmer 流光改为同款模糊：占位 GIF 被放大后是空白，
+   模糊边缘让它读起来像「底片还没显影」，比扫光更贴源站、也更安静。
+   加载完成由 lazyload.ts 换装真图并加 .is-lazy-in → filter 归零；
+   换装失败加 .is-error → filter 归零，不留一团糊。 */
 img[data-lazy-src] {
-  background:
-    linear-gradient(100deg, transparent 40%, var(--sg-shimmer) 50%, transparent 60%) no-repeat,
-    var(--sg-placeholder);
-  background-size: 220% 100%;
-  animation: sg-shimmer 1.6s var(--sg-ease) infinite;
-}
-@keyframes sg-shimmer {
-  from { background-position: 140% 0; }
-  to { background-position: -140% 0; }
+  background: var(--sg-placeholder);
+  filter: blur(8px);
 }
 @media (prefers-reduced-motion: reduce) {
   html.sg-ready .sg-reveal {
@@ -398,7 +396,7 @@ img[data-lazy-src] {
     opacity: 1;
     transform: none;
   }
-  img[data-lazy-src] { animation: none; }
+  /* 减弱动效只关动画，不关模糊占位 —— 它是「未加载」的状态标识，不是动效 */
 }
 
 /* ===== 第二十二轮（2026-11-19）：源站细节动效批量移植（A3/A4/A5/A6/A7） ===== */

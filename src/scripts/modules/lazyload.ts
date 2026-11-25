@@ -12,10 +12,26 @@ export function initLazyload(): void {
   const swap = (img: HTMLImageElement): void => {
     const real = img.dataset.lazySrc ?? '';
     if (!real) return;
-    img.addEventListener('load', () => img.classList.add('is-lazy-in'), { once: true });
-    img.addEventListener('error', () => img.classList.remove('is-lazy-in'), { once: true });
+    /* 源站 lazyload blur 语义（2026-11-25）：
+       未加载 = [data-lazy-src] 上的 blur(8px) 占位，覆盖「进入视口 → 真图解码完成」整段；
+       加载成功 = 加 .is-lazy-in → 淡入 + 移除 data-lazy-src → 模糊归零；
+       加载失败 = 加 .is-error → 模糊归零，不留一团糊（源站 .error 同款）。
+       关键：data-lazy-src 不能在换装时就移除 —— 那样模糊会在「刚发出请求」时消失，
+       真图还没到就露出空白，正是要治的病。与源站一致，保留到 load/error 才清。 */
+    const settle = (): void => {
+      img.classList.remove('is-error');
+      img.classList.add('is-lazy-in');
+      img.removeAttribute('data-lazy-src');
+    };
+    img.addEventListener('load', settle, { once: true });
+    img.addEventListener('error', () => {
+      /* 画廊缩略图失败时 gallery.ts 会把原图地址写回 data-lazy-src 重试；
+         此时属性已变（≠ real），不急着定死错误态，等下一次 load 收尾。 */
+      if ((img.dataset.lazySrc ?? '') !== real) return;
+      img.classList.add('is-error');
+      img.removeAttribute('data-lazy-src');
+    }, { once: true });
     img.src = real;
-    img.removeAttribute('data-lazy-src');
   };
 
   if (!('IntersectionObserver' in window)) {

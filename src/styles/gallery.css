@@ -27,10 +27,15 @@
 [data-sg-gallery] .sg-gallery-masonry.is-justified .sg-photo-caption time{color:rgba(249,242,224,.75)}
 [data-sg-gallery] .sg-gallery-masonry.is-justified .sg-photo:is(:hover,:focus-visible) .sg-photo-caption{opacity:1;transform:none}
 
-/* 懒加载换装淡入（源站 coverIn 同观感） */
-img.is-lazy-in{animation:sg-cover-in .8s ease-out forwards}
+/* 懒加载换装淡入（源站 coverIn 同观感）+ 模糊归零（源站 lazyload blur 的 .loaded 语义）
+   源站换装完成由 vanilla-lazyload 加 .loaded → blur(8px) 直接消失（无过渡）；
+   这里让 .is-lazy-in 同时驱动「淡入 + filter/transform 归零」，与源站同为瞬间切换，
+   不挂全局 img transition —— 首屏 .sg-bg / 封面另有 sg-imgblur 的 transform 动画，
+   全局过渡会和它们打架。淡入动画本身已提供柔和感。 */
+img.is-lazy-in{animation:sg-cover-in .8s ease-out forwards;filter:none;transform:none}
+img.is-error{filter:none;transform:none;background:var(--sg-placeholder)}
 @keyframes sg-cover-in{from{opacity:0}to{opacity:1}}
-@media(prefers-reduced-motion:reduce){img.is-lazy-in{animation:none}[data-sg-gallery] .sg-gallery-masonry.is-justified .sg-photo-caption{transition:none}}
+@media(prefers-reduced-motion:reduce){img.is-lazy-in{animation:none;filter:none;transform:none}[data-sg-gallery] .sg-gallery-masonry.is-justified .sg-photo-caption{transition:none}}
 [data-sg-gallery] .sg-photo{display:block;border:0;background:transparent;padding:0;border-radius:0;overflow:hidden;margin-bottom:1.75rem;break-inside:avoid;color:var(--sg-text);text-decoration:none;aspect-ratio:auto;box-shadow:none}
 [data-sg-gallery] .sg-photo img{width:auto;max-width:100%;height:auto;max-height:850px;object-fit:contain;min-height:0;display:block;margin-inline:auto;border-radius:3px;transform:none;transition:none}
 [data-sg-gallery] .sg-back,[data-sg-gallery] .sg-gallery-detail-count{background:transparent;border:0;box-shadow:none;padding-inline:0}
