@@ -20,7 +20,7 @@ import { initReveal } from './modules/reveal';
 import { initStatsCache } from './modules/stats-cache';
 import { initSidebarData } from './modules/sidebar-data';
 import { initTimeMachine } from './modules/time-machine';
-import { initTimeModelChart } from './modules/time-model-chart';
+import { pageSignal } from './modules/lifecycle';
 import { initSeasonWheel } from './modules/season';
 import { initSeasonSky } from './modules/season-sky';
 
@@ -37,6 +37,28 @@ function safe(name: string, run: () => void): void {
   } catch (error) {
     if (window.console) window.console.warn(`[soraglass] ${name} 初始化失败：`, error);
   }
+}
+
+/**
+ * ECharts 柱状图按需加载：只有时光机页存在挂点时才拉取图表 chunk，
+ * 让 ~510KB 的 echarts 不进主包、不拖慢全站首屏（其余页面无需它）。
+ * 关键点：import() 是异步的，PJAX 可能在 chunk 到达前就换页——
+ *   用 pageSignal 记录本次页面生命周期，signal 已 abort 就放弃初始化旧 DOM；
+ *   新页面若也是时光机，mountPage 会再调一次（chunk 已缓存，Promise 复用）。
+ */
+function loadTimeModelChart(): void {
+  if (!document.querySelector('[data-sg-model-chart]')) return;
+  const signal = pageSignal();
+  void import('./modules/time-model-chart')
+    .then(({ initTimeModelChart }) => {
+      if (signal.aborted) return;
+      safe('time-model-chart', initTimeModelChart);
+    })
+    .catch((error) => {
+      if (!signal.aborted && window.console) {
+        window.console.warn('[soraglass] time-model-chart 加载失败：', error);
+      }
+    });
 }
 
 function mountPage(): void {
@@ -63,7 +85,7 @@ function mountPage(): void {
   safe('reveal', initReveal);
   safe('stats-cache', initStatsCache);
   safe('time-machine', initTimeMachine);
-  safe('time-model-chart', initTimeModelChart);
+  loadTimeModelChart();
   safe('season', initSeasonWheel);
   safe('season-sky', initSeasonSky);
 }
