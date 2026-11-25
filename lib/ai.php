@@ -783,7 +783,9 @@ function sg_ai_cover(): string
         $albums = sg_albums();
         $cover = trim((string) ($albums[0]['coverThumb'] ?? ($albums[0]['cover'] ?? '')));
     }
-    return $cover !== '' ? $cover : 'dist/img/photos/briefing-3.jpg';
+    /* 2026-11-25 第九十轮：原回退是 dist/img/photos/briefing-3.jpg，该图已随
+       未使用资源清理删除，改走主题内置占位图（ph-*.svg），任何环境都可用。 */
+    return $cover !== '' ? $cover : sg_placeholder(1015, 1200, 700);
 }
 
 function sg_ai_weekday(): string

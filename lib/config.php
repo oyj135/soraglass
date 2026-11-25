@@ -62,13 +62,16 @@ function sg_opt(string $key, string $default = ''): string
  * 直接超时（IPv4 连不上、IPv6 直接失败），于是所有封面都回退成本地渐变图，
  * 首页「樱色纪行」海报与「AI 日报」横幅的背景图整体失效。
  *
- * 现在返回 `dist/img/ph-1..6.svg`（$id 取模选图），由 sg_theme_url() 拼成
+ * 现在返回 `dist/img/ph-1..4.svg`（$id 取模选图），由 sg_theme_url() 拼成
  * 绝对地址，任何网络环境下都能显示，也避免了一次跨域请求。$width/$height
  * 只为兼容旧调用点保留，不再参与拼地址。
+ *
+ * 2026-11-25 第九十轮：占位图由 6 张收敛到 4 张（ph-5/ph-6 仅日报第 4–5 期
+ * 无封面时可达，实际几乎不用），取模同步改为 4。
  */
 function sg_placeholder(int $id = 1015, int $width = 1200, int $height = 600): string
 {
-    $index = (($id % 6) + 6) % 6 + 1;
+    $index = (($id % 4) + 4) % 4 + 1;
     return sg_theme_url('dist/img/ph-' . $index . '.svg');
 }
 
