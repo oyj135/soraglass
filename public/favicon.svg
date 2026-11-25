@@ -1,6 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a18cd1"/><stop offset=".5" stop-color="#fbc2eb"/><stop offset="1" stop-color="#a1c4fd"/></linearGradient></defs>
-  <rect x="6" y="6" width="52" height="52" rx="18" fill="url(#g)" opacity=".9"/>
-  <rect x="12" y="12" width="40" height="40" rx="14" fill="#fff" opacity=".28" stroke="#fff" stroke-opacity=".65"/>
-  <circle cx="32" cy="32" r="9" fill="#fff" opacity=".75"/>
+  <!-- 岁候轮盘 · 空璃（2026-11-25 第八十五轮）：玄墨方 + 纸白太极，只用主题核心二色。 -->
+  <rect width="64" height="64" rx="16" fill="#252229"/>
+  <circle cx="32" cy="32" r="23" fill="#f9f2e0"/>
+  <path d="M32 9 A23 23 0 0 1 32 55 A11.5 11.5 0 0 1 32 32 A11.5 11.5 0 0 0 32 9 Z" fill="#252229"/>
+  <circle cx="32" cy="20.5" r="4.5" fill="#252229"/>
+  <circle cx="32" cy="43.5" r="4.5" fill="#f9f2e0"/>
 </svg>

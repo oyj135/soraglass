@@ -690,7 +690,8 @@ function themeConfig($form): void
         '浏览器标签页 / 收藏夹里那个小图标。<b>支持 https/http 外链</b>：'
         . '<code>https://cdn.example.com/icon.png</code>（可直接用对象存储或 CDN 地址，带查询串也行）；'
         . '也可以填 <code>usr/uploads/icon.png</code> 或主题内相对路径（如 <code>dist/favicon.svg</code>）。<br>'
-        . '留空则使用主题自带的 <code>dist/favicon.svg</code>。建议正方形、不小于 64×64，格式 PNG / SVG / ICO。'
+        . '留空则使用主题自带的 <code>dist/favicon.svg</code>（2026-11-25 第八十五轮重绘：玄墨方 + 纸白太极「岁候轮盘」，主题核心二色）。建议正方形、不小于 64×64，格式 PNG / SVG / ICO。<br>'
+        . '<b>iOS「添加到主屏幕」图标</b>另走 <code>rel=apple-touch-icon</code>，固定用主题自带的 180×180 <code>dist/apple-touch-icon.png</code>（iOS 不认 rel=icon 的 SVG），不随本项外链变化。'
     )));
     $form->addInput(new Text('sgNavTitle', null, '', _t('导航前缀'), _t('留空则使用站点名称')));
     $form->addInput(new Textarea('sgNavGroups', null, '', _t('导航分组 · JSON（可选）'), _t(

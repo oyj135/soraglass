@@ -19,12 +19,17 @@ if (!in_array($sgBlur, ['none', 'soft', 'strong'], true)) {
    只在软换页（PJAX）时由 loading.ts 揭开/盖上，首屏不参与避免与开屏叠加。 */
 $sgLoadingAvatar = sg_media((string) sg_opt('sgAvatarUrl', ''), sg_theme_url('dist/img/avatar.svg'));
 
-/* 网站图标（2026-11-22 第五十三轮）：后台「网站图标」可填 https/http 外链
-   （如对象存储 / CDN），也支持 usr/uploads/… 与主题内相对路径；留空回退自带 SVG。 */
+/* 网站图标（2026-11-22 第五十三轮建项；2026-11-25 第八十五轮重绘为「岁候轮盘」太极）：
+   后台「网站图标」可填 https/http 外链（如对象存储 / CDN），也支持 usr/uploads/…
+   与主题内相对路径；留空回退自带 SVG。内置图标改为玄墨方 + 纸白太极（主题核心二色）。 */
 $sgFavicon = sg_bg_url((string) sg_opt('sgFavicon', ''));
 if ($sgFavicon === '') {
     $sgFavicon = sg_theme_url('dist/favicon.svg');
 }
+/* apple-touch-icon（第八十五轮）：iOS「添加到主屏幕」只认 PNG、且不读 rel=icon。
+   固定指向主题自带的 180×180 PNG（不随 sgFavicon 外链变化，保证图标与太极品牌一致）；
+   后台更换的图标只作用于浏览器标签页 / 收藏夹。 */
+$sgAppleIcon = sg_theme_url('dist/apple-touch-icon.png');
 ?>
 <!DOCTYPE html>
 <html lang="zh-CN" data-sg-blur="<?php echo sg_e($sgBlur); ?>">
@@ -53,6 +58,7 @@ if ($sgFavicon === '') {
 <link rel="canonical" href="<?php echo sg_e((string) $GLOBALS['SG_CANONICAL']); ?>">
 <?php endif; ?>
 <link rel="icon" href="<?php echo sg_e($sgFavicon); ?>">
+<link rel="apple-touch-icon" sizes="180x180" href="<?php echo sg_e($sgAppleIcon); ?>">
 <?php /* 阿里 iconfont 多色语义图标（对齐源站 fomal.cc）：4 个 async JS 向 body 首部注入
         隐藏 <symbol>，每枚内嵌独立品牌色；页面用 <use href="#icon-*"> 引用（见 icons.php）。
         symbol 常驻 DOM，PJAX 只换 #sg-main 不受影响；CDN 不可达时图标位留白但布局不塌。 */ ?>
