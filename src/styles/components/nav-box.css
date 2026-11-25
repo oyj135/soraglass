@@ -2,7 +2,19 @@
    布局 = 右侧「通讯录」分组锚点栏（≥1280 粘性）+ 主区分组卡片网格；
    <1280 锚点栏降级为顶部吸顶分组胶囊条（与碎语页筛选条同语言）；
    卡片 = 图标圆徽（favicon，失败回退首字圆徽）+ 站名 + 简介，整卡外链。 */
-.sg-navbox-wrap { display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+/* 书签盒整体收纳进一张大底板：底色/描边/圆角/投影只在这里给，
+   内部锚点栏与分组卡一律退到纸面之下，不再各自成卡（2026-11-25）。 */
+.sg-navbox-wrap {
+  display: grid;
+  grid-template-columns: 13rem minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  background: var(--sg-card);
+  border: 1px solid var(--sg-line);
+  border-radius: var(--sg-radius);
+  box-shadow: var(--sg-shadow);
+}
 
 /* —— 通讯录侧栏（≥1280 粘性） —— */
 .sg-navbox-side {
@@ -12,12 +24,7 @@
   flex-direction: column;
   gap: .375rem;
   padding: .8rem;
-  border-radius: var(--sg-radius);
-  background: var(--sg-card);
-  border: 1px solid var(--sg-card-border);
-  box-shadow: var(--sg-shadow);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  /* 层级后退：侧栏纳入大底板，仅保留吸顶与胶囊条，不再自带卡面/描边/阴影 */
 }
 .sg-navbox-side-link {
   display: flex;
@@ -96,18 +103,15 @@
   gap: .7rem;
   padding: .8rem .9rem;
   border-radius: var(--sg-radius-inner);
-  background: var(--sg-card);
-  border: 1px solid var(--sg-card-border);
-  box-shadow: var(--sg-shadow);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  /* 层级后退：撤掉独立卡面，改为底板上的浅墨格；hover 只作轻微反馈，不再浮起投影 */
+  background: var(--sg-chip);
+  border: 1px solid transparent;
   text-decoration: none;
-  transition: transform var(--sg-dur-card) var(--sg-ease), border-color var(--sg-dur-card) var(--sg-ease), box-shadow var(--sg-dur-card) var(--sg-ease);
+  transition: background-color var(--sg-dur-card) var(--sg-ease), border-color var(--sg-dur-card) var(--sg-ease);
 }
 .sg-navbox-card:hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--sg-accent) 45%, var(--sg-card-border));
-  box-shadow: 0 14px 30px -14px color-mix(in srgb, var(--sg-accent-ink) 55%, transparent);
+  background: color-mix(in srgb, var(--sg-accent) 8%, var(--sg-chip));
+  border-color: color-mix(in srgb, var(--sg-accent) 22%, transparent);
 }
 
 /* 图标圆徽：img 盖在首字回退层上，加载失败自动露出回退层 */
@@ -176,6 +180,8 @@ html.dark .sg-navbox-ico { background: #f4f1ea; }
     padding: .45rem;
     margin-bottom: 1.5rem;
     z-index: 5;
+    /* 吸顶条只保留实底挡住穿透内容，不恢复描边/阴影，仍是底板的一部分 */
+    background: var(--sg-card);
   }
   .sg-navbox-side::-webkit-scrollbar { display: none; }
   .sg-navbox-side-link {
