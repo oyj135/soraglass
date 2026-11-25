@@ -264,6 +264,9 @@ export function initBriefing(): void {
   const readerLink = dialog?.querySelector<HTMLAnchorElement>('[data-sg-reader-link]');
   const readerSave = dialog?.querySelector<HTMLButtonElement>('[data-sg-reader-save]');
   let activeId = '';
+  /* 焦点归还（2026-11-25 桌面端无障碍）：showModal 会把焦点送进 dialog，
+     但关闭后浏览器不保证回到触发条目；与导航抽屉同款记录 opener 并归还。 */
+  let readerOpener: HTMLElement | null = null;
 
   const paintSave = (): void => {
     if (!readerSave) return;
@@ -332,24 +335,36 @@ export function initBriefing(): void {
       paintSave();
 
       if (dialog && typeof dialog.showModal === 'function') {
+        readerOpener = item;
         try { dialog.showModal(); } catch { dialog.setAttribute('open', ''); }
       }
       paintIssue(current, 'auto');
     });
   });
 
+  const restoreFocus = (): void => {
+    if (readerOpener?.isConnected) readerOpener.focus({ preventScroll: true });
+    readerOpener = null;
+  };
+
   const closeReader = (): void => {
     if (!dialog) return;
     if (typeof dialog.close === 'function') dialog.close();
-    else dialog.removeAttribute('open');
+    else {
+      dialog.removeAttribute('open');
+      /* 非模态回退路径不会派发 close 事件，焦点归还需在这里自己做 */
+      restoreFocus();
+    }
   };
 
   dialog?.querySelector('[data-sg-reader-close]')?.addEventListener('click', closeReader);
   dialog?.addEventListener('click', (event) => {
     if (event.target === dialog) closeReader();
   });
+  /* 原生 close（含 Escape / close()）统一在这里归还焦点 */
   dialog?.addEventListener('close', () => {
     document.body.removeAttribute('data-sg-lock');
+    restoreFocus();
   });
 
   readerSave?.addEventListener('click', () => {

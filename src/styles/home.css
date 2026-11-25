@@ -163,7 +163,7 @@ html:not(.dark) .sg-front-title { text-wrap: balance; }
 
 /* ---------- 正文两栏（74% : 26%） ---------- */
 /* 首屏 100vh 与正文之间留呼吸（2026-11-18 视觉改造，源站 .layout padding-top 40px） */
-.sg-home-body { display: flex; flex-direction: column; gap: 1.5rem; padding-top: 2.5rem; }
+.sg-home-body { display: flex; flex-direction: column; gap: 1.5rem; padding-top: 1.5rem; }
 .sg-home-main { min-width: 0; flex: 1; }
 .sg-home-main .sg-hero { display: block; } /* 轮播容器全宽，不再是 7:5 grid 的 7 列 */
 .sg-home-main .sg-hero-cover { width: 100%; }
@@ -416,7 +416,7 @@ html.dark .sg-hcard { background-color: var(--sg-card); background-image: var(--
 
 /* ---------- 小站资讯卡（对齐 Fomalhaut card_webinfo 新版：KPI + 时间条 + 年度产出柱状） ---------- */
 .sg-hinfo-kpi { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
-.sg-hinfo-kpi-item { display: flex; flex-direction: column; align-items: center; gap: .2rem; padding: .6rem .2rem; border-radius: .6rem; background: var(--sg-chip); text-decoration: none; transition: background-color .25s ease-in-out, transform .25s ease-in-out; }
+.sg-hinfo-kpi-item { display: flex; flex-direction: column; align-items: center; gap: .2rem; padding: .6rem .2rem; border-radius: var(--sg-radius-inner); background: var(--sg-chip); text-decoration: none; transition: background-color .25s ease-in-out, transform .25s ease-in-out; }
 /* 2026-11-21 墨分五色：悬浮底统一为竹青实底压白字（替掉蓝紫 #5457c9），走 --sg-filter-active */
 html:not(.dark) .sg-hinfo-kpi-item:is(:hover, :focus-visible),
 html:not(.dark) .sg-hinfo-visit-item:is(:hover, :focus-visible) {
@@ -459,7 +459,7 @@ html.dark :is(.sg-hinfo-kpi-item, .sg-hinfo-visit-item):is(:hover, :focus-visibl
 .sg-hinfo-year { flex: 1 1 0; min-width: 0; text-align: center; font-family: var(--font-sans); font-size: .625rem; color: var(--sg-warm); opacity: .85; font-variant-numeric: tabular-nums; }
 /* 访客位（对齐 Fomalhaut .wi-visit）：两位大数字 + 标签，busuanzi 回写前显示 — */
 .sg-hinfo-visit { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; margin-top: .85rem; padding-top: .8rem; border-top: 1px solid var(--sg-line); }
-.sg-hinfo-visit-item { display: flex; flex-direction: column; align-items: center; gap: .25rem; padding: .55rem .2rem; border-radius: .6rem; background: var(--sg-chip); transition: background-color .25s ease-in-out, transform .25s ease-in-out; }
+.sg-hinfo-visit-item { display: flex; flex-direction: column; align-items: center; gap: .25rem; padding: .55rem .2rem; border-radius: var(--sg-radius-inner); background: var(--sg-chip); transition: background-color .25s ease-in-out, transform .25s ease-in-out; }
 .sg-hinfo-visit-num { font-size: 1.35rem; font-weight: 700; line-height: 1.1; color: var(--sg-warm); font-variant-numeric: tabular-nums; }
 .sg-hinfo-visit-label { font-family: var(--font-sans); font-size: .66rem; color: var(--sg-muted); }
 

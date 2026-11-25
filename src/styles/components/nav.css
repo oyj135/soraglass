@@ -176,7 +176,7 @@ html.dark .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent-ink);
    `left:0 / bottom:0 / width:0 → 100% / height:3px / all .3s ease-in-out`，
    直角、纯色、从左侧长满（原来是 2px + scaleX 合成层写法，形态与源站不一致）。
    颜色取源站 `lighten($theme-color, 30%)` 的手法：主色提亮到浅档。 */
-.sg-nav-link { display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .65rem; margin-inline: -.65rem; border-radius: .6rem; transition: color .3s, opacity .3s, background-color .25s var(--sg-ease); }
+.sg-nav-link { display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .65rem; margin-inline: -.65rem; border-radius: var(--sg-radius-inner); transition: color .3s, opacity .3s, background-color .25s var(--sg-ease); }
 /* 2026-11-21 第三十六轮（用户要求）：悬浮不再出底板，只有「当前页」才有深青底板；
    悬浮反馈只留字色 + 3px 下划线（源站 #nav a:hover 亦无底板）。 */
 .sg-nav-link::after {
@@ -193,8 +193,12 @@ html.dark .sg-nav-link:is(:hover, :focus-visible) { color: var(--sg-accent-ink);
 @media (prefers-reduced-motion: reduce) { .sg-nav-link::after { transition: none; } }
 .sg-sheet-link { display: flex; align-items: center; gap: .45rem; }
 /* 下拉条目横排后的尺寸/hover/选中态统一在 editorial.css 的「更多」下拉段维护 */
-.sg-sheet-link { padding: .45rem .7rem; margin-inline: -.7rem; border-radius: 10px; transition: background-color .25s linear, color .25s linear, opacity .25s linear; }
+.sg-sheet-link { padding: .45rem .7rem; margin-inline: -.7rem; border-radius: var(--sg-radius-inner); transition: background-color .25s linear, color .25s linear, opacity .25s linear; }
 .sg-sheet-link:is(:hover, :focus-visible) { background: var(--sg-warm-fill); color: #fff; opacity: 1; }
+/* 键盘焦点环（2026-11-25 桌面端优化）：hover 仍是纯变色+下划线，只为键盘态补 outline。
+   顶栏链接在壁纸 scrim 上、下拉条目在深抽屉上，两处底色不同，各自取对比足够的色。 */
+.sg-nav-link:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.sg-sheet-link:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 /* 导航图标彩色（2026-11-17，对齐源站彩色图标的观感）：每个入口一个专属色，
    与卡片段色一致（日期黄/分类橙/标签绿的同族扩展）。 */
 .sg-nav-ico { flex: none; width: 1em; height: 1em; display: inline-flex; }

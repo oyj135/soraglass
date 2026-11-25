@@ -126,7 +126,7 @@
   right: calc(100% + .35rem);
   transform: translateY(-50%) scale(.85);
   padding: .3rem .6rem;
-  border-radius: .6rem;
+  border-radius: var(--sg-radius-inner);
   border: 1px solid var(--sg-line);
   background: var(--sg-card-strong);
   color: var(--sg-accent-ink);

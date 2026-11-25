@@ -133,7 +133,7 @@ html.dark .sg-post-meta-cate:hover { color: var(--sg-accent-ink); }
   height: 200px;
   /* 实色深底：半透明底叠在日间白卡上会变灰，.4 透明度的封面再把白字冲到 2.1:1 */
   background: rgb(12, 18, 22);
-  border-radius: 12px;
+  border-radius: var(--sg-radius-inner);
 }
 @media (max-width: 767.98px) { .sg-related-cell { margin: 2px; width: calc(50% - 4px); height: 150px; } .sg-related-content { margin: 0 12px; } }
 @media (max-width: 600px) { .sg-related-cell { width: calc(100% - 4px); } }
@@ -171,7 +171,7 @@ html.dark .sg-post-meta-cate:hover { color: var(--sg-accent-ink); }
   text-shadow: none;
   background: rgba(6, 13, 18, .42);
   border: 1px solid rgba(255, 255, 255, .16);
-  border-radius: 12px;
+  border-radius: var(--sg-radius-inner);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
 }
@@ -934,8 +934,6 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
   background: var(--sg-card);
   border: 1px solid var(--sg-card-border);
   box-shadow: var(--sg-shadow);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 .sg-moment-head { display: flex; align-items: center; gap: .7rem; }
 .sg-moment-avatar {
@@ -955,7 +953,7 @@ html.dark .sg-tags span { color: var(--sg-accent-soft); }
 .sg-moment-bubble {
   margin-top: .8rem;
   padding: .7rem .9rem;
-  border-radius: .8rem;
+  border-radius: var(--sg-radius-inner);
   background: color-mix(in srgb, var(--sg-accent) 7%, transparent);
   font-size: 1.03125rem; line-height: 1.9; color: var(--sg-text);
   display: -webkit-box;
@@ -1172,7 +1170,7 @@ html.dark .sg-feature-card:hover { box-shadow: 0 25px 50px -12px rgb(0 0 0 / .6)
   margin: 0 1.1rem 1.7rem;
   padding: .55rem .95rem;
   border: 1px solid rgba(255, 255, 255, .16);
-  border-radius: 12px;
+  border-radius: var(--sg-radius-inner);
   /* 2026-11-22 第五十三轮：只加深暗幕仍不够——白底插画（如浅色 Java 图）上白字
      实测只剩 1.4–2:1。给引文一层很轻的雾面底（42% 深底 + 6px 模糊），
      观感仍是「压在图上」，但任何封面都能读。 */

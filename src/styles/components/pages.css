@@ -1128,13 +1128,11 @@ html.dark [data-sg-gallery] .sg-gallery-masonry .sg-photo {
   align-items: baseline;
   gap: .5rem;
   padding: .5rem .95rem .66rem;
-  border-radius: .8rem;
+  border-radius: var(--sg-radius-inner);
   border: 1px solid var(--sg-card-border);
   background: var(--sg-card);
   color: var(--sg-text);
   cursor: pointer;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   transition: transform .25s var(--sg-ease), border-color .25s var(--sg-ease), background-color .25s var(--sg-ease);
 }
 .sg-time-yearpill:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--sg-accent) 42%, transparent); }

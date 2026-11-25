@@ -277,7 +277,7 @@
   text-shadow: none;
   background: rgba(6, 13, 18, .42);
   border: 1px solid rgba(255, 255, 255, .16);
-  border-radius: 12px;
+  border-radius: var(--sg-radius-inner);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
 }
@@ -754,11 +754,9 @@ html.sg-readmode [data-sg-readmode-toggle] { color: var(--sg-accent-ink); border
   max-width: min(92vw, 40rem);
   padding: .45rem;
   border: 1px solid var(--sg-card-border);
-  border-radius: 1.125rem;
+  border-radius: var(--sg-radius-outer);
   background: var(--sg-card-strong);
   box-shadow: var(--sg-shadow-strong);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
   animation: sg-sub-menu .3s var(--sg-ease) .1s both;
 }
 @keyframes sg-sub-menu {
@@ -774,7 +772,7 @@ html.sg-readmode [data-sg-readmode-toggle] { color: var(--sg-accent-ink); border
   align-items: center;
   gap: .55rem;
   padding: .4rem .85rem .4rem .5rem;
-  border-radius: .85rem;
+  border-radius: var(--sg-radius-inner);
   color: var(--sg-muted);
   font-size: .9rem;
   font-weight: 500;
