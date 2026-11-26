@@ -1108,6 +1108,12 @@ function sgWheelHTML(selTerm, selGong) {
     </a>`;
   }).join('\n');
 
+  /* 宫界分隔刻：与 partials/season-wheel.php 同步（第八十一轮 宫环去棋盘） */
+  const gongTicks = Array.from({ length: 12 }, (_, k) => {
+    const [x0, y0] = sgPt(150, k * 30), [x1, y1] = sgPt(178, k * 30);
+    return `<line x1="${sgF(x0)}" y1="${sgF(y0)}" x2="${sgF(x1)}" y2="${sgF(y1)}"></line>`;
+  }).join('\n');
+
   const terms = SG_META.map((t, i) => {
     const mid = i * 15 + 7.5;
     const [lx, ly] = sgPt(210, mid);
@@ -1146,9 +1152,10 @@ function sgWheelHTML(selTerm, selGong) {
       <svg class="sg-wheel-svg" viewBox="0 0 520 520" role="group" aria-label="双刻度轮盘">
         <g class="sg-wheel-rotor">
           ${gongs}
+          <g class="sg-wheel-gong-ticks" aria-hidden="true">${gongTicks}</g>
           ${terms}
           <g class="sg-wheel-hou" aria-hidden="true">${houTicks}</g>
-          <g class="sg-wheel-etch" aria-hidden="true"><circle cx="260" cy="260" r="141"></circle><circle cx="260" cy="260" r="136" stroke-dasharray="1 5"></circle></g>
+          <g class="sg-wheel-etch" aria-hidden="true"><circle cx="260" cy="260" r="141"></circle><circle cx="260" cy="260" r="136" stroke-dasharray="1 5"></circle><circle cx="260" cy="260" r="182"></circle><circle cx="260" cy="260" r="238"></circle></g>
           <g class="sg-wheel-marks" aria-hidden="true">
             ${marks}
             <circle class="sg-wheel-pulse" cx="${sgF(px)}" cy="${sgF(py)}" r="3"></circle>

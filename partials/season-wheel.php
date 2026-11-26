@@ -133,6 +133,16 @@ $sgMNow = $sgWNow >= 0 ? (int) floor($sgWNow / 2) * 2 : -1;
           <?php endforeach; ?>
           <?php endif; ?>
 
+          <?php /* 宫界分隔刻（第八十一轮 宫环去棋盘）：12 道跨宫环带的细线，
+             替代阴阳交替色块承担「分块」读数；静置时是环带的节拍，不抢戏。 */ ?>
+          <g class="sg-wheel-gong-ticks" aria-hidden="true">
+            <?php for ($sgKT = 0; $sgKT < 12; $sgKT++) : ?>
+            <?php [$sgKTx0, $sgKTy0] = $sgWPt($sgWGongIn + 2.0, $sgKT * 30.0); ?>
+            <?php [$sgKTx1, $sgKTy1] = $sgWPt($sgWGongOut - 2.0, $sgKT * 30.0); ?>
+            <line x1="<?php echo round($sgKTx0, 2); ?>" y1="<?php echo round($sgKTy0, 2); ?>" x2="<?php echo round($sgKTx1, 2); ?>" y2="<?php echo round($sgKTy1, 2); ?>"></line>
+            <?php endfor; ?>
+          </g>
+
           <?php /* 节气环：182–238，四时「墨分四浓」，中气外沿朱点 */ ?>
           <?php foreach ($sgWTerms as $sgT) : ?>
           <?php
@@ -198,6 +208,9 @@ $sgMNow = $sgWNow >= 0 ? (int) floor($sgWNow / 2) * 2 : -1;
           <g class="sg-wheel-etch" aria-hidden="true">
             <circle cx="260" cy="260" r="141"></circle>
             <circle cx="260" cy="260" r="136" stroke-dasharray="1 5"></circle>
+            <?php /* 第八十一轮：节气环内外沿 hairline（r182/r238），24 段读成一条环带 */ ?>
+            <circle cx="260" cy="260" r="182"></circle>
+            <circle cx="260" cy="260" r="238"></circle>
           </g>
 
           <?php /* 中气朱点：12 枚，落在宫界上（i 为偶数的节气起点） */ ?>
