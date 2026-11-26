@@ -1121,9 +1121,11 @@ function sgWheelHTML(selTerm, selGong) {
     const gong = Math.floor(i / 2);
     const count = SG_COUNTS[i];
     const isCurrent = i === SG_NOW;
+    /* 第六十八轮 朱印独占：与 partials/season-wheel.php 同步——选中的不是当令时，当令不压墨块 */
+    const curLit = selTerm < 0 || selTerm === SG_NOW;
     const sub = isCurrent ? '12 天后是大雪' : `${sgMD(SG_DATES[i])} – ${sgEndMD(i)}`;
     let cls = `sg-wheel-term is-${sgSeasonOf(i)}`;
-    if (isCurrent) cls += ' is-current';
+    if (isCurrent && curLit) cls += ' is-current';
     if (i === selTerm) cls += ' is-sel';
     if (count === 0) cls += ' is-empty';
     return `<a class="${cls}" href="${sgTermURL(i)}" data-sg-term-i="${i}" data-sg-gong="${gong}" data-sg-label="${t[1]} · ${SG_GONGS[gong][1]}宫" data-sg-sub="${i * 15}° · ${sub}" tabindex="${i === selTerm ? '0' : '-1'}"${i === selTerm ? ' aria-current="true"' : ''}>

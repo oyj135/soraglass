@@ -98,6 +98,11 @@ $sgWSeason = static function (int $i): string {
 /* 当令所属宫界（中气）在 marks 里的序号：宫界永远落在偶数序节气上。 */
 $sgWNow = (int) ($sgSWheel['current'] ?? -1);
 $sgMNow = $sgWNow >= 0 ? (int) floor($sgWNow / 2) * 2 : -1;
+
+/* 第六十八轮 朱印独占：URL/求签选中的节气不是当令时，当令不压墨块——
+   盘上唯一的朱块留给命中那一枚；回到当令页（无选中或选中的就是当令）才恢复。 */
+$sgWSelTerm = (int) ($sgSWheel['selectedTerm'] ?? -1);
+$sgWCurLit = $sgWSelTerm < 0 || $sgWSelTerm === $sgWNow;
 ?>
 <div class="sg-wheel" data-sg-wheel>
   <nav class="sg-wheel-disc" aria-label="二十四节气与黄道十二宫">
@@ -152,7 +157,7 @@ $sgMNow = $sgWNow >= 0 ? (int) floor($sgWNow / 2) * 2 : -1;
           [$sgLx, $sgLy] = $sgWPt($sgWLonTerm, $sgMid);
           /* 标签永远正立：反向抵消 --sg-rot，不再按屏幕角判断翻转 */
           $sgCls = 'sg-wheel-term is-' . $sgWSeason($sgT['i']);
-          if ($sgT['current']) {
+          if ($sgT['current'] && $sgWCurLit) {
               $sgCls .= ' is-current';
           }
           if ($sgT['selected']) {
