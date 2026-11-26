@@ -237,23 +237,39 @@ html.dark .sg-season {
 .sg-stage-gauges { display: none; }
 .sg-gauge { display: none; }
 
-/* 朱印：舞台右上角一枚，整页只此一个重色块 */
+/* 朱印（第六十六轮 玉玺感）：印泥层叠底 + 内外双边栏。
+   印面不再是单色矩形：上部一点高光、下部一点沉墨，像印泥压出的厚薄不均；
+   外框是 inset 细白线，内框由 ::before 画，字落在栏内。 */
 .sg-seal {
+  position: relative;
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: .62rem .38rem;
-  background: var(--sg-warm);
+  background:
+    radial-gradient(130% 90% at 30% 18%, rgba(255, 255, 255, .10), transparent 55%),
+    radial-gradient(130% 120% at 76% 88%, rgba(0, 0, 0, .16), transparent 62%),
+    var(--sg-warm);
   color: #fdfbf4;
   font-family: var(--font-serif);
   font-size: .95rem;
   line-height: 1;
   letter-spacing: .22em;
   writing-mode: vertical-rl;
-  border-radius: 2px;
-  box-shadow: inset 0 0 0 1px rgba(253, 251, 244, .28);
+  border-radius: 3px 4px 3px 5px;
+  box-shadow:
+    inset 0 0 0 1px rgba(253, 251, 244, .30),
+    0 2px 8px -3px color-mix(in srgb, var(--sg-warm) 55%, transparent);
   user-select: none;
+}
+.sg-seal::before {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 1px solid rgba(253, 251, 244, .30);
+  border-radius: 2px;
+  pointer-events: none;
 }
 .sg-seal--stage {
   position: absolute;
@@ -285,7 +301,6 @@ html.dark .sg-season {
   padding: .9rem .55rem;
   font-size: 1.28rem;
   letter-spacing: .3em;
-  border-radius: 3px;
   box-shadow:
     inset 0 0 0 1.5px rgba(253, 251, 244, .34),
     0 2px 10px -2px color-mix(in srgb, var(--sg-warm) 45%, transparent);
@@ -295,13 +310,32 @@ html.dark .sg-season {
   filter: blur(4px);
   will-change: transform, opacity, filter;
 }
+/* 落章洇开：印泥压下的瞬间，一圈朱晕从印边散出（只挂盘心这枚） */
+.sg-seal--draw::after {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  border: 1px solid color-mix(in srgb, var(--sg-warm) 55%, transparent);
+  border-radius: 7px;
+  opacity: 0;
+  pointer-events: none;
+}
 .sg-wheel.is-stamped .sg-seal--draw {
-  animation: sg-seal-stamp-center .5s cubic-bezier(.18, .86, .28, 1) forwards;
+  animation: sg-seal-stamp-center .6s cubic-bezier(.18, .86, .28, 1) forwards;
+}
+.sg-wheel.is-stamped .sg-seal--draw::after {
+  animation: sg-seal-bleed .9s ease-out .16s forwards;
 }
 @keyframes sg-seal-stamp-center {
   from { opacity: 0; transform: translate(-50%, -50%) scale(1.7) rotate(-8deg); filter: blur(4px); }
-  62%  { opacity: 1; transform: translate(-50%, -50%) scale(.94) rotate(1.4deg); filter: blur(0); }
-  to   { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0deg); filter: none; }
+  55%  { opacity: 1; transform: translate(-50%, -50%) scale(1.14, .86) rotate(2.4deg); filter: blur(0); }
+  72%  { transform: translate(-50%, -50%) scale(.95, 1.04) rotate(-1.6deg); }
+  86%  { transform: translate(-50%, -50%) scale(1.03, .98) rotate(-2.4deg); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(-2deg); filter: none; }
+}
+@keyframes sg-seal-bleed {
+  from { opacity: .75; transform: scale(.94); }
+  to { opacity: 0; transform: scale(1.4); }
 }
 /* 落章时让盘心读数让位：印压上去，字就不该透出来 */
 .sg-wheel.is-stamped .sg-wheel-center { opacity: 0; }
@@ -309,9 +343,10 @@ html.dark .sg-season {
   .sg-wheel.is-stamped .sg-seal--draw {
     animation: none;
     opacity: 1;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) rotate(-2deg);
     filter: none;
   }
+  .sg-wheel.is-stamped .sg-seal--draw::after { animation: none; opacity: 0; }
 }
 
 /* ============================================================
@@ -561,14 +596,15 @@ html.dark .sg-season {
 }
 .sg-wheel-term.is-empty .sg-wheel-term-label { opacity: .5; }
 
-/* is-sel：选中态 —— 填回纸色 + 1px 朱砂边（「翻到正面」感） */
+/* is-sel：选中态（第六十六轮）——求签命中的节气与「当令」同一套配色：
+   朱砂实底 + 反相字，两块印用同一枚印泥，不再走「纸面翻正」的旧读法 */
 .sg-wheel-term.is-sel .sg-wheel-term-arc {
-  fill: var(--sg-card);
+  fill: var(--sg-warm);
   stroke: var(--sg-warm);
   stroke-width: 1;
   stroke-dasharray: none;
 }
-.sg-wheel-term.is-sel .sg-wheel-term-label { fill: var(--sg-text); }
+.sg-wheel-term.is-sel .sg-wheel-term-label { fill: var(--sg-card); }
 
 /* is-current：当令 —— 朱砂实块 + 反相字，盘面上唯一的「实块」（第六十五轮：
    夜间纸白块在夜纸上发白一片读不出笔画，改朱砂底；昼夜统一，与右上朱印同一套色） */
@@ -606,16 +642,21 @@ html.dark .sg-season {
 .sg-wheel-term.is-empty.is-linked .sg-wheel-term-label,
 .sg-wheel-term.is-empty:hover .sg-wheel-term-label { opacity: 1; }
 
-/* is-current 被 hover / 指示时仍保持朱块 + 反相字：当令是「压下去的印」，不该被指针翻回纸色 */
+/* is-current / is-sel 被 hover / 指示时仍保持朱块 + 反相字：
+   印已经压下去，不该被指针翻回纸色 */
 .sg-wheel-term.is-current.is-linked .sg-wheel-term-arc,
-.sg-wheel-term.is-current:hover .sg-wheel-term-arc {
+.sg-wheel-term.is-sel.is-linked .sg-wheel-term-arc,
+.sg-wheel-term.is-current:hover .sg-wheel-term-arc,
+.sg-wheel-term.is-sel:hover .sg-wheel-term-arc {
   fill: var(--sg-warm);
   stroke: var(--sg-warm);
   stroke-width: 1;
   transform: none;
 }
 .sg-wheel-term.is-current.is-linked .sg-wheel-term-label,
-.sg-wheel-term.is-current:hover .sg-wheel-term-label { fill: var(--sg-card); }
+.sg-wheel-term.is-sel.is-linked .sg-wheel-term-label,
+.sg-wheel-term.is-current:hover .sg-wheel-term-label,
+.sg-wheel-term.is-sel:hover .sg-wheel-term-label { fill: var(--sg-card); }
 
 .sg-wheel-term-label {
   font-family: var(--font-serif);
@@ -1395,7 +1436,17 @@ html.dark .sg-season {
 .sg-hseason:hover .sg-hseason-text b { color: var(--sg-accent-deep); }
 
 /* ---------- 夜间 ---------- */
-html.dark .sg-seal { background: var(--sg-warm-bright); color: #1b191e; }
+html.dark .sg-seal {
+  background:
+    radial-gradient(130% 90% at 30% 18%, rgba(255, 255, 255, .12), transparent 55%),
+    radial-gradient(130% 120% at 76% 88%, rgba(0, 0, 0, .18), transparent 62%),
+    var(--sg-warm-bright);
+  color: #1b191e;
+  box-shadow:
+    inset 0 0 0 1px rgba(27, 25, 30, .30),
+    0 2px 8px -3px color-mix(in srgb, var(--sg-warm-bright) 55%, transparent);
+}
+html.dark .sg-seal::before { border-color: rgba(27, 25, 30, .30); }
 /* 夜间：右上换成淡朱的月光晕，左上换成雾青；不再借用 --sg-glow-a（夜间是墨色，看不出光） */
 html.dark .sg-season-sheet {
   background:
@@ -1413,10 +1464,11 @@ html.dark .sg-season-chronicle::after {
     transparent);
 }
 html.dark .sg-wheel-term-arc { fill: color-mix(in srgb, var(--sg-text) 5%, transparent); }
-/* 夜间：当令块用暖一档的淡朱（warm-bright），字压焦墨——朱底上三色轮询会糊成一片，
-   夜间霓虹轮询就此退役（白天无此动画，昼夜行为一致） */
-html.dark .sg-wheel-term.is-current .sg-wheel-term-arc { fill: var(--sg-warm-bright); stroke: var(--sg-warm-bright); }
-html.dark .sg-wheel-term.is-current .sg-wheel-term-label { fill: #1b191e; }
+/* 夜间：当令 / 求签命中块用暖一档的淡朱（warm-bright），字压焦墨 */
+html.dark .sg-wheel-term.is-current .sg-wheel-term-arc,
+html.dark .sg-wheel-term.is-sel .sg-wheel-term-arc { fill: var(--sg-warm-bright); stroke: var(--sg-warm-bright); }
+html.dark .sg-wheel-term.is-current .sg-wheel-term-label,
+html.dark .sg-wheel-term.is-sel .sg-wheel-term-label { fill: #1b191e; }
 html.dark .sg-range-card-body { background: linear-gradient(to top, rgba(8, 7, 10, .88), rgba(8, 7, 10, 0)); }
 
 /* ---------- 动效节奏（四层，全部可关） ---------- */
