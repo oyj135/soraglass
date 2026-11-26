@@ -453,3 +453,26 @@ html.sg-vt::view-transition-new(root) { animation: sg-vt-in .4s var(--sg-ease) b
   html.sg-vt::view-transition-old(root),
   html.sg-vt::view-transition-new(root) { animation: none; }
 }
+
+/* 昼夜揭幕（第九十一轮）：形态取自 test/20251224「聚光灯效果」的整屏开孔，
+   但把 box-shadow 铺满换成 clip-path —— 两千像素半径的阴影每帧重绘会掉帧，
+   圆形裁切走合成层。theme.ts 点击时写入 --sg-dawn-x/y（按钮中心），新帧即从该点扩圆揭开。
+   旧帧保持静止（animation:none），不做交叉淡入，孔洞边缘才干净。
+   下面那条 transition:none 是必需的：新帧快照在颜色过渡刚起步时抓取，
+   不关掉过渡会拍到「底色还是白天、文字已是夜间」的错位帧。 */
+html.sg-dawn,
+html.sg-dawn *,
+html.sg-dawn *::before,
+html.sg-dawn *::after { transition: none !important; }
+html.sg-dawn::view-transition-old(root) { animation: none; }
+html.sg-dawn::view-transition-new(root) { animation: sg-dawn .9s var(--sg-ease) both; }
+@keyframes sg-dawn {
+  /* 两端都用百分比：px 与 % 混用时浏览器按 calc 插值，前段会突然加速；
+     同单位才是线性推进，揭幕才是匀速扩散。 */
+  from { clip-path: circle(0% at var(--sg-dawn-x, 50%) var(--sg-dawn-y, 50%)); }
+  to { clip-path: circle(150% at var(--sg-dawn-x, 50%) var(--sg-dawn-y, 50%)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html.sg-dawn::view-transition-old(root),
+  html.sg-dawn::view-transition-new(root) { animation: none; }
+}

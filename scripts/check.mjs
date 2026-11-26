@@ -136,7 +136,7 @@ for (const rel of docsRequired) {
 //   壁纸候选 / 配色 是用户本地的素材目录，不是文档，2026-11-21 登记「配色」；
 //   vectorizer 是用户的描摹 SVG 素材目录（墨龙/作者卡场景），2026-11-22 登记；
 //   .qa 是会话 QA 目录（评审截图证据 + 本地 dist 预览服务），2026-11-25 登记）
-const allowedTop = new Set(['soraglass', 'docs', 'soraglass.zip', 'plugins', 'SoraglassGallery.zip', 'hexo-theme-fomalhaut', '.workbuddy', '.agents', '.zwork', '.kimi-attachments', '.qa', '.git', '壁纸候选', '配色', 'vectorizer', '预览-六方向.html', '预览-字海.html']);
+const allowedTop = new Set(['soraglass', 'docs', 'soraglass.zip', 'plugins', 'SoraglassGallery.zip', 'hexo-theme-fomalhaut', '.workbuddy', '.agents', '.zwork', '.kimi-attachments', '.qa', '.git', '壁纸候选', '配色', 'vectorizer', 'test', '预览-六方向.html', '预览-字海.html']);
 for (const entry of fs.readdirSync(workspace)) {
   if (!allowedTop.has(entry)) errors.push(`[顶层结构] 多余条目 ${entry}，顶层只允许三件套及已列明的参考/协作目录`);
   if (entry.endsWith('.md')) errors.push(`[文档归置] 根目录不应有 ${entry}，沉淀文档统一放 docs/`);
