@@ -496,7 +496,9 @@ html.dark .sg-season {
 .sg-wheel-foot {
   display: flex;
   justify-content: center;
-  margin-top: clamp(.5rem, 1.2vw, .8rem);
+  /* 第六十五轮：盘缘刻度带外沿与按钮只隔 .5rem，夜间看起来贴在一起——
+     抬到 1.4–2.2rem，给盘底留出呼吸位 */
+  margin-top: clamp(1.4rem, 3.2vw, 2.2rem);
 }
 .sg-wheel-draw {
   display: inline-flex;
@@ -568,14 +570,14 @@ html.dark .sg-season {
 }
 .sg-wheel-term.is-sel .sg-wheel-term-label { fill: var(--sg-text); }
 
-/* is-current：当令 —— 太极墨块（纯黑/白）+ 白字，盘面上唯一的「实块」。
-   去掉外缘空隙/朱边，直接用纯墨填充 + 白字，视觉最重，像一枚印章压下去。 */
+/* is-current：当令 —— 朱砂实块 + 反相字，盘面上唯一的「实块」（第六十五轮：
+   夜间纸白块在夜纸上发白一片读不出笔画，改朱砂底；昼夜统一，与右上朱印同一套色） */
 .sg-wheel-term.is-current .sg-wheel-term-arc {
-  fill: var(--sg-text);
-  stroke: var(--sg-text);
+  fill: var(--sg-warm);
+  stroke: var(--sg-warm);
   stroke-width: 1;
   stroke-dasharray: none;
-  /* 删除原 translateY(-4px) 外缘空隙，墨块应当贴合扇区边界 */
+  /* 删除原 translateY(-4px) 外缘空隙，色块应当贴合扇区边界 */
   transform: none;
 }
 .sg-wheel-term.is-current .sg-wheel-term-label { fill: var(--sg-card); }
@@ -604,11 +606,11 @@ html.dark .sg-season {
 .sg-wheel-term.is-empty.is-linked .sg-wheel-term-label,
 .sg-wheel-term.is-empty:hover .sg-wheel-term-label { opacity: 1; }
 
-/* is-current 被 hover / 指示时仍保持墨块 + 白字：当令是「压下去的印」，不该被指针翻回纸色 */
+/* is-current 被 hover / 指示时仍保持朱块 + 反相字：当令是「压下去的印」，不该被指针翻回纸色 */
 .sg-wheel-term.is-current.is-linked .sg-wheel-term-arc,
 .sg-wheel-term.is-current:hover .sg-wheel-term-arc {
-  fill: var(--sg-text);
-  stroke: var(--sg-text);
+  fill: var(--sg-warm);
+  stroke: var(--sg-warm);
   stroke-width: 1;
   transform: none;
 }
@@ -1411,10 +1413,10 @@ html.dark .sg-season-chronicle::after {
     transparent);
 }
 html.dark .sg-wheel-term-arc { fill: color-mix(in srgb, var(--sg-text) 5%, transparent); }
-html.dark .sg-wheel-term.is-current .sg-wheel-term-label {
-  fill: #eae5d6;
-  animation: sg-post-neon 12s linear infinite;
-}
+/* 夜间：当令块用暖一档的淡朱（warm-bright），字压焦墨——朱底上三色轮询会糊成一片，
+   夜间霓虹轮询就此退役（白天无此动画，昼夜行为一致） */
+html.dark .sg-wheel-term.is-current .sg-wheel-term-arc { fill: var(--sg-warm-bright); stroke: var(--sg-warm-bright); }
+html.dark .sg-wheel-term.is-current .sg-wheel-term-label { fill: #1b191e; }
 html.dark .sg-range-card-body { background: linear-gradient(to top, rgba(8, 7, 10, .88), rgba(8, 7, 10, 0)); }
 
 /* ---------- 动效节奏（四层，全部可关） ---------- */
@@ -1432,7 +1434,6 @@ html.dark .sg-range-card-body { background: linear-gradient(to top, rgba(8, 7, 1
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html.dark .sg-wheel-term.is-current .sg-wheel-term-label { animation: none; }
   .sg-range-card-img { transition: none; }
   .sg-wheel-pulse { animation: none; opacity: 0; }
   /* 求签不转：直接落到结果（JS 也走 reduced-motion 分支，这里兜底） */
