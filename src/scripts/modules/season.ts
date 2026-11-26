@@ -241,10 +241,15 @@ export function initSeasonWheel(): void {
     const parts = (term.getAttribute('data-sg-label') ?? '').split(' · ');
     if (nameEl) nameEl.textContent = '求签';
     if (subEl) subEl.textContent = '摇一卦，落一节';
+    /* 第六十七轮：上一签的朱块先退掉（含 URL 带来的 is-sel），盘上只留一枚新印 */
+    wheel.querySelector('.sg-wheel-term.is-sel')?.classList.remove('is-sel');
 
     spin(index, () => {
       if (nameEl) nameEl.textContent = parts[0] ?? originName;
       if (subEl) subEl.textContent = '签 · ' + (parts[1] ?? '');
+      /* 第六十七轮：命中的节气先切朱砂块——印落在哪儿，盘上就亮哪儿；
+         停 2.6s 让这个切换被看见，再走 PJAX */
+      term.classList.add('is-sel');
       /* R2-4 落章：把抽到的节气刻进朱印，再从盘心压下去 */
       if (drawSeal) {
         drawSeal.textContent = parts[0] ?? '求签';

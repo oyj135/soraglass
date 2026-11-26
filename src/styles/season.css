@@ -1469,6 +1469,23 @@ html.dark .sg-wheel-term.is-current .sg-wheel-term-arc,
 html.dark .sg-wheel-term.is-sel .sg-wheel-term-arc { fill: var(--sg-warm-bright); stroke: var(--sg-warm-bright); }
 html.dark .sg-wheel-term.is-current .sg-wheel-term-label,
 html.dark .sg-wheel-term.is-sel .sg-wheel-term-label { fill: #1b191e; }
+
+/* 第六十七轮 求签时段：盘一转起来（is-drawing）与落章停驻（is-stamped）期间，
+   当令块退回普通节气色，命中块是盘面上唯一的朱印；跳转后由服务端重新排座次。
+   昼夜各写一档：夜里当令基态是 5% 墨底，比昼档多一档才看得见。 */
+.sg-wheel-plot.is-drawing .sg-wheel-term.is-current .sg-wheel-term-arc,
+.sg-wheel.is-stamped .sg-wheel-term.is-current .sg-wheel-term-arc {
+  fill: color-mix(in srgb, var(--sg-text) 3%, transparent);
+  stroke: color-mix(in srgb, var(--sg-text) 22%, transparent);
+  stroke-width: 1;
+  transform: none;
+}
+.sg-wheel-plot.is-drawing .sg-wheel-term.is-current .sg-wheel-term-label,
+.sg-wheel.is-stamped .sg-wheel-term.is-current .sg-wheel-term-label { fill: var(--sg-text); }
+html.dark .sg-wheel-plot.is-drawing .sg-wheel-term.is-current .sg-wheel-term-arc,
+html.dark .sg-wheel.is-stamped .sg-wheel-term.is-current .sg-wheel-term-arc { fill: color-mix(in srgb, var(--sg-text) 5%, transparent); }
+html.dark .sg-wheel-plot.is-drawing .sg-wheel-term.is-current .sg-wheel-term-label,
+html.dark .sg-wheel.is-stamped .sg-wheel-term.is-current .sg-wheel-term-label { fill: var(--sg-text); }
 html.dark .sg-range-card-body { background: linear-gradient(to top, rgba(8, 7, 10, .88), rgba(8, 7, 10, 0)); }
 
 /* ---------- 动效节奏（四层，全部可关） ---------- */
